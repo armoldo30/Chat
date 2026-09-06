@@ -10,6 +10,12 @@
   </head>
   <body>
     <main id="app"></main>
+    <script>
+      try {
+        const old = JSON.parse(localStorage.getItem('hoi4-war-planner') || 'null');
+        if (old && !old.scenario) localStorage.removeItem('hoi4-war-planner');
+      } catch (_) { localStorage.removeItem('hoi4-war-planner'); }
+    </script>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-export const DATA_VERSION='1.17-baseline';
+export const DATA_VERSION='1.18-combat-foundation';
 export const RESOURCES=['steel','aluminum','rubber','tungsten','chromium'];
 export const equipment={
  infantry_equipment:{name:'Infantry Equipment',cost:.5,output:4.5,resources:{steel:2}},
@@ -22,8 +22,16 @@ export const armyTemplates={
  motorized:{name:'Motorized example',equipment:{motorized:80,support_equipment:30,truck:20},manpower:12000},
  medium:{name:'Medium tank example',equipment:{medium_tank:100,motorized:60,support_equipment:30},manpower:12000}
 };
+// Baseline province widths used by the combat model. These are deliberately data-driven so a future HOI4 version pack can replace them.
 export const terrain={
- plains:{name:'Plains',width:80,attack:0,def:0},desert:{name:'Desert',width:80,attack:0,def:0},forest:{name:'Forest',width:84,attack:-.10,def:.05},jungle:{name:'Jungle',width:84,attack:-.20,def:.05},hills:{name:'Hills',width:80,attack:-.10,def:.05},mountain:{name:'Mountain',width:75,attack:-.30,def:.10},marsh:{name:'Marsh',width:78,attack:-.20,def:.10},urban:{name:'Urban',width:96,attack:-.20,def:.10}
+ plains:{name:'Plains',width:90,reinforceWidth:45,attack:0,def:0},
+ desert:{name:'Desert',width:90,reinforceWidth:45,attack:0,def:0},
+ forest:{name:'Forest',width:84,reinforceWidth:42,attack:-.10,def:.05},
+ jungle:{name:'Jungle',width:84,reinforceWidth:42,attack:-.20,def:.05},
+ hills:{name:'Hills',width:80,reinforceWidth:40,attack:-.10,def:.05},
+ mountain:{name:'Mountain',width:75,reinforceWidth:25,attack:-.30,def:.10},
+ marsh:{name:'Marsh',width:78,reinforceWidth:26,attack:-.20,def:.10},
+ urban:{name:'Urban',width:96,reinforceWidth:32,attack:-.20,def:.10}
 };
 export const battalions={
  infantry:{name:'Infantry',width:2,manpower:1000,org:60,hp:25,supply:.07,soft:6,hard:1,def:22,breakthrough:3,hardness:0,armor:0,piercing:1,need:{infantry_equipment:100},terrain:{}},

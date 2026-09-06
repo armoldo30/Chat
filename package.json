@@ -1,7 +1,10 @@
 {
   "name": "hoi4-war-planner",
-  "version": "0.1.0",
+  "version": "0.10.1",
   "private": true,
-  "scripts": { "start": "vite", "build": "vite build" },
-  "devDependencies": { "vite": "^6.1.0" }
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node tests/engine.test.mjs && node tests/parser.test.mjs && node tests/designer.test.mjs"
+  }
 }

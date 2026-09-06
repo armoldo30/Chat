@@ -1,21 +1,15 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#111815" />
-    <title>War Planner — HOI4</title>
-    <link rel="stylesheet" href="./src/style.css" />
-    <link rel="stylesheet" href="./src/app.css" />
-  </head>
-  <body>
-    <main id="app"></main>
-    <script>
-      try {
-        const old = JSON.parse(localStorage.getItem('hoi4-war-planner') || 'null');
-        if (old && !old.scenario) localStorage.removeItem('hoi4-war-planner');
-      } catch (_) { localStorage.removeItem('hoi4-war-planner'); }
-    </script>
-    <script type="module" src="./src/main.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#20251f" />
+  <meta name="description" content="HOI4 War Planner — production, division design, combat analysis, front readiness, research timing, and intel uncertainty." />
+  <title>HOI4 War Planner</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./src/main.js"></script>
+</body>
 </html>

@@ -1,0 +1,65 @@
+name: Bootstrap 0.10.1
+
+on:
+  push:
+    branches:
+      - bootstrap-0.10.1
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bootstrap branch
+        uses: actions/checkout@v4
+        with:
+          ref: bootstrap-0.10.1
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Reconstruct exact large source files
+        shell: bash
+        run: |
+          cat .bootstrap/main.part1.b64 .bootstrap/main.part2.b64 | base64 -d > /tmp/main.js.gz
+          gzip -dc /tmp/main.js.gz > src/main.js
+          gzip -dc .bootstrap/style.css.gz > src/style.css
+
+      - name: Verify source hashes
+        shell: bash
+        run: |
+          test "$(git hash-object src/main.js)" = "0f32575bad8eddbbbe0e7448935c690304b57326"
+          test "$(git hash-object src/style.css)" = "bc141fd77d6af7f2b4614874bb81cc27d4acfc9d"
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Verify built hashes
+        shell: bash
+        run: |
+          test "$(git hash-object dist/index.html)" = "5090176f6edbc6063f465e08c034f6fc15294f1a"
+          test "$(git hash-object dist/src/main.js)" = "0f32575bad8eddbbbe0e7448935c690304b57326"
+          test "$(git hash-object dist/src/style.css)" = "bc141fd77d6af7f2b4614874bb81cc27d4acfc9d"
+          test "$(git hash-object dist/src/data.js)" = "5e7069779e88d5b0e9c7cf6d02de8a81b7eadd68"
+          test "$(git hash-object dist/src/designer.js)" = "2c99bc710f3155fec0f409429ab1704f5ee383f4"
+          test "$(git hash-object dist/src/engine.js)" = "a76b46e9b3713711dc3cce4bbb0bda6db80dd737"
+          test "$(git hash-object dist/src/parser.js)" = "0d056e74afa94412beb3be7244e767ee63212066"
+
+      - name: Finalize exact release tree on bootstrap branch
+        shell: bash
+        run: |
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "release: replace app with lead build 0.10.1"
+          git push origin HEAD:bootstrap-0.10.1

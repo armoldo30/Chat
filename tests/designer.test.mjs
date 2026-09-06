@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup, canPlaceBattalion } from '../src/designer.js';
+const valid=['infantry','artillery','medium_armor'];
+const grid=countsToGrid([{type:'infantry',count:9},{type:'artillery',count:1}],valid);
+assert.equal(grid.length,DESIGNER_COLS);assert.equal(grid[0].length,DESIGNER_ROWS);
+assert.equal(filledInRegiment(grid,0),5);assert.equal(filledInRegiment(grid,1),5,'legacy aggregate templates should fill the 25-slot grid deterministically');
+assert.deepEqual(gridToCounts(grid,valid),[{type:'infantry',count:9},{type:'artillery',count:1}]);
+const capped=countsToGrid([{type:'infantry',count:40}],valid);assert.equal(gridToCounts(capped,valid)[0].count,25,'designer cannot exceed 25 line battalions');
+const dirty=blankGrid();dirty[0][0]='bogus';dirty[0][1]='infantry';const clean=normalizeGrid(dirty,valid);assert.equal(clean[0][0],null);assert.equal(clean[0][1],'infantry');
+const filled=fillRegiment(blankGrid(),2,'medium_armor',valid);assert.equal(filledInRegiment(filled,2),5);assert.ok(filled[2].every(x=>x==='medium_armor'),'shift-fill should populate the full regiment');
+const cleared=fillRegiment(filled,2,null,valid);assert.equal(filledInRegiment(cleared,2),0,'shift-remove should clear the full regiment');
+const units={infantry:{group:'infantry'},artillery:{group:'infantry'},motorized:{group:'mobile'},medium_armor:{group:'armor'}};
+const grouped=blankGrid();grouped[0][0]='infantry';grouped[0][1]='artillery';assert.equal(regimentGroup(grouped,0,units),'infantry');assert.equal(canPlaceBattalion(grouped,0,2,'motorized',units),false,'a regiment column should reject a different UI group');assert.equal(canPlaceBattalion(grouped,0,2,'artillery',units),true);assert.equal(canPlaceBattalion(grouped,0,2,'motorized',units,{replaceRegiment:true}),true,'full-regiment replacement may change the regiment group');
+console.log('All designer invariants passed.');

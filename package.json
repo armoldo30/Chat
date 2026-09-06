@@ -1,0 +1,7 @@
+{
+  "name": "hoi4-war-planner",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "start": "vite", "build": "vite" },
+  "devDependencies": { "vite": "^6.1.0" }
+}

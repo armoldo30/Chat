@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { battalions, supports, terrain, equipment } from '../src/data.js';
-import { calcDivision, aggregateDivision, battleContext, evaluateProduction, efficiencyProjection, piercingDamageFactor, simulateOnce, simulateBattle } from '../src/engine.js';
+import { calcDivision, aggregateDivision, battleContext, evaluateProduction, efficiencyProjection, piercingDamageFactor, simulateOnce, simulateBattle, divisionEquipmentIC, optimizeForceProduction } from '../src/engine.js';
 
 const opts={terrain:'plains',terrainData:terrain,directions:0,entrench:0,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:0,night:0};
 const softAttacker=aggregateDivision(calcDivision([{type:'artillery',count:4}],battalions,[],supports),1);
@@ -53,6 +53,17 @@ assert.equal(priorityProd.lines[0].resourceFactor,1,'higher-priority production 
 assert.ok(priorityProd.lines[1].resourceFactor<priorityProd.lines[0].resourceFactor,'lower-priority line should absorb the shortage');
 const starved=evaluateProduction([{type:'infantry_equipment',stock:0,target:1000,factories:12,priority:1}],{days:30,efficiency:100,efficiencyGain:0,maxEfficiency:100,outputBonus:0,baseFactoryOutput:4.5,resources:{steel:0}},equipment);
 assert.ok(Math.abs(starved.lines[0].resourceFactoryFactors.at(-1)-.10)<1e-9,'per-factory resource penalty must cap at 90%');
+
+
+const forceNeed={infantry_equipment:900,artillery:36,support_equipment:30};
+const forceStocks={infantry_equipment:0,artillery:0,support_equipment:0};
+const forcePlan=optimizeForceProduction(forceNeed,forceStocks,{days:180,factories:30,efficiency:70,efficiencyGain:100,maxEfficiency:100,outputBonus:0,baseFactoryOutput:4.5,resources:{steel:100,tungsten:50}},equipment);
+assert.equal(forcePlan.lines.reduce((s,x)=>s+x.effectiveFactories,0),30,'force optimizer must allocate the available military factories');
+assert.ok(forcePlan.lines.filter(x=>x.effectiveFactories>0).length>=2,'force optimizer must balance multiple equipment bottlenecks instead of dumping every factory into one line');
+assert.ok(forcePlan.fieldable>0,'force optimizer should project a positive number of complete division-equivalents');
+assert.equal(divisionEquipmentIC(forceNeed,equipment),900*.5+36*3.5+30*4,'division equipment IC should sum equipment quantities times IC costs');
+assert.ok(forcePlan.nextFactory?.type,'force optimizer should identify the best use of one additional military factory');
+assert.ok(forcePlan.nextFactory.projectedFieldable>=forcePlan.fieldable,'one additional MIC recommendation must not reduce projected fieldable divisions');
 
 const eff=efficiencyProjection(50,100,180,100);
 assert.ok(eff.end>eff.start && eff.end<=1,'production efficiency must rise toward its cap');

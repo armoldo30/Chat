@@ -85,6 +85,9 @@ function last(v){return Array.isArray(v)?v.at(-1):v;}
 function plainNeed(v){
   const out={};for(const [k,q] of Object.entries(obj(last(v)))){if(k==='__items')continue;const n=num(last(q));if(n!==undefined)out[k]=n;}return out;
 }
+function plainMap(v){
+  const out={};for(const [k,q] of Object.entries(obj(last(v)))){if(k==='__items')continue;const value=last(q);out[k]=value&&typeof value==='object'&&!Array.isArray(value)?plainMap(value):value;}return out;
+}
 function items(v){
   if(Array.isArray(v))return v.map(String);
   if(v&&typeof v==='object'&&Array.isArray(v.__items))return v.__items.map(String);
@@ -114,10 +117,70 @@ export function extractEquipment(parsed){
     out[id]={
       id,year:num(last(raw.year)),archetype:last(raw.archetype),parent:last(raw.parent),cost:num(last(raw.build_cost_ic)),
       reliability:num(last(raw.reliability)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),
-      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),resources:plainNeed(raw.resources)
+      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots)
     };
   }
   return out;
+}
+
+export function extractEquipmentModules(parsed){
+  let root=obj(last(parsed?.equipment_modules??parsed?.modules));
+  if(!Object.keys(root).length){
+    root={};
+    for(const [id,raw0] of Object.entries(parsed||{})){
+      const raw=obj(last(raw0));
+      if(raw.category&&(raw.add_stats||raw.multiply_stats||raw.add_average_stats||raw.build_cost_resources))root[id]=raw0;
+    }
+  }
+  const out={};
+  for(const [id,raw0] of Object.entries(root)){
+    if(id==='__items')continue;const raw=obj(last(raw0));
+    out[id]={id,category:last(raw.category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),xpCost:num(last(raw.xp_cost))};
+  }
+  return out;
+}
+
+
+export function extractMIOs(parsed){
+  const out={};
+  const normalizeTrait=(raw0,fallback)=>{
+    const raw=obj(last(raw0));
+    const token=String(last(raw.token)||fallback||'');
+    if(!token)return null;
+    return {id:token,name:String(last(raw.name)||token),equipmentBonus:plainNeed(raw.equipment_bonus),productionBonus:plainNeed(raw.production_bonus),organizationModifier:plainNeed(raw.organization_modifier),parents:items(raw.any_parent),allParents:items(raw.all_parents),mutuallyExclusive:items(raw.mutually_exclusive),equipmentTypes:items(raw.limit_to_equipment_type)};
+  };
+  for(const [id,raw0] of Object.entries(parsed||{})){
+    if(id==='__items')continue;const raw=obj(last(raw0));
+    if(!(raw.include||raw.equipment_type||raw.equipment_types||raw.initial_trait||raw.trait||raw.add_trait||raw.override_trait||raw.allowed))continue;
+    const allowed=obj(last(raw.allowed));
+    let countries=items(allowed.original_tag);
+    if(!countries.length&&typeof last(allowed.original_tag)==='string')countries=[String(last(allowed.original_tag))];
+    const initList=arrify(raw.initial_trait),initial={equipmentBonus:{},productionBonus:{},organizationModifier:{}};
+    for(const x of initList){const t=obj(last(x));Object.assign(initial.equipmentBonus,{...initial.equipmentBonus,...plainNeed(t.equipment_bonus)});Object.assign(initial.productionBonus,{...initial.productionBonus,...plainNeed(t.production_bonus)});Object.assign(initial.organizationModifier,{...initial.organizationModifier,...plainNeed(t.organization_modifier)});}
+    const traits={};
+    for(const source of [raw.trait,raw.add_trait,raw.override_trait])for(const t0 of arrify(source)){const t=normalizeTrait(t0);if(t)traits[t.id]=t;}
+    out[id]={id,name:String(last(raw.name)||id),include:String(last(raw.include)||''),countries,equipmentTypes:[...new Set([...items(raw.equipment_type),...items(raw.equipment_types)])],initial,traits};
+  }
+  return out;
+}
+function arrify(v){return v==null?[]:Array.isArray(v)?v:[v];}
+export function resolveMIOs(mios){
+  const source=mios||{},resolved={},visiting=new Set();
+  const visit=id=>{
+    if(resolved[id])return resolved[id];const raw=source[id];if(!raw)return null;
+    if(visiting.has(id))return {...raw,inheritanceWarning:'cycle'};visiting.add(id);
+    const parent=raw.include&&raw.include!==id?visit(raw.include):null;
+    const mergeBonus=(a,b)=>({...a,...b});
+    const base=parent||{};const result={...base,...raw,id,
+      countries:raw.countries?.length?raw.countries:[...(base.countries||[])],
+      equipmentTypes:raw.equipmentTypes?.length?raw.equipmentTypes:[...(base.equipmentTypes||[])],
+      initial:{equipmentBonus:mergeBonus(base.initial?.equipmentBonus,raw.initial?.equipmentBonus),productionBonus:mergeBonus(base.initial?.productionBonus,raw.initial?.productionBonus),organizationModifier:mergeBonus(base.initial?.organizationModifier,raw.initial?.organizationModifier)},
+      traits:{...(base.traits||{}),...(raw.traits||{})}
+    };
+    if(raw.include&&!parent)result.inheritanceWarning=`missing-include:${raw.include}`;
+    visiting.delete(id);resolved[id]=result;return result;
+  };
+  for(const id of Object.keys(source))visit(id);return resolved;
 }
 
 export function resolveEquipment(packOrEquipment){
@@ -193,8 +256,8 @@ function mergeDefines(target,source){for(const [g,vals] of Object.entries(source
 
 export async function buildDataPack(files){
   const pack={
-    meta:{format:1,createdAt:new Date().toISOString(),sourceFiles:0,unitFiles:0,equipmentFiles:0,defineFiles:0,terrainFiles:0,technologyFiles:0,warnings:[]},
-    defines:{},subUnits:{},equipment:{},terrain:{},technologyFiles:[]
+    meta:{format:1,createdAt:new Date().toISOString(),sourceFiles:0,unitFiles:0,equipmentFiles:0,defineFiles:0,terrainFiles:0,technologyFiles:0,moduleFiles:0,mioFiles:0,warnings:[]},
+    defines:{},subUnits:{},equipment:{},modules:{},mios:{},terrain:{},technologyFiles:[]
   };
   for(const file of Array.from(files||[])){
     const path=(file.webkitRelativePath||file.name||'').replaceAll('\\','/').toLowerCase();
@@ -202,13 +265,15 @@ export async function buildDataPack(files){
     const text=await file.text();pack.meta.sourceFiles++;
     try{
       if(path.includes('/defines/')||path.includes('defines')||/(?:NDefines\.)?N[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*\s*=/.test(text)){mergeDefines(pack.defines,parseDefinesLua(text));pack.meta.defineFiles++;continue;}
+      if(path.includes('military_industrial_organization/organizations/')||path.startsWith('organizations/')){mergeMap(pack.mios,extractMIOs(parseClausewitz(text)));pack.meta.mioFiles++;continue;}
+      if(path.includes('/units/equipment/modules/')||/\bequipment_modules\s*=\s*\{/.test(text)){mergeMap(pack.modules,extractEquipmentModules(parseClausewitz(text)));pack.meta.moduleFiles++;continue;}
       if(path.includes('/units/equipment/')||/\bequipments\s*=\s*\{/.test(text)){mergeMap(pack.equipment,extractEquipment(parseClausewitz(text)));pack.meta.equipmentFiles++;continue;}
       if(path.includes('/units/')||/\bsub_units\s*=\s*\{/.test(text)){mergeMap(pack.subUnits,extractSubUnits(parseClausewitz(text)));pack.meta.unitFiles++;continue;}
       if(path.includes('/terrain/')||path.includes('terrain')){mergeMap(pack.terrain,extractTerrain(parseClausewitz(text)));pack.meta.terrainFiles++;continue;}
       if(path.includes('/technologies/')||path.includes('technolog')||/\btechnologies\s*=\s*\{/.test(text)){pack.technologyFiles.push(file.webkitRelativePath||file.name);pack.meta.technologyFiles++;}
     }catch(error){pack.meta.warnings.push(`${file.name}: ${error?.message||'parse error'}`);}
   }
-  pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;
+  pack.mios=resolveMIOs(pack.mios);pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.moduleCount=Object.keys(pack.modules).length;pack.meta.mioCount=Object.keys(pack.mios).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;
   return pack;
 }
 

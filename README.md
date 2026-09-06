@@ -1,48 +1,57 @@
-# HOI4 War Planner — lead build 0.10.1
+# HOI4 War Planner — 0.14.0
 
-A mobile-friendly analytical planning suite for Hearts of Iron IV. This build is version-locked to the current public **1.19.2** baseline as of 2026-09-06 rather than mixing mechanics from older 1.17/1.18-era references.
+A mobile-friendly Hearts of Iron IV analytical planning suite. This release is version-locked to the public **HOI4 1.19.2** baseline dated 2026-09-06 and deliberately separates verified public mechanics, analytical approximations, and values that require imported game files.
 
-## Working modules
+## 0.14.0 release focus
 
-- Command dashboard with adverse-case readiness scoring
-- HOI-style Division Lab with a 5×5 regiment grid, five divisional support slots, 1.19 regimental-support baseline, template migration/import/export, support-company organization/HP/manpower tradeoffs, multi-division commitment, terrain comparison, width-packing guidance and role coaching
-- Combat model with target hardness, defense/breakthrough, weighted armor/piercing, partial piercing approximation, current terrain widths, flank widths, over-width, stacking, entrenchment, forts, rivers, supply, air superiority, CAS support, planning and night inputs
-- Production planner using IC/day, a nonlinear efficiency-growth curve, output modifiers, priority-aware per-factory strategic-resource penalties, Division Lab equipment demand, battle replacement demand and an integer factory optimizer
-- Front Planner combining adverse combat, industry, supply and air into a conservative go/no-go recommendation
-- Intel uncertainty stress testing
-- HOI-style multi-slot research queue with priority scheduling and projected start/finish dates, without fake hardcoded technology data
-- Scenario persistence and JSON import/export
-- Seeded/reproducible Monte Carlo combat with 95% win-rate intervals
-- Client-side Data Packs importer for HOI4 Clausewitz text/Lua files, with normalized local packs, conservative structural/define overrides, and equipment inheritance/year-snapshot diagnostics
-- Dependency-free static build/deploy pipeline (Node only; no Vite/runtime packages)
-- Engine, parser and division-designer regression tests covering combat, production priority, resource caps, support companies, deterministic simulation, import normalization and legacy-template migration
+0.14.0 turns the planner into a connected equipment-design and force-planning workflow:
 
+**Country → Research → Doctrine/Mastery → MIO → Equipment Design → Combat Performance → IC Allocation**
 
-## 0.10.1 interface milestone
+### Division Lab
 
-- Rebuilt the command dashboard, Front Planner, Intel and Production screens in an original HOI-inspired general-staff visual language.
-- Replaced aggregate battalion editing with a tested 5×5 regiment designer, divisional support rail and 1.19 regimental-support row.
-- Enforced regiment UI groups (`infantry`, `mobile`, `armor`) and added Shift-fill for fast regiment construction.
-- Added stale-result detection and a reproducible representative After Action Report timeline alongside Monte Carlo outcomes.
-- Hardened scenario import/reset so data-pack overrides and designer migrations are reapplied from a clean page state.
-- Added equipment lineage/year-snapshot diagnostics for imported game data.
-- Moved division support to the right of the regiment grid, added an in-grid main-stat strip, and promoted equipment/IC cost to a highlighted design band to track the current 1.19 designer layout more closely.
-- Split divisional and regimental support into distinct records so Support Artillery/AT/AA can coexist with regimental weapon support instead of replacing one another.
-- Expanded battalion/support selection cards with width, organization, attack, armor/piercing and IC context for faster template decisions.
+- HOI-style 5×5 regiment grid with regiment-group restrictions.
+- Five divisional support slots plus separate 1.19-style regimental-support row.
+- Separate attacker/defender research profiles.
+- Land Grand Doctrine plus four independent mastery tracks with stages 0–5.
+- Tech availability locks unresearched battalions/support companies and blocks invalid simulations.
+- Country/equipment-family MIO assignments alter applicable equipment/battalion stats.
+- Terrain, extra attack axes, forts, rivers, supply, planning, night, air superiority and CAS inputs.
+- Reproducible seeded Monte Carlo battles, confidence intervals and representative After Action Report timeline.
+- Enemy-estimate uncertainty stress testing.
 
-## Accuracy policy
+### Tank Designer
 
-This app should distinguish three things:
+- Separate light, medium and heavy variants for both sides.
+- Chassis, gun, turret, suspension, armor, engine, special modules and armor/engine upgrades.
+- Variant output includes armor, piercing, soft/hard attack, breakthrough, defense, reliability, speed, fuel, IC and strategic-resource burden.
+- Selected variants replace the reference tank values used by Division Lab.
+- Tank IC/resource costs flow directly into Industry.
+- Tank-family MIOs can modify both combat characteristics and production economics.
 
-1. **Version-locked public facts** — e.g. the current 1.19-era terrain widths and the current public game version.
-2. **Analytical approximations** — e.g. aggregate reserve rotation/reinforcement, partial piercing tiers, supply scaling, CAS support and representative support-company/battalion data.
-3. **Player-specific or game-file-dependent values** — tank/aircraft designer outputs, exact technologies, tactics, doctrines/mastery, equipment files, commander traits and mods.
+### Air Lab
 
-The third category should not be presented as executable parity until the user's actual `common/` game data is imported.
+- Separate friendly/enemy aircraft designers.
+- Small and medium airframes, engines, weapon slots, defense modules and specials.
+- Computes air attack/defense, agility, speed, range, reliability, ground/naval attack, fuel and IC.
+- Compares estimated kill ratio, IC exchange, air-power share and mission output per IC.
+- Supports air-superiority, CAS and naval-strike comparisons.
+- Separate air Grand Doctrine and staged mastery tracks for each side.
+- **Air MIOs are supported**: country-compatible small/medium-airframe organizations can modify aircraft stats, build cost, resources and production-efficiency/output modifiers.
+- Imported air MIOs use the same trait dependency and mutually-exclusive selection rules as land/tank MIOs.
 
-## Current data-pack milestone
+### Industry — “What Should I Build?”
 
-The parser/data-pack pipeline is now implemented for the user's real Hearts of Iron IV files:
+- Uses the current Division Lab attacker as the force design.
+- Uses the current matchup as a gate: weak designs receive a redesign recommendation instead of being efficiently mass-produced.
+- Allocates available MIC across the equipment bill to maximize fully equipped division-equivalents by the deadline.
+- Accounts for production efficiency, factory limits, stockpiles, resources and MIO production bonuses.
+- Shows limiting equipment, projected complete divisions and best destination for the next MIC.
+- Tank variant IC/resource cost is included automatically.
+
+### Data Packs
+
+Client-side importer accepts selected HOI4 `common` folders/files and normalizes:
 
 - `common/defines/`
 - `common/units/`
@@ -51,20 +60,27 @@ The parser/data-pack pipeline is now implemented for the user's real Hearts of I
 - `common/combat_tactics/`
 - `common/terrain/`
 - `common/modifier_definitions/`
+- `common/military_industrial_organization/organizations/`
 
-The current importer safely applies structural battalion/support values, terrain widths/modifiers and recognized defines. Equipment records now resolve archetype/parent inheritance and can be previewed as year-based family snapshots. Exact equipment-derived combat stats are deliberately **not** auto-applied yet because selecting the correct active equipment for every battalion still depends on technology, variants and player choices.
+The MIO importer resolves country restrictions, inheritance/includes, initial traits, equipment bonuses, production bonuses, parent requirements and mutually exclusive traits. Imported organizations can be used by Division Lab, Tank Designer and Air Lab when their equipment-type rules match.
 
-## Public references used for this pass
+Equipment inheritance/year snapshots are available as diagnostics. Exact imported tank/air chassis-module compatibility is intentionally not auto-applied until the importer can resolve the complete compatibility chain safely.
 
-- Paradox/Steam announcements for the 1.19.2 public version and announced 1.19.3 schedule
-- Current 1.19 community extraction of terrain combat widths
-- Paradox defines mirrors for defended/undefended hit chances, armor dice, stacking and over-width constants
-- Current community documentation for air-superiority defense/breakthrough effects and entrenchment behavior
+## Accuracy policy
 
-These references are used as a baseline, not as a substitute for importing the actual game files. The app deliberately exposes a model/version label and avoids calling approximate mechanics exact.
+The app distinguishes:
 
+1. **Version-locked public facts** — mechanics and values that can be tied to the selected HOI4 baseline.
+2. **Analytical approximations** — aggregate reinforcement/reserve behavior, simplified air exchange, some battalion/module values and other places where executable parity is not available.
+3. **Game-file/player-dependent values** — national MIOs, DLC/scripted doctrine effects, equipment variants, tank/air modules, technologies, mods and country-specific rules.
 
-## Local development
+The UI should never imply executable parity where the model is approximate. Importing the user's real game files is the intended path toward version/mod-specific coverage.
+
+## Known limits
+
+Not yet executable-parity: combat tactic/counter selection, true per-division reinforcement timing and coordination, exact CAS direct damage, commander/leader traits, weather, experience, all scripted doctrine effects, every national/DLC MIO edge case, full regimental-support compatibility, exact imported tank/air module compatibility, and executable-parity air combat.
+
+## Development and deployment
 
 No package install is required.
 
@@ -73,4 +89,21 @@ npm test
 npm run build
 ```
 
-`npm run build` copies the static application into `dist/`; GitHub Pages can publish that directory directly.
+`npm run build` creates the dependency-free static site in `dist/`. The included GitHub Pages workflow runs the full test suite before building and deploying.
+
+## Release verification
+
+0.14.0 includes regression coverage for:
+
+- combat/industry engine
+- Clausewitz/data-pack parser
+- division designer and legacy migration
+- tech profiles
+- tank designer
+- air designer/comparison
+- land doctrine/mastery
+- air doctrine/mastery
+- MIO effects
+- MIO importer
+- **airframe MIO combat + production effects**
+- route-level UI smoke rendering

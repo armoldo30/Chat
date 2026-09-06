@@ -1,5 +1,5 @@
 export const MODEL_META = {
-  appVersion: '0.10.1',
+  appVersion: '0.14.0',
   gameVersion: '1.19.2',
   label: 'Vanilla 1.19.2 public-data baseline',
   confidence: 'Analytical baseline — exact parity awaits imported game files',

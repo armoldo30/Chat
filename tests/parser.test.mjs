@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { parseClausewitz, parseDefinesLua, extractSubUnits, extractEquipment, extractTerrain, resolveEquipment, equipmentFamilies, equipmentSnapshot, buildDataPack, safeStructuralOverrides, defineOverrides } from '../src/parser.js';
+import { parseClausewitz, parseDefinesLua, extractSubUnits, extractEquipment, extractEquipmentModules, extractTerrain, resolveEquipment, equipmentFamilies, equipmentSnapshot, buildDataPack, safeStructuralOverrides, defineOverrides } from '../src/parser.js';
 
 const unitText=`
 # representative unit fixture
@@ -57,6 +57,16 @@ const cycleResolved=resolveEquipment(cyclePack);
 assert.ok(cycleResolved.a.inheritanceWarning||cycleResolved.b.inheritanceWarning,'equipment inheritance cycles should be detected');
 
 
+
+const moduleText=`equipment_modules = {
+ tank_radio = { category = tank_special_module add_stats = { breakthrough = 4 build_cost_ic = 1 } build_cost_resources = { steel = 1 } }
+ aircraft_cannon = { category = plane_weapon_module add_stats = { air_attack = 12 build_cost_ic = 3 } }
+}`;
+const modules=extractEquipmentModules(parseClausewitz(moduleText));
+assert.equal(modules.tank_radio.category,'tank_special_module');
+assert.equal(modules.tank_radio.addStats.breakthrough,4);
+assert.equal(modules.tank_radio.resources.steel,1);
+
 const terrainText=`categories = {
  forest = {
    combat_width = 60
@@ -81,11 +91,13 @@ const pack=await buildDataPack([
   fakeFile('infantry.txt',unitText,'common/units/infantry.txt'),
   fakeFile('infantry_equipment.txt',equipmentText,'common/units/equipment/infantry_equipment.txt'),
   fakeFile('00_defines.lua','NDefines.NMilitary.BASE_CHANCE_TO_AVOID_HIT = 90\nNDefines.NProduction.PRODUCTION_RESOURCE_LACK_PENALTY = -0.05','common/defines/00_defines.lua'),
-  fakeFile('00_terrain.txt',terrainText,'common/terrain/00_terrain.txt')
+  fakeFile('00_terrain.txt',terrainText,'common/terrain/00_terrain.txt'),
+  fakeFile('00_modules.txt',moduleText,'common/units/equipment/modules/00_modules.txt')
 ]);
-assert.equal(pack.meta.sourceFiles,4);
+assert.equal(pack.meta.sourceFiles,5);
 assert.equal(pack.meta.subUnitCount,2);
 assert.equal(pack.meta.equipmentCount,1);
+assert.equal(pack.meta.moduleCount,2);
 
 const modelBattalions={infantry:{width:3,manpower:1,org:1,hp:1,supply:1,need:{}}};
 const modelSupports={support_artillery:{manpower:1,org:1,hp:1,supply:1,need:{}}};

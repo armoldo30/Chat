@@ -1,29 +1,22 @@
-import { MODEL_META, RESOURCES, COMBAT_CONSTANTS, PRODUCTION_CONSTANTS, equipment, armyTemplates, battalions, supports, terrain, rolePresets } from './data.js';
-import { fmt, evaluateProduction, optimizeProduction, buildDemand, mergeGoals, calcDivision, aggregateDivision, simulateBattle, compareTerrains, uncertaintyBand, readinessScore, scoreDivision, researchEstimate, clamp } from './engine.js';
+import { MODEL_META, RESOURCES, COMBAT_CONSTANTS, PRODUCTION_CONSTANTS, equipment, battalions, supports, terrain, rolePresets } from './data.js';
+import { fmt, optimizeForceProduction, divisionEquipmentIC, calcDivision, aggregateDivision, simulateBattle, compareTerrains, uncertaintyBand, scoreDivision, clamp } from './engine.js';
 import { buildDataPack, safeStructuralOverrides, defineOverrides, equipmentSnapshot } from './parser.js';
+import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
+import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
+import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
+import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds } from './tank.js';
+import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt } from './air.js';
 
-const STORAGE='hoi4-war-planner-v5',LEGACY_STORAGE='hoi4-war-planner-v4';
+const STORAGE='hoi4-war-planner-v7',LEGACY_STORAGE='hoi4-war-planner-v6';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
 const panel=(title,body,extra='')=>`<section class="panel ${extra}"><div class="panel-head"><h2>${title}</h2></div>${body}</section>`;
 const pct=n=>`${fmt(n,1)}%`;
 const badge=(text,tone='')=>`<span class="badge ${tone}">${text}</span>`;
 const readinessMeter=(label,value,detail='',tone='')=>{const v=clamp(Number(value)||0,0,100);return `<div class="readiness-meter ${tone}"><div class="meter-copy"><span>${esc(label)}</span><b>${fmt(v,0)}%</b></div><div class="meter-track"><i style="width:${v}%"></i></div>${detail?`<small>${esc(detail)}</small>`:''}</div>`;};
-const addDaysISO=(date,days)=>{const d=new Date(`${date}T00:00:00Z`);if(Number.isNaN(d.getTime()))return '—';d.setUTCDate(d.getUTCDate()+Math.ceil(Number(days)||0));return d.toISOString().slice(0,10);};
-function researchSchedule(){
-  const slotCount=Math.max(1,Math.min(10,Math.floor(+state.researchSlots||1))),available=Array(slotCount).fill(0),out=[];
-  const items=state.research.map((x,i)=>({i,x,days:Math.ceil(researchEstimate({baseDays:x.baseDays,speedBonus:(x.speedBonus||0)/100,aheadPenalty:x.aheadPenalty}))}))
-    .sort((a,b)=>(+b.x.priority||0)-(+a.x.priority||0)||a.i-b.i);
-  for(const item of items){
-    let slot=0;for(let i=1;i<available.length;i++)if(available[i]<available[slot])slot=i;
-    const start=available[slot],finish=start+item.days;available[slot]=finish;out[item.i]={...item,slot:slot+1,start,finish};
-  }
-  return out;
-}
-
 const defaults={
-  schema:5,country:'Germany',operation:'Operation Iron Compass',objective:'Prepare an offensive that can survive the worst plausible enemy case.',
+  schema:7,country:'Germany',operation:'Operation Iron Compass',objective:'Prepare an offensive that can survive the worst plausible enemy case.',
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],attackerSupports:['engineer','support_artillery','support_aa'],attackerDivisions:3,attackerName:'Assault Division',
   defender:[{type:'infantry',count:10}],defenderSupports:['engineer','support_artillery'],defenderDivisions:3,defenderName:'Defensive Division',
   attackerRegimentalSupports:[null,null,null,null,null],defenderRegimentalSupports:[null,null,null,null,null],
@@ -37,11 +30,12 @@ const defaults={
     {type:'support_equipment',stock:500,target:2500,factories:4,priority:4},
     {type:'fighter',stock:100,target:700,factories:8,priority:3}
   ],
-  researchDate:'1939-01-01',researchSlots:4,
-  research:[
-    {name:'Industry technology',baseDays:170,speedBonus:10,aheadPenalty:1,priority:5},
-    {name:'Land doctrine milestone',baseDays:220,speedBonus:5,aheadPenalty:1,priority:4}
-  ]
+  tankDesigns:{attacker:{light:defaultTankDesign('light'),medium:defaultTankDesign('medium'),heavy:defaultTankDesign('heavy')},defender:{light:defaultTankDesign('light'),medium:defaultTankDesign('medium'),heavy:defaultTankDesign('heavy')}},
+  tankDesigner:{side:'attacker',class:'medium'},
+  airLab:{a:defaultAirDesign('small'),b:{...defaultAirDesign('small'),name:'Enemy Fighter',engine:'engine_3',weapons:['cannon_1','heavy_mg','none']},countA:100,countB:100,sorties:1000,mission:'air_superiority',missionEfficiencyA:1,missionEfficiencyB:1,detectionA:1,detectionB:1},
+  attackerTech:{...structuredClone(DEFAULT_TECH_PROFILE),countryTag:'GER'},
+  defenderTech:{...structuredClone(DEFAULT_TECH_PROFILE),countryTag:'SOV'},
+  mioSelections:{attacker:{},defender:{}}
 };
 
 function deepMerge(base,raw){
@@ -53,7 +47,7 @@ function deepMerge(base,raw){
   }
   return raw===undefined?base:raw;
 }
-function load(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_STORAGE)||'null');const next=deepMerge(defaults,raw);next.schema=5;return next;}catch{return structuredClone(defaults);}}
+function load(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_STORAGE)||'null');const next=deepMerge(defaults,raw);next.schema=7;return next;}catch{return structuredClone(defaults);}}
 let state=load();
 const BASE_REGIMENTAL_SUPPORTS=['regimental_infantry_guns','regimental_at','regimental_aa'];
 const BASE_DIVISIONAL_SUPPORTS=Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k));
@@ -70,9 +64,43 @@ function ensureDesignerState(side){
     return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;
   }):Array(DESIGNER_COLS).fill(null);
 }
-function validRegimentalSupports(side){ensureDesignerState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c));}
+function ensureTechState(side){state[side+'Tech']=normalizeTechProfile(state[side+'Tech']);return state[side+'Tech'];}
+function ensureTankState(){
+  if(!state.tankDesigns||typeof state.tankDesigns!=='object')state.tankDesigns=structuredClone(defaults.tankDesigns);
+  for(const side of ['attacker','defender']){state.tankDesigns[side]=state.tankDesigns[side]||{};for(const cls of ['light','medium','heavy'])state.tankDesigns[side][cls]=normalizeTankDesign(state.tankDesigns[side][cls],cls);}
+  state.tankDesigner={side:['attacker','defender'].includes(state.tankDesigner?.side)?state.tankDesigner.side:'attacker',class:['light','medium','heavy'].includes(state.tankDesigner?.class)?state.tankDesigner.class:'medium'};
+}
+function ensureAirState(){
+  state.airLab=state.airLab&&typeof state.airLab==='object'?state.airLab:{};state.airLab.a=normalizeAirDesign(state.airLab.a,'small');state.airLab.b=normalizeAirDesign(state.airLab.b,'small');
+  for(const k of ['countA','countB','sorties'])state.airLab[k]=Math.max(1,Number(state.airLab[k])||defaults.airLab[k]);
+  for(const k of ['missionEfficiencyA','missionEfficiencyB','detectionA','detectionB'])state.airLab[k]=clamp(Number(state.airLab[k]??1),.1,1.25);
+  if(!['air_superiority','cas','naval_strike'].includes(state.airLab.mission))state.airLab.mission='air_superiority';
+}
+const MIO_FAMILIES={infantry_equipment:'Infantry Equipment',artillery:'Artillery',anti_tank:'Anti-Tank',anti_air:'Anti-Air',light_tank:'Light Tanks',medium_tank:'Medium Tanks',heavy_tank:'Heavy Tanks',small_airframe:'Small Aircraft',medium_airframe:'Medium Aircraft'};
+function ensureMioState(){
+  state.mioSelections=state.mioSelections&&typeof state.mioSelections==='object'?state.mioSelections:{attacker:{},defender:{}};
+  for(const side of ['attacker','defender']){state.mioSelections[side]=state.mioSelections[side]||{};for(const family of Object.keys(MIO_FAMILIES))state.mioSelections[side][family]=normalizeMioSelection(state.mioSelections[side][family]||DEFAULT_MIO_SELECTION);}
+}
+function currentMioCatalog(){return mioCatalog(state.dataPack);}
+function mioEffectFor(side,family){ensureMioState();return mioEffects(currentMioCatalog(),state.mioSelections[side][family]);}
+function applyFamilyMioToData(data,side){
+  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','regimental_aa']},light_tank:{b:['light_armor'],s:[]},medium_tank:{b:['medium_armor'],s:[]},heavy_tank:{b:['heavy_armor'],s:[]}};
+  for(const [family,m] of Object.entries(maps)){const eff=mioEffectFor(side,family);for(const id of m.b)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],eff.equipmentBonus);for(const id of m.s)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],eff.equipmentBonus);}
+  return data;
+}
+function adjustedTankDesign(side,cls){return applyMioToVariant(buildTankDesign(state.tankDesigns[side][cls]),mioEffectFor(side,`${cls}_tank`));}
+function adjustedAirDesign(side,raw){const base=buildAirDesign(raw),family=base.size==='medium'?'medium_airframe':'small_airframe',withMio=applyMioToVariant(base,mioEffectFor(side,family));return applyAirDoctrineToVariant(withMio,ensureTechState(side).airDoctrine);}
+function equipmentForSide(side='attacker'){
+  ensureTankState();ensureMioState();const out=structuredClone(equipment);
+  for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(side,family));
+  for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls),rawDesign=buildTankDesign(state.tankDesigns[side][cls]),d=adjustedTankDesign(side,cls),eff=mioEffectFor(side,`${cls}_tank`);out[ids.equipment]=applyMioToEquipmentRecord(tankEquipmentRecord(out[ids.equipment],state.tankDesigns[side][cls]),eff);out[ids.equipment].designStats=d;}
+  return out;
+}
+function validRegimentalSupports(side){ensureDesignerState(side);const profile=ensureTechState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c)&&techAvailable('support',key,profile));}
 function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCounts(state[side+'Grid'],Object.keys(battalions));}
-ensureDesignerState('attacker');ensureDesignerState('defender');
+function techData(side){const data=buildTechAdjustedData(battalions,supports,ensureTechState(side));ensureTankState();ensureMioState();for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls);data.battalions[ids.battalion]=applyTankDesignToBattalion(data.battalions[ids.battalion],state.tankDesigns[side][cls]);}return applyFamilyMioToData(data,side);}
+function techProblems(side){ensureDesignerState(side);return techIssues(state[side+'Grid'],state[side+'Supports'],state[side+'RegimentalSupports'],ensureTechState(side));}
+ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
 let activeDesignerSide='attacker',designerPick=null;
 let dataPackStatus={battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
 function applyCurrentDataPack(){
@@ -82,30 +110,25 @@ function applyCurrentDataPack(){
 }
 applyCurrentDataPack();
 function save(){localStorage.setItem(STORAGE,JSON.stringify(state));}
-function route(){const r=location.hash.replace('#','');return ['dashboard','battle','production','front','research','intel','data','scenario'].includes(r)?r:'dashboard';}
+function route(){const r=location.hash.replace('#','');return ['dashboard','battle','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}
 
-function division(side){ensureDesignerState(side);return calcDivision(gridToCounts(state[side+'Grid'],Object.keys(battalions)),battalions,[...state[side+'Supports'],...validRegimentalSupports(side)],supports);}
+function division(side){ensureDesignerState(side);const data=techData(side),profile=ensureTechState(side),line=gridToCounts(state[side+'Grid'],Object.keys(battalions)).filter(x=>techAvailable('battalion',x.type,profile));return calcDivision(line,data.battalions,[...state[side+'Supports'].filter(k=>techAvailable('support',k,profile)),...validRegimentalSupports(side)],data.supports);}
 function aggregate(side){return aggregateDivision(division(side),state[side+'Divisions']);}
-function battleOpts(){return {...state.battlefield,terrainData:terrain};}
-function addDemandMap(a,b){const out={...a};for(const [k,v] of Object.entries(b||{}))out[k]=(out[k]||0)+v;return out;}
-function labDemand(){if(!state.includeLabDemand)return {};const n=Math.max(0,Math.floor(+state.labDemandCount||0)),need=division('attacker').need||{},out={};for(const [k,v] of Object.entries(need))out[k]=v*n;return out;}
-function totalDemand(){return addDemandMap(buildDemand(armyTemplates,state.armyDemand),labDemand());}
-function mergedGoals(){return mergeGoals(state.productionGoals,totalDemand());}
-function productionEval(){return evaluateProduction(mergedGoals(),state.production,equipment);}
-function replacementIC(losses){return Object.entries(losses||{}).reduce((sum,[k,q])=>sum+(equipment[k]?.cost||0)*(+q||0),0);}
-function equipmentLossList(losses){const rows=Object.entries(losses||{}).filter(([,q])=>q>0.05).sort((a,b)=>b[1]-a[1]);return rows.length?rows.map(([k,q])=>`<span><b>${equipment[k]?.name||k}</b> ${fmt(q,0)}</span>`).join(''):'<span>No material loss estimate available.</span>';}
+function battleOpts(){const ag=techData('attacker').doctrineGlobal||{},dg=techData('defender').doctrineGlobal||{};return {...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(dg.entrenchment||0)),attackerNightAttackBonus:ag.nightAttack||0,defenderNightAttackBonus:dg.nightAttack||0,terrainData:terrain};}
+function replacementIC(losses,side='attacker'){const eq=equipmentForSide(side);return Object.entries(losses||{}).reduce((sum,[k,q])=>sum+(eq[k]?.cost||0)*(+q||0),0);}
+function equipmentLossList(losses,side='attacker'){const eq=equipmentForSide(side),rows=Object.entries(losses||{}).filter(([,q])=>q>0.05).sort((a,b)=>b[1]-a[1]);return rows.length?rows.map(([k,q])=>`<span><b>${eq[k]?.name||k}</b> ${fmt(q,0)}</span>`).join(''):'<span>No material loss estimate available.</span>';}
 function applyLastBattleReplacement(){if(!state.lastBattle||state.lastBattle.applied)return;for(const [type,q] of Object.entries(state.lastBattle.attackerEquipmentLosses||{})){if(q<=0)continue;let g=state.productionGoals.find(x=>x.type===type);if(!g){g={type,stock:0,target:0,factories:0,priority:3};state.productionGoals.push(g);}g.target=Math.max(+g.target||0,+g.stock||0)+Math.ceil(q);}state.lastBattle.applied=true;save();shell();}
+function forceProductionPlan(){return optimizeForceProduction(division('attacker').need||{},productionStockMap(),state.production,equipmentForSide('attacker'));}
 function productionReadiness(){
-  const goals=mergedGoals(),p=productionEval();
-  const total=goals.reduce((s,g)=>s+Math.max(0,(+g.target||0)-(+g.stock||0))*(+g.priority||1),0);
-  return total?Math.round(clamp((1-p.shortage/total)*100,0,100)):100;
+  const plan=forceProductionPlan(),target=Math.max(1,Math.floor(+state.labDemandCount||1));
+  return Math.round(clamp((plan.fieldable/target)*100,0,100));
 }
 function combatBand(){return uncertaintyBand(aggregate('attacker'),aggregate('defender'),battleOpts(),state.intelUncertainty,Math.min(350,state.battlefield.runs));}
 function battleFingerprint(){
   ensureDesignerState('attacker');ensureDesignerState('defender');
-  return JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,an:state.attackerDivisions,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dn:state.defenderDivisions,b:state.battlefield});
+  return JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,an:state.attackerDivisions,at:state.attackerTech,tanks:state.tankDesigns,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dn:state.defenderDivisions,dt:state.defenderTech,mio:state.mioSelections,b:state.battlefield});
 }
 function lastBattlePreview(){
   const r=state.lastBattle;if(!r)return '<p>Execute the simulation to generate an outcome report.</p>';
@@ -114,7 +137,7 @@ function lastBattlePreview(){
 }
 
 function shell(){
-  const nav=[['dashboard','HQ','Command'],['battle','DIV','Division Lab'],['production','MIC','Production'],['front','OPS','Front Planner'],['research','R&D','Research'],['intel','INT','Intel'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];
+  const nav=[['battle','DIV','Division Lab'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];
   const active=route();
   document.title=`${state.operation} · HOI4 War Planner`;
   document.body.innerHTML=`<div class="app-shell">
@@ -127,10 +150,10 @@ function shell(){
   </div>`;
   render(active);
 }
-function render(r){const v=$('view');({dashboard,battle,production,front,research,intel,data,scenario}[r]||dashboard)(v);}
+function render(r){const v=$('view');({dashboard,battle,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}
 
 function dashboard(c){
-  const band=combatBand(),prod=productionEval(),ready=readinessScore(mergedGoals(),prod,band.adverse.winRate),industry=productionReadiness();
+  const eqA=equipmentForSide('attacker'),band=combatBand(),forcePlan=forceProductionPlan(),industry=productionReadiness(),ready=Math.round(industry*.65+clamp(band.adverse.winRate,0,100)*.35);
   const a=division('attacker'),d=division('defender'),supply=clamp(state.battlefield.asupply*100,0,100),airScore=clamp((state.battlefield.air+1)*50,0,100);
   const posture=ready>=75?['FINAL PREPARATION','go']:ready>=55?['BUILD COMBAT MARGIN','warn']:['HOLD OPERATION','stop'];
   const battleState=state.lastBattle?(!state.lastBattle.fingerprint||state.lastBattle.fingerprint!==battleFingerprint()?'STALE':'CURRENT'):'NO REPORT';
@@ -139,11 +162,11 @@ function dashboard(c){
   <div class="war-room-grid">
     ${panel('Operation order',`<div class="hq-posture ${posture[1]}"><span>STAFF RECOMMENDATION</span><h2>${posture[0]}</h2><p>${ready>=75?'The modeled plan has enough adverse-case and industrial margin to enter final preparation.':ready>=55?'The operation is plausible but remains sensitive to combat or supply assumptions. Increase margin before execution.':'Current combat/industrial readiness does not justify commitment.'}</p><a class="btn" href="#front">Open Front Planner →</a></div>`,'hq-order-panel')}
     ${panel('Land forces',`<div class="hq-force"><div><span>ATTACKER</span><b>${esc(state.attackerName)}</b><small>${state.attackerDivisions} divisions · ${fmt(a.width,0)}w · ${fmt(a.org,0)} org</small></div><div><span>ENEMY ESTIMATE</span><b>${esc(state.defenderName)}</b><small>${state.defenderDivisions} divisions · ${fmt(d.width,0)}w · ${fmt(d.org,0)} org</small></div></div><div class="hq-stat-pair"><div><span>Base win</span><b>${pct(band.base.winRate)}</b></div><div><span>Adverse win</span><b>${pct(band.adverse.winRate)}</b></div><div><span>Attacker armor</span><b>${fmt(a.armor,1)}</b></div><div><span>Enemy piercing</span><b>${fmt(d.piercing,1)}</b></div></div><a class="btn" href="#battle">Open Division Lab →</a>`,'hq-forces-panel')}
-    ${panel('Industrial command',`<div class="hq-industry"><div><small>FACTORIES ACTIVE</small><strong>${prod.usedFactories}</strong><span>of ${state.production.factories}</span></div><div><small>READINESS</small><strong>${industry}%</strong><span>${fmt(prod.shortage,0)} weighted shortage</span></div></div><div class="resource-ledger">${RESOURCES.map(r=>`<span><b>${r.toUpperCase()}</b>${fmt(state.production.resources[r]||0,0)}</span>`).join('')}</div><a class="btn" href="#production">Open Production →</a>`,'hq-industry-panel')}
+    ${panel('Industrial command',`<div class="hq-industry"><div><small>FIELDABLE BY DEADLINE</small><strong>${fmt(forcePlan.fieldable,1)}</strong><span>target ${Math.max(1,+state.labDemandCount||1)} divisions</span></div><div><small>FORCE READINESS</small><strong>${industry}%</strong><span>${forcePlan.nextFactory?.type?`next MIC → ${esc(eqA[forcePlan.nextFactory.type]?.name||forcePlan.nextFactory.type)}`:'allocation complete'}</span></div></div><div class="resource-ledger">${RESOURCES.map(r=>`<span><b>${r.toUpperCase()}</b>${fmt(state.production.resources[r]||0,0)}</span>`).join('')}</div><a class="btn" href="#production">Open Industry Advisor →</a>`,'hq-industry-panel')}
     ${panel('Latest combat report',`<div class="hq-report ${battleState==='STALE'?'stale':''}"><span>${battleState}</span>${state.lastBattle?`<h3>${pct(state.lastBattle.winRate)} attacker win</h3><p>${fmt(state.lastBattle.avgHours,0)} h expected · ${pct(state.lastBattle.attackerCasualtyRate)} attacker strength loss · ${fmt(replacementIC(state.lastBattle.attackerEquipmentLosses),0)} IC replacement</p>`:'<h3>No simulation recorded</h3><p>Build the opposing templates and execute a battle to create an operational report.</p>'}</div><a class="btn" href="#battle">${state.lastBattle?'Review battle →':'Run simulation →'}</a>`,'hq-report-panel')}
   </div>
-  <section class="staff-sections"><a href="#research"><span>R&D</span><div><b>Research Staff</b><small>${state.researchSlots} slots · ${state.research.length} queued items</small></div></a><a href="#intel"><span>INT</span><div><b>Intelligence</b><small>±${Math.round(state.intelUncertainty*100)}% enemy uncertainty</small></div></a><a href="#data"><span>DAT</span><div><b>Data Packs</b><small>${state.dataPack?'Imported game data active':'Built-in 1.19.2 baseline'}</small></div></a><a href="#scenario"><span>CFG</span><div><b>Scenario Control</b><small>Schema ${state.schema} · local persistence</small></div></a></section>
-  <p class="model-footnote">${MODEL_META.confidence}. Player-designed tank and aircraft stats remain representative until exact game files or explicit designs are imported.</p>`;
+  <section class="staff-sections"><a href="#tank"><span>TNK</span><div><b>Tank Designer</b><small>Variants feed Division Lab and Industry</small></div></a><a href="#air"><span>AIR</span><div><b>Air Lab</b><small>Compare aircraft performance and IC exchange</small></div></a><a href="#battle"><span>R&D</span><div><b>Tech & Doctrine</b><small>Research assumptions now live inside Division Lab</small></div></a><a href="#intel"><span>INT</span><div><b>Intelligence</b><small>±${Math.round(state.intelUncertainty*100)}% enemy uncertainty</small></div></a><a href="#data"><span>DAT</span><div><b>Data Packs</b><small>${state.dataPack?'Imported game data active':'Built-in 1.19.2 baseline'}</small></div></a><a href="#scenario"><span>CFG</span><div><b>Scenario Control</b><small>Schema ${state.schema} · local persistence</small></div></a></section>
+  <p class="model-footnote">${MODEL_META.confidence}. Tank and aircraft designers now feed explicit variants into the model; built-in module values remain an analytical baseline until exact game files are imported.</p>`;
 }
 
 function statCard(s){const vals=[['Width',s.width,0],['Manpower',s.manpower,0],['Org',s.org,1],['HP',s.hp,1],['Soft attack',s.soft,1],['Hard attack',s.hard,1],['Defense',s.def,1],['Breakthrough',s.breakthrough,1],['Hardness',s.hardness*100,0,'%'],['Supply/day',s.supply,2],['Armor',s.armor,1],['Piercing',s.piercing,1],['Air attack',s.airAttack,1]];return `<div class="statgrid">${vals.map(([k,v,d,suf=''])=>`<div class="stat"><small>${k}</small><strong>${fmt(v,d)}${suf}</strong></div>`).join('')}</div>`;}
@@ -169,7 +192,7 @@ const SUPPORT_CODES={engineer:'ENG',support_artillery:'ART',recon:'REC',support_
 function battalionTone(type){if(type.includes('armor'))return 'armor';if(['motorized','mechanized','cavalry'].includes(type))return 'mobile';if(type.includes('artillery')||type.includes('anti_tank')||type.includes('anti_air')||['support_at','support_aa'].includes(type))return 'fire';return 'infantry';}
 function regimentGroup(side,c,ignoreRow=null){ensureDesignerState(side);return gridRegimentGroup(state[side+'Grid'],c,battalions,ignoreRow);}
 function regimentalBaselineCompatible(side,c){return regimentGroup(side,c)==='infantry';}
-function templateIC(stats){return replacementIC(stats.need||{});}
+function templateIC(stats,side='attacker'){return replacementIC(stats.need||{},side);}
 function designerStatGroups(s){
   const groups=[
     ['BASE STATS',[['Organization',s.org,1],['HP',s.hp,1],['Manpower',s.manpower,0],['Combat Width',s.width,0],['Supply Use',s.supply,2]]],
@@ -182,39 +205,41 @@ function designerMainStrip(s){
   const items=[['Combat Width',fmt(s.width,0)],['Organization',fmt(s.org,1)],['HP',fmt(s.hp,1)],['Manpower',fmt(s.manpower,0)],['Supply',fmt(s.supply,2)]];
   return `<div class="designer-main-stats">${items.map(([k,v])=>`<span><small>${k}</small><b>${v}</b></span>`).join('')}</div>`;
 }
-function equipmentSummary(stats){
-  const rows=Object.entries(stats.need||{}).filter(([,q])=>q>0);
-  return rows.length?rows.map(([k,q])=>`<span><b>${esc(equipment[k]?.name||k)}</b><em>${fmt(q,0)}</em></span>`).join(''):'<span><b>No equipment</b><em>0</em></span>';
+function equipmentSummary(stats,side='attacker'){
+  const eq=equipmentForSide(side),rows=Object.entries(stats.need||{}).filter(([,q])=>q>0);
+  return rows.length?rows.map(([k,q])=>`<span><b>${esc(eq[k]?.name||k)}</b><em>${fmt(q,0)}</em></span>`).join(''):'<span><b>No equipment</b><em>0</em></span>';
 }
-function designerCostBand(stats){
-  const rows=Object.entries(stats.need||{}).filter(([,q])=>q>0),ic=templateIC(stats);
-  return `<div class="designer-cost-band"><div><span class="eyebrow">EQUIPMENT REQUIREMENTS</span><div class="cost-chips">${rows.length?rows.slice(0,6).map(([k,q])=>`<span><b>${esc(equipment[k]?.name||k)}</b>${fmt(q,0)}</span>`).join(''):'<span><b>No equipment</b>0</span>'}</div></div><div class="cost-total"><small>Estimated production cost</small><strong>${fmt(ic,0)} IC</strong></div></div>`;
+function designerCostBand(stats,side='attacker'){
+  const eq=equipmentForSide(side),rows=Object.entries(stats.need||{}).filter(([,q])=>q>0),ic=templateIC(stats,side);
+  return `<div class="designer-cost-band"><div><span class="eyebrow">EQUIPMENT REQUIREMENTS</span><div class="cost-chips">${rows.length?rows.slice(0,6).map(([k,q])=>`<span><b>${esc(eq[k]?.name||k)}</b>${fmt(q,0)}</span>`).join(''):'<span><b>No equipment</b>0</span>'}</div></div><div class="cost-total"><small>Estimated production cost</small><strong>${fmt(ic,0)} IC</strong></div></div>`;
 }
-function pickerBattalionMeta(key){
-  const u=battalions[key];if(!u)return '';
-  const ic=templateIC({need:u.need||{}});
+function pickerBattalionMeta(side,key){
+  const u=techData(side).battalions[key];if(!u)return '';
+  const ic=templateIC({need:u.need||{}},side);
   return `<span class="picker-meta"><em>${fmt(u.width,0)}w</em><em>${fmt(u.org,0)} org</em><em>${fmt(u.soft,0)} SA</em>${u.armor?`<em>${fmt(u.armor,0)} arm</em>`:''}${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}<em>${fmt(ic,0)} IC</em></span>`;
 }
-function pickerSupportMeta(key){
-  const u=supports[key];if(!u)return '';
-  const ic=templateIC({need:u.need||{}});
+function pickerSupportMeta(side,key){
+  const u=techData(side).supports[key];if(!u)return '';
+  const ic=templateIC({need:u.need||{}},side);
   return `<span class="picker-meta"><em>${fmt(u.soft||0,0)} SA</em><em>${fmt(u.def||0,0)} DEF</em>${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}<em>${fmt(ic,0)} IC</em></span>`;
 }
 function supportSlot(side,i){
   const key=state[side+'Supports'][i];
   if(!key)return `<button class="hoi-support-slot empty" data-sslot="${i}" title="Add support company"><span>+</span><small>Support</small></button>`;
-  return `<button class="hoi-support-slot filled tone-${battalionTone(key)}" data-sslot="${i}" title="${esc(supports[key]?.name||key)}"><span>${SUPPORT_CODES[key]||'SUP'}</span><small>${esc(supports[key]?.name||key)}</small></button>`;
+  const locked=!techAvailable('support',key,state[side+'Tech']);
+  return `<button class="hoi-support-slot filled tone-${battalionTone(key)} ${locked?'tech-locked':''}" data-sslot="${i}" title="${esc(supports[key]?.name||key)}${locked?' · not researched':''}"><span>${SUPPORT_CODES[key]||'SUP'}</span><small>${esc(supports[key]?.name||key)}${locked?' · LOCKED':''}</small></button>`;
 }
 function regimentalSupportSlot(side,c,filled){
   const key=state[side+'RegimentalSupports'][c],group=regimentGroup(side,c);
   if(filled<3)return `<button class="regimental-support locked" disabled title="Requires at least 3 line battalions in this regiment"><span>◆</span><small>Requires 3 battalions</small></button>`;
   if(group!=='infantry')return `<button class="regimental-support locked" disabled title="Built-in baseline only models leg weapon support for infantry-group regiments. Import 1.19 game data for additional compatibility rules."><span>◆</span><small>${group||'Unknown'} support locked</small></button>`;
   if(!key)return `<button class="regimental-support available" data-rslot="${c}" title="Add regimental support"><span>+</span><small>Regimental support</small></button>`;
-  return `<button class="regimental-support available filled tone-${battalionTone(key)}" data-rslot="${c}" title="${esc(supports[key]?.name||key)}"><span>${SUPPORT_CODES[key]||'SUP'}</span><small>${esc(supports[key]?.name||key)}</small></button>`;
+  const techLocked=!techAvailable('support',key,state[side+'Tech']);
+  return `<button class="regimental-support available filled tone-${battalionTone(key)} ${techLocked?'tech-locked':''}" data-rslot="${c}" title="${esc(supports[key]?.name||key)}${techLocked?' · not researched':''}"><span>${SUPPORT_CODES[key]||'SUP'}</span><small>${esc(supports[key]?.name||key)}${techLocked?' · LOCKED':''}</small></button>`;
 }
 function regimentColumn(side,c){
   const grid=state[side+'Grid'],filled=filledInRegiment(grid,c);
-  const group=regimentGroup(side,c);return `<div class="hoi-regiment"><div class="regiment-title"><span>REGIMENT ${c+1}${group?` · ${group.toUpperCase()}`:''}</span><b>${filled}/5</b></div><div class="regiment-slots">${grid[c].map((type,r)=>type?`<button class="hoi-battalion-slot filled tone-${battalionTone(type)}" data-bslot="1" data-c="${c}" data-r="${r}" title="${esc(battalions[type].name)}"><span class="unit-symbol">${BATTALION_CODES[type]||'BAT'}</span><small>${esc(battalions[type].name)}</small></button>`:`<button class="hoi-battalion-slot empty" data-bslot="1" data-c="${c}" data-r="${r}" title="Add battalion"><span>+</span><small>Add</small></button>`).join('')}</div>${regimentalSupportSlot(side,c,filled)}</div>`;
+  const group=regimentGroup(side,c);return `<div class="hoi-regiment"><div class="regiment-title"><span>REGIMENT ${c+1}${group?` · ${group.toUpperCase()}`:''}</span><b>${filled}/5</b></div><div class="regiment-slots">${grid[c].map((type,r)=>{if(!type)return `<button class="hoi-battalion-slot empty" data-bslot="1" data-c="${c}" data-r="${r}" title="Add battalion"><span>+</span><small>Add</small></button>`;const locked=!techAvailable('battalion',type,state[side+'Tech']);return `<button class="hoi-battalion-slot filled tone-${battalionTone(type)} ${locked?'tech-locked':''}" data-bslot="1" data-c="${c}" data-r="${r}" title="${esc(battalions[type].name)}${locked?' · not researched':''}"><span class="unit-symbol">${BATTALION_CODES[type]||'BAT'}</span><small>${esc(battalions[type].name)}${locked?' · LOCKED':''}</small></button>`;}).join('')}</div>${regimentalSupportSlot(side,c,filled)}</div>`;
 }
 function designerPicker(side){
   if(!designerPick||designerPick.side!==side)return '';
@@ -226,22 +251,22 @@ function designerPicker(side){
   };
   if(designerPick.kind==='support'){
     const current=state[side+'Supports'][designerPick.i],used=new Set(state[side+'Supports'].filter(Boolean));
-    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button>${BASE_DIVISIONAL_SUPPORTS.map(k=>[k,supports[k]]).map(([k,v])=>`<button class="picker-choice" data-choice="${k}" ${(used.has(k)&&k!==current)?'disabled':''}><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(v.name)}</small>${pickerSupportMeta(k)}</button>`).join('')}</div></div>`;
+    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button>${BASE_DIVISIONAL_SUPPORTS.map(k=>[k,supports[k]]).map(([k,v])=>{const unavailable=!techAvailable('support',k,state[side+'Tech']);return `<button class="picker-choice ${unavailable?'tech-locked':''}" data-choice="${k}" ${(used.has(k)&&k!==current)||unavailable?'disabled':''}><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(v.name)}${unavailable?' · not researched':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></div>`;
   }
   if(designerPick.kind==='regimental'){
-    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Regimental Support</h3><p class="muted">Conservative 1.19 baseline: weapon support only. Imported game data will expand the full company list and exact regiment compatibility.</p></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button>${BASE_REGIMENTAL_SUPPORTS.map(k=>`<button class="picker-choice tone-fire" data-choice="${k}"><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(supports[k]?.name||k)}</small>${pickerSupportMeta(k)}</button>`).join('')}</div></div>`;
+    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Regimental Support</h3><p class="muted">Conservative 1.19 baseline: weapon support only. Imported game data will expand the full company list and exact regiment compatibility.</p></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button>${BASE_REGIMENTAL_SUPPORTS.map(k=>{const unavailable=!techAvailable('support',k,state[side+'Tech']);return `<button class="picker-choice tone-fire ${unavailable?'tech-locked':''}" data-choice="${k}" ${unavailable?'disabled':''}><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(supports[k]?.name||k)}${unavailable?' · not researched':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></div>`;
   }
   const lockedGroup=designerPick.fillRegiment?null:regimentGroup(side,designerPick.c,designerPick.r);
-  return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Change or add battalion</h3><p class="muted">${lockedGroup?`Regiment locked to ${lockedGroup.toUpperCase()} group. `:''}Shift-click a choice to replace the full regiment.</p></div><button class="btn" data-cancel-pick>Back</button></div>${Object.entries(battalionGroups).map(([name,ids])=>{const allowed=ids.filter(k=>battalions[k]&&(!lockedGroup||battalions[k].group===lockedGroup));return allowed.length?`<section class="picker-group"><h4>${name}</h4><div class="picker-grid">${allowed.map(k=>`<button class="picker-choice tone-${battalionTone(k)}" data-choice="${k}"><b>${BATTALION_CODES[k]||'BAT'}</b><small>${esc(battalions[k].name)}</small>${pickerBattalionMeta(k)}</button>`).join('')}</div></section>`:'';}).join('')}<button class="picker-choice remove-choice wide" data-choice="">× <small>Remove battalion</small></button></div>`;
+  return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Change or add battalion</h3><p class="muted">${lockedGroup?`Regiment locked to ${lockedGroup.toUpperCase()} group. `:''}Shift-click a choice to replace the full regiment.</p></div><button class="btn" data-cancel-pick>Back</button></div>${Object.entries(battalionGroups).map(([name,ids])=>{const allowed=ids.filter(k=>battalions[k]&&(!lockedGroup||battalions[k].group===lockedGroup));return allowed.length?`<section class="picker-group"><h4>${name}</h4><div class="picker-grid">${allowed.map(k=>{const unavailable=!techAvailable('battalion',k,state[side+'Tech']);return `<button class="picker-choice tone-${battalionTone(k)} ${unavailable?'tech-locked':''}" data-choice="${k}" ${unavailable?'disabled':''}><b>${BATTALION_CODES[k]||'BAT'}</b><small>${esc(battalions[k].name)}${unavailable?' · not researched':''}</small>${pickerBattalionMeta(side,k)}</button>`;}).join('')}</div></section>`:'';}).join('')}<button class="picker-choice remove-choice wide" data-choice="">× <small>Remove battalion</small></button></div>`;
 }
 function renderDivisionDesigner(side){
   ensureDesignerState(side);const stats=division(side),other=side==='attacker'?'defender':'attacker';
   return `<section class="hoi-designer panel ${side}">
     <div class="designer-topbar"><div class="division-ident"><span class="division-counter">${side==='attacker'?'A':'D'}</span><div><span class="eyebrow">${side.toUpperCase()} TEMPLATE</span><input class="template-name" id="designerName" value="${esc(state[side+'Name'])}" aria-label="Template name"></div></div><label class="compact-label">Committed divisions<input id="designerDivisions" type="number" min="1" max="30" value="${state[side+'Divisions']}"></label></div>
     <div class="hoi-designer-layout">
-      <div class="regiment-board"><div class="board-label"><span>COMBAT BATTALIONS</span><small>5 regiments · 5 battalions each · Shift-click a slot to fill its regiment</small></div>${designerMainStrip(stats)}<div class="regiment-grid">${Array.from({length:5},(_,c)=>regimentColumn(side,c)).join('')}</div><div class="regimental-label"><span>REGIMENTAL SUPPORT</span><small>1.19 structure · requires 3 battalions in the regiment</small></div>${designerCostBand(stats)}</div>
+      <div class="regiment-board"><div class="board-label"><span>COMBAT BATTALIONS</span><small>5 regiments · 5 battalions each · Shift-click a slot to fill its regiment</small></div>${designerMainStrip(stats)}<div class="regiment-grid">${Array.from({length:5},(_,c)=>regimentColumn(side,c)).join('')}</div><div class="regimental-label"><span>REGIMENTAL SUPPORT</span><small>1.19 structure · requires 3 battalions in the regiment</small></div>${designerCostBand(stats,side)}</div>
       <aside class="support-rail"><div class="rail-title">DIVISION SUPPORT</div>${Array.from({length:5},(_,i)=>supportSlot(side,i)).join('')}</aside>
-      <aside class="designer-stats"><div class="stats-title">DIVISION STATS</div>${designerStatGroups(stats)}<section class="hoi-stat-section equipment-cost"><h4>EQUIPMENT DETAIL</h4><div class="equipment-mini">${equipmentSummary(stats)}</div></section></aside>
+      <aside class="designer-stats"><div class="stats-title">DIVISION STATS</div>${designerStatGroups(stats)}<section class="hoi-stat-section equipment-cost"><h4>EQUIPMENT DETAIL</h4><div class="equipment-mini">${equipmentSummary(stats,side)}</div></section></aside>
     </div>
     ${designerPicker(side)}
     <div class="designer-footer"><div class="template-facts"><span><b>${fmt(stats.width,0)}</b> width</span><span><b>${fmt(stats.org,1)}</b> org</span><span><b>${fmt(stats.manpower,0)}</b> manpower</span></div><div class="actions"><button class="btn" id="clearDesigner">Reset</button><button class="btn" id="copyDesigner">Copy → ${other}</button><button class="btn" id="exportDesigner">Export</button><label class="btn file">Import<input id="importDesigner" type="file" accept="application/json" hidden></label></div></div>
@@ -275,12 +300,67 @@ function bindDivisionDesigner(side){
   $('importDesigner').onchange=e=>{const f=e.target.files[0];if(!f)return;readJSON(f,x=>{state[side+'Grid']=Array.isArray(x.grid)?normalizeGrid(x.grid,Object.keys(battalions)):countsToGrid(Array.isArray(x.battalions)?x.battalions:Array.isArray(x[side])?x[side]:[],Object.keys(battalions));state[side+'Supports']=(Array.isArray(x.supports)?x.supports:Array.isArray(x[side+'Supports'])?x[side+'Supports']:[]).filter(k=>supports[k]).slice(0,5);state[side+'RegimentalSupports']=Array.isArray(x.regimentalSupports)?Array.from({length:DESIGNER_COLS},(_,i)=>{const raw=x.regimentalSupports[i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;}):Array(DESIGNER_COLS).fill(null);if(x.name)state[side+'Name']=String(x.name).slice(0,80);syncDesignerSide(side);save();shell();});};
 }
 
+function techTierOptions(levels,current){return levels.map(x=>`<option value="${x.value}" ${+current===x.value?'selected':''}>${esc(x.label)}</option>`).join('');}
+function techProfileSummary(side){
+  const p=ensureTechState(side),inf=INFANTRY_EQUIPMENT_LEVELS.find(x=>x.value===p.infantryEquipment)?.label||'Infantry equipment';
+  return `${p.countryTag} · ${inf} · ${doctrineSummary(p.landDoctrine)}`;
+}
+function inlineMioPicker(side,family,prefix){
+  ensureMioState();const p=ensureTechState(side),catalog=currentMioCatalog(),sel=state.mioSelections[side][family],available=Object.values(catalog).filter(org=>mioAvailable(org,p.countryTag,family)),org=catalog[sel.organization];
+  return `<div class="inline-mio"><div class="inline-mio-head"><div><span class="eyebrow">MIO · ${esc(p.countryTag)}</span><b>${esc(MIO_FAMILIES[family]||family)}</b></div><select id="${prefix}-mio-org"><option value="">No MIO assigned</option>${available.map(x=>`<option value="${esc(x.id)}" ${sel.organization===x.id?'selected':''}>${esc(x.name||x.id)}</option>`).join('')}</select></div>${org?`<div class="mio-traits">${Object.values(org.traits||{}).slice(0,24).map(t=>{const checked=sel.traits.includes(t.id),ok=checked||traitSelectable(org,t.id,sel.traits);return `<label class="mio-trait ${ok?'':'locked'}"><input type="checkbox" data-inline-mio="${prefix}" value="${esc(t.id)}" ${checked?'checked':''} ${ok?'':'disabled'}><span>${esc(t.name||t.id)}</span></label>`;}).join('')||'<small>No parsed traits.</small>'}</div>`:`<small>${available.length?`${available.length} compatible organization${available.length===1?'':'s'} available.`:'Import MIO organization files for national manufacturer choices.'}</small>`}</div>`;
+}
+function bindInlineMio(side,family,prefix){
+  const org=$(`${prefix}-mio-org`);if(org)org.onchange=()=>{state.mioSelections[side][family]={organization:org.value||null,traits:[]};save();shell();};
+  document.querySelectorAll(`[data-inline-mio="${prefix}"]`).forEach(el=>el.onchange=()=>{const sel=state.mioSelections[side][family],set=new Set(sel.traits||[]);el.checked?set.add(el.value):set.delete(el.value);sel.traits=[...set];save();shell();});
+}
+function mioFamiliesInUse(side){
+  const need=division(side).need||{},families=[];
+  for(const family of ['infantry_equipment','artillery','anti_tank','anti_air','light_tank','medium_tank','heavy_tank'])if((need[family]||0)>0)families.push(family);
+  return families;
+}
+function renderMioAssignments(side){
+  ensureMioState();const p=ensureTechState(side),catalog=currentMioCatalog(),families=mioFamiliesInUse(side);
+  if(!families.length)return '<p class="muted">No MIO-eligible equipment is used by this template.</p>';
+  return `<div class="mio-assignment-grid">${families.map(family=>{
+    const sel=state.mioSelections[side][family],available=Object.values(catalog).filter(org=>mioAvailable(org,p.countryTag,family));const org=catalog[sel.organization];
+    const opts=`<option value="">No MIO assigned</option>${available.map(x=>`<option value="${esc(x.id)}" ${sel.organization===x.id?'selected':''}>${esc(x.name||x.id)}</option>`).join('')}`;
+    const traits=org?Object.values(org.traits||{}):[];
+    return `<article class="mio-assignment"><div><span>${esc(MIO_FAMILIES[family])}</span><select data-mio-org="${family}">${opts}</select></div>${org?`<div class="mio-traits">${traits.length?traits.slice(0,24).map(t=>{const checked=sel.traits.includes(t.id),ok=checked||traitSelectable(org,t.id,sel.traits);return `<label class="mio-trait ${ok?'':'locked'}"><input type="checkbox" data-mio-trait="${family}" value="${esc(t.id)}" ${checked?'checked':''} ${ok?'':'disabled'}><span>${esc(t.name||t.id)}</span></label>`;}).join(''):'<small>This organization has no parsed selectable traits in the active data pack.</small>'}</div>`:`<small>${available.length?`${available.length} compatible organization${available.length===1?'':'s'} available.`:'No compatible MIO found for '+esc(p.countryTag)+' in the current data pack.'}</small>`}</article>`;
+  }).join('')}</div>`;
+}
+function renderTechDoctrine(side){
+  const p=ensureTechState(side),other=side==='attacker'?'defender':'attacker',issues=techProblems(side),land=normalizeLandDoctrine(p.landDoctrine);
+  const unlocks=[['mechanized','Mechanized'],['lightArmor','Light armor'],['mediumArmor','Medium armor'],['heavyArmor','Heavy armor'],['engineer','Engineers'],['recon','Recon'],['logistics','Logistics'],['signal','Signal']];
+  return panel('Tech, Doctrine & MIOs',`<div class="tech-profile-head"><div><span class="eyebrow">${side.toUpperCase()} FORCE PROFILE</span><h3>${esc(techProfileSummary(side))}</h3><p>Research, doctrine mastery and equipment manufacturers modify this side of the test.</p></div><button class="btn" id="copyTech">Copy → ${other}</button></div>
+  <div class="tech-equipment-grid"><label>Country tag<input id="tech-countryTag" maxlength="3" value="${esc(p.countryTag)}"></label><label>Infantry equipment<select id="tech-infantryEquipment">${techTierOptions(INFANTRY_EQUIPMENT_LEVELS,p.infantryEquipment)}</select></label><label>Artillery<select id="tech-artillery">${techTierOptions(WEAPON_TIER_LEVELS,p.artillery)}</select></label><label>Anti-Tank<select id="tech-antiTank">${techTierOptions(WEAPON_TIER_LEVELS,p.antiTank)}</select></label><label>Anti-Air<select id="tech-antiAir">${techTierOptions(WEAPON_TIER_LEVELS,p.antiAir)}</select></label></div>
+  <div class="tech-subhead"><span>EQUIPMENT / COMPANY UNLOCKS</span><small>Locked units cannot be used in the simulation.</small></div><div class="tech-unlocks">${unlocks.map(([k,label])=>`<label class="tech-toggle"><input type="checkbox" data-tech-unlock="${k}" ${p.unlocks[k]?'checked':''}><span>${label}</span></label>`).join('')}</div>
+  <div class="tech-subhead"><span>LAND DOCTRINE · 1.19 MASTERY MODEL</span><small>Choose one Grand Doctrine and a subdoctrine + mastery stage for each independent track.</small></div>
+  <div class="grand-doctrine-row"><label>Grand Doctrine<select id="land-grand">${Object.entries(GRAND_DOCTRINES).map(([id,x])=>`<option value="${id}" ${land.grand===id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></label><div class="doctrine-summary"><span>TRACK MASTERY</span><b>${Object.values(land.tracks).map(x=>x.mastery).join(' · ')}</b></div></div>
+  <div class="doctrine-track-grid">${Object.entries(LAND_DOCTRINE_TRACKS).map(([track,meta])=>{const t=land.tracks[track];return `<article class="doctrine-track ${t.mastery>=5?'complete':''}"><div><span>${esc(meta.name)}</span><b>${t.mastery>=5?'MILESTONE ACTIVE':`MASTERY ${t.mastery}/5`}</b></div><select data-doctrine-choice="${track}">${meta.choices.map(([id,name])=>`<option value="${id}" ${t.choice===id?'selected':''}>${esc(name)}</option>`).join('')}</select><input type="range" min="0" max="5" step="1" value="${t.mastery}" data-doctrine-mastery="${track}"><small>${t.mastery>=5?'Grand Doctrine milestone for this track is included in the modeled effects.':'Advance mastery as that subdoctrine develops in your campaign.'}</small></article>`;}).join('')}</div>
+  <div class="tech-subhead"><span>MILITARY INDUSTRIAL ORGANIZATIONS</span><small>Availability is filtered by country tag and equipment family. Imported game files provide national MIO trees.</small></div>${renderMioAssignments(side)}
+  ${issues.length?`<p class="notice stop"><b>Research conflict:</b> ${issues.map(k=>esc(battalions[k]?.name||supports[k]?.name||k)).join(', ')} is present in this template but not unlocked by the selected research profile.</p>`:''}
+  <p class="notice">Doctrine structure follows the current 1.19 Grand Doctrine + four mastery-track system. The built-in pack only maps combat effects we can represent safely; tactics and scripted effects remain excluded. National MIO coverage becomes exact when organization files are imported.</p>`,'tech-doctrine-panel');
+}
+function bindTechDoctrine(side){
+  $('tech-countryTag').onchange=()=>{state[side+'Tech'].countryTag=String($('tech-countryTag').value||'').toUpperCase().slice(0,3)||'---';ensureTechState(side);save();shell();};
+  for(const k of ['infantryEquipment','artillery','antiTank','antiAir'])$('tech-'+k).onchange=()=>{state[side+'Tech'][k]=+$('tech-'+k).value;ensureTechState(side);save();shell();};
+  document.querySelectorAll('[data-tech-unlock]').forEach(el=>el.onchange=()=>{state[side+'Tech'].unlocks[el.dataset.techUnlock]=el.checked;save();shell();});
+  $('land-grand').onchange=()=>{state[side+'Tech'].landDoctrine.grand=$('land-grand').value;state[side+'Tech'].landDoctrine=normalizeLandDoctrine(state[side+'Tech'].landDoctrine);save();shell();};
+  document.querySelectorAll('[data-doctrine-choice]').forEach(el=>el.onchange=()=>{const t=el.dataset.doctrineChoice;state[side+'Tech'].landDoctrine.tracks[t].choice=el.value;state[side+'Tech'].landDoctrine=normalizeLandDoctrine(state[side+'Tech'].landDoctrine);save();shell();});
+  document.querySelectorAll('[data-doctrine-mastery]').forEach(el=>el.onchange=()=>{const t=el.dataset.doctrineMastery;state[side+'Tech'].landDoctrine.tracks[t].mastery=+el.value;state[side+'Tech'].landDoctrine=normalizeLandDoctrine(state[side+'Tech'].landDoctrine);save();shell();});
+  document.querySelectorAll('[data-mio-org]').forEach(el=>el.onchange=()=>{const family=el.dataset.mioOrg;state.mioSelections[side][family]={organization:el.value||null,traits:[]};save();shell();});
+  document.querySelectorAll('[data-mio-trait]').forEach(el=>el.onchange=()=>{const family=el.dataset.mioTrait,sel=state.mioSelections[side][family],set=new Set(sel.traits||[]);el.checked?set.add(el.value):set.delete(el.value);sel.traits=[...set];save();shell();});
+  $('copyTech').onclick=()=>{const other=side==='attacker'?'defender':'attacker';state[other+'Tech']=structuredClone(state[side+'Tech']);state.mioSelections[other]=structuredClone(state.mioSelections[side]);save();shell();};
+}
+
 function battle(c){
   ensureDesignerState('attacker');ensureDesignerState('defender');
-  const a=division('attacker'),d=division('defender'),selected=division(activeDesignerSide),preset=rolePresets[state.role],coach=scoreDivision(selected,preset);
+  const a=division('attacker'),d=division('defender'),selected=division(activeDesignerSide),preset=rolePresets[state.role],coach=scoreDivision(selected,preset),techInvalid=techProblems('attacker').length||techProblems('defender').length;
   c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">LAND FORCES · TEMPLATE DESIGNER</p><h1>Division Lab</h1><p>Build templates in an HOI-style regiment grid, then test them against terrain, supply, air, forts and uncertain enemy strength.</p></div>${badge(`Vanilla ${MODEL_META.gameVersion}`,'good')}</section>
   <div class="designer-tabs"><button class="${activeDesignerSide==='attacker'?'active':''}" data-designer-side="attacker"><span>ATTACKER</span><b>${fmt(a.width,0)}w · ${fmt(a.org,0)} org</b></button><button class="${activeDesignerSide==='defender'?'active':''}" data-designer-side="defender"><span>DEFENDER</span><b>${fmt(d.width,0)}w · ${fmt(d.org,0)} org</b></button><button class="swap-tab" id="swapSides">⇄ <span>Swap forces</span></button></div>
   ${renderDivisionDesigner(activeDesignerSide)}
+  ${renderTechDoctrine(activeDesignerSide)}
+  ${panel('Armor variants',`<div class="armor-variant-strip">${['light','medium','heavy'].map(cls=>{const design=adjustedTankDesign(activeDesignerSide,cls);return `<a href="#tank" data-armor-link="${cls}"><span>${cls.toUpperCase()}</span><b>${esc(design.name)}</b><small>${fmt(design.armor,0)} armor · ${fmt(design.softAttack,0)} SA · ${fmt(design.buildCost,2)} IC</small></a>`;}).join('')}</div><p class="muted">The selected ${activeDesignerSide} tank variants are already injected into armor battalions above. Open Tank Designer to change them.</p>`)}
   <div class="grid two battle-controls">
     ${panel('Battlefield',`<div class="field-grid">
       <label>Terrain<select id="b-terrain">${Object.entries(terrain).map(([k,v])=>`<option value="${k}" ${k===state.battlefield.terrain?'selected':''}>${v.name} · ${v.width}+${v.reinforceWidth}</option>`).join('')}</select></label>
@@ -296,7 +376,7 @@ function battle(c){
       <label>Night fraction (0–1)<input id="b-night" type="number" min="0" max="1" step=".1" value="${state.battlefield.night}"></label>
       <label>Simulation runs<input id="b-runs" type="number" min="50" max="5000" step="50" value="${state.battlefield.runs}"></label>
       <label>Simulation seed<input id="b-seed" type="number" step="1" value="${state.battlefield.seed}"></label>
-    </div><div class="actions"><button class="primary" id="simulate">Execute simulation</button><button class="btn" id="terrains">Compare terrain</button></div>`,'hoi-control-panel')}
+    </div><div class="actions"><button class="primary" id="simulate" ${techInvalid?'disabled title="Resolve research conflicts before simulating"':''}>Execute simulation</button><button class="btn" id="terrains">Compare terrain</button></div>`,'hoi-control-panel')}
     ${panel('Template coach',`<label>Doctrine role<select id="role">${Object.entries(rolePresets).map(([k,v])=>`<option value="${k}" ${state.role===k?'selected':''}>${v.name}</option>`).join('')}</select></label><div class="coach"><strong>${fmt(coach.score,0)}</strong><span>${activeDesignerSide} role score</span></div><div class="compare-cards"><div><span>ATTACKER</span><b>${fmt(a.soft)} SA · ${fmt(a.breakthrough)} BRK</b><small>${fmt(a.armor)} armor · ${fmt(a.piercing)} piercing</small></div><div><span>DEFENDER</span><b>${fmt(d.soft)} SA · ${fmt(d.def)} DEF</b><small>${fmt(d.armor)} armor · ${fmt(d.piercing)} piercing</small></div></div><p class="muted">Role scoring is a design heuristic. Combat simulation remains the decision tool.</p>`,'hoi-control-panel')}
   </div>
   ${panel('Width packing guide',`${widthPackingTable(selected)}<p class="muted">Guide shown for the currently selected template. Exact reinforcement behavior is resolved by the battle model.</p>`)}
@@ -304,7 +384,9 @@ function battle(c){
   `;
   document.querySelectorAll('[data-designer-side]').forEach(el=>el.onclick=()=>{activeDesignerSide=el.dataset.designerSide;designerPick=null;shell();});
   bindDivisionDesigner(activeDesignerSide);
-  $('swapSides').onclick=()=>{[state.attackerGrid,state.defenderGrid]=[state.defenderGrid,state.attackerGrid];[state.attackerSupports,state.defenderSupports]=[state.defenderSupports,state.attackerSupports];[state.attackerRegimentalSupports,state.defenderRegimentalSupports]=[state.defenderRegimentalSupports,state.attackerRegimentalSupports];[state.attackerDivisions,state.defenderDivisions]=[state.defenderDivisions,state.attackerDivisions];syncDesignerSide('attacker');syncDesignerSide('defender');designerPick=null;save();shell();};
+  bindTechDoctrine(activeDesignerSide);
+  document.querySelectorAll('[data-armor-link]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=activeDesignerSide;state.tankDesigner.class=el.dataset.armorLink;save();});
+  $('swapSides').onclick=()=>{[state.attackerGrid,state.defenderGrid]=[state.defenderGrid,state.attackerGrid];[state.attackerSupports,state.defenderSupports]=[state.defenderSupports,state.attackerSupports];[state.attackerRegimentalSupports,state.defenderRegimentalSupports]=[state.defenderRegimentalSupports,state.attackerRegimentalSupports];[state.attackerTech,state.defenderTech]=[state.defenderTech,state.attackerTech];[state.tankDesigns.attacker,state.tankDesigns.defender]=[state.tankDesigns.defender,state.tankDesigns.attacker];[state.mioSelections.attacker,state.mioSelections.defender]=[state.mioSelections.defender,state.mioSelections.attacker];[state.attackerDivisions,state.defenderDivisions]=[state.defenderDivisions,state.attackerDivisions];syncDesignerSide('attacker');syncDesignerSide('defender');designerPick=null;save();shell();};
   $('role').onchange=()=>{state.role=$('role').value;save();shell();};
   ['terrain','directions','entrench','fort','river','asupply','dsupply','air','cas','planning','night','runs','seed'].forEach(id=>{$('b-'+id).onchange=()=>{state.battlefield[id]=id==='terrain'?$('b-'+id).value:+$('b-'+id).value;save();};});
   $('simulate').onclick=()=>showBattle(false);$('terrains').onclick=()=>showBattle(true);
@@ -317,6 +399,7 @@ function battleTimeline(rep){
 }
 
 function showBattle(compare){
+  const problems=[...techProblems('attacker'),...techProblems('defender')];if(problems.length){alert('Resolve Tech & Doctrine research conflicts before simulating.');return;}
   const a=aggregate('attacker'),d=aggregate('defender'),o=battleOpts();
   if(compare){
     const rows=compareTerrains(a,d,o,Math.min(250,state.battlefield.runs));
@@ -334,46 +417,133 @@ function showBattle(compare){
   $('addReplacement').onclick=applyLastBattleReplacement;
 }
 
-function factoryPips(active,requested){
-  const total=Math.min(20,Math.max(0,Math.floor(requested||0))),on=Math.min(total,Math.max(0,Math.floor(active||0)));
-  return `<div class="factory-pips" title="${active} active / ${requested} requested">${Array.from({length:total},(_,i)=>`<i class="${i<on?'active':'queued'}"></i>`).join('')}${requested>20?`<b>+${requested-20}</b>`:''}</div>`;
+
+function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([,v])=>filter(v)).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${esc(v.name)}</option>`).join('');}
+function tankCurrent(){ensureTankState();return state.tankDesigns[state.tankDesigner.side][state.tankDesigner.class];}
+function tankStatsGrid(d){
+  const rows=[['Soft Attack',d.softAttack,1],['Hard Attack',d.hardAttack,1],['Piercing',d.piercing,1],['Armor',d.armor,1],['Breakthrough',d.breakthrough,1],['Defense',d.defense,1],['Max Speed',d.maxSpeed,2,' km/h'],['Reliability',d.reliability*100,1,'%'],['Fuel Use',d.fuelConsumption,2],['Weight',d.weight,1],['IC Cost',d.buildCost,2]];
+  return `<div class="tank-stat-grid">${rows.map(([k,v,n,suf=''])=>`<div><span>${k}</span><b>${fmt(v,n)}${suf}</b></div>`).join('')}</div>`;
 }
-function productionLineCard(g,q,i){
-  const need=Math.max(0,(+g.target||0)-(+g.stock||0)),completion=need<=0?100:clamp((q.produced/Math.max(1,need))*100,0,100),eta=q.daily>0?Math.ceil(need/q.daily):Infinity;
-  const pressure=Object.entries(q.resourceRequired||{}).filter(([,v])=>v>0).map(([r,req])=>{const used=q.resourceUsed?.[r]||0;return `<span class="resource-chip ${used+1e-9<req?'short':''}">${r.toUpperCase()} ${fmt(used,1)}/${fmt(req,1)}</span>`;}).join('');
-  return `<article class="production-line ${q.resourceFactor<.999?'constrained':''}"><div class="prod-equipment"><span class="equipment-badge">${(equipment[g.type]?.name||g.type).slice(0,2).toUpperCase()}</span><div><select data-g-type="${i}">${Object.entries(equipment).map(([k,v])=>`<option value="${k}" ${g.type===k?'selected':''}>${v.name}</option>`).join('')}</select><small>${pressure||'No strategic resources'}</small></div></div><div class="prod-factories"><div class="line-label"><span>Factories</span><b>${q.effectiveFactories}/${g.factories||0}</b></div>${factoryPips(q.effectiveFactories,g.factories||0)}<input data-g-fact="${i}" type="number" min="0" value="${g.factories||0}"></div><div class="prod-controls"><label>Stock<input data-g-stock="${i}" type="number" min="0" value="${g.stock||0}"></label><label>Target<input data-g-target="${i}" type="number" min="0" value="${g.target||0}"></label><label>Priority<input data-g-priority="${i}" type="number" min="1" max="10" value="${g.priority||1}"></label></div><div class="prod-output"><div><span>Output / day</span><b>${fmt(q.daily,2)}</b></div><div><span>Resource efficiency</span><b>${pct((q.resourceFactor||0)*100)}</b></div><div><span>ETA</span><b>${Number.isFinite(eta)?`${eta} d`:'—'}</b></div></div><div class="prod-progress"><span style="width:${completion}%"></span></div><div class="prod-footer"><span>${fmt(q.produced,0)} projected · ${fmt(q.shortage,0)} shortage</span><button class="icon danger" data-g-remove="${i}" title="Remove production line">×</button></div></article>`;
+function tank(c){
+  ensureTankState();const side=state.tankDesigner.side,cls=state.tankDesigner.class,raw=tankCurrent(),d=adjustedTankDesign(side,cls),ids=tankClassIds(cls),unit=techData(side).battalions[ids.battalion],eq=equipmentForSide(side)[ids.equipment],other=side==='attacker'?'defender':'attacker';
+  const resourceText=Object.entries(d.resources||{}).map(([k,v])=>`<span class="resource-chip">${k.toUpperCase()} ${fmt(v,0)}/MIC</span>`).join('')||'<span class="resource-chip">No strategic resource</span>';
+  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">ARMORED FORCES · EQUIPMENT DESIGN</p><h1>Tank Designer</h1><p>Build the tank variant that the Division Lab actually uses. Module choices alter armor, firepower, reliability, speed and IC/resource burden.</p></div>${badge('Variant-linked','good')}</section>
+  <div class="designer-tabs tank-tabs"><button class="${side==='attacker'?'active':''}" data-tank-side="attacker"><span>ATTACKER</span><b>${esc(state.attackerName)}</b></button><button class="${side==='defender'?'active':''}" data-tank-side="defender"><span>DEFENDER</span><b>${esc(state.defenderName)}</b></button><button class="swap-tab" id="copyTank">COPY → ${other.toUpperCase()}</button></div>
+  <div class="tank-class-tabs">${['light','medium','heavy'].map(k=>`<button data-tank-class="${k}" class="${cls===k?'active':''}">${k.toUpperCase()}<small>${esc(state.tankDesigns[side][k].name)}</small></button>`).join('')}</div>
+  <section class="tank-designer-shell">
+    <div class="tank-blueprint panel"><div class="tank-nameplate"><div><span class="eyebrow">${cls.toUpperCase()} ARMOR VARIANT</span><input id="tank-name" value="${esc(raw.name)}" aria-label="Tank design name"></div><div class="tank-silhouette"><span>▰</span><b>${fmt(d.armor,0)}</b><small>ARMOR</small></div></div>
+      <div class="tank-module-grid">
+        <label class="fixed-slot"><span>CHASSIS</span><select id="tank-chassis">${optionList(TANK_CHASSIS,raw.chassis,v=>v.class===cls)}</select></label>
+        <label class="fixed-slot weapon"><span>MAIN ARMAMENT</span><select id="tank-gun">${optionList(TANK_GUNS,raw.gun)}</select></label>
+        <label><span>TURRET</span><select id="tank-turret">${optionList(TANK_TURRETS,raw.turret)}</select></label>
+        <label><span>SUSPENSION</span><select id="tank-suspension">${optionList(TANK_SUSPENSIONS,raw.suspension)}</select></label>
+        <label><span>ARMOR TYPE</span><select id="tank-armorType">${optionList(TANK_ARMOR_TYPES,raw.armorType)}</select></label>
+        <label><span>ENGINE</span><select id="tank-engine">${optionList(TANK_ENGINES,raw.engine)}</select></label>
+        ${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="tank-special-${i}">${optionList(TANK_SPECIALS,v)}</select></label>`).join('')}
+      </div>
+      <div class="tank-upgrades"><label>Engine upgrades <input id="tank-engineUpgrades" type="range" min="0" max="20" value="${raw.engineUpgrades}"><b>${raw.engineUpgrades}</b></label><label>Armor upgrades <input id="tank-armorUpgrades" type="range" min="0" max="20" value="${raw.armorUpgrades}"><b>${raw.armorUpgrades}</b></label></div>
+      ${d.overloaded?`<p class="notice stop"><b>Chassis overloaded:</b> ${fmt(d.overload,1)} weight above the ${fmt(d.maxWeight,0)} baseline capacity. Speed/reliability penalties are active.</p>`:`<p class="notice good"><b>Weight within chassis capacity.</b> ${fmt(d.weight,1)} / ${fmt(d.maxWeight,0)}.</p>`}
+    </div>
+    <aside class="panel tank-performance"><div class="panel-head"><h2>Variant statistics</h2></div>${tankStatsGrid(d)}<div class="advisor-resources">${resourceText}</div>${inlineMioPicker(side,`${cls}_tank`,'tank-active')}<p class="muted">Built-in module numbers are a transparent analytical baseline. Exact chassis/modules/upgrades will be supplied by imported game files once the module resolver is active.</p></aside>
+  </section>
+  <div class="grid two">
+    ${panel('Division Lab integration',`<div class="variant-link-card"><span>${side.toUpperCase()} ${cls.toUpperCase()} BATTALION</span><h3>${esc(unit.name)}</h3><div class="hq-stat-pair"><div><span>Soft attack</span><b>${fmt(unit.soft,1)}</b></div><div><span>Hard attack</span><b>${fmt(unit.hard,1)}</b></div><div><span>Armor</span><b>${fmt(unit.armor,1)}</b></div><div><span>Breakthrough</span><b>${fmt(unit.breakthrough,1)}</b></div></div><p>This design is already active for every ${esc(unit.name)} in the ${side} template.</p><a class="btn" href="#battle">Open Division Lab →</a></div>`)}
+    ${panel('Industrial burden',`<div class="variant-link-card"><span>PRODUCTION EQUIPMENT</span><h3>${esc(eq.name)}</h3><strong class="big-ic">${fmt(eq.cost,2)} IC / tank</strong><p>A ${esc(unit.name)} currently requires ${fmt(unit.need?.[ids.equipment]||0,0)} vehicles, so one battalion carries roughly <b>${fmt((unit.need?.[ids.equipment]||0)*eq.cost,0)} IC</b> of tanks before losses.</p><a class="btn" href="#production">Test force production →</a></div>`)}
+  </div>`;
+  document.querySelectorAll('[data-tank-side]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=el.dataset.tankSide;save();shell();});
+  document.querySelectorAll('[data-tank-class]').forEach(el=>el.onclick=()=>{state.tankDesigner.class=el.dataset.tankClass;save();shell();});
+  $('copyTank').onclick=()=>{state.tankDesigns[other][cls]=structuredClone(state.tankDesigns[side][cls]);state.tankDesigns[other][cls].name=`Copy of ${state.tankDesigns[side][cls].name}`;save();shell();};
+  const set=(k,v)=>{state.tankDesigns[side][cls][k]=v;state.tankDesigns[side][cls]=normalizeTankDesign(state.tankDesigns[side][cls],cls);save();shell();};
+  $('tank-name').onchange=()=>set('name',$('tank-name').value.trim()||`${cls} tank`);
+  for(const k of ['chassis','gun','turret','suspension','armorType','engine'])$('tank-'+k).onchange=()=>set(k,$('tank-'+k).value);
+  raw.specials.forEach((_,i)=>{$('tank-special-'+i).onchange=()=>{const next=[...state.tankDesigns[side][cls].specials];next[i]=$('tank-special-'+i).value;set('specials',next);};});
+  for(const k of ['engineUpgrades','armorUpgrades'])$('tank-'+k).onchange=()=>set(k,+$('tank-'+k).value);
+  bindInlineMio(side,`${cls}_tank`,'tank-active');
 }
 
-function production(c){
-  const goals=mergedGoals(),p=evaluateProduction(goals,state.production,equipment);
-  c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">INDUSTRIAL PLANNING</p><h1>Production</h1><p>Allocate military factories against equipment goals using IC/day, production efficiency and shared strategic-resource constraints.</p></div>${badge(`${productionReadiness()}% ready`,productionReadiness()>=75?'good':'')}</section>
-  <div class="grid two">
-    ${panel('Scenario',`<div class="field-grid"><label>Days to target<input id="p-days" type="number" min="1" value="${state.production.days}"></label><label>Military factories<input id="p-factories" type="number" min="0" value="${state.production.factories}"></label><label>Starting efficiency %<input id="p-efficiency" type="number" min="0" max="200" value="${state.production.efficiency}"></label><label>Efficiency growth modifier %<input id="p-efficiencyGain" type="number" min="0" step="5" value="${state.production.efficiencyGain}"></label><label>Efficiency cap %<input id="p-maxEfficiency" type="number" min="1" max="200" value="${state.production.maxEfficiency}"></label><label>Factory output bonus %<input id="p-outputBonus" type="number" step="1" value="${state.production.outputBonus}"></label><label>Base MIC output / day<input id="p-baseFactoryOutput" type="number" min="0.1" step="0.1" value="${state.production.baseFactoryOutput}"></label></div><div class="projection"><div><span>End efficiency</span><strong>${pct(p.efficiency.end*100)}</strong></div><div><span>Average efficiency</span><strong>${pct(p.efficiency.average*100)}</strong></div><div><span>Factory load</span><strong>${p.usedFactories}/${state.production.factories}</strong><small>${p.queuedFactories?`${p.queuedFactories} queued`:`${p.unusedFactories} unassigned`}</small></div></div>`)}
-    ${panel('Available strategic resources',`<div class="resource-inputs">${RESOURCES.map(r=>`<label>${r}<input data-resource="${r}" type="number" min="0" value="${state.production.resources[r]??0}"></label>`).join('')}</div><p class="muted">Resource requirements are modeled per assigned military factory, not per finished equipment item.</p>`)}
-  </div>
-  ${panel('Division Lab demand',`<div class="row demand-link"><label class="check"><input id="includeLabDemand" type="checkbox" ${state.includeLabDemand?'checked':''}> Include current attacker template</label><label>Divisions<input id="labDemandCount" type="number" min="0" value="${state.labDemandCount}"></label></div><div class="loss-list">${equipmentLossList(labDemand())}</div><p class="muted">This link updates automatically when the attacker template changes, so industry planning follows the actual Division Lab instead of a disconnected example template.</p>`)}
-  ${panel('Additional formation demand',`<div id="armyDemand">${state.armyDemand.map((x,i)=>`<div class="row"><select data-demand-template="${i}">${Object.entries(armyTemplates).map(([k,v])=>`<option value="${k}" ${x.template===k?'selected':''}>${v.name}</option>`).join('')}</select><input data-demand-count="${i}" type="number" min="0" value="${x.count}"><button class="icon danger" data-demand-remove="${i}">×</button></div>`).join('')}</div><div class="actions"><button class="btn" id="addDemand">+ Formation goal</button></div>`)}
-  ${state.lastBattle?panel('Last battle replacement',`<div class="loss-list">${equipmentLossList(state.lastBattle.attackerEquipmentLosses)}</div><p><b>${fmt(replacementIC(state.lastBattle.attackerEquipmentLosses),0)} IC</b> estimated replacement burden.</p><button class="btn" id="productionReplacement" ${state.lastBattle.applied?'disabled':''}>${state.lastBattle.applied?'Already added':'Add to production targets'}</button>`):''}
-  ${panel('Production lines',`<div class="production-lines">${goals.map((g,i)=>productionLineCard(g,p.lines[i],i)).join('')}</div><div class="actions"><button class="primary" id="optimize">Optimize factories</button><button class="btn" id="addGoal">+ Production line</button></div>`)}
-  ${p.queuedFactories?panel('Factory queue',`<p class="notice warn"><b>${p.queuedFactories} requested factories are inactive.</b> Higher-priority lines receive available factories first; reduce assignments or add military factories to activate the queued capacity.</p>`):''}
-  ${panel('Resource pressure',`<div class="resource-grid">${RESOURCES.map(r=>{const req=p.resources.required[r]||0,use=p.resources.used[r]||0,avail=state.production.resources[r]||0;return `<div><span>${r}</span><strong>${fmt(use,1)} / ${fmt(req,1)}</strong><small>${fmt(avail,0)} available</small></div>`;}).join('')}</div>`)}
-  `;
-  ['days','factories','efficiency','efficiencyGain','maxEfficiency','outputBonus','baseFactoryOutput'].forEach(k=>{$('p-'+k).onchange=()=>{state.production[k]=+$('p-'+k).value;save();shell();};});
-  document.querySelectorAll('[data-resource]').forEach(el=>el.onchange=()=>{state.production.resources[el.dataset.resource]=+el.value||0;save();shell();});
-  $('includeLabDemand').onchange=()=>{state.includeLabDemand=$('includeLabDemand').checked;save();shell();};
-  $('labDemandCount').onchange=()=>{state.labDemandCount=Math.max(0,+$('labDemandCount').value||0);save();shell();};
-  if($('productionReplacement'))$('productionReplacement').onclick=applyLastBattleReplacement;
-  document.querySelectorAll('[data-demand-template]').forEach(el=>el.onchange=()=>{state.armyDemand[+el.dataset.demandTemplate].template=el.value;save();shell();});
-  document.querySelectorAll('[data-demand-count]').forEach(el=>el.onchange=()=>{state.armyDemand[+el.dataset.demandCount].count=+el.value||0;save();shell();});
-  document.querySelectorAll('[data-demand-remove]').forEach(el=>el.onclick=()=>{state.armyDemand.splice(+el.dataset.demandRemove,1);save();shell();});
-  $('addDemand').onclick=()=>{state.armyDemand.push({template:'infantry',count:12});save();shell();};
-  const setters=[['type','gType'],['stock','gStock'],['target','gTarget'],['factories','gFact'],['priority','gPriority']];
-  setters.forEach(([field,data])=>document.querySelectorAll(`[data-g-${field==='factories'?'fact':field}]`).forEach(el=>el.onchange=()=>{const idx=+el.dataset[data];const actual=findGoalByMergedIndex(goals,idx);if(!actual)return;actual[field]=field==='type'?el.value:+el.value||0;save();shell();}));
-  document.querySelectorAll('[data-g-remove]').forEach(el=>el.onclick=()=>{const g=goals[+el.dataset.gRemove];const idx=state.productionGoals.findIndex(x=>x.type===g.type);if(idx>=0)state.productionGoals.splice(idx,1);save();shell();});
-  $('addGoal').onclick=()=>{const type=Object.keys(equipment).find(k=>!state.productionGoals.some(g=>g.type===k))||'infantry_equipment';state.productionGoals.push({type,stock:0,target:1000,factories:0,priority:2});save();shell();};
-  $('optimize').onclick=()=>{const result=optimizeProduction(goals,state.production,equipment);for(const line of result.lines){let g=state.productionGoals.find(x=>x.type===line.type);if(!g){g={type:line.type,stock:line.stock||0,target:line.target||0,priority:line.priority||1,factories:0};state.productionGoals.push(g);}g.factories=line.factories;}save();shell();};
+function renderAirDoctrine(side,prefix){
+  const p=ensureTechState(side),d=normalizeAirDoctrine(p.airDoctrine);
+  return `<div class="air-doctrine"><div class="air-doctrine-head"><div><span class="eyebrow">AIR DOCTRINE · ${esc(p.countryTag)}</span><b>${esc(AIR_GRAND_DOCTRINES[d.grand]?.name||d.grand)}</b></div><select id="${prefix}-air-grand">${Object.entries(AIR_GRAND_DOCTRINES).map(([id,x])=>`<option value="${id}" ${d.grand===id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div class="air-doctrine-tracks">${Object.entries(AIR_DOCTRINE_TRACKS).map(([track,meta])=>{const t=d.tracks[track];return `<div class="air-doctrine-track ${t.mastery>=5?'complete':''}"><span>${esc(meta.name)}</span><select data-air-doctrine-choice="${prefix}:${track}">${meta.choices.map(([id,name])=>`<option value="${id}" ${t.choice===id?'selected':''}>${esc(name)}</option>`).join('')}</select><label>Mastery <input type="number" min="0" max="5" step="1" value="${t.mastery}" data-air-doctrine-mastery="${prefix}:${track}"></label></div>`;}).join('')}</div><small>Grand-doctrine mission effects and relevant mastery rewards are included in the Air Lab comparison. Non-combat scripted effects remain outside the model.</small></div>`;
 }
-function findGoalByMergedIndex(goals,i){const g=goals[i];if(!g)return null;let own=state.productionGoals.find(x=>x.type===g.type);if(!own){own={...g};state.productionGoals.push(own);}return own;}
+function bindAirDoctrine(side,prefix){
+  const grand=$(`${prefix}-air-grand`);if(grand)grand.onchange=()=>{state[side+'Tech'].airDoctrine.grand=grand.value;state[side+'Tech'].airDoctrine=normalizeAirDoctrine(state[side+'Tech'].airDoctrine);save();shell();};
+  document.querySelectorAll(`[data-air-doctrine-choice^="${prefix}:"]`).forEach(el=>el.onchange=()=>{const track=el.dataset.airDoctrineChoice.split(':')[1];state[side+'Tech'].airDoctrine.tracks[track].choice=el.value;state[side+'Tech'].airDoctrine=normalizeAirDoctrine(state[side+'Tech'].airDoctrine);save();shell();});
+  document.querySelectorAll(`[data-air-doctrine-mastery^="${prefix}:"]`).forEach(el=>el.onchange=()=>{const track=el.dataset.airDoctrineMastery.split(':')[1];state[side+'Tech'].airDoctrine.tracks[track].mastery=+el.value;state[side+'Tech'].airDoctrine=normalizeAirDoctrine(state[side+'Tech'].airDoctrine);save();shell();});
+}
+function airDesignStats(d){
+  const rows=[['Air Attack',d.airAttack,1],['Air Defense',d.airDefense,1],['Agility',d.agility,1],['Max Speed',d.maxSpeed,0,' km/h'],['Range',d.range,0,' km'],['Ground Attack',d.groundAttack,1],['Naval Attack',d.navalAttack,1],['Reliability',d.reliability*100,1,'%'],['IC Cost',d.buildCost,2],['Thrust',d.thrust,1]];
+  return `<div class="air-stat-grid">${rows.map(([k,v,n,suf=''])=>`<div><span>${k}</span><b>${fmt(v,n)}${suf}</b></div>`).join('')}</div>`;
+}
+function airDesignPanel(key,label){
+  const raw=state.airLab[key],side=key==='a'?'attacker':'defender',d=adjustedAirDesign(side,raw),prefix=`air-${key}`;
+  return `<section class="panel aircraft-designer ${key==='a'?'friendly':'enemy'}"><div class="aircraft-head"><div><span class="eyebrow">${label}</span><input id="${prefix}-name" value="${esc(raw.name)}"></div><div class="aircraft-role">${d.roles.map(x=>`<span>${x.replace('_',' ').toUpperCase()}</span>`).join('')||'<span>NO MISSION</span>'}</div></div>
+    <div class="air-module-grid"><label class="wide"><span>AIRFRAME</span><select id="${prefix}-airframe">${optionList(AIRFRAMES,raw.airframe)}</select></label><label class="wide"><span>ENGINE</span><select id="${prefix}-engine">${optionList(AIR_ENGINES,raw.engine)}</select></label>${raw.weapons.map((v,i)=>`<label><span>WEAPON ${i+1}</span><select id="${prefix}-weapon-${i}">${optionList(AIR_WEAPONS,v)}</select></label>`).join('')}<label><span>DEFENSE</span><select id="${prefix}-defense">${optionList(AIR_DEFENSE_MODULES,raw.defense)}</select></label>${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="${prefix}-special-${i}">${optionList(AIR_SPECIALS,v)}</select></label>`).join('')}</div>
+    ${d.overweight?`<p class="notice stop"><b>Insufficient thrust.</b> ${fmt(d.thrust,1)} available / ${fmt(d.requiredThrust,1)} required. Agility, speed and reliability are penalized.</p>`:`<p class="notice good"><b>Thrust margin:</b> ${fmt(d.thrust-d.requiredThrust,1)}.</p>`}
+    ${airDesignStats(d)}<div class="advisor-resources">${Object.entries(d.resources||{}).map(([r,q])=>`<span class="resource-chip">${r.toUpperCase()} ${fmt(q,0)}/MIC</span>`).join('')}</div>${inlineMioPicker(side,d.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`)}${renderAirDoctrine(side,prefix)}</section>`;
+}
+function bindAirDesign(key){
+  const prefix=`air-${key}`,set=(k,v)=>{state.airLab[key][k]=v;state.airLab[key]=normalizeAirDesign(state.airLab[key],AIRFRAMES[state.airLab[key].airframe]?.size||'small');save();shell();};
+  $(`${prefix}-name`).onchange=()=>set('name',$(`${prefix}-name`).value.trim()||'Aircraft');
+  for(const k of ['airframe','engine','defense'])$(`${prefix}-${k}`).onchange=()=>set(k,$(`${prefix}-${k}`).value);
+  state.airLab[key].weapons.forEach((_,i)=>{$(`${prefix}-weapon-${i}`).onchange=()=>{const x=[...state.airLab[key].weapons];x[i]=$(`${prefix}-weapon-${i}`).value;set('weapons',x);};});
+  state.airLab[key].specials.forEach((_,i)=>{$(`${prefix}-special-${i}`).onchange=()=>{const x=[...state.airLab[key].specials];x[i]=$(`${prefix}-special-${i}`).value;set('specials',x);};});
+  const side=key==='a'?'attacker':'defender',built=adjustedAirDesign(side,state.airLab[key]);bindInlineMio(side,built.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`);bindAirDoctrine(side,prefix);
+}
+function air(c){
+  ensureAirState();const o=state.airLab,aBuilt=adjustedAirDesign('attacker',o.a),bBuilt=adjustedAirDesign('defender',o.b),afx=airDoctrineEffects(ensureTechState('attacker').airDoctrine,aBuilt),bfx=airDoctrineEffects(ensureTechState('defender').airDoctrine,bBuilt),airOpts={...o,missionEfficiencyA:o.missionEfficiencyA*(1+(afx.mission[o.mission]||0)),missionEfficiencyB:o.missionEfficiencyB*(1+(bfx.mission[o.mission]||0)),detectionA:o.detectionA*(1+(afx.detection||0)),detectionB:o.detectionB*(1+(bfx.detection||0))},r=compareBuiltAirDesigns(aBuilt,bBuilt,airOpts),a=r.a,b=r.b,effA=airMissionEfficiencyBuilt(a,o.mission),effB=airMissionEfficiencyBuilt(b,o.mission),exchange=Number.isFinite(r.exchangeA)?fmt(r.exchangeA,2):'∞',kill=Number.isFinite(r.killRatioA)?fmt(r.killRatioA,2):'∞';
+  const verdict=r.exchangeA>=1.15?'FRIENDLY DESIGN WINS ON IC':r.exchangeA<=.87?'ENEMY DESIGN WINS ON IC':'ROUGH IC PARITY';
+  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">AIR MINISTRY · AIRCRAFT DESIGN & TEST</p><h1>Air Lab</h1><p>Design two aircraft, compare combat exchange and judge whether extra performance is worth the extra IC.</p></div>${badge('Analytical air-combat model')}</section>
+  <div class="air-lab-grid">${airDesignPanel('a','FRIENDLY DESIGN')}<section class="air-versus"><span>VS</span><button class="btn" id="swapAir">⇄ Swap</button><button class="btn" id="copyAir">Copy A → B</button></section>${airDesignPanel('b','ENEMY DESIGN')}</div>
+  ${panel('Test conditions',`<div class="field-grid"><label>Mission<select id="air-mission"><option value="air_superiority" ${o.mission==='air_superiority'?'selected':''}>Air superiority / interception</option><option value="cas" ${o.mission==='cas'?'selected':''}>Close air support value</option><option value="naval_strike" ${o.mission==='naval_strike'?'selected':''}>Naval strike value</option></select></label><label>Friendly aircraft<input id="air-countA" type="number" min="1" value="${o.countA}"></label><label>Enemy aircraft<input id="air-countB" type="number" min="1" value="${o.countB}"></label><label>Sorties modeled<input id="air-sorties" type="number" min="100" step="100" value="${o.sorties}"></label><label>Friendly mission efficiency<input id="air-missionEfficiencyA" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyA}"></label><label>Enemy mission efficiency<input id="air-missionEfficiencyB" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyB}"></label><label>Friendly detection<input id="air-detectionA" type="number" min=".1" max="1" step=".05" value="${o.detectionA}"></label><label>Enemy detection<input id="air-detectionB" type="number" min=".1" max="1" step=".05" value="${o.detectionB}"></label></div>`)}
+  <section class="air-comparison-report"><div class="air-verdict"><span>COMPARATIVE RESULT</span><h2>${verdict}</h2><p>This is an analytical exchange model using attack/defense, agility, speed, reliability, detection and mission efficiency. Exact executable parity awaits imported NAir defines and current aircraft modules.</p></div><div class="air-report-metrics"><article><span>KILL RATIO A:B</span><strong>${kill}</strong><small>${fmt(r.lossB,2)} enemy / ${fmt(r.lossA,2)} friendly losses</small></article><article><span>IC EXCHANGE</span><strong>${exchange}:1</strong><small>${fmt(r.icLostB,0)} enemy IC / ${fmt(r.icLostA,0)} friendly IC lost</small></article><article><span>AIR POWER SHARE</span><strong>${fmt(r.airPowerShareA,1)}%</strong><small>friendly analytical share</small></article><article><span>${esc(effA.label)}</span><strong>${fmt(effA.score,2)}</strong><small>enemy ${fmt(effB.score,2)}</small></article></div></section>
+  ${panel('Design economics',`<div class="air-economics"><div><span>FRIENDLY</span><b>${esc(a.name)}</b><strong>${fmt(a.buildCost,2)} IC</strong><small>${fmt(1000/a.buildCost,1)} aircraft / 1,000 IC</small></div><div><span>ENEMY</span><b>${esc(b.name)}</b><strong>${fmt(b.buildCost,2)} IC</strong><small>${fmt(1000/b.buildCost,1)} aircraft / 1,000 IC</small></div></div><p class="notice"><b>Decision rule:</b> do not judge the aircraft only by kill ratio. A more expensive fighter can win tactically and still lose the industrial exchange; the IC exchange metric is intended to expose that trade.</p>`)} `;
+  bindAirDesign('a');bindAirDesign('b');
+  $('swapAir').onclick=()=>{[state.airLab.a,state.airLab.b]=[state.airLab.b,state.airLab.a];[state.airLab.countA,state.airLab.countB]=[state.airLab.countB,state.airLab.countA];for(const f of ['small_airframe','medium_airframe'])[state.mioSelections.attacker[f],state.mioSelections.defender[f]]=[state.mioSelections.defender[f],state.mioSelections.attacker[f]];save();shell();};
+  $('copyAir').onclick=()=>{state.airLab.b=structuredClone(state.airLab.a);state.airLab.b.name=`Enemy ${state.airLab.a.name}`;save();shell();};
+  $('air-mission').onchange=()=>{state.airLab.mission=$('air-mission').value;save();shell();};
+  for(const k of ['countA','countB','sorties','missionEfficiencyA','missionEfficiencyB','detectionA','detectionB'])$('air-'+k).onchange=()=>{state.airLab[k]=+$('air-'+k).value;ensureAirState();save();shell();};
+}
+
+function factoryPips(active,requested){
+  const total=Math.min(20,Math.max(0,Math.floor(requested||0))),on=Math.min(total,Math.max(0,Math.floor(active||0)));
+  return `<div class="factory-pips" title="${active} active / ${requested} assigned">${Array.from({length:total},(_,i)=>`<i class="${i<on?'active':'queued'}"></i>`).join('')}${requested>20?`<b>+${requested-20}</b>`:''}</div>`;
+}
+function productionStockMap(){const out={};for(const g of state.productionGoals||[])out[g.type]=Math.max(0,+g.stock||0);return out;}
+function stockGoal(type){let g=state.productionGoals.find(x=>x.type===type);if(!g){g={type,stock:0,target:0,factories:0,priority:3};state.productionGoals.push(g);}return g;}
+function advisorCombatBand(){return uncertaintyBand(aggregate('attacker'),aggregate('defender'),battleOpts(),state.intelUncertainty,Math.min(180,state.battlefield.runs));}
+function industryVerdict(band,issues){
+  if(issues.length)return {tone:'stop',code:'INVALID',title:'Fix the Lab template first',copy:'The current attacker uses equipment or support that its selected research profile does not unlock.'};
+  if(band.adverse.winRate>=60)return {tone:'go',code:'MASS',title:'Mass production justified',copy:'The current Lab design remains favorable against the adverse enemy estimate. Optimize industry around fielding complete copies and replacement depth.'};
+  if(band.base.winRate>=60&&band.adverse.winRate>=45)return {tone:'warn',code:'LIMITED',title:'Produce cautiously',copy:'The design works in the base case but loses too much margin when the enemy estimate is wrong. Build a limited force while improving the template or battlefield conditions.'};
+  return {tone:'stop',code:'REDESIGN',title:'Do not mass-produce this design',copy:'Your current Lab matchup is too weak to justify committing the bulk of military industry. Improve the division first, then return here for allocation.'};
+}
+function advisorRow(row,need,eqTable=equipment){
+  const eq=eqTable[row.type],coverage=row.divisionEquivalents||0,whole=Math.floor(coverage),partial=(coverage-whole)*100;
+  const pressure=Object.entries(row.resourceRequired||{}).filter(([,v])=>v>0).map(([r,req])=>{const used=row.resourceUsed?.[r]||0;return `<span class="resource-chip ${used+1e-9<req?'short':''}">${r.toUpperCase()} ${fmt(used,1)}/${fmt(req,1)}</span>`;}).join('');
+  return `<article class="advisor-line ${row.resourceFactor<.999?'constrained':''}"><div class="advisor-eq"><span class="equipment-badge">${(eq?.name||row.type).slice(0,2).toUpperCase()}</span><div><b>${esc(eq?.name||row.type)}</b><small>${fmt(need,0)} per division · ${fmt((eq?.cost||0)*need,0)} IC/div</small></div></div><div><span class="advisor-label">RECOMMENDED MIC</span><strong class="advisor-mic">${row.effectiveFactories}</strong>${factoryPips(row.effectiveFactories,row.effectiveFactories)}</div><div class="advisor-output"><span>Current stock <b>${fmt(row.stock,0)}</b></span><span>Produced by deadline <b>+${fmt(row.produced,0)}</b></span><span>Output/day <b>${fmt(row.daily,2)}</b></span></div><div class="advisor-coverage"><div><span>FORCE COVERAGE</span><b>${fmt(coverage,2)} div</b></div><div class="mini-track"><i style="width:${clamp(partial,0,100)}%"></i></div><small>${whole} complete + ${fmt(partial,0)}% toward next</small></div><div class="advisor-resources">${pressure||'<span class="resource-chip">NO STRATEGIC RESOURCE</span>'}<small>${pct((row.resourceFactor||0)*100)} line efficiency from resources</small></div></article>`;
+}
+function production(c){
+  const need=division('attacker').need||{},stocks=productionStockMap(),issues=techProblems('attacker');
+  const eqTable=equipmentForSide('attacker'),plan=optimizeForceProduction(need,stocks,state.production,eqTable),band=advisorCombatBand(),verdict=industryVerdict(band,issues);
+  const complete=Math.floor(plan.fieldable||0),nextPct=((plan.fieldable||0)-complete)*100,icPerDivision=divisionEquipmentIC(need,eqTable);
+  const totalDailyIC=state.production.factories*state.production.baseFactoryOutput*(plan.efficiency?.average||0)*(1+(state.production.outputBonus||0)/100);
+  const bottleneck=(plan.rows||[]).slice().sort((a,b)=>a.divisionEquivalents-b.divisionEquivalents)[0];
+  c.innerHTML=`<section class="tool-head operational-head"><div><p class="eyebrow">ARMAMENTS MINISTRY · IC ALLOCATION</p><h1>What Should I Build?</h1><p>Use the current Division Lab design and enemy test to decide whether the template deserves mass production, then allocate available military industry to maximize complete fieldable divisions.</p></div><div class="order-status ${verdict.tone}"><span>PRODUCTION ORDER</span><b>${verdict.code}</b></div></section>
+  <section class="industry-verdict ${verdict.tone}"><div><span>GENERAL STAFF RECOMMENDATION</span><h2>${verdict.title}</h2><p>${verdict.copy}</p></div><div class="industry-combat"><small>BASE / ADVERSE WIN</small><strong>${pct(band.base.winRate)} <i>/</i> ${pct(band.adverse.winRate)}</strong><span>vs current Division Lab defender</span></div></section>
+  <div class="industry-summary"><article><span>FIELDABLE BY DEADLINE</span><strong>${fmt(plan.fieldable,2)}</strong><small>${complete} complete · target ${Math.max(1,+state.labDemandCount||1)} divisions</small></article><article><span>EQUIPMENT IC / DIVISION</span><strong>${fmt(icPerDivision,0)}</strong><small>material cost before replacement losses</small></article><article><span>AVAILABLE MIC</span><strong>${state.production.factories}</strong><small>${fmt(totalDailyIC,1)} effective IC/day at average efficiency</small></article><article><span>NEXT FACTORY</span><strong>${esc(eqTable[plan.nextFactory?.type]?.name||'—')}</strong><small>${bottleneck?`${esc(eqTable[bottleneck.type]?.name||bottleneck.type)} is current bottleneck`:'No equipment demand'}</small></article></div>
+  <div class="grid two">
+    ${panel('Industrial assumptions',`<div class="field-grid"><label>Planning horizon (days)<input id="p-days" type="number" min="1" value="${state.production.days}"></label><label>Target field divisions<input id="p-targetDivisions" type="number" min="1" value="${Math.max(1,+state.labDemandCount||1)}"></label><label>Military factories<input id="p-factories" type="number" min="0" value="${state.production.factories}"></label><label>Starting efficiency %<input id="p-efficiency" type="number" min="0" max="200" value="${state.production.efficiency}"></label><label>Efficiency growth %<input id="p-efficiencyGain" type="number" min="0" step="5" value="${state.production.efficiencyGain}"></label><label>Efficiency cap %<input id="p-maxEfficiency" type="number" min="1" max="200" value="${state.production.maxEfficiency}"></label><label>Factory output bonus %<input id="p-outputBonus" type="number" step="1" value="${state.production.outputBonus}"></label><label>Base MIC output/day<input id="p-baseFactoryOutput" type="number" min="0.1" step="0.1" value="${state.production.baseFactoryOutput}"></label></div><div class="projection"><div><span>End efficiency</span><strong>${pct((plan.efficiency?.end||0)*100)}</strong></div><div><span>Average efficiency</span><strong>${pct((plan.efficiency?.average||0)*100)}</strong></div><div><span>Allocated MIC</span><strong>${plan.usedFactories}/${state.production.factories}</strong></div></div>`)}
+    ${panel('Strategic resources',`<div class="resource-inputs">${RESOURCES.map(r=>`<label>${r}<input data-resource="${r}" type="number" min="0" value="${state.production.resources[r]??0}"></label>`).join('')}</div><p class="muted">The optimizer accounts for HOI-style per-factory shortage penalties and gives scarce resources to the equipment bottlenecks that improve force completion most.</p>`)}
+  </div>
+  ${panel('Current stockpiles',`<div class="stock-grid">${Object.entries(need).map(([type,q])=>`<label><span>${esc(eqTable[type]?.name||type)}</span><small>${fmt(q,0)} needed per division</small><input data-stock-type="${type}" type="number" min="0" value="${stocks[type]||0}"></label>`).join('')}</div>`)}
+  ${panel('Recommended factory allocation',`<div class="advisor-lines">${(plan.rows||[]).sort((a,b)=>b.effectiveFactories-a.effectiveFactories).map(r=>advisorRow(r,need[r.type],eqTable)).join('')}</div><p class="notice"><b>Optimization objective:</b> maximize fully equipped copies of the current Lab division by the deadline. The recommendation balances bottlenecks rather than maximizing raw equipment count. ${plan.nextFactory?.type?`If you gain one additional MIC, assign it to <b>${esc(eqTable[plan.nextFactory.type]?.name||plan.nextFactory.type)}</b>.`:''}</p>`)}
+  ${state.lastBattle?panel('Replacement burden',`<div class="replacement-advisor"><div><span>LAST MODELED ENGAGEMENT</span><strong>${fmt(replacementIC(state.lastBattle.attackerEquipmentLosses),0)} IC</strong><small>estimated material replacement</small></div><div class="loss-list">${equipmentLossList(state.lastBattle.attackerEquipmentLosses)}</div></div><p class="muted">This is shown as operational reserve pressure rather than silently mixed into new-division production. A later pass can optimize sustained campaign replacement rates separately.</p>`):''}
+  ${issues.length?panel('Lab conflicts',`<div class="staff-list">${issues.map(x=>`<article class="staff-warning"><b>TECH</b><div><strong>${esc(x)}</strong><span>Resolve this in Division Lab before trusting the industrial recommendation.</span></div></article>`).join('')}</div>`):''}`;
+  ['days','factories','efficiency','efficiencyGain','maxEfficiency','outputBonus','baseFactoryOutput'].forEach(k=>{$('p-'+k).onchange=()=>{state.production[k]=+$('p-'+k).value;save();shell();};});
+  $('p-targetDivisions').onchange=()=>{state.labDemandCount=Math.max(1,+$('p-targetDivisions').value||1);save();shell();};
+  document.querySelectorAll('[data-resource]').forEach(el=>el.onchange=()=>{state.production.resources[el.dataset.resource]=+el.value||0;save();shell();});
+  document.querySelectorAll('[data-stock-type]').forEach(el=>el.onchange=()=>{stockGoal(el.dataset.stockType).stock=Math.max(0,+el.value||0);save();shell();});
+}
 
 function front(c){
   const band=combatBand(),equip=productionReadiness(),low=band.adverse.winRate,base=band.base.winRate;
@@ -394,20 +564,6 @@ function front(c){
   ['terrain','directions','asupply','air','planning','cas'].forEach(k=>{$('f-'+k).onchange=()=>{state.battlefield[k]=k==='terrain'?$('f-'+k).value:+$('f-'+k).value;save();shell();};});
 }
 
-function research(c){
-  const schedule=researchSchedule();
-  const rows=state.research.map((x,i)=>{const plan=schedule[i],days=plan?.days??researchEstimate({baseDays:x.baseDays,speedBonus:(x.speedBonus||0)/100,aheadPenalty:x.aheadPenalty}),start=addDaysISO(state.researchDate,plan?.start||0),finish=addDaysISO(state.researchDate,plan?.finish||days);return `<article class="research-card"><div class="research-icon">R${plan?.slot||1}</div><div class="research-main"><div class="research-title"><input data-r-name="${i}" value="${esc(x.name)}"><span class="research-priority">P${x.priority}</span></div><div class="research-dates"><span>Slot <b>${plan?.slot||1}</b></span><span>Start <b>${start}</b></span><span>Finish <b>${finish}</b></span><span>Duration <b>${fmt(days,0)} d</b></span></div><div class="research-controls"><label>Base days<input data-r-base="${i}" type="number" min="1" value="${x.baseDays}"></label><label>Speed bonus %<input data-r-speed="${i}" type="number" step="1" value="${x.speedBonus}"></label><label>Ahead multiplier<input data-r-ahead="${i}" type="number" min="1" step=".05" value="${x.aheadPenalty}"></label><label>Priority<input data-r-priority="${i}" type="number" min="1" max="10" value="${x.priority}"></label></div></div><button class="icon danger research-remove" data-r-remove="${i}">×</button></article>`;}).join('');
-  const slotEnds=Array.from({length:Math.max(1,Math.min(10,Math.floor(+state.researchSlots||1)))},(_,i)=>{const inSlot=schedule.filter(x=>x?.slot===i+1),last=inSlot.sort((a,b)=>b.finish-a.finish)[0];return `<div><span>Slot ${i+1}</span><strong>${last?addDaysISO(state.researchDate,last.finish):'Open'}</strong><small>${inSlot.length} queued</small></div>`;}).join('');
-  c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">TECH TIMING</p><h1>Research</h1><p>Turn priorities into an actual multi-slot timing plan without inventing a hardcoded 1.19.2 technology database.</p></div>${badge(`${state.researchSlots} slots`)}</section>
-  ${panel('Planning setup',`<div class="field-grid"><label>In-game planning date<input id="researchDate" type="date" value="${state.researchDate}"></label><label>Research slots<input id="researchSlots" type="number" min="1" max="10" value="${state.researchSlots}"></label></div><div class="slot-summary">${slotEnds}</div>`)}
-  ${panel('Research queue',`<div class="research-queue">${rows}</div><div class="actions"><button class="btn" id="addResearch">+ Research item</button></div><p class="notice">Higher-priority items are scheduled first into the earliest available research slot. Ahead-of-time penalties vary by tech; enter the effective multiplier you want tested until exact technology files are imported.</p>`)} `;
-  $('researchDate').onchange=()=>{state.researchDate=$('researchDate').value;save();shell();};
-  $('researchSlots').onchange=()=>{state.researchSlots=Math.max(1,Math.min(10,+$('researchSlots').value||1));save();shell();};
-  ['name','base','speed','ahead','priority'].forEach(field=>document.querySelectorAll(`[data-r-${field}]`).forEach(el=>el.onchange=()=>{const i=+el.dataset['r'+field[0].toUpperCase()+field.slice(1)];const map={name:'name',base:'baseDays',speed:'speedBonus',ahead:'aheadPenalty',priority:'priority'};state.research[i][map[field]]=field==='name'?el.value:+el.value||0;save();shell();}));
-  document.querySelectorAll('[data-r-remove]').forEach(el=>el.onclick=()=>{state.research.splice(+el.dataset.rRemove,1);save();shell();});
-  $('addResearch').onclick=()=>{state.research.push({name:'New technology',baseDays:180,speedBonus:0,aheadPenalty:1,priority:3});save();shell();};
-}
-
 function intel(c){
   const band=combatBand(),d=division('defender'),confidence=clamp(100-state.intelUncertainty*100,40,100);
   const keyStats=[['ORG',fmt(d.org,1)],['SOFT',fmt(d.soft,1)],['HARD',fmt(d.hard,1)],['DEF',fmt(d.def,1)],['ARMOR',fmt(d.armor,1)],['PIERCE',fmt(d.piercing,1)],['WIDTH',fmt(d.width,0)],['MP',fmt(d.manpower,0)]];
@@ -426,15 +582,17 @@ function data(c){
   const coverage=pack?[
     ['Sub-units',meta?.subUnitCount||0,dataPackStatus.battalionOverrides+dataPackStatus.supportOverrides],
     ['Equipment records',meta?.equipmentCount||0,0],
+    ['Equipment modules',meta?.moduleCount||0,0],
+    ['MIO organizations',meta?.mioCount||0,meta?.mioCount||0],
     ['Terrain records',meta?.terrainCount||0,dataPackStatus.terrainOverrides],
     ['Combat defines',Object.keys(pack.defines?.NMilitary||{}).length,dataPackStatus.combatCount],
     ['Production defines',Object.keys(pack.defines?.NProduction||{}).length,dataPackStatus.productionCount]
   ]:[];
   c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">VERSIONED INPUTS</p><h1>Data Packs</h1><p>Import your own HOI4 common files locally in the browser. The planner stores a compact normalized pack and only applies fields it can interpret safely.</p></div>${badge(pack?'Imported pack active':'Public baseline',pack?'good':'')}</section>
-  ${pack?panel('Active pack',`<div class="version-card"><strong>${meta?.sourceFiles||0} source files</strong><span>${meta?.createdAt?new Date(meta.createdAt).toLocaleString():'Imported'}</span></div><div class="metric-grid compact-metrics"><article class="metric"><span>Sub-units</span><strong>${meta?.subUnitCount||0}</strong><small>${dataPackStatus.battalionOverrides+dataPackStatus.supportOverrides} safe structural overrides</small></article><article class="metric"><span>Equipment</span><strong>${meta?.equipmentCount||0}</strong><small>parsed for future stat resolution</small></article><article class="metric"><span>Terrain</span><strong>${meta?.terrainCount||0}</strong><small>${dataPackStatus.terrainOverrides} widths applied</small></article><article class="metric"><span>Defines</span><strong>${Object.values(pack.defines||{}).reduce((n,x)=>n+Object.keys(x||{}).length,0)}</strong><small>${dataPackStatus.combatCount+dataPackStatus.productionCount} mechanics applied</small></article></div><div class="table-wrap compact-table"><table><thead><tr><th>Category</th><th>Parsed</th><th>Applied now</th></tr></thead><tbody>${coverage.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</tbody></table></div><div class="actions"><button class="btn" id="exportPack">Export normalized pack</button><button class="btn danger" id="clearPack">Clear imported pack</button></div>${meta?.warnings?.length?`<p class="notice warn"><b>${meta.warnings.length} parser warnings.</b> Export the normalized pack to inspect them.</p>`:''}`):panel('No imported pack',`<p>The planner is currently using its built-in ${MODEL_META.gameVersion} public-data baseline.</p><p class="muted">Nothing is uploaded to a server by this page; browser file inputs are parsed client-side and the normalized result is saved in local storage.</p>`)}
+  ${pack?panel('Active pack',`<div class="version-card"><strong>${meta?.sourceFiles||0} source files</strong><span>${meta?.createdAt?new Date(meta.createdAt).toLocaleString():'Imported'}</span></div><div class="metric-grid compact-metrics"><article class="metric"><span>Sub-units</span><strong>${meta?.subUnitCount||0}</strong><small>${dataPackStatus.battalionOverrides+dataPackStatus.supportOverrides} safe structural overrides</small></article><article class="metric"><span>Equipment</span><strong>${meta?.equipmentCount||0}</strong><small>${meta?.moduleCount||0} designer modules parsed</small></article><article class="metric"><span>MIOs</span><strong>${meta?.mioCount||0}</strong><small>country/equipment organizations available in Lab, Tank & Air</small></article><article class="metric"><span>Terrain</span><strong>${meta?.terrainCount||0}</strong><small>${dataPackStatus.terrainOverrides} widths applied</small></article><article class="metric"><span>Defines</span><strong>${Object.values(pack.defines||{}).reduce((n,x)=>n+Object.keys(x||{}).length,0)}</strong><small>${dataPackStatus.combatCount+dataPackStatus.productionCount} mechanics applied</small></article></div><div class="table-wrap compact-table"><table><thead><tr><th>Category</th><th>Parsed</th><th>Applied now</th></tr></thead><tbody>${coverage.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</tbody></table></div><div class="actions"><button class="btn" id="exportPack">Export normalized pack</button><button class="btn danger" id="clearPack">Clear imported pack</button></div>${meta?.warnings?.length?`<p class="notice warn"><b>${meta.warnings.length} parser warnings.</b> Export the normalized pack to inspect them.</p>`:''}`):panel('No imported pack',`<p>The planner is currently using its built-in ${MODEL_META.gameVersion} public-data baseline.</p><p class="muted">Nothing is uploaded to a server by this page; browser file inputs are parsed client-side and the normalized result is saved in local storage.</p>`)}
   ${pack&&snapshot.length?panel('Equipment lineage preview',`<div class="version-card"><div><strong>Equipment snapshot · ${state.dataSnapshotYear}</strong><p class="muted">Resolved through imported archetype/parent inheritance. This is a diagnostic preview; equipment stats are not yet injected into battalion combat values.</p></div><label>Snapshot year<input id="dataSnapshotYear" type="number" min="1910" max="2100" value="${state.dataSnapshotYear}"></label></div>${inheritedWarnings?`<p class="notice warn">${inheritedWarnings} selected equipment families carry inheritance warnings. Export the normalized pack before relying on them.</p>`:''}<div class="table-wrap compact-table"><table><thead><tr><th>Family</th><th>Selected model</th><th>Year</th><th>Variants</th><th>IC</th><th>Reliability</th><th>Soft</th><th>Hard</th><th>Defense</th><th>Piercing</th></tr></thead><tbody>${snapshot.slice(0,80).map(x=>`<tr><td>${esc(x.family)}</td><td>${esc(x.item.id)}</td><td>${fmt(x.item.year,0)}</td><td>${x.variants}</td><td>${fmt(x.item.cost,2)}</td><td>${x.item.reliability===undefined?'—':pct(x.item.reliability*100)}</td><td>${fmt(x.item.soft,1)}</td><td>${fmt(x.item.hard,1)}</td><td>${fmt(x.item.def,1)}</td><td>${fmt(x.item.piercing,1)}</td></tr>`).join('')}</tbody></table></div>${snapshot.length>80?`<p class="muted">Showing first 80 of ${snapshot.length} equipment families.</p>`:''}`):''}
   <div class="grid two">${panel('Import a common folder',`<label class="drop-zone">Select HOI4 <b>common</b> folder<input id="folderImport" type="file" multiple webkitdirectory directory></label><p class="muted">Best option on desktop. Select the game’s <code>common</code> directory or a smaller folder such as <code>common/units</code> or <code>common/defines</code>.</p>`)}${panel('Import selected files',`<label class="drop-zone">Select .txt / .lua files<input id="fileImport" type="file" accept=".txt,.lua,text/plain" multiple></label><p class="muted">Useful for smaller targeted imports. Unit, equipment, terrain and defines files are recognized.</p>`)}</div>
-  ${panel('Importer policy',`<div class="check-grid"><span>✓ Parses Clausewitz key/value script</span><span>✓ Parses NDefines Lua constants</span><span>✓ Normalizes sub-unit structure</span><span>✓ Normalizes equipment records</span><span>✓ Applies safe width/org/HP/manpower data</span><span>✓ Applies recognized combat/production defines</span></div><p class="notice">Equipment-derived attack, defense, armor and piercing are parsed but not blindly applied yet because HOI4 combines sub-unit modifiers, technology and equipment variants. That resolver will use exact imported files rather than guessing.</p>`)} `;
+  ${panel('Importer policy',`<div class="check-grid"><span>✓ Parses Clausewitz key/value script</span><span>✓ Parses NDefines Lua constants</span><span>✓ Normalizes sub-unit structure</span><span>✓ Normalizes equipment records</span><span>✓ Normalizes tank/aircraft equipment modules</span><span>✓ Parses country-specific MIO organizations & traits</span><span>✓ Applies safe width/org/HP/manpower data</span><span>✓ Applies recognized combat/production defines</span></div><p class="notice">Equipment/module definitions and MIO organizations are parsed, including country restrictions, trait dependencies, equipment bonuses and production modifiers. Imported MIOs can already affect land equipment, tank variants and aircraft variants. The built-in tank/air module catalogs remain transparent analytical baselines until imported chassis/module compatibility can be resolved safely end-to-end.</p>`)} `;
   if($('dataSnapshotYear'))$('dataSnapshotYear').onchange=()=>{state.dataSnapshotYear=Math.max(1910,Math.floor(+$('dataSnapshotYear').value||1940));save();shell();};
   const importFiles=async files=>{
     if(!files?.length)return;
@@ -450,12 +608,12 @@ function data(c){
 function scenario(c){
   c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">SCENARIO CONTROL</p><h1>Scenario</h1><p>Manage the full planner state and see exactly what is modeled versus approximate.</p></div>${badge(`Schema ${state.schema}`)}</section>
   <div class="grid two">${panel('Campaign',`<div class="field-grid"><label>Country<input id="s-country" value="${esc(state.country)}"></label><label>Operation<input id="s-operation" value="${esc(state.operation)}"></label></div><label>Objective<textarea id="s-objective" rows="4">${esc(state.objective)}</textarea></label><div class="actions"><button class="primary" id="saveState">Save locally</button><button class="btn" id="exportState">Export JSON</button><label class="btn file">Import JSON<input id="importState" type="file" accept="application/json" hidden></label><button class="btn danger" id="resetState">Reset</button></div>`)}${panel('Version lock',`<div class="version-card"><strong>HOI4 ${MODEL_META.gameVersion}</strong><span>Planner ${MODEL_META.appVersion}</span></div><p>${MODEL_META.label}</p><p class="notice">1.19.3 is announced but not yet public as of this model snapshot, so this build does not silently mix future balance changes into the 1.19.2 baseline.</p>`)}</div>
-  ${panel('Implemented systems',`<div class="check-grid"><span>✓ Target-hardness attack mix</span><span>✓ Defense vs breakthrough roles</span><span>✓ Weighted armor & piercing</span><span>✓ Support-company org/HP/manpower</span><span>✓ Partial piercing approximation</span><span>✓ Terrain-specific combat width</span><span>✓ Extra-flank width</span><span>✓ Over-width & stacking penalties</span><span>✓ Entrenchment attack + defense</span><span>✓ Fort + flanking interaction</span><span>✓ River penalties</span><span>✓ Supply effects</span><span>✓ Air-superiority defense/breakthrough penalty</span><span>✓ CAS support input</span><span>✓ Planning & night inputs</span><span>✓ Aggregate reserve depth</span><span>✓ Attack-level Monte Carlo outcomes</span><span>✓ Reproducible simulation seeds</span><span>✓ Monte Carlo confidence intervals</span><span>✓ Battle equipment-loss estimates</span><span>✓ Enemy uncertainty band</span><span>✓ IC/day production</span><span>✓ Efficiency growth curve</span><span>✓ Per-factory resource penalties</span><span>✓ Division Lab → industry demand</span><span>✓ Factory optimizer</span><span>✓ Research timing + finish dates</span><span>✓ HOI-style 5×5 division designer</span><span>✓ 1.19 regimental-support baseline</span><span>✓ Template migration/import/export</span><span>✓ Local game-file data packs</span><span>✓ Clausewitz + defines parser</span><span>✓ Equipment inheritance + year snapshots</span><span>✓ Zero-dependency static build</span></div>`)}
-  ${panel('Known limits',`<p class="muted">${state.dataPack?'<b>Imported structural data is active.</b> ':''}Not yet executable-parity: combat tactics/counters, true per-division reinforcement timing and coordination, exact CAS direct damage, commander traits, doctrines/mastery, weather, experience, complete exact 1.19.2 equipment/technology data, the full 12-company regimental-support compatibility rules, player-designed tank/air variants, and broad mod compatibility. Those belong in the data-import milestone rather than being faked.</p>`)} `;
+  ${panel('Implemented systems',`<div class="check-grid"><span>✓ Target-hardness attack mix</span><span>✓ Defense vs breakthrough roles</span><span>✓ Weighted armor & piercing</span><span>✓ Support-company org/HP/manpower</span><span>✓ Partial piercing approximation</span><span>✓ Terrain-specific combat width</span><span>✓ Extra-flank width</span><span>✓ Over-width & stacking penalties</span><span>✓ Entrenchment attack + defense</span><span>✓ Fort + flanking interaction</span><span>✓ River penalties</span><span>✓ Supply effects</span><span>✓ Air-superiority defense/breakthrough penalty</span><span>✓ CAS support input</span><span>✓ Planning & night inputs</span><span>✓ Aggregate reserve depth</span><span>✓ Attack-level Monte Carlo outcomes</span><span>✓ Reproducible simulation seeds</span><span>✓ Monte Carlo confidence intervals</span><span>✓ Battle equipment-loss estimates</span><span>✓ Enemy uncertainty band</span><span>✓ IC/day production</span><span>✓ Efficiency growth curve</span><span>✓ Per-factory resource penalties</span><span>✓ Division Lab → industry demand</span><span>✓ Factory optimizer</span><span>✓ Lab-integrated tech & doctrine profiles</span><span>✓ HOI-style 5×5 division designer</span><span>✓ 1.19 regimental-support baseline</span><span>✓ Template migration/import/export</span><span>✓ Local game-file data packs</span><span>✓ Clausewitz + defines parser</span><span>✓ Equipment inheritance + year snapshots</span><span>✓ Staged 1.19 land doctrine + mastery tracks</span><span>✓ Staged air doctrine + mastery tracks</span><span>✓ Country/equipment MIO assignment</span><span>✓ MIO combat + production modifiers</span><span>✓ Tank variant designer → Division Lab + Industry</span><span>✓ Air Lab aircraft designer + IC exchange</span><span>✓ Airframe MIOs → Air Lab + IC cost</span><span>✓ Equipment/MIO importer baseline</span><span>✓ Zero-dependency static build</span></div>`)}
+  ${panel('Known limits',`<p class="muted">${state.dataPack?'<b>Imported structural data is active.</b> ':''}Not yet executable-parity: combat tactics/counters, true per-division reinforcement timing and coordination, exact CAS direct damage, commander traits, weather, experience, complete exact 1.19.2 equipment/technology/doctrine scripted data, the full regimental-support compatibility rules, exact imported tank/air module compatibility, executable-parity air combat, every national/DLC MIO special case, and broad mod compatibility. Those belong in the data-import milestone rather than being faked.</p>`)} `;
   $('s-country').onchange=()=>{state.country=$('s-country').value;save();}; $('s-operation').onchange=()=>{state.operation=$('s-operation').value;save();shell();}; $('s-objective').onchange=()=>{state.objective=$('s-objective').value;save();};
   $('saveState').onclick=()=>{save();alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',state);
-  $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{state=deepMerge(defaults,x);state.schema=5;ensureDesignerState('attacker');ensureDesignerState('defender');save();location.reload();});};
-  $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=5;save();location.reload();}};
+  $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{state=deepMerge(defaults,x);state.schema=6;ensureDesignerState('attacker');ensureDesignerState('defender');save();location.reload();});};
+  $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=6;save();location.reload();}};
 }
 
 window.addEventListener('hashchange',shell); shell();

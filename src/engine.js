@@ -77,10 +77,13 @@ export function evaluateProduction(lines,scenario,equipment){
     const eq=equipment[line.type],effectiveFactories=capacity.active[i],requestedFactories=capacity.requested[i];
     const alloc=allocations.get(i)||{factor:0,required:{},used:{}};
     const need=Math.max(0,(Number(line.target)||0)-(Number(line.stock)||0));
-    const icPerDay=effectiveFactories*baseIC*eff*outputBonus*alloc.factor;
+    const mio=eq?.mioProduction||{};
+    const lineEffProjection=efficiencyProjection(scenario.efficiency,(Number(scenario.efficiencyGain)||0)*(Number(mio.efficiencyGainFactor)||1),scenario.days,(Number(scenario.maxEfficiency)||100)*(Number(mio.efficiencyCapFactor)||1));
+    const lineEff=lineEffProjection.average;
+    const icPerDay=effectiveFactories*baseIC*lineEff*outputBonus*(Number(mio.outputFactor)||1)*alloc.factor;
     const daily=eq?.cost>0?icPerDay/eq.cost:0;
     const produced=daily*Math.max(0,Number(scenario.days)||0);
-    return {...line,requestedFactories,effectiveFactories,daily,produced,need,ending:(Number(line.stock)||0)+produced,shortage:Math.max(0,need-produced),resourceFactor:alloc.factor,resourceFactoryFactors:alloc.factoryFactors||[],resourceRequired:alloc.required,resourceUsed:alloc.used};
+    return {...line,requestedFactories,effectiveFactories,daily,produced,need,ending:(Number(line.stock)||0)+produced,shortage:Math.max(0,need-produced),resourceFactor:alloc.factor,resourceFactoryFactors:alloc.factoryFactors||[],resourceRequired:alloc.required,resourceUsed:alloc.used,lineEfficiency:lineEffProjection};
   });
   const shortage=projected.reduce((a,x)=>a+x.shortage*(Number(x.priority)||1),0);
   const required={},used={};
@@ -108,6 +111,73 @@ export function optimizeProduction(lines,scenario,equipment){
     work[best].factories++;
   }
   return evaluateProduction(work,scenario,equipment);
+}
+
+
+export function divisionEquipmentIC(need,equipment){
+  return Object.entries(need||{}).reduce((sum,[type,q])=>sum+Math.max(0,Number(q)||0)*Math.max(0,Number(equipment[type]?.cost)||0),0);
+}
+
+function forceProjectionScore(need,stocks,result){
+  const ratios=[];
+  const rows=[];
+  for(const line of result.lines||[]){
+    const perDivision=Math.max(0,Number(need[line.type])||0);
+    if(perDivision<=0) continue;
+    const available=Math.max(0,Number(stocks[line.type])||0)+Math.max(0,Number(line.produced)||0);
+    const ratio=available/perDivision;
+    ratios.push(ratio);
+    rows.push({...line,perDivision,available,divisionEquivalents:ratio});
+  }
+  const fieldable=ratios.length?Math.min(...ratios):0;
+  const soft=ratios.length?ratios.length/ratios.reduce((sum,r)=>sum+1/(r+.05),0)-.05:0;
+  const average=ratios.length?ratios.reduce((a,b)=>a+b,0)/ratios.length:0;
+  return {fieldable:Math.max(0,fieldable),softFieldable:Math.max(0,soft),averageCoverage:Math.max(0,average),rows};
+}
+
+export function optimizeForceProduction(need,stocks,scenario,equipment){
+  const types=Object.keys(need||{}).filter(type=>(Number(need[type])||0)>0&&equipment[type]);
+  const total=Math.max(0,Math.floor(Number(scenario.factories)||0));
+  if(!types.length) return {lines:[],fieldable:0,softFieldable:0,averageCoverage:0,usedFactories:0,unusedFactories:total,nextFactory:null,icPerDivision:0};
+  const work=types.map(type=>{
+    const perDivision=Math.max(0,Number(need[type])||0);
+    const stock=Math.max(0,Number(stocks?.[type])||0);
+    const stockCoverage=stock/Math.max(1,perDivision);
+    return {type,stock,target:1e12,factories:0,priority:Math.max(1,100-Math.min(90,stockCoverage*10))};
+  });
+  const utility=(candidate)=>{
+    const evaluated=evaluateProduction(candidate,scenario,equipment);
+    const projection=forceProjectionScore(need,stocks,evaluated);
+    // Smooth bottleneck objective: heavily favors the least-equipped equipment family,
+    // while average coverage breaks ties when several equipment types start at zero.
+    return {score:projection.fieldable*1e6+projection.softFieldable*1e3+projection.averageCoverage,projection,evaluated};
+  };
+  for(let step=0;step<total;step++){
+    let best=-1,bestScore=-Infinity;
+    for(let i=0;i<work.length;i++){
+      work[i].factories++;
+      const u=utility(work).score;
+      work[i].factories--;
+      if(u>bestScore+1e-9){bestScore=u;best=i;}
+    }
+    if(best<0) break;
+    work[best].factories++;
+  }
+  const finalEval=evaluateProduction(work,scenario,equipment);
+  const projection=forceProjectionScore(need,stocks,finalEval);
+  let nextFactory=null,bestGain=-Infinity;
+  const extraScenario={...scenario,factories:total+1};
+  for(let i=0;i<work.length;i++){
+    work[i].factories++;
+    const extraEval=evaluateProduction(work,extraScenario,equipment);
+    const extra=forceProjectionScore(need,stocks,extraEval);
+    work[i].factories--;
+    const gain=extra.fieldable-projection.fieldable;
+    const softGain=extra.softFieldable-projection.softFieldable;
+    const rank=gain*1e6+softGain;
+    if(rank>bestGain+1e-12){bestGain=rank;nextFactory={type:work[i].type,gain,projectedFieldable:extra.fieldable};}
+  }
+  return {...finalEval,...projection,nextFactory,icPerDivision:divisionEquipmentIC(need,equipment)};
 }
 
 export function buildDemand(templates,selected){
@@ -245,17 +315,19 @@ export function battleContext(a,d,opts){
   const fortFactor=clamp(1-effectiveFort*COMBAT_CONSTANTS.fortPenaltyPerLevel,.10,1);
   const riverFactor=clamp(1-Math.max(0,Number(opts.river)||0),.2,1);
   const planning=1+clamp(Number(opts.planning)||0,0,1);
-  const nightFactor=1-COMBAT_CONSTANTS.nightAttackPenalty*clamp(Number(opts.night)||0,0,1);
+  const nightShare=clamp(Number(opts.night)||0,0,1);
+  const aNightFactor=1-COMBAT_CONSTANTS.nightAttackPenalty*Math.max(0,nightShare*(1-clamp(Number(opts.attackerNightAttackBonus)||0,0,1)));
+  const dNightFactor=1-COMBAT_CONSTANTS.nightAttackPenalty*Math.max(0,nightShare*(1-clamp(Number(opts.defenderNightAttackBonus)||0,0,1)));
   const cas=1+.35*clamp(Number(opts.cas)||0,0,1);
   const aTerrain=clamp(1+(t.attack||0)+(a.terrainAttack?.[opts.terrain]||0),.1,1.5);
   const dTerrain=clamp(1+(d.terrainAttack?.[opts.terrain]||0),.1,1.5);
 
-  let aAttack=effectiveAttack(ae.side,de.side)*ae.effectiveFactor*aTerrain*as*fortFactor*riverFactor*planning*nightFactor*cas;
-  let dAttack=effectiveAttack(de.side,ae.side)*de.effectiveFactor*dTerrain*ds*entrench*nightFactor;
+  let aAttack=effectiveAttack(ae.side,de.side)*ae.effectiveFactor*aTerrain*as*fortFactor*riverFactor*planning*aNightFactor*cas;
+  let dAttack=effectiveAttack(de.side,ae.side)*de.effectiveFactor*dTerrain*ds*entrench*dNightFactor;
   let aBreak=ae.side.breakthrough*ae.effectiveFactor*as*fortFactor*riverFactor*airPenalty(-air);
   let dDefense=de.side.def*de.effectiveFactor*ds*entrench*airPenalty(air);
   const aHits=expectedHits(aAttack,dDefense),dHits=expectedHits(dAttack,aBreak);
-  return {available,ae,de,aAttack,dAttack,aBreak,dDefense,aHits,dHits,effectiveFort,fortFactor,riverFactor,aTerrain,dTerrain,as,ds,air,entrench,planning,nightFactor,cas};
+  return {available,ae,de,aAttack,dAttack,aBreak,dDefense,aHits,dHits,effectiveFort,fortFactor,riverFactor,aTerrain,dTerrain,as,ds,air,entrench,planning,aNightFactor,dNightFactor,cas};
 }
 
 export function simulateOnce(a,d,opts,rngOverride){

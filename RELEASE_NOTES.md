@@ -1,21 +1,22 @@
-# HOI4 War Planner 0.14.0 — Release Notes
+# HOI4 War Planner 0.14.2 — Release Notes
+
+## Veteran-familiarity UI
+
+0.14.2 is a focused interaction redesign. It does not intentionally alter combat, air, doctrine, MIO, tank, or production mechanics. The goal is that an experienced HOI4 player can recognize the workflows without learning a dashboard-style interface.
 
 ## Headline changes
 
-- Added integrated Tank Designer for light/medium/heavy variants on both sides.
-- Tank variant stats feed Division Lab; tank IC/resource cost feeds Industry.
-- Added Air Lab for aircraft design and head-to-head comparison.
-- Air Lab reports kill ratio, IC exchange, air-power share and mission output/IC.
-- Added staged land doctrine/mastery profiles.
-- Added staged air doctrine/mastery profiles.
-- Added country/equipment-family MIO selection and trait dependency handling.
-- MIO equipment and production modifiers apply to land equipment, tank variants and aircraft variants.
-- Data Packs now parse MIO organization files and report parsed MIO coverage.
-- Industry remains the “What Should I Build?” optimizer driven by the current Lab design.
-
-## Air MIO status
-
-Air MIO support is included in 0.14.0. Small- and medium-airframe MIOs can alter aircraft characteristics and production economics, and Air Lab filters organizations by country and aircraft family. The built-in catalog intentionally does not invent broad national air-MIO data; actual country-specific organizations are expected to come from imported HOI4 `common/military_industrial_organization/organizations/` files. Regression coverage verifies air-MIO combat and IC effects.
+- Replaced the tall desktop sidebar with a compact horizontal command strip.
+- Reorganized Division Lab into **Template / Tech & MIO / Combat / Analysis** modes.
+- Battalion, divisional-support, and regimental-support selection now opens in a centered HOI-style picker overlay.
+- Compressed the Division Designer stat language to familiar ORG / SA / HA / DEF / BRK / ARM / PIER conventions with hover titles.
+- Moved simulation-only settings behind an Advanced combat assumptions disclosure.
+- Kept the primary battle row focused on terrain, directions, entrenchment, forts, rivers, supply, and air.
+- Reduced additional chrome, padding, and explanatory copy across the interface.
+- Collapsed Tank/Air MIO and air-doctrine controls into equipment drawers so module design remains the primary task.
+- Simplified Air Lab test setup to mission + aircraft counts, with detection/sortie/mission-efficiency assumptions under Advanced.
+- Moved Industry assumptions, resources, and stockpiles into one setup drawer so recommended production lines stay primary.
+- Preserved the 0.14.1 mechanical model unchanged.
 
 ## Verification
 
@@ -23,5 +24,4 @@ Air MIO support is included in 0.14.0. Small- and medium-airframe MIOs can alter
 - `npm run build` — PASS
 - JavaScript syntax validation — PASS
 - Route-level UI smoke tests — PASS
-- Static `dist/` equivalence to source build — PASS
-- GitHub Pages workflow included and runs tests before deployment
+- GitHub Pages workflow retained

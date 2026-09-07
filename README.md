@@ -1,12 +1,27 @@
-# HOI4 War Planner — 0.14.0
+# HOI4 War Planner — 0.14.2
 
 A mobile-friendly Hearts of Iron IV analytical planning suite. This release is version-locked to the public **HOI4 1.19.2** baseline dated 2026-09-06 and deliberately separates verified public mechanics, analytical approximations, and values that require imported game files.
 
-## 0.14.0 release focus
+## 0.14.2 release focus
 
-0.14.0 turns the planner into a connected equipment-design and force-planning workflow:
+0.14.2 is a veteran-familiarity interface pass: the same modeling surface reorganized around HOI4-like navigation, single-screen workspaces, compact stat abbreviations, and modal equipment selection.
+
+
+0.14.2 turns the planner into a connected equipment-design and force-planning workflow:
 
 **Country → Research → Doctrine/Mastery → MIO → Equipment Design → Combat Performance → IC Allocation**
+
+
+### Veteran-familiarity UI
+
+- Main navigation is a compact horizontal command strip rather than a permanent wide sidebar.
+- Division Lab uses internal **Template / Tech & MIO / Combat / Analysis** tabs so only the task at hand is visible.
+- Battalion and support selection opens as a centered game-style picker overlay instead of expanding the page.
+- Common HOI4 abbreviations such as ORG, SA, HA, DEF, BRK, ARM and PIER are used in dense stat blocks; full names remain available as hover text.
+- Battle setup keeps terrain, directions, entrenchment, forts, rivers, supply and air in the primary row while planning/night/seed/run controls live under an Advanced section.
+- Tank/Air MIO and air-doctrine controls are collapsed into equipment drawers until needed.
+- Industry assumptions/resources/stockpiles are collapsed so recommended production lines dominate the screen.
+- No combat, air, doctrine, MIO, tank or production mechanics were intentionally changed in this release.
 
 ### Division Lab
 
@@ -93,7 +108,7 @@ npm run build
 
 ## Release verification
 
-0.14.0 includes regression coverage for:
+0.14.1 includes regression coverage for:
 
 - combat/industry engine
 - Clausewitz/data-pack parser

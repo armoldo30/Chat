@@ -101,7 +101,7 @@ function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCoun
 function techData(side){const data=buildTechAdjustedData(battalions,supports,ensureTechState(side));ensureTankState();ensureMioState();for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls);data.battalions[ids.battalion]=applyTankDesignToBattalion(data.battalions[ids.battalion],state.tankDesigns[side][cls]);}return applyFamilyMioToData(data,side);}
 function techProblems(side){ensureDesignerState(side);return techIssues(state[side+'Grid'],state[side+'Supports'],state[side+'RegimentalSupports'],ensureTechState(side));}
 ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
-let activeDesignerSide='attacker',designerPick=null;
+let activeDesignerSide='attacker',activeLabPanel='template',designerPick=null;
 let dataPackStatus={battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
 function applyCurrentDataPack(){
   if(!state.dataPack)return dataPackStatus;
@@ -142,7 +142,7 @@ function shell(){
   document.title=`${state.operation} · HOI4 War Planner`;
   document.body.innerHTML=`<div class="app-shell">
     <aside class="sidebar">
-      <a class="brand" href="#dashboard"><span class="brand-mark">★</span><span><b>GENERAL STAFF</b><small>HOI4 War Planner</small></span></a>
+      <a class="brand" href="#battle"><span class="brand-mark">★</span><span><b>GENERAL STAFF</b><small>HOI4 War Planner</small></span></a>
       <nav>${nav.map(([r,code,n])=>`<a href="#${r}" class="${active===r?'active':''}"><span class="nav-code">${code}</span><span>${n}</span></a>`).join('')}</nav>
       <div class="side-meta"><span>${MODEL_META.gameVersion}</span><small>${MODEL_META.appVersion}</small></div>
     </aside>
@@ -195,15 +195,15 @@ function regimentalBaselineCompatible(side,c){return regimentGroup(side,c)==='in
 function templateIC(stats,side='attacker'){return replacementIC(stats.need||{},side);}
 function designerStatGroups(s){
   const groups=[
-    ['BASE STATS',[['Organization',s.org,1],['HP',s.hp,1],['Manpower',s.manpower,0],['Combat Width',s.width,0],['Supply Use',s.supply,2]]],
-    ['COMBAT STATS',[['Soft Attack',s.soft,1],['Hard Attack',s.hard,1],['Defense',s.def,1],['Breakthrough',s.breakthrough,1],['Air Attack',s.airAttack,1]]],
-    ['ARMOR',[['Armor',s.armor,1],['Piercing',s.piercing,1],['Hardness',s.hardness*100,0,'%']]]
+    ['BASE',[['ORG','Organization',s.org,1],['HP','Hit Points',s.hp,1],['MAN','Manpower',s.manpower,0],['WIDTH','Combat Width',s.width,0],['SUP','Supply Use',s.supply,2]]],
+    ['COMBAT',[['SA','Soft Attack',s.soft,1],['HA','Hard Attack',s.hard,1],['DEF','Defense',s.def,1],['BRK','Breakthrough',s.breakthrough,1],['AA','Air Attack',s.airAttack,1]]],
+    ['ARMOR',[['ARM','Armor',s.armor,1],['PIER','Piercing',s.piercing,1],['HARD','Hardness',s.hardness*100,0,'%']]]
   ];
-  return groups.map(([name,vals])=>`<section class="hoi-stat-section"><h4>${name}</h4>${vals.map(([k,v,d,suf=''])=>`<div><span>${k}</span><b>${fmt(v,d)}${suf}</b></div>`).join('')}</section>`).join('');
+  return groups.map(([name,vals])=>`<section class="hoi-stat-section"><h4>${name}</h4>${vals.map(([short,label,v,d,suf=''])=>`<div title="${label}"><span>${short}</span><b>${fmt(v,d)}${suf}</b></div>`).join('')}</section>`).join('');
 }
 function designerMainStrip(s){
-  const items=[['Combat Width',fmt(s.width,0)],['Organization',fmt(s.org,1)],['HP',fmt(s.hp,1)],['Manpower',fmt(s.manpower,0)],['Supply',fmt(s.supply,2)]];
-  return `<div class="designer-main-stats">${items.map(([k,v])=>`<span><small>${k}</small><b>${v}</b></span>`).join('')}</div>`;
+  const items=[['WIDTH','Combat Width',fmt(s.width,0)],['ORG','Organization',fmt(s.org,1)],['HP','Hit Points',fmt(s.hp,1)],['MAN','Manpower',fmt(s.manpower,0)],['SUP','Supply Use',fmt(s.supply,2)]];
+  return `<div class="designer-main-stats">${items.map(([short,label,v])=>`<span title="${label}"><small>${short}</small><b>${v}</b></span>`).join('')}</div>`;
 }
 function equipmentSummary(stats,side='attacker'){
   const eq=equipmentForSide(side),rows=Object.entries(stats.need||{}).filter(([,q])=>q>0);
@@ -268,7 +268,7 @@ function renderDivisionDesigner(side){
       <aside class="support-rail"><div class="rail-title">DIVISION SUPPORT</div>${Array.from({length:5},(_,i)=>supportSlot(side,i)).join('')}</aside>
       <aside class="designer-stats"><div class="stats-title">DIVISION STATS</div>${designerStatGroups(stats)}<section class="hoi-stat-section equipment-cost"><h4>EQUIPMENT DETAIL</h4><div class="equipment-mini">${equipmentSummary(stats,side)}</div></section></aside>
     </div>
-    ${designerPicker(side)}
+    ${designerPick?`<div class="picker-overlay" data-picker-overlay>${designerPicker(side)}</div>`:''}
     <div class="designer-footer"><div class="template-facts"><span><b>${fmt(stats.width,0)}</b> width</span><span><b>${fmt(stats.org,1)}</b> org</span><span><b>${fmt(stats.manpower,0)}</b> manpower</span></div><div class="actions"><button class="btn" id="clearDesigner">Reset</button><button class="btn" id="copyDesigner">Copy → ${other}</button><button class="btn" id="exportDesigner">Export</button><label class="btn file">Import<input id="importDesigner" type="file" accept="application/json" hidden></label></div></div>
   </section>`;
 }
@@ -279,6 +279,7 @@ function bindDivisionDesigner(side){
   document.querySelectorAll('[data-sslot]').forEach(el=>el.onclick=()=>{designerPick={kind:'support',side,i:+el.dataset.sslot};shell();});
   document.querySelectorAll('[data-rslot]').forEach(el=>el.onclick=()=>{designerPick={kind:'regimental',side,c:+el.dataset.rslot};shell();});
   document.querySelectorAll('[data-cancel-pick]').forEach(el=>el.onclick=()=>{designerPick=null;shell();});
+  const pickerOverlay=document.querySelectorAll('[data-picker-overlay]')[0];if(pickerOverlay)pickerOverlay.onclick=e=>{if(e.target===pickerOverlay){designerPick=null;shell();}};
   document.querySelectorAll('[data-choice]').forEach(el=>el.onclick=ev=>{
     const value=el.dataset.choice||null;
     if(designerPick?.kind==='battalion'){
@@ -307,8 +308,10 @@ function techProfileSummary(side){
 }
 function inlineMioPicker(side,family,prefix){
   ensureMioState();const p=ensureTechState(side),catalog=currentMioCatalog(),sel=state.mioSelections[side][family],available=Object.values(catalog).filter(org=>mioAvailable(org,p.countryTag,family)),org=catalog[sel.organization];
-  return `<div class="inline-mio"><div class="inline-mio-head"><div><span class="eyebrow">MIO · ${esc(p.countryTag)}</span><b>${esc(MIO_FAMILIES[family]||family)}</b></div><select id="${prefix}-mio-org"><option value="">No MIO assigned</option>${available.map(x=>`<option value="${esc(x.id)}" ${sel.organization===x.id?'selected':''}>${esc(x.name||x.id)}</option>`).join('')}</select></div>${org?`<div class="mio-traits">${Object.values(org.traits||{}).slice(0,24).map(t=>{const checked=sel.traits.includes(t.id),ok=checked||traitSelectable(org,t.id,sel.traits);return `<label class="mio-trait ${ok?'':'locked'}"><input type="checkbox" data-inline-mio="${prefix}" value="${esc(t.id)}" ${checked?'checked':''} ${ok?'':'disabled'}><span>${esc(t.name||t.id)}</span></label>`;}).join('')||'<small>No parsed traits.</small>'}</div>`:`<small>${available.length?`${available.length} compatible organization${available.length===1?'':'s'} available.`:'Import MIO organization files for national manufacturer choices.'}</small>`}</div>`;
+  const title=org?esc(org.name||org.id):'No MIO assigned';
+  return `<details class="equipment-drawer mio-drawer"><summary><span>MIO · ${esc(p.countryTag)}</span><b>${title}</b><em>${available.length} available</em></summary><div class="drawer-body"><div class="inline-mio"><div class="inline-mio-head"><div><span class="eyebrow">${esc(MIO_FAMILIES[family]||family)}</span></div><select id="${prefix}-mio-org"><option value="">No MIO assigned</option>${available.map(x=>`<option value="${esc(x.id)}" ${sel.organization===x.id?'selected':''}>${esc(x.name||x.id)}</option>`).join('')}</select></div>${org?`<div class="mio-traits">${Object.values(org.traits||{}).slice(0,24).map(t=>{const checked=sel.traits.includes(t.id),ok=checked||traitSelectable(org,t.id,sel.traits);return `<label class="mio-trait ${ok?'':'locked'}"><input type="checkbox" data-inline-mio="${prefix}" value="${esc(t.id)}" ${checked?'checked':''} ${ok?'':'disabled'}><span>${esc(t.name||t.id)}</span></label>`;}).join('')||'<small>No parsed traits.</small>'}</div>`:`<small>${available.length?`${available.length} compatible organization${available.length===1?'':'s'} available.`:'Import MIO organization files for national manufacturer choices.'}</small>`}</div></div></details>`;
 }
+
 function bindInlineMio(side,family,prefix){
   const org=$(`${prefix}-mio-org`);if(org)org.onchange=()=>{state.mioSelections[side][family]={organization:org.value||null,traits:[]};save();shell();};
   document.querySelectorAll(`[data-inline-mio="${prefix}"]`).forEach(el=>el.onchange=()=>{const sel=state.mioSelections[side][family],set=new Set(sel.traits||[]);el.checked?set.add(el.value):set.delete(el.value);sel.traits=[...set];save();shell();});
@@ -356,40 +359,44 @@ function bindTechDoctrine(side){
 function battle(c){
   ensureDesignerState('attacker');ensureDesignerState('defender');
   const a=division('attacker'),d=division('defender'),selected=division(activeDesignerSide),preset=rolePresets[state.role],coach=scoreDivision(selected,preset),techInvalid=techProblems('attacker').length||techProblems('defender').length;
-  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">LAND FORCES · TEMPLATE DESIGNER</p><h1>Division Lab</h1><p>Build templates in an HOI-style regiment grid, then test them against terrain, supply, air, forts and uncertain enemy strength.</p></div>${badge(`Vanilla ${MODEL_META.gameVersion}`,'good')}</section>
-  <div class="designer-tabs"><button class="${activeDesignerSide==='attacker'?'active':''}" data-designer-side="attacker"><span>ATTACKER</span><b>${fmt(a.width,0)}w · ${fmt(a.org,0)} org</b></button><button class="${activeDesignerSide==='defender'?'active':''}" data-designer-side="defender"><span>DEFENDER</span><b>${fmt(d.width,0)}w · ${fmt(d.org,0)} org</b></button><button class="swap-tab" id="swapSides">⇄ <span>Swap forces</span></button></div>
-  ${renderDivisionDesigner(activeDesignerSide)}
-  ${renderTechDoctrine(activeDesignerSide)}
-  ${panel('Armor variants',`<div class="armor-variant-strip">${['light','medium','heavy'].map(cls=>{const design=adjustedTankDesign(activeDesignerSide,cls);return `<a href="#tank" data-armor-link="${cls}"><span>${cls.toUpperCase()}</span><b>${esc(design.name)}</b><small>${fmt(design.armor,0)} armor · ${fmt(design.softAttack,0)} SA · ${fmt(design.buildCost,2)} IC</small></a>`;}).join('')}</div><p class="muted">The selected ${activeDesignerSide} tank variants are already injected into armor battalions above. Open Tank Designer to change them.</p>`)}
-  <div class="grid two battle-controls">
-    ${panel('Battlefield',`<div class="field-grid">
+  const labTabs=[['template','TEMPLATE'],['tech','TECH & MIO'],['combat','COMBAT'],['analysis','ANALYSIS']];
+  const armorPanel=panel('Armor variants',`<div class="armor-variant-strip">${['light','medium','heavy'].map(cls=>{const design=adjustedTankDesign(activeDesignerSide,cls);return `<a href="#tank" data-armor-link="${cls}"><span>${cls.toUpperCase()}</span><b>${esc(design.name)}</b><small>${fmt(design.armor,0)} ARM · ${fmt(design.softAttack,0)} SA · ${fmt(design.buildCost,2)} IC</small></a>`;}).join('')}</div>`,'compact-panel');
+  const battlefieldPanel=panel('Battlefield',`<div class="battlefield-quick">
       <label>Terrain<select id="b-terrain">${Object.entries(terrain).map(([k,v])=>`<option value="${k}" ${k===state.battlefield.terrain?'selected':''}>${v.name} · ${v.width}+${v.reinforceWidth}</option>`).join('')}</select></label>
-      <label>Extra attack directions<input id="b-directions" type="number" min="0" max="5" value="${state.battlefield.directions}"></label>
-      <label>Defender entrenchment<input id="b-entrench" type="number" min="0" max="100" value="${state.battlefield.entrench}"></label>
-      <label>Fort level<input id="b-fort" type="number" min="0" max="10" value="${state.battlefield.fort}"></label>
-      <label>River<select id="b-river"><option value="0" ${+state.battlefield.river===0?'selected':''}>None</option><option value="0.3" ${+state.battlefield.river===.3?'selected':''}>Small · -30%</option><option value="0.6" ${+state.battlefield.river===.6?'selected':''}>Large · -60%</option></select></label>
-      <label>Attacker supply<input id="b-asupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.asupply}"></label>
-      <label>Defender supply<input id="b-dsupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.dsupply}"></label>
-      <label>Air superiority (-1 to 1)<input id="b-air" type="number" min="-1" max="1" step=".05" value="${state.battlefield.air}"></label>
-      <label>Attacker CAS support (0–1)<input id="b-cas" type="number" min="0" max="1" step=".05" value="${state.battlefield.cas}"></label>
-      <label>Planning bonus (0–1)<input id="b-planning" type="number" min="0" max="1" step=".05" value="${state.battlefield.planning}"></label>
-      <label>Night fraction (0–1)<input id="b-night" type="number" min="0" max="1" step=".1" value="${state.battlefield.night}"></label>
-      <label>Simulation runs<input id="b-runs" type="number" min="50" max="5000" step="50" value="${state.battlefield.runs}"></label>
-      <label>Simulation seed<input id="b-seed" type="number" step="1" value="${state.battlefield.seed}"></label>
-    </div><div class="actions"><button class="primary" id="simulate" ${techInvalid?'disabled title="Resolve research conflicts before simulating"':''}>Execute simulation</button><button class="btn" id="terrains">Compare terrain</button></div>`,'hoi-control-panel')}
-    ${panel('Template coach',`<label>Doctrine role<select id="role">${Object.entries(rolePresets).map(([k,v])=>`<option value="${k}" ${state.role===k?'selected':''}>${v.name}</option>`).join('')}</select></label><div class="coach"><strong>${fmt(coach.score,0)}</strong><span>${activeDesignerSide} role score</span></div><div class="compare-cards"><div><span>ATTACKER</span><b>${fmt(a.soft)} SA · ${fmt(a.breakthrough)} BRK</b><small>${fmt(a.armor)} armor · ${fmt(a.piercing)} piercing</small></div><div><span>DEFENDER</span><b>${fmt(d.soft)} SA · ${fmt(d.def)} DEF</b><small>${fmt(d.armor)} armor · ${fmt(d.piercing)} piercing</small></div></div><p class="muted">Role scoring is a design heuristic. Combat simulation remains the decision tool.</p>`,'hoi-control-panel')}
-  </div>
-  ${panel('Width packing guide',`${widthPackingTable(selected)}<p class="muted">Guide shown for the currently selected template. Exact reinforcement behavior is resolved by the battle model.</p>`)}
-  ${panel('Battle report',`<div id="battleResult" class="result">${lastBattlePreview()}</div>`,'battle-report-panel')}
-  `;
+      <label>Directions<input id="b-directions" type="number" min="0" max="5" value="${state.battlefield.directions}"></label>
+      <label>Entrench<input id="b-entrench" type="number" min="0" max="100" value="${state.battlefield.entrench}"></label>
+      <label>Fort<input id="b-fort" type="number" min="0" max="10" value="${state.battlefield.fort}"></label>
+      <label>River<select id="b-river"><option value="0" ${+state.battlefield.river===0?'selected':''}>None</option><option value="0.3" ${+state.battlefield.river===.3?'selected':''}>Small</option><option value="0.6" ${+state.battlefield.river===.6?'selected':''}>Large</option></select></label>
+      <label>A Supply<input id="b-asupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.asupply}"></label>
+      <label>D Supply<input id="b-dsupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.dsupply}"></label>
+      <label>Air<input id="b-air" type="number" min="-1" max="1" step=".05" value="${state.battlefield.air}"></label>
+    </div>
+    <details class="advanced-settings"><summary>Advanced combat assumptions</summary><div class="field-grid compact-fields">
+      <label>CAS support<input id="b-cas" type="number" min="0" max="1" step=".05" value="${state.battlefield.cas}"></label>
+      <label>Planning<input id="b-planning" type="number" min="0" max="1" step=".05" value="${state.battlefield.planning}"></label>
+      <label>Night fraction<input id="b-night" type="number" min="0" max="1" step=".1" value="${state.battlefield.night}"></label>
+      <label>Runs<input id="b-runs" type="number" min="50" max="5000" step="50" value="${state.battlefield.runs}"></label>
+      <label>Seed<input id="b-seed" type="number" step="1" value="${state.battlefield.seed}"></label>
+    </div></details>
+    <div class="combat-command"><button class="primary" id="simulate" ${techInvalid?'disabled title="Resolve research conflicts before simulating"':''}>► START BATTLE TEST</button><button class="btn" id="terrains">Compare terrain</button><span>${techInvalid?'⚠ Research conflict':'Seeded simulation ready'}</span></div>`,'hoi-control-panel');
+  const analysisPanel=`<div class="grid two compact-analysis">${panel('Template coach',`<label>Role<select id="role">${Object.entries(rolePresets).map(([k,v])=>`<option value="${k}" ${state.role===k?'selected':''}>${v.name}</option>`).join('')}</select></label><div class="coach compact-coach"><strong>${fmt(coach.score,0)}</strong><span>${activeDesignerSide} role score</span></div><div class="compare-cards"><div><span>ATTACKER</span><b>${fmt(a.soft)} SA · ${fmt(a.breakthrough)} BRK</b><small>${fmt(a.armor)} ARM · ${fmt(a.piercing)} PIER</small></div><div><span>DEFENDER</span><b>${fmt(d.soft)} SA · ${fmt(d.def)} DEF</b><small>${fmt(d.armor)} ARM · ${fmt(d.piercing)} PIER</small></div></div>`,'hoi-control-panel')}${panel('Width packing',`${widthPackingTable(selected)}`,'hoi-control-panel')}</div>`;
+  const content=activeLabPanel==='template'?`${renderDivisionDesigner(activeDesignerSide)}${armorPanel}`:activeLabPanel==='tech'?renderTechDoctrine(activeDesignerSide):activeLabPanel==='combat'?`${battlefieldPanel}${panel('Battle report',`<div id="battleResult" class="result">${lastBattlePreview()}</div>`,'battle-report-panel')}`:analysisPanel;
+  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">LAND FORCES</p><h1>Division Lab</h1></div>${badge(`HOI4 ${MODEL_META.gameVersion}`,'good')}</section>
+  <div class="lab-command-bar"><div class="designer-tabs"><button class="${activeDesignerSide==='attacker'?'active':''}" data-designer-side="attacker"><span>ATTACKER</span><b>${fmt(a.width,0)}W · ${fmt(a.org,0)} ORG</b></button><button class="${activeDesignerSide==='defender'?'active':''}" data-designer-side="defender"><span>DEFENDER</span><b>${fmt(d.width,0)}W · ${fmt(d.org,0)} ORG</b></button><button class="swap-tab" id="swapSides">⇄</button></div><div class="lab-mode-tabs">${labTabs.map(([id,label])=>`<button data-lab-panel="${id}" class="${activeLabPanel===id?'active':''}">${label}${id==='tech'&&techInvalid?' !':''}</button>`).join('')}</div></div>
+  <div class="lab-workspace">${content}</div>`;
+  document.querySelectorAll('[data-lab-panel]').forEach(el=>el.onclick=()=>{activeLabPanel=el.dataset.labPanel;designerPick=null;shell();});
   document.querySelectorAll('[data-designer-side]').forEach(el=>el.onclick=()=>{activeDesignerSide=el.dataset.designerSide;designerPick=null;shell();});
-  bindDivisionDesigner(activeDesignerSide);
-  bindTechDoctrine(activeDesignerSide);
-  document.querySelectorAll('[data-armor-link]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=activeDesignerSide;state.tankDesigner.class=el.dataset.armorLink;save();});
   $('swapSides').onclick=()=>{[state.attackerGrid,state.defenderGrid]=[state.defenderGrid,state.attackerGrid];[state.attackerSupports,state.defenderSupports]=[state.defenderSupports,state.attackerSupports];[state.attackerRegimentalSupports,state.defenderRegimentalSupports]=[state.defenderRegimentalSupports,state.attackerRegimentalSupports];[state.attackerTech,state.defenderTech]=[state.defenderTech,state.attackerTech];[state.tankDesigns.attacker,state.tankDesigns.defender]=[state.tankDesigns.defender,state.tankDesigns.attacker];[state.mioSelections.attacker,state.mioSelections.defender]=[state.mioSelections.defender,state.mioSelections.attacker];[state.attackerDivisions,state.defenderDivisions]=[state.defenderDivisions,state.attackerDivisions];syncDesignerSide('attacker');syncDesignerSide('defender');designerPick=null;save();shell();};
-  $('role').onchange=()=>{state.role=$('role').value;save();shell();};
-  ['terrain','directions','entrench','fort','river','asupply','dsupply','air','cas','planning','night','runs','seed'].forEach(id=>{$('b-'+id).onchange=()=>{state.battlefield[id]=id==='terrain'?$('b-'+id).value:+$('b-'+id).value;save();};});
-  $('simulate').onclick=()=>showBattle(false);$('terrains').onclick=()=>showBattle(true);
+  if(activeLabPanel==='template'){
+    bindDivisionDesigner(activeDesignerSide);
+    document.querySelectorAll('[data-armor-link]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=activeDesignerSide;state.tankDesigner.class=el.dataset.armorLink;save();});
+  }
+  if(activeLabPanel==='tech')bindTechDoctrine(activeDesignerSide);
+  if(activeLabPanel==='combat'){
+    ['terrain','directions','entrench','fort','river','asupply','dsupply','air','cas','planning','night','runs','seed'].forEach(id=>{const el=$('b-'+id);if(el)el.onchange=()=>{state.battlefield[id]=id==='terrain'?el.value:+el.value;save();};});
+    $('simulate').onclick=()=>showBattle(false);$('terrains').onclick=()=>showBattle(true);
+  }
+  if(activeLabPanel==='analysis')$('role').onchange=()=>{state.role=$('role').value;save();shell();};
 }
 
 function battleTimeline(rep){
@@ -462,9 +469,10 @@ function tank(c){
 }
 
 function renderAirDoctrine(side,prefix){
-  const p=ensureTechState(side),d=normalizeAirDoctrine(p.airDoctrine);
-  return `<div class="air-doctrine"><div class="air-doctrine-head"><div><span class="eyebrow">AIR DOCTRINE · ${esc(p.countryTag)}</span><b>${esc(AIR_GRAND_DOCTRINES[d.grand]?.name||d.grand)}</b></div><select id="${prefix}-air-grand">${Object.entries(AIR_GRAND_DOCTRINES).map(([id,x])=>`<option value="${id}" ${d.grand===id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div class="air-doctrine-tracks">${Object.entries(AIR_DOCTRINE_TRACKS).map(([track,meta])=>{const t=d.tracks[track];return `<div class="air-doctrine-track ${t.mastery>=5?'complete':''}"><span>${esc(meta.name)}</span><select data-air-doctrine-choice="${prefix}:${track}">${meta.choices.map(([id,name])=>`<option value="${id}" ${t.choice===id?'selected':''}>${esc(name)}</option>`).join('')}</select><label>Mastery <input type="number" min="0" max="5" step="1" value="${t.mastery}" data-air-doctrine-mastery="${prefix}:${track}"></label></div>`;}).join('')}</div><small>Grand-doctrine mission effects and relevant mastery rewards are included in the Air Lab comparison. Non-combat scripted effects remain outside the model.</small></div>`;
+  const p=ensureTechState(side),d=normalizeAirDoctrine(p.airDoctrine),grand=AIR_GRAND_DOCTRINES[d.grand]?.name||d.grand,mastery=Object.values(d.tracks).reduce((n,x)=>n+(+x.mastery||0),0);
+  return `<details class="equipment-drawer air-doctrine"><summary><span>AIR DOCTRINE · ${esc(p.countryTag)}</span><b>${esc(grand)}</b><em>${mastery}/15 mastery</em></summary><div class="drawer-body"><div class="air-doctrine-head"><select id="${prefix}-air-grand">${Object.entries(AIR_GRAND_DOCTRINES).map(([id,x])=>`<option value="${id}" ${d.grand===id?'selected':''}>${esc(x.name)}</option>`).join('')}</select></div><div class="air-doctrine-tracks">${Object.entries(AIR_DOCTRINE_TRACKS).map(([track,meta])=>{const t=d.tracks[track];return `<div class="air-doctrine-track ${t.mastery>=5?'complete':''}"><span>${esc(meta.name)}</span><select data-air-doctrine-choice="${prefix}:${track}">${meta.choices.map(([id,name])=>`<option value="${id}" ${t.choice===id?'selected':''}>${esc(name)}</option>`).join('')}</select><label>Mastery <input type="number" min="0" max="5" step="1" value="${t.mastery}" data-air-doctrine-mastery="${prefix}:${track}"></label></div>`;}).join('')}</div></div></details>`;
 }
+
 function bindAirDoctrine(side,prefix){
   const grand=$(`${prefix}-air-grand`);if(grand)grand.onchange=()=>{state[side+'Tech'].airDoctrine.grand=grand.value;state[side+'Tech'].airDoctrine=normalizeAirDoctrine(state[side+'Tech'].airDoctrine);save();shell();};
   document.querySelectorAll(`[data-air-doctrine-choice^="${prefix}:"]`).forEach(el=>el.onchange=()=>{const track=el.dataset.airDoctrineChoice.split(':')[1];state[side+'Tech'].airDoctrine.tracks[track].choice=el.value;state[side+'Tech'].airDoctrine=normalizeAirDoctrine(state[side+'Tech'].airDoctrine);save();shell();});
@@ -494,7 +502,7 @@ function air(c){
   const verdict=r.exchangeA>=1.15?'FRIENDLY DESIGN WINS ON IC':r.exchangeA<=.87?'ENEMY DESIGN WINS ON IC':'ROUGH IC PARITY';
   c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">AIR MINISTRY · AIRCRAFT DESIGN & TEST</p><h1>Air Lab</h1><p>Design two aircraft, compare combat exchange and judge whether extra performance is worth the extra IC.</p></div>${badge('Analytical air-combat model')}</section>
   <div class="air-lab-grid">${airDesignPanel('a','FRIENDLY DESIGN')}<section class="air-versus"><span>VS</span><button class="btn" id="swapAir">⇄ Swap</button><button class="btn" id="copyAir">Copy A → B</button></section>${airDesignPanel('b','ENEMY DESIGN')}</div>
-  ${panel('Test conditions',`<div class="field-grid"><label>Mission<select id="air-mission"><option value="air_superiority" ${o.mission==='air_superiority'?'selected':''}>Air superiority / interception</option><option value="cas" ${o.mission==='cas'?'selected':''}>Close air support value</option><option value="naval_strike" ${o.mission==='naval_strike'?'selected':''}>Naval strike value</option></select></label><label>Friendly aircraft<input id="air-countA" type="number" min="1" value="${o.countA}"></label><label>Enemy aircraft<input id="air-countB" type="number" min="1" value="${o.countB}"></label><label>Sorties modeled<input id="air-sorties" type="number" min="100" step="100" value="${o.sorties}"></label><label>Friendly mission efficiency<input id="air-missionEfficiencyA" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyA}"></label><label>Enemy mission efficiency<input id="air-missionEfficiencyB" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyB}"></label><label>Friendly detection<input id="air-detectionA" type="number" min=".1" max="1" step=".05" value="${o.detectionA}"></label><label>Enemy detection<input id="air-detectionB" type="number" min=".1" max="1" step=".05" value="${o.detectionB}"></label></div>`)}
+  ${panel('Test conditions',`<div class="air-test-quick"><label>Mission<select id="air-mission"><option value="air_superiority" ${o.mission==='air_superiority'?'selected':''}>Air Superiority</option><option value="cas" ${o.mission==='cas'?'selected':''}>Close Air Support</option><option value="naval_strike" ${o.mission==='naval_strike'?'selected':''}>Naval Strike</option></select></label><label>Friendly<input id="air-countA" type="number" min="1" value="${o.countA}"></label><span class="versus-small">VS</span><label>Enemy<input id="air-countB" type="number" min="1" value="${o.countB}"></label></div><details class="advanced-settings"><summary>Advanced air-combat assumptions</summary><div class="field-grid compact-fields"><label>Sorties<input id="air-sorties" type="number" min="100" step="100" value="${o.sorties}"></label><label>A Mission Eff.<input id="air-missionEfficiencyA" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyA}"></label><label>B Mission Eff.<input id="air-missionEfficiencyB" type="number" min=".1" max="1.25" step=".05" value="${o.missionEfficiencyB}"></label><label>A Detection<input id="air-detectionA" type="number" min=".1" max="1" step=".05" value="${o.detectionA}"></label><label>B Detection<input id="air-detectionB" type="number" min=".1" max="1" step=".05" value="${o.detectionB}"></label></div></details>`)}
   <section class="air-comparison-report"><div class="air-verdict"><span>COMPARATIVE RESULT</span><h2>${verdict}</h2><p>This is an analytical exchange model using attack/defense, agility, speed, reliability, detection and mission efficiency. Exact executable parity awaits imported NAir defines and current aircraft modules.</p></div><div class="air-report-metrics"><article><span>KILL RATIO A:B</span><strong>${kill}</strong><small>${fmt(r.lossB,2)} enemy / ${fmt(r.lossA,2)} friendly losses</small></article><article><span>IC EXCHANGE</span><strong>${exchange}:1</strong><small>${fmt(r.icLostB,0)} enemy IC / ${fmt(r.icLostA,0)} friendly IC lost</small></article><article><span>AIR POWER SHARE</span><strong>${fmt(r.airPowerShareA,1)}%</strong><small>friendly analytical share</small></article><article><span>${esc(effA.label)}</span><strong>${fmt(effA.score,2)}</strong><small>enemy ${fmt(effB.score,2)}</small></article></div></section>
   ${panel('Design economics',`<div class="air-economics"><div><span>FRIENDLY</span><b>${esc(a.name)}</b><strong>${fmt(a.buildCost,2)} IC</strong><small>${fmt(1000/a.buildCost,1)} aircraft / 1,000 IC</small></div><div><span>ENEMY</span><b>${esc(b.name)}</b><strong>${fmt(b.buildCost,2)} IC</strong><small>${fmt(1000/b.buildCost,1)} aircraft / 1,000 IC</small></div></div><p class="notice"><b>Decision rule:</b> do not judge the aircraft only by kill ratio. A more expensive fighter can win tactically and still lose the industrial exchange; the IC exchange metric is intended to expose that trade.</p>`)} `;
   bindAirDesign('a');bindAirDesign('b');
@@ -531,11 +539,10 @@ function production(c){
   c.innerHTML=`<section class="tool-head operational-head"><div><p class="eyebrow">ARMAMENTS MINISTRY · IC ALLOCATION</p><h1>What Should I Build?</h1><p>Use the current Division Lab design and enemy test to decide whether the template deserves mass production, then allocate available military industry to maximize complete fieldable divisions.</p></div><div class="order-status ${verdict.tone}"><span>PRODUCTION ORDER</span><b>${verdict.code}</b></div></section>
   <section class="industry-verdict ${verdict.tone}"><div><span>GENERAL STAFF RECOMMENDATION</span><h2>${verdict.title}</h2><p>${verdict.copy}</p></div><div class="industry-combat"><small>BASE / ADVERSE WIN</small><strong>${pct(band.base.winRate)} <i>/</i> ${pct(band.adverse.winRate)}</strong><span>vs current Division Lab defender</span></div></section>
   <div class="industry-summary"><article><span>FIELDABLE BY DEADLINE</span><strong>${fmt(plan.fieldable,2)}</strong><small>${complete} complete · target ${Math.max(1,+state.labDemandCount||1)} divisions</small></article><article><span>EQUIPMENT IC / DIVISION</span><strong>${fmt(icPerDivision,0)}</strong><small>material cost before replacement losses</small></article><article><span>AVAILABLE MIC</span><strong>${state.production.factories}</strong><small>${fmt(totalDailyIC,1)} effective IC/day at average efficiency</small></article><article><span>NEXT FACTORY</span><strong>${esc(eqTable[plan.nextFactory?.type]?.name||'—')}</strong><small>${bottleneck?`${esc(eqTable[bottleneck.type]?.name||bottleneck.type)} is current bottleneck`:'No equipment demand'}</small></article></div>
-  <div class="grid two">
+  <details class="industry-settings"><summary><span>INDUSTRIAL SETUP</span><b>${state.production.factories} MIC · ${state.production.days} days · ${Math.max(1,+state.labDemandCount||1)} target divisions</b><em>resources & stockpiles</em></summary><div class="drawer-body"><div class="grid two">
     ${panel('Industrial assumptions',`<div class="field-grid"><label>Planning horizon (days)<input id="p-days" type="number" min="1" value="${state.production.days}"></label><label>Target field divisions<input id="p-targetDivisions" type="number" min="1" value="${Math.max(1,+state.labDemandCount||1)}"></label><label>Military factories<input id="p-factories" type="number" min="0" value="${state.production.factories}"></label><label>Starting efficiency %<input id="p-efficiency" type="number" min="0" max="200" value="${state.production.efficiency}"></label><label>Efficiency growth %<input id="p-efficiencyGain" type="number" min="0" step="5" value="${state.production.efficiencyGain}"></label><label>Efficiency cap %<input id="p-maxEfficiency" type="number" min="1" max="200" value="${state.production.maxEfficiency}"></label><label>Factory output bonus %<input id="p-outputBonus" type="number" step="1" value="${state.production.outputBonus}"></label><label>Base MIC output/day<input id="p-baseFactoryOutput" type="number" min="0.1" step="0.1" value="${state.production.baseFactoryOutput}"></label></div><div class="projection"><div><span>End efficiency</span><strong>${pct((plan.efficiency?.end||0)*100)}</strong></div><div><span>Average efficiency</span><strong>${pct((plan.efficiency?.average||0)*100)}</strong></div><div><span>Allocated MIC</span><strong>${plan.usedFactories}/${state.production.factories}</strong></div></div>`)}
-    ${panel('Strategic resources',`<div class="resource-inputs">${RESOURCES.map(r=>`<label>${r}<input data-resource="${r}" type="number" min="0" value="${state.production.resources[r]??0}"></label>`).join('')}</div><p class="muted">The optimizer accounts for HOI-style per-factory shortage penalties and gives scarce resources to the equipment bottlenecks that improve force completion most.</p>`)}
-  </div>
-  ${panel('Current stockpiles',`<div class="stock-grid">${Object.entries(need).map(([type,q])=>`<label><span>${esc(eqTable[type]?.name||type)}</span><small>${fmt(q,0)} needed per division</small><input data-stock-type="${type}" type="number" min="0" value="${stocks[type]||0}"></label>`).join('')}</div>`)}
+    ${panel('Strategic resources',`<div class="resource-inputs">${RESOURCES.map(r=>`<label>${r}<input data-resource="${r}" type="number" min="0" value="${state.production.resources[r]??0}"></label>`).join('')}</div>`)}
+  </div>${panel('Current stockpiles',`<div class="stock-grid">${Object.entries(need).map(([type,q])=>`<label><span>${esc(eqTable[type]?.name||type)}</span><small>${fmt(q,0)} needed/div</small><input data-stock-type="${type}" type="number" min="0" value="${stocks[type]||0}"></label>`).join('')}</div>`)}</div></details>
   ${panel('Recommended factory allocation',`<div class="advisor-lines">${(plan.rows||[]).sort((a,b)=>b.effectiveFactories-a.effectiveFactories).map(r=>advisorRow(r,need[r.type],eqTable)).join('')}</div><p class="notice"><b>Optimization objective:</b> maximize fully equipped copies of the current Lab division by the deadline. The recommendation balances bottlenecks rather than maximizing raw equipment count. ${plan.nextFactory?.type?`If you gain one additional MIC, assign it to <b>${esc(eqTable[plan.nextFactory.type]?.name||plan.nextFactory.type)}</b>.`:''}</p>`)}
   ${state.lastBattle?panel('Replacement burden',`<div class="replacement-advisor"><div><span>LAST MODELED ENGAGEMENT</span><strong>${fmt(replacementIC(state.lastBattle.attackerEquipmentLosses),0)} IC</strong><small>estimated material replacement</small></div><div class="loss-list">${equipmentLossList(state.lastBattle.attackerEquipmentLosses)}</div></div><p class="muted">This is shown as operational reserve pressure rather than silently mixed into new-division production. A later pass can optimize sustained campaign replacement rates separately.</p>`):''}
   ${issues.length?panel('Lab conflicts',`<div class="staff-list">${issues.map(x=>`<article class="staff-warning"><b>TECH</b><div><strong>${esc(x)}</strong><span>Resolve this in Division Lab before trusting the industrial recommendation.</span></div></article>`).join('')}</div>`):''}`;

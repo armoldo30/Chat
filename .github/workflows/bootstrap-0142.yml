@@ -31,12 +31,10 @@ jobs:
           gzip -dc /tmp/0140_to_0142.patch.gz > /tmp/0140_to_0142.patch
           git apply --check /tmp/0140_to_0142.patch
           git apply /tmp/0140_to_0142.patch
-          cp .bootstrap/main.yml .github/workflows/main.yml
 
       - name: Verify exact source hashes
         shell: bash
         run: |
-          test "$(git hash-object .github/workflows/main.yml)" = "5a5d32c126af93151372f0e95dc7aaf63956e062"
           test "$(git hash-object README.md)" = "f7ec69693778a93989a73c4d828ce75142cb5425"
           test "$(git hash-object RELEASE_NOTES.md)" = "bb37485eea1ba1b7f25b226b3bbfb739350a3c48"
           test "$(git hash-object index.html)" = "9ba41914ba6de4c22a1168c3171bfdb94038d103"
@@ -59,11 +57,10 @@ jobs:
           test "$(git hash-object dist/src/main.js)" = "9aa8fd438ae7c1f1a83bf584ec8078d2c6dfac61"
           test "$(git hash-object dist/src/style.css)" = "89096d2a115bde662c709245133edcbda2ec1d6c"
 
-      - name: Finalize clean 0.14.2 release tree
+      - name: Finalize 0.14.2 release tree
         shell: bash
         run: |
           rm -rf .bootstrap
-          rm -f .github/workflows/bootstrap-0142.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A

@@ -1,0 +1,70 @@
+name: Bootstrap 0.14.2
+
+on:
+  push:
+    branches:
+      - bootstrap-0.14.2
+
+permissions:
+  contents: write
+
+jobs:
+  verify-and-finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout bootstrap branch
+        uses: actions/checkout@v4
+        with:
+          ref: bootstrap-0.14.2
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Reconstruct exact 0.14.2 patch
+        shell: bash
+        run: |
+          cat .bootstrap/patch.00a.b64 .bootstrap/patch.00b.b64 .bootstrap/patch.01.b64 .bootstrap/patch.02.b64 .bootstrap/patch.03.b64 | base64 -d > /tmp/0142.patch.gz
+          test "$(sha256sum /tmp/0142.patch.gz | awk '{print $1}')" = "353c3cc4a5d29b3401da0ee24d7dad32277fde25dd12470519b84989d6fbefe8"
+          gzip -dc /tmp/0142.patch.gz > /tmp/0142.patch
+          test "$(sha256sum /tmp/0142.patch | awk '{print $1}')" = "5d744d3614f16cfed33d81da190dc0b3f71db1e30fd7777e68b5e51ab282ff73"
+          git apply --check /tmp/0142.patch
+          git apply /tmp/0142.patch
+
+      - name: Verify 0.14.2 source hashes
+        shell: bash
+        run: |
+          test "$(git hash-object README.md)" = "f7ec69693778a93989a73c4d828ce75142cb5425"
+          test "$(git hash-object RELEASE_NOTES.md)" = "bb37485eea1ba1b7f25b226b3bbfb739350a3c48"
+          test "$(git hash-object index.html)" = "9ba41914ba6de4c22a1168c3171bfdb94038d103"
+          test "$(git hash-object package.json)" = "d60636fc07f82b7ba89058c7ec079a046f6e36b1"
+          test "$(git hash-object src/data.js)" = "d5527da8f97947aec509ce60664f3ea25fb84968"
+          test "$(git hash-object src/main.js)" = "9aa8fd438ae7c1f1a83bf584ec8078d2c6dfac61"
+          test "$(git hash-object src/style.css)" = "89096d2a115bde662c709245133edcbda2ec1d6c"
+
+      - name: Run all tests
+        run: npm test
+
+      - name: Build static site
+        run: npm run build
+
+      - name: Verify built hashes
+        shell: bash
+        run: |
+          test "$(git hash-object dist/index.html)" = "9ba41914ba6de4c22a1168c3171bfdb94038d103"
+          test "$(git hash-object dist/src/data.js)" = "d5527da8f97947aec509ce60664f3ea25fb84968"
+          test "$(git hash-object dist/src/main.js)" = "9aa8fd438ae7c1f1a83bf584ec8078d2c6dfac61"
+          test "$(git hash-object dist/src/style.css)" = "89096d2a115bde662c709245133edcbda2ec1d6c"
+
+      - name: Finalize verified release commit
+        shell: bash
+        run: |
+          rm -rf .bootstrap
+          rm -f .github/workflows/bootstrap-0.14.2.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "release: update HOI4 War Planner to 0.14.2"
+          git push origin HEAD:bootstrap-0.14.2

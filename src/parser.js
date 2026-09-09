@@ -55,8 +55,11 @@ export function parseClausewitz(text){
         if(expectClose)at++;
         break;
       }
+      // HOI4 uses anonymous object entries inside list blocks (notably doctrine milestones).
+      // Preserve them as list items instead of discarding the opening brace.
+      if(tokens[at]==='{'){at++;items.push(block(true));continue;}
       const key=tokens[at++];
-      if(key==='{'||key==='=')continue;
+      if(key==='=')continue;
       if(tokens[at]==='='){
         at++;put(obj,String(scalar(key)),value());
       }else items.push(scalar(key));
@@ -338,13 +341,19 @@ export function defineOverrides(pack,combat,production){
   if(Number.isFinite(mil.COMBAT_STACKING_EXTRA)){combat.stackingLimitPerDirection=mil.COMBAT_STACKING_EXTRA;combatCount++;}
   if(Number.isFinite(mil.COMBAT_STACKING_PENALTY)){combat.stackingPenaltyPerDivision=Math.abs(mil.COMBAT_STACKING_PENALTY);combatCount++;}
   if(Number.isFinite(mil.BASE_FORT_PENALTY)){combat.fortPenaltyPerLevel=Math.abs(mil.BASE_FORT_PENALTY);combatCount++;}
+  if(Number.isFinite(mil.DIG_IN_FACTOR)){combat.entrenchmentPerPoint=Math.abs(mil.DIG_IN_FACTOR);combatCount++;}
+  if(Number.isFinite(mil.ENEMY_AIR_SUPERIORITY_IMPACT)){combat.maxAirSuperiorityPenalty=Math.abs(mil.ENEMY_AIR_SUPERIORITY_IMPACT);combatCount++;}
+  if(Number.isFinite(mil.BASE_NIGHT_ATTACK_PENALTY)){combat.nightAttackPenalty=Math.abs(mil.BASE_NIGHT_ATTACK_PENALTY);combatCount++;}
   combatCount+=set(combat,'orgDice',mil.LAND_COMBAT_ORG_DICE_SIZE);
+  combatCount+=set(combat,'armoredOrgDice',mil.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE);
   combatCount+=set(combat,'strengthDice',mil.LAND_COMBAT_STR_DICE_SIZE);
   combatCount+=set(combat,'orgDamageModifier',mil.LAND_COMBAT_ORG_DAMAGE_MODIFIER);
   combatCount+=set(combat,'strengthDamageModifier',mil.LAND_COMBAT_STR_DAMAGE_MODIFIER);
   combatCount+=set(combat,'combatMinimumHours',mil.COMBAT_MINIMUM_TIME);
+  combatCount+=set(combat,'equipmentCombatLossFactor',mil.EQUIPMENT_COMBAT_LOSS_FACTOR);
   const prod=pack?.defines?.NProduction||pack?.defines?.NMilitary||{};
   if(Number.isFinite(prod.PRODUCTION_RESOURCE_LACK_PENALTY)){production.resourceLackPenaltyPerUnit=Math.abs(prod.PRODUCTION_RESOURCE_LACK_PENALTY);productionCount++;}
   if(Number.isFinite(prod.MAX_LINE_RESOURCE_PENALTY)){production.maxLineResourcePenalty=Math.abs(prod.MAX_LINE_RESOURCE_PENALTY)>1?Math.abs(prod.MAX_LINE_RESOURCE_PENALTY)/100:Math.abs(prod.MAX_LINE_RESOURCE_PENALTY);productionCount++;}
+  productionCount+=set(production,'maxMilitaryFactoriesPerLine',prod.MAX_MIL_FACTORIES_PER_LINE);
   return {combatCount,productionCount};
 }

@@ -70,11 +70,33 @@ export function parseClausewitz(text){
 
 export function parseDefinesLua(text){
   const out={};
-  const re=/(?:NDefines\.)?(N[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|true|false)/g;
+  // Modern HOI4 defines are primarily nested: NDefines = { NMilitary = { KEY = 1 } }.
+  // Some override files still use NDefines.NMilitary.KEY = 1, so support both forms.
+  const dotted=/(?:NDefines\.)?(N[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|true|false)/g;
   let m;
-  while((m=re.exec(text))){
+  while((m=dotted.exec(text))){
     const group=out[m[1]]||(out[m[1]]={});
     group[m[2]]=m[3]==='true'?true:m[3]==='false'?false:Number(m[3]);
+  }
+  let depth=0,inside=false,group=null;
+  for(const original of String(text||'').split(/\r?\n/)){
+    const line=original.replace(/--.*$/,'').trim();
+    if(!line)continue;
+    if(!inside){
+      if(/^NDefines\s*=\s*\{/.test(line)){inside=true;depth+=(line.match(/\{/g)||[]).length-(line.match(/\}/g)||[]).length;}
+      continue;
+    }
+    if(depth===1){
+      const gm=line.match(/^(N[A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{/);
+      if(gm)group=gm[1];
+    }
+    if(group&&depth===2){
+      const kv=line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|true|false)\s*,?/);
+      if(kv){const target=out[group]||(out[group]={});target[kv[1]]=kv[2]==='true'?true:kv[2]==='false'?false:Number(kv[2]);}
+    }
+    depth+=(line.match(/\{/g)||[]).length-(line.match(/\}/g)||[]).length;
+    if(depth<2)group=null;
+    if(depth<=0){inside=false;depth=0;group=null;}
   }
   return out;
 }
@@ -117,7 +139,10 @@ export function extractEquipment(parsed){
     out[id]={
       id,year:num(last(raw.year)),archetype:last(raw.archetype),parent:last(raw.parent),cost:num(last(raw.build_cost_ic)),
       reliability:num(last(raw.reliability)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),
-      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots)
+      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),
+      speed:num(last(raw.maximum_speed)),fuel:num(last(raw.fuel_consumption)),weight:num(last(raw.weight)),thrust:num(last(raw.thrust)),
+      airDefense:num(last(raw.air_defence)),airAgility:num(last(raw.air_agility)),airRange:num(last(raw.air_range)),groundAttack:num(last(raw.air_ground_attack)),navalAttack:num(last(raw.naval_strike_attack)),
+      resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots),types:items(last(raw.type)),upgrades:items(last(raw.upgrades)),raw:plainMap(raw)
     };
   }
   return out;
@@ -135,7 +160,7 @@ export function extractEquipmentModules(parsed){
   const out={};
   for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
-    out[id]={id,category:last(raw.category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),xpCost:num(last(raw.xp_cost))};
+    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),addEquipmentType:items(last(raw.add_equipment_type)),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
   }
   return out;
 }

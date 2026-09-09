@@ -28,6 +28,12 @@ jobs:
           fi
           node scripts/upgrade-015-parser-v2.mjs
           node scripts/upgrade-015-parser-v3.mjs
+          if grep -q "importedLandDoctrineApply" src/doctrine.js; then
+            echo "Doctrine migration already persisted."
+          else
+            git apply scripts/doctrine-015.patch
+          fi
+          node scripts/upgrade-015-runtime.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site
@@ -37,9 +43,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/parser.js
+          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js
           if ! git diff --cached --quiet; then
-            git commit -m "feat: persist validated 0.15 source migration"
+            git commit -m "feat: persist bundled 1.19.2 runtime wiring"
             git push
           fi
       - name: Configure Pages

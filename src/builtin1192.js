@@ -1,5 +1,5 @@
 import q101 from './builtin1192/q1_01.js';
-import q1mid from './builtin1192/q1_mid.js';
+import q1bridge from './builtin1192/q1_bridge.js';
 import q1b01 from './builtin1192/q1b_01.js';
 import q1b02 from './builtin1192/q1b_02.js';
 import q1b03 from './builtin1192/q1b_03.js';
@@ -19,9 +19,12 @@ import q303 from './builtin1192/q3_03.js';
 import q304 from './builtin1192/q3_04.js';
 import q305 from './builtin1192/q3_05.js';
 import q306 from './builtin1192/q3_06.js';
+import REQUIREMENTS_1192 from './builtin1192/requirements.js';
 
-const DATA=[q101,q1mid,q1b01,q1b02,q1b03,q1b04,q1b05,q1b06,q201,q202,q203,q204,q205,q206,q207,q301,q302,q303,q304,q305,q306].join('');
+const DATA=[q101,q1bridge,q1b01,q1b02,q1b03,q1b04,q1b05,q1b06,q201,q202,q203,q204,q205,q206,q207,q301,q302,q303,q304,q305,q306].join('');
 const bytes=Uint8Array.from(atob(DATA),c=>c.charCodeAt(0));
 const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
 export const BUILTIN_1192=JSON.parse(await new Response(stream).text());
+BUILTIN_1192.requirements=REQUIREMENTS_1192;
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),requirementIndex:true,requirementRecords:679};
 export default BUILTIN_1192;

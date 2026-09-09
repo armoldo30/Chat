@@ -20,7 +20,7 @@ import r19 from './builtin1192raw/r19.js';
 import r20 from './builtin1192raw/r20.js';
 import r21 from './builtin1192raw/r21.js';
 import r22 from './builtin1192raw/r22.js';
-import REQUIREMENTS_1192 from './builtin1192/requirements.js';
+import REQUIREMENTS_1192 from './builtin1192raw/requirements.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';

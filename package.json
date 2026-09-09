@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/engine.test.mjs && node tests/parser.test.mjs && node tests/game-data.test.mjs && node tests/designer.test.mjs && node tests/tech.test.mjs && node tests/tank.test.mjs && node tests/air.test.mjs && node tests/doctrine.test.mjs && node tests/mio.test.mjs && node tests/mio-parser.test.mjs && node tests/air-doctrine.test.mjs && node tests/ui-smoke.test.mjs"
+    "test": "node tests/engine.test.mjs && node tests/parser.test.mjs && node tests/game-data.test.mjs && node tests/designer-data.test.mjs && node tests/designer.test.mjs && node tests/tech.test.mjs && node tests/tank.test.mjs && node tests/air.test.mjs && node tests/doctrine.test.mjs && node tests/mio.test.mjs && node tests/mio-parser.test.mjs && node tests/air-doctrine.test.mjs && node tests/ui-smoke.test.mjs"
   }
 }

@@ -28,4 +28,13 @@ if(chunks.length!==22)throw new Error(`Expected 22 raw chunks, got ${chunks.leng
 fs.rmSync(outDir,{recursive:true,force:true});
 fs.mkdirSync(outDir,{recursive:true});
 chunks.forEach((chunk,i)=>fs.writeFileSync(new URL(`r${String(i+1).padStart(2,'0')}.js`,outDir),`export default ${JSON.stringify(chunk)};\n`));
-console.log(`materialized ${chunks.length} authoritative runtime chunks (${raw.length} chars)`);
+
+const requirementSource=fs.readFileSync(new URL('requirements.js',sourceDir),'utf8');
+const requirementMatch=requirementSource.match(/const DATA='([A-Za-z0-9+/=]+)'/s);
+if(!requirementMatch)throw new Error('Cannot read compressed requirements index');
+const requirementRaw=zlib.gunzipSync(Buffer.from(requirementMatch[1],'base64')).toString('utf8');
+const requirements=JSON.parse(requirementRaw);
+const requirementCount=Object.values(requirements).reduce((total,group)=>total+Object.keys(group||{}).length,0);
+if(requirementCount<600)throw new Error(`Unexpected prerequisite index size ${requirementCount}`);
+fs.writeFileSync(new URL('requirements.js',outDir),`export default ${JSON.stringify(requirements)};\n`);
+console.log(`materialized ${chunks.length} authoritative runtime chunks (${raw.length} chars) and ${requirementCount} prerequisite records`);

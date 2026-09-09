@@ -7,8 +7,8 @@ import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_D
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
-import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds } from './tank.js';
-import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt } from './air.js';
+import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds, configureTankDataPack, tankDataStatus } from './tank.js';
+import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus } from './air.js';
 
 const STORAGE='hoi4-war-planner-v7',LEGACY_STORAGE='hoi4-war-planner-v6';
 const $=id=>document.getElementById(id);
@@ -53,6 +53,8 @@ function load(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||localSto
 let state=load();
 const LEGACY_REGIMENTAL_SUPPORTS=['regimental_infantry_guns','regimental_at','regimental_aa'];
 const runtimeGameDataStatus=state.dataPack?hydrateGameData(state.dataPack,{battalions,supports,equipment,terrain},{year:state.dataSnapshotYear}):{equipment:0,battalions:0,supports:0,regimentalSupports:0,terrain:0};
+const runtimeTankDataStatus=state.dataPack?configureTankDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
+const runtimeAirDataStatus=state.dataPack?configureAirDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
 const importedRegimentalSupports=state.dataPack?importedRegimentalSupportIds(supports):[];
 const BASE_REGIMENTAL_SUPPORTS=importedRegimentalSupports.length?importedRegimentalSupports:LEGACY_REGIMENTAL_SUPPORTS;
 const BASE_DIVISIONAL_SUPPORTS=Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k)&&!(state.dataPack&&LEGACY_REGIMENTAL_SUPPORTS.includes(k)));
@@ -81,7 +83,7 @@ function ensureAirState(){
   for(const k of ['missionEfficiencyA','missionEfficiencyB','detectionA','detectionB'])state.airLab[k]=clamp(Number(state.airLab[k]??1),.1,1.25);
   if(!['air_superiority','cas','naval_strike'].includes(state.airLab.mission))state.airLab.mission='air_superiority';
 }
-const MIO_FAMILIES={infantry_equipment:'Infantry Equipment',artillery:'Artillery',anti_tank:'Anti-Tank',anti_air:'Anti-Air',light_tank:'Light Tanks',medium_tank:'Medium Tanks',heavy_tank:'Heavy Tanks',small_airframe:'Small Aircraft',medium_airframe:'Medium Aircraft'};
+const MIO_FAMILIES={infantry_equipment:'Infantry Equipment',artillery:'Artillery',anti_tank:'Anti-Tank',anti_air:'Anti-Air',light_tank:'Light Tanks',medium_tank:'Medium Tanks',heavy_tank:'Heavy Tanks',small_airframe:'Small Aircraft',medium_airframe:'Medium Aircraft',large_airframe:'Large Aircraft'};
 function ensureMioState(){
   state.mioSelections=state.mioSelections&&typeof state.mioSelections==='object'?state.mioSelections:{attacker:{},defender:{}};
   for(const side of ['attacker','defender']){state.mioSelections[side]=state.mioSelections[side]||{};for(const family of Object.keys(MIO_FAMILIES))state.mioSelections[side][family]=normalizeMioSelection(state.mioSelections[side][family]||DEFAULT_MIO_SELECTION);}
@@ -94,7 +96,7 @@ function applyFamilyMioToData(data,side){
   return data;
 }
 function adjustedTankDesign(side,cls){return applyMioToVariant(buildTankDesign(state.tankDesigns[side][cls]),mioEffectFor(side,`${cls}_tank`));}
-function adjustedAirDesign(side,raw){const base=buildAirDesign(raw),family=base.size==='medium'?'medium_airframe':'small_airframe',withMio=applyMioToVariant(base,mioEffectFor(side,family));return applyAirDoctrineToVariant(withMio,ensureTechState(side).airDoctrine);}
+function adjustedAirDesign(side,raw){const base=buildAirDesign(raw),family=base.size==='large'?'large_airframe':base.size==='medium'?'medium_airframe':'small_airframe',withMio=applyMioToVariant(base,mioEffectFor(side,family));return applyAirDoctrineToVariant(withMio,ensureTechState(side).airDoctrine);}
 function equipmentForSide(side='attacker'){
   ensureTankState();ensureMioState();const out=structuredClone(equipment);
   for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(side,family));
@@ -107,10 +109,10 @@ function techData(side){const data=buildTechAdjustedData(battalions,supports,ens
 function techProblems(side){ensureDesignerState(side);return techIssues(state[side+'Grid'],state[side+'Supports'],state[side+'RegimentalSupports'],ensureTechState(side));}
 ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
 let activeDesignerSide='attacker',activeLabPanel='template',designerPick=null;
-let dataPackStatus={...runtimeGameDataStatus,battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
+let dataPackStatus={...runtimeGameDataStatus,tank:runtimeTankDataStatus,air:runtimeAirDataStatus,battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
 function applyCurrentDataPack(){
   if(!state.dataPack)return dataPackStatus;
-  dataPackStatus={...runtimeGameDataStatus,...safeStructuralOverrides(state.dataPack,battalions,supports,terrain),...defineOverrides(state.dataPack,COMBAT_CONSTANTS,PRODUCTION_CONSTANTS)};
+  dataPackStatus={...runtimeGameDataStatus,tank:tankDataStatus(),air:airDataStatus(),...safeStructuralOverrides(state.dataPack,battalions,supports,terrain),...defineOverrides(state.dataPack,COMBAT_CONSTANTS,PRODUCTION_CONSTANTS)};
   return dataPackStatus;
 }
 applyCurrentDataPack();
@@ -171,7 +173,7 @@ function dashboard(c){
     ${panel('Latest combat report',`<div class="hq-report ${battleState==='STALE'?'stale':''}"><span>${battleState}</span>${state.lastBattle?`<h3>${pct(state.lastBattle.winRate)} attacker win</h3><p>${fmt(state.lastBattle.avgHours,0)} h expected · ${pct(state.lastBattle.attackerCasualtyRate)} attacker strength loss · ${fmt(replacementIC(state.lastBattle.attackerEquipmentLosses),0)} IC replacement</p>`:'<h3>No simulation recorded</h3><p>Build the opposing templates and execute a battle to create an operational report.</p>'}</div><a class="btn" href="#battle">${state.lastBattle?'Review battle →':'Run simulation →'}</a>`,'hq-report-panel')}
   </div>
   <section class="staff-sections"><a href="#tank"><span>TNK</span><div><b>Tank Designer</b><small>Variants feed Division Lab and Industry</small></div></a><a href="#air"><span>AIR</span><div><b>Air Lab</b><small>Compare aircraft performance and IC exchange</small></div></a><a href="#battle"><span>R&D</span><div><b>Tech & Doctrine</b><small>Research assumptions now live inside Division Lab</small></div></a><a href="#intel"><span>INT</span><div><b>Intelligence</b><small>±${Math.round(state.intelUncertainty*100)}% enemy uncertainty</small></div></a><a href="#data"><span>DAT</span><div><b>Data Packs</b><small>${state.dataPack?'Imported game data active':'Built-in 1.19.2 baseline'}</small></div></a><a href="#scenario"><span>CFG</span><div><b>Scenario Control</b><small>Schema ${state.schema} · local persistence</small></div></a></section>
-  <p class="model-footnote">${MODEL_META.confidence}. Tank and aircraft designers now feed explicit variants into the model; built-in module values remain an analytical baseline until exact game files are imported.</p>`;
+  <p class="model-footnote">${MODEL_META.confidence}. ${state.dataPack?'Imported chassis, equipment and module records are active in the designers; executable-only aggregation/combat behavior remains explicitly analytical.':'Built-in tank/air module values are a fallback analytical baseline until a game-data pack is imported.'}</p>`;
 }
 
 function statCard(s){const vals=[['Width',s.width,0],['Manpower',s.manpower,0],['Org',s.org,1],['HP',s.hp,1],['Soft attack',s.soft,1],['Hard attack',s.hard,1],['Defense',s.def,1],['Breakthrough',s.breakthrough,1],['Hardness',s.hardness*100,0,'%'],['Supply/day',s.supply,2],['Armor',s.armor,1],['Piercing',s.piercing,1],['Air attack',s.airAttack,1]];return `<div class="statgrid">${vals.map(([k,v,d,suf=''])=>`<div class="stat"><small>${k}</small><strong>${fmt(v,d)}${suf}</strong></div>`).join('')}</div>`;}
@@ -429,7 +431,7 @@ function showBattle(compare){
 }
 
 
-function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([,v])=>filter(v)).map(([k,v])=>`<option value="${k}" ${k===current?'selected':''}>${esc(v.name)}</option>`).join('');}
+function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([,v])=>filter(v)).map(([k,v])=>{const req=Array.isArray(v.requirements)?v.requirements:[];return `<option value="${k}" ${k===current?'selected':''} title="${esc(req.length?'Prerequisite: '+req.join(', '):'')}">${esc(v.name)}${req.length?' ⓘ':''}</option>`;}).join('');}
 function tankCurrent(){ensureTankState();return state.tankDesigns[state.tankDesigner.side][state.tankDesigner.class];}
 function tankStatsGrid(d){
   const rows=[['Soft Attack',d.softAttack,1],['Hard Attack',d.hardAttack,1],['Piercing',d.piercing,1],['Armor',d.armor,1],['Breakthrough',d.breakthrough,1],['Defense',d.defense,1],['Max Speed',d.maxSpeed,2,' km/h'],['Reliability',d.reliability*100,1,'%'],['Fuel Use',d.fuelConsumption,2],['Weight',d.weight,1],['IC Cost',d.buildCost,2]];
@@ -490,8 +492,8 @@ function airDesignPanel(key,label){
   const raw=state.airLab[key],side=key==='a'?'attacker':'defender',d=adjustedAirDesign(side,raw),prefix=`air-${key}`;
   return `<section class="panel aircraft-designer ${key==='a'?'friendly':'enemy'}"><div class="aircraft-head"><div><span class="eyebrow">${label}</span><input id="${prefix}-name" value="${esc(raw.name)}"></div><div class="aircraft-role">${d.roles.map(x=>`<span>${x.replace('_',' ').toUpperCase()}</span>`).join('')||'<span>NO MISSION</span>'}</div></div>
     <div class="air-module-grid"><label class="wide"><span>AIRFRAME</span><select id="${prefix}-airframe">${optionList(AIRFRAMES,raw.airframe)}</select></label><label class="wide"><span>ENGINE</span><select id="${prefix}-engine">${optionList(AIR_ENGINES,raw.engine)}</select></label>${raw.weapons.map((v,i)=>`<label><span>WEAPON ${i+1}</span><select id="${prefix}-weapon-${i}">${optionList(AIR_WEAPONS,v)}</select></label>`).join('')}<label><span>DEFENSE</span><select id="${prefix}-defense">${optionList(AIR_DEFENSE_MODULES,raw.defense)}</select></label>${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="${prefix}-special-${i}">${optionList(AIR_SPECIALS,v)}</select></label>`).join('')}</div>
-    ${d.overweight?`<p class="notice stop"><b>Insufficient thrust.</b> ${fmt(d.thrust,1)} available / ${fmt(d.requiredThrust,1)} required. Agility, speed and reliability are penalized.</p>`:`<p class="notice good"><b>Thrust margin:</b> ${fmt(d.thrust-d.requiredThrust,1)}.</p>`}
-    ${airDesignStats(d)}<div class="advisor-resources">${Object.entries(d.resources||{}).map(([r,q])=>`<span class="resource-chip">${r.toUpperCase()} ${fmt(q,0)}/MIC</span>`).join('')}</div>${inlineMioPicker(side,d.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`)}${renderAirDoctrine(side,prefix)}</section>`;
+    ${d.overweight?`<p class="notice stop"><b>Insufficient thrust.</b> ${fmt(d.thrust,1)} available / ${fmt(d.requiredThrust,1)} required.${d.source==='game-pack'?' The parsed design remains selectable for theorycrafting; no invented performance penalty is applied.':' Agility, speed and reliability are penalized by the fallback analytical model.'}</p>`:`<p class="notice good"><b>Thrust margin:</b> ${fmt(d.thrust-d.requiredThrust,1)}.</p>`}
+    ${airDesignStats(d)}<div class="advisor-resources">${Object.entries(d.resources||{}).map(([r,q])=>`<span class="resource-chip">${r.toUpperCase()} ${fmt(q,0)}/MIC</span>`).join('')}</div>${inlineMioPicker(side,d.size==='large'?'large_airframe':d.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`)}${renderAirDoctrine(side,prefix)}</section>`;
 }
 function bindAirDesign(key){
   const prefix=`air-${key}`,set=(k,v)=>{state.airLab[key][k]=v;state.airLab[key]=normalizeAirDesign(state.airLab[key],AIRFRAMES[state.airLab[key].airframe]?.size||'small');save();shell();};
@@ -499,7 +501,7 @@ function bindAirDesign(key){
   for(const k of ['airframe','engine','defense'])$(`${prefix}-${k}`).onchange=()=>set(k,$(`${prefix}-${k}`).value);
   state.airLab[key].weapons.forEach((_,i)=>{$(`${prefix}-weapon-${i}`).onchange=()=>{const x=[...state.airLab[key].weapons];x[i]=$(`${prefix}-weapon-${i}`).value;set('weapons',x);};});
   state.airLab[key].specials.forEach((_,i)=>{$(`${prefix}-special-${i}`).onchange=()=>{const x=[...state.airLab[key].specials];x[i]=$(`${prefix}-special-${i}`).value;set('specials',x);};});
-  const side=key==='a'?'attacker':'defender',built=adjustedAirDesign(side,state.airLab[key]);bindInlineMio(side,built.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`);bindAirDoctrine(side,prefix);
+  const side=key==='a'?'attacker':'defender',built=adjustedAirDesign(side,state.airLab[key]);bindInlineMio(side,built.size==='large'?'large_airframe':built.size==='medium'?'medium_airframe':'small_airframe',`${prefix}-active`);bindAirDoctrine(side,prefix);
 }
 function air(c){
   ensureAirState();const o=state.airLab,aBuilt=adjustedAirDesign('attacker',o.a),bBuilt=adjustedAirDesign('defender',o.b),afx=airDoctrineEffects(ensureTechState('attacker').airDoctrine,aBuilt),bfx=airDoctrineEffects(ensureTechState('defender').airDoctrine,bBuilt),airOpts={...o,missionEfficiencyA:o.missionEfficiencyA*(1+(afx.mission[o.mission]||0)),missionEfficiencyB:o.missionEfficiencyB*(1+(bfx.mission[o.mission]||0)),detectionA:o.detectionA*(1+(afx.detection||0)),detectionB:o.detectionB*(1+(bfx.detection||0))},r=compareBuiltAirDesigns(aBuilt,bBuilt,airOpts),a=r.a,b=r.b,effA=airMissionEfficiencyBuilt(a,o.mission),effB=airMissionEfficiencyBuilt(b,o.mission),exchange=Number.isFinite(r.exchangeA)?fmt(r.exchangeA,2):'∞',kill=Number.isFinite(r.killRatioA)?fmt(r.killRatioA,2):'∞';

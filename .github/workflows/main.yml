@@ -4,7 +4,7 @@ on:
     branches: [main, staging-0.15.0]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 concurrency:
@@ -18,10 +18,23 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Apply staged 0.15.0 source migration
+        if: github.ref == 'refs/heads/staging-0.15.0'
+        run: node scripts/upgrade-015.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site
         run: npm run build
+      - name: Persist validated staging migration
+        if: github.ref == 'refs/heads/staging-0.15.0'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.js
+          if ! git diff --cached --quiet; then
+            git commit -m "feat: make prerequisites informational for theorycrafting"
+            git push
+          fi
       - name: Configure Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5

@@ -23,6 +23,7 @@ jobs:
         run: |
           node scripts/upgrade-015.mjs
           node scripts/upgrade-015-data.mjs
+          node scripts/upgrade-015-parser.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site
@@ -32,9 +33,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js
+          git add src/main.js src/parser.js
           if ! git diff --cached --quiet; then
-            git commit -m "feat: wire imported 1.19 data into planner runtime"
+            git commit -m "feat: persist validated 0.15 game-data wiring"
             git push
           fi
       - name: Configure Pages

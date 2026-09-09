@@ -2,7 +2,6 @@ import { buildDataPack, parseClausewitz } from './parser.js';
 
 const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const last=v=>Array.isArray(v)?v.at(-1):v;
-const arr=v=>v==null?[]:Array.isArray(v)?v:[v];
 const items=v=>Array.isArray(v)?v.map(String):isObj(v)&&Array.isArray(v.__items)?v.__items.map(String):typeof v==='string'?[v]:[];
 const num=v=>Number.isFinite(Number(last(v)))?Number(last(v)):undefined;
 const clean=v=>{
@@ -18,16 +17,17 @@ const merge=(target,source)=>{for(const [k,v] of Object.entries(source||{}))targ
 
 function prerequisiteTokens(raw){
   const found=new Set();
+  const relevant=/allow|require|prereq|dependency|available|visible|has_tech|technology|has_dlc|special_project|prototype/i;
   const walk=(v,key='')=>{
     if(Array.isArray(v)){for(const x of v)walk(x,key);return;}
     if(!isObj(v)){
-      if(/allow|require|prereq|dependency|available|visible|has_tech|technology/i.test(key)&&typeof v==='string')found.add(v);
+      if(relevant.test(key)&&typeof v==='string')found.add(v);
       return;
     }
     for(const [k,x] of Object.entries(v)){
       if(k==='__items'){
-        if(/allow|require|prereq|dependency|has_tech|technology/i.test(key))for(const t of items(v))found.add(t);
-      }else if(/has_tech|technology|prereq|requires?/i.test(k)){
+        if(relevant.test(key))for(const t of items(v))found.add(t);
+      }else if(relevant.test(k)){
         if(typeof last(x)==='string')found.add(String(last(x)));else for(const t of items(last(x)))found.add(t);
         walk(x,k);
       }else walk(x,k);
@@ -54,7 +54,7 @@ export function extractCombatTactics(parsed){
   }
   if(!Object.keys(out).length)for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):{};
-    if(raw.trigger||raw.allowed||raw.attacker||raw.defender||raw.countered_by)out[id]={id,days:num(raw.days),base:num(raw.base),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    if(raw.trigger||raw.allowed||raw.attacker||raw.defender||raw.countered_by||raw.attacker_movement_speed||raw.defender_movement_speed)out[id]={id,days:num(raw.days),base:num(raw.base),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   return out;
 }
@@ -72,11 +72,11 @@ export function extractSpecialProjects(parsed){
   const out={};
   for(const root of ['special_projects','projects'])for(const [id,raw0] of entries(parsed,root)){
     const raw=isObj(last(raw0))?last(raw0):{};
-    out[id]={id,cost:num(raw.cost??raw.prototype_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    out[id]={id,cost:num(raw.cost??raw.prototype_cost??raw.breakthrough_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   if(!Object.keys(out).length)for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):{};
-    if(raw.prototype_time||raw.specialization||raw.breakthrough_cost)out[id]={id,cost:num(raw.cost??raw.prototype_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    if(raw.prototype_time||raw.specialization||raw.breakthrough_cost||raw.prototype_cost)out[id]={id,cost:num(raw.cost??raw.prototype_cost??raw.breakthrough_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   return out;
 }
@@ -89,11 +89,13 @@ export function extractEquipmentUpgrades(parsed){
   return out;
 }
 
-export function extractDoctrines(parsed){
+// HOI4 1.19 uses common/doctrines/{grand_doctrines,tracks,subdoctrines} rather than the old technology-shaped doctrine tree.
+export function extractDoctrines(parsed,kind='unknown'){
   const out={};
-  for(const root of ['technologies','doctrines'])for(const [id,raw0] of entries(parsed,root)){
+  for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):{};
-    out[id]={id,startYear:num(raw.start_year??raw.year),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    if(!Object.keys(raw).length)continue;
+    out[id]={id,kind,folder:last(raw.folder),track:last(raw.track),tracks:items(last(raw.tracks)),xpCost:num(raw.xp_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   return out;
 }
@@ -112,7 +114,10 @@ export async function buildExtendedDataPack(files){
     if(path.includes('/modifier_definition'))merge(pack.modifiers,extractModifierDefinitions(parsed));
     if(path.includes('/special_project'))merge(pack.specialProjects,extractSpecialProjects(parsed));
     if(path.includes('/equipment/upgrades'))merge(pack.equipmentUpgrades,extractEquipmentUpgrades(parsed));
-    if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed));
+    if(path.includes('/doctrines/grand_doctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'grand'));
+    else if(path.includes('/doctrines/tracks/'))merge(pack.doctrines,extractDoctrines(parsed,'track'));
+    else if(path.includes('/doctrines/subdoctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine'));
+    else if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed,'legacy'));
   }
   pack.meta={...(pack.meta||{}),technologyCount:Object.keys(pack.technologies).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,parserVersion:'0.15.0'};
   return pack;

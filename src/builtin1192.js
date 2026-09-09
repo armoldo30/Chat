@@ -1,0 +1,13 @@
+import p1 from './builtin1192/p1.js';
+import p2 from './builtin1192/p2.js';
+import p3 from './builtin1192/p3.js';
+import p4 from './builtin1192/p4.js';
+import p5 from './builtin1192/p5.js';
+import p6 from './builtin1192/p6.js';
+import p7 from './builtin1192/p7.js';
+import p8 from './builtin1192/p8.js';
+const DATA=[p1,p2,p3,p4,p5,p6,p7,p8].join('');
+const bytes=Uint8Array.from(atob(DATA),c=>c.charCodeAt(0));
+const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+export const BUILTIN_1192=JSON.parse(await new Response(stream).text());
+export default BUILTIN_1192;

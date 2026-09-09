@@ -28,6 +28,7 @@ jobs:
           fi
           node scripts/upgrade-015-parser-v2.mjs
           node scripts/upgrade-015-parser-v3.mjs
+          node scripts/upgrade-015-parser-v4.mjs
           if grep -q "importedLandDoctrineApply" src/doctrine.js; then
             echo "Doctrine migration already persisted."
           else

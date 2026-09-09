@@ -1,0 +1,26 @@
+import assert from 'node:assert/strict';
+import pack from '../src/builtin1192.js';
+import { gameDataCoverage } from '../src/gameData.js';
+import { tankCatalogFromPack, airCatalogFromPack } from '../src/designerData.js';
+
+assert.equal(pack.meta.gameVersion,'1.19.2');
+assert.equal(pack.meta.bundled,true);
+assert.ok(Object.keys(pack.defines.NMilitary||{}).length>300,'real NMilitary defines bundled');
+assert.ok(Object.keys(pack.defines.NProduction||{}).length>50,'real NProduction defines bundled');
+assert.ok(pack.subUnits.infantry);
+assert.ok(pack.subUnits.helicopter_recon,'advanced helicopter support is present');
+assert.ok(pack.subUnits.light_tank_flame,'flame tank support is present');
+assert.ok(pack.equipment.infantry_equipment_2);
+assert.ok(Object.keys(pack.modules).length>200);
+assert.ok(pack.doctrines.mobile_infantry);
+assert.ok(pack.doctrines.new_mobile_warfare);
+assert.equal(pack.doctrines.new_mobile_warfare.raw.milestones.length,4,'anonymous milestone blocks survive parsing');
+assert.ok(Object.keys(pack.combatTactics).length>=50);
+assert.ok(Object.keys(pack.specialProjects).length>=40);
+assert.ok(Object.keys(pack.requirements||{}).length>=600,'real prerequisite index bundled');
+const coverage=gameDataCoverage(pack);
+assert.ok(coverage.subUnits>=100&&coverage.equipment>=200&&coverage.technologies>=500);
+const tank=tankCatalogFromPack(pack),air=airCatalogFromPack(pack);
+assert.ok(tank.meta.chassis>0&&tank.meta.guns>0&&tank.meta.engines>0);
+assert.ok(air.meta.airframes>0&&air.meta.engines>0&&air.meta.weapons>0);
+console.log('bundled HOI4 1.19.2 data tests passed');

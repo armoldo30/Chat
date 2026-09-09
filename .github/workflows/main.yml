@@ -35,6 +35,8 @@ jobs:
           fi
           node scripts/upgrade-015-runtime.mjs
           python scripts/release-hardening-015.py
+      - name: Verify bundled 1.19.2 bytes
+        run: node scripts/check-bundle.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site

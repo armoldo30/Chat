@@ -18,7 +18,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Apply staged 0.15.0 designer migration
+      - name: Apply staged 0.15.0 source migrations
         if: github.ref == 'refs/heads/staging-0.15.0'
         run: |
           if grep -q "configureTankDataPack" src/main.js; then
@@ -26,6 +26,7 @@ jobs:
           else
             node scripts/upgrade-015-designers.mjs
           fi
+          node scripts/upgrade-015-parser-v2.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site
@@ -35,9 +36,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js
+          git add src/main.js src/parser.js
           if ! git diff --cached --quiet; then
-            git commit -m "feat: persist validated 0.15 designer wiring"
+            git commit -m "feat: persist validated 0.15 source migration"
             git push
           fi
       - name: Configure Pages

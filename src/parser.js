@@ -120,9 +120,11 @@ function items(v){
   return [];
 }
 
+function blockRoots(v){return (Array.isArray(v)?v:[v]).map(obj).filter(root=>Object.keys(root).length);}
+
 export function extractSubUnits(parsed){
-  const root=obj(last(parsed?.sub_units)),out={};
-  for(const [id,raw0] of Object.entries(root)){
+  const out={};
+  for(const root of blockRoots(parsed?.sub_units))for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
     out[id]={
       id,group:last(raw.group),types:items(last(raw.type)),categories:items(last(raw.categories)),
@@ -136,8 +138,8 @@ export function extractSubUnits(parsed){
 }
 
 export function extractEquipment(parsed){
-  const root=obj(last(parsed?.equipments)),out={};
-  for(const [id,raw0] of Object.entries(root)){
+  const out={};
+  for(const root of blockRoots(parsed?.equipments))for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
     out[id]={
       id,year:num(last(raw.year)),archetype:last(raw.archetype),parent:last(raw.parent),cost:num(last(raw.build_cost_ic)),
@@ -152,16 +154,17 @@ export function extractEquipment(parsed){
 }
 
 export function extractEquipmentModules(parsed){
-  let root=obj(last(parsed?.equipment_modules??parsed?.modules));
-  if(!Object.keys(root).length){
-    root={};
+  let roots=blockRoots(parsed?.equipment_modules??parsed?.modules);
+  if(!roots.length){
+    const root={};
     for(const [id,raw0] of Object.entries(parsed||{})){
       const raw=obj(last(raw0));
       if(raw.category&&(raw.add_stats||raw.multiply_stats||raw.add_average_stats||raw.build_cost_resources))root[id]=raw0;
     }
+    roots=Object.keys(root).length?[root]:[];
   }
   const out={};
-  for(const [id,raw0] of Object.entries(root)){
+  for(const root of roots)for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
     out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),addEquipmentType:items(last(raw.add_equipment_type)),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
   }

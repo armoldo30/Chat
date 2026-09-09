@@ -90,7 +90,7 @@ export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gam
   // Legacy manual doctrine modifiers remain readable for imported old scenarios. They are not research locks.
   for(const u of Object.values(b))doctrineMult(u,profile);
   for(const u of Object.values(s))doctrineMult(u,profile);
-  const doctrine=applyLandDoctrineToData(b,s,profile.landDoctrine);
+  const doctrine=applyLandDoctrineToData(b,s,profile.landDoctrine,pack);
   return {battalions:doctrine.battalions,supports:doctrine.supports,profile,doctrineGlobal:doctrine.global,landDoctrine:doctrine.state};
 }
 

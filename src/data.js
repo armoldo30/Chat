@@ -1,9 +1,9 @@
 export const MODEL_META = {
-  appVersion: '0.14.2',
+  appVersion: '0.15.0',
   gameVersion: '1.19.2',
-  label: 'Vanilla 1.19.2 public-data baseline',
-  confidence: 'Analytical baseline — exact parity awaits imported game files',
-  updated: '2026-09-06'
+  label: 'Vanilla 1.19.2 bundled game-data baseline',
+  confidence: 'Authoritative 1.19.2 game-file data with explicitly analytical executable-only behavior',
+  updated: '2026-09-09'
 };
 
 export const RESOURCES = ['steel','aluminum','rubber','tungsten','chromium'];

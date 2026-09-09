@@ -4,6 +4,7 @@ const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const humanize=id=>String(id||'').replace(/^unit_/,'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const number=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
 const text=v=>String(v||'').toLowerCase();
+const mergedRequirements=(pack,kind,id,raw)=>[...new Set([...(pack?.requirements?.[kind]?.[id]||[]),...requirementTokens(raw)])];
 
 const STAT_MAP={
   soft_attack:'softAttack',hard_attack:'hardAttack',ap_attack:'piercing',armor_value:'armor',defense:'defense',breakthrough:'breakthrough',
@@ -79,9 +80,9 @@ function airSize(id,e){
   if(/large.*(?:plane|airframe)|(?:plane|airframe).*large/.test(s))return 'large';
   return null;
 }
-function moduleRecord(m){return {id:m.id,name:humanize(m.id),category:m.category,guiCategory:m.guiCategory,parent:m.parent,requirements:requirementTokens(m.raw),_module:m,source:'game-pack'};}
-function chassisRecord(id,e,cls){const s=equipmentToState(e);return {id,name:humanize(id),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:requirementTokens(e.raw),_equipment:e,...s};}
-function airframeRecord(id,e,size){const s=equipmentToState(e);return {id,name:humanize(id),size,year:e.year,source:'game-pack',gameId:id,requirements:requirementTokens(e.raw),_equipment:e,...s};}
+function moduleRecord(m,pack){return {id:m.id,name:humanize(m.id),category:m.category,guiCategory:m.guiCategory,parent:m.parent,requirements:mergedRequirements(pack,'modules',m.id,m.raw),_module:m,source:'game-pack'};}
+function chassisRecord(id,e,cls,pack){const s=equipmentToState(e);return {id,name:humanize(id),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
+function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:humanize(id),size,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
 
 function tankModuleBucket(m){
   const c=text(m.category),id=text(m.id),all=`${c} ${text(m.guiCategory)} ${id}`;
@@ -107,9 +108,9 @@ export function tankCatalogFromPack(pack){
   const out={chassis:{},guns:{},turrets:{},suspensions:{},armorTypes:{},engines:{},specials:{none:{id:'none',name:'Empty',source:'system',_module:null}}};
   for(const id of Object.keys(pack?.equipment||{})){
     const e=resolvedEquipment(pack,id),cls=tankClass(id,e);if(!cls||!hasSlots(e))continue;
-    out.chassis[id]=chassisRecord(id,e,cls);
+    out.chassis[id]=chassisRecord(id,e,cls,pack);
   }
-  for(const m of Object.values(pack?.modules||{})){const bucket=tankModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m);}
+  for(const m of Object.values(pack?.modules||{})){const bucket=tankModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m,pack);}
   out.meta={chassis:Object.keys(out.chassis).length,guns:Object.keys(out.guns).length,turrets:Object.keys(out.turrets).length,suspensions:Object.keys(out.suspensions).length,armorTypes:Object.keys(out.armorTypes).length,engines:Object.keys(out.engines).length,specials:Object.keys(out.specials).length-1};
   return out;
 }
@@ -118,7 +119,7 @@ export function airCatalogFromPack(pack){
   const out={airframes:{},engines:{},weapons:{none:{id:'none',name:'Empty',source:'system',_module:null}},defense:{none:{id:'none',name:'No Defense Module',source:'system',_module:null}},specials:{none:{id:'none',name:'Empty',source:'system',_module:null}}};
   for(const id of Object.keys(pack?.equipment||{})){
     const e=resolvedEquipment(pack,id),size=airSize(id,e);if(!size||!hasSlots(e))continue;
-    out.airframes[id]=airframeRecord(id,e,size);
+    out.airframes[id]=airframeRecord(id,e,size,pack);
   }
   for(const m of Object.values(pack?.modules||{})){const bucket=airModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m);}
   out.meta={airframes:Object.keys(out.airframes).length,engines:Object.keys(out.engines).length,weapons:Object.keys(out.weapons).length-1,defense:Object.keys(out.defense).length-1,specials:Object.keys(out.specials).length-1};

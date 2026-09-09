@@ -1,3 +1,4 @@
+import { resolveMIOs } from './parser.js';
 const clone=x=>structuredClone(x);
 const arr=v=>Array.isArray(v)?v:v==null?[]:[v];
 
@@ -14,7 +15,12 @@ export function normalizeMioSelection(raw){return {organization:raw?.organizatio
 
 function addBonus(target,source){for(const [k,v] of Object.entries(source||{}))if(Number.isFinite(Number(v)))target[k]=(target[k]||0)+Number(v);return target;}
 
-export function mioCatalog(pack){return {...BUILTIN_MIOS,...(pack?.mios||{})};}
+const MIO_PACK_CACHE=new WeakMap();
+export function mioCatalog(pack){
+  let imported=pack?.mios||{};
+  if(pack?.meta?.mioInheritance==='runtime'&&pack&&typeof pack==='object'){if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,resolveMIOs(imported));imported=MIO_PACK_CACHE.get(pack);}
+  return {...BUILTIN_MIOS,...imported};
+}
 export function mioAvailable(org,country,equipmentFamily){
   if(!org)return false;
   if(org.countries?.length&&country&&!org.countries.includes(country.toUpperCase()))return false;

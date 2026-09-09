@@ -19,6 +19,7 @@ const COMBAT_KEYS={soft:'soft',hard:'hard',def:'def',breakthrough:'breakthrough'
 const humanize=id=>String(id||'').replace(/^unit_/,'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const n=v=>Number.isFinite(Number(v))?Number(v):undefined;
 const words=u=>[u?.id,u?.group,...(u?.types||[]),...(u?.categories||[])].filter(Boolean).join(' ').toLowerCase();
+const indexedRequirements=(pack,kind,id)=>[...new Set(pack?.requirements?.[kind]?.[id]||[])];
 
 export function equipmentAlias(id){return EQUIPMENT_ALIAS[id]||id;}
 export function classifySubUnit(u){
@@ -127,7 +128,7 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
   status.equipment=addEquipmentAliases(pack,equipment,year);
   for(const raw of Object.values(pack.subUnits||{})){
     const id=appIdForSubUnit(raw),kind=classifySubUnit(raw),computed=resolveSubUnitFromPack(raw,pack,{year,profile});
-    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,prerequisite:raw.prerequisite||null};
+    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null};
     if(kind.support){supports[id]=record;status.supports++;if(kind.regimental)status.regimentalSupports++;}
     else {battalions[id]=record;status.battalions++;}
   }
@@ -143,6 +144,7 @@ export function importedRegimentalSupportIds(supports){return Object.keys(suppor
 export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>!supports[id]?.regimentalSupport);}
 
 export function prerequisiteText(record){
+  const indexed=record?.requirements;if(Array.isArray(indexed)&&indexed.length)return indexed.join(' · ');
   const p=record?.prerequisite;
   if(!p)return '';
   if(typeof p==='string')return p;

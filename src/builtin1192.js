@@ -23,13 +23,15 @@ import REQUIREMENTS_1192 from './builtin1192/requirements.js';
 
 const DATA=[q101,q1bridge,q1b01,q1b02,q1b03,q1b04,q1b05,q1b06,q201,q202,q203,q204,q205,q206,q207,q301,q302,q303,q304,q305,q306].join('');
 const bytes=Uint8Array.from(atob(DATA),c=>c.charCodeAt(0));
+const browser=typeof window!=='undefined'&&typeof document!=='undefined';
+export const BUILTIN_1192_LOADER_MODE=browser?'browser-stream':'node-zlib';
 let text;
-if(typeof process!=='undefined'&&process?.versions?.node){
-  const {gunzipSync}=await import('node:zlib');
-  text=gunzipSync(bytes).toString('utf8');
-}else{
+if(browser){
   const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
   text=await new Response(stream).text();
+}else{
+  const {gunzipSync}=await import('node:zlib');
+  text=gunzipSync(bytes).toString('utf8');
 }
 export const BUILTIN_1192=JSON.parse(text);
 BUILTIN_1192.requirements=REQUIREMENTS_1192;

@@ -1,0 +1,13 @@
+import fs from 'node:fs';
+const path='src/parser.js';
+let s=fs.readFileSync(path,'utf8'),changes=0;
+const replace=(from,to,label)=>{if(s.includes(to))return;if(!s.includes(from))throw new Error(`0.15 parser migration pattern not found: ${label}`);s=s.replace(from,to);changes++;};
+replace(
+"      reliability:num(last(raw.reliability)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),\n      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots)",
+"      reliability:num(last(raw.reliability)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),\n      soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),\n      speed:num(last(raw.maximum_speed)),fuel:num(last(raw.fuel_consumption)),weight:num(last(raw.weight)),thrust:num(last(raw.thrust)),\n      airDefense:num(last(raw.air_defence)),airAgility:num(last(raw.air_agility)),airRange:num(last(raw.air_range)),groundAttack:num(last(raw.air_ground_attack)),navalAttack:num(last(raw.naval_strike_attack)),\n      resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots),types:items(last(raw.type)),upgrades:items(last(raw.upgrades)),raw:plainMap(raw)",
+'equipment designer stats');
+replace(
+"    out[id]={id,category:last(raw.category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),xpCost:num(last(raw.xp_cost))};",
+"    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),addEquipmentType:items(last(raw.add_equipment_type)),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};",
+'equipment module metadata');
+if(changes){fs.writeFileSync(path,s);console.log(`Applied ${changes} parser 0.15.0 migrations.`);}else console.log('0.15.0 parser migration already applied.');

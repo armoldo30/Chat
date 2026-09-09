@@ -1,6 +1,8 @@
 import { MODEL_META, RESOURCES, COMBAT_CONSTANTS, PRODUCTION_CONSTANTS, equipment, battalions, supports, terrain, rolePresets } from './data.js';
 import { fmt, optimizeForceProduction, divisionEquipmentIC, calcDivision, aggregateDivision, simulateBattle, compareTerrains, uncertaintyBand, scoreDivision, clamp } from './engine.js';
-import { buildDataPack, safeStructuralOverrides, defineOverrides, equipmentSnapshot } from './parser.js';
+import { safeStructuralOverrides, defineOverrides, equipmentSnapshot } from './parser.js';
+import { buildExtendedDataPack } from './gameDataParser.js';
+import { hydrateGameData, importedRegimentalSupportIds } from './gameData.js';
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
@@ -49,8 +51,11 @@ function deepMerge(base,raw){
 }
 function load(){try{const raw=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_STORAGE)||'null');const next=deepMerge(defaults,raw);next.schema=7;return next;}catch{return structuredClone(defaults);}}
 let state=load();
-const BASE_REGIMENTAL_SUPPORTS=['regimental_infantry_guns','regimental_at','regimental_aa'];
-const BASE_DIVISIONAL_SUPPORTS=Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k));
+const LEGACY_REGIMENTAL_SUPPORTS=['regimental_infantry_guns','regimental_at','regimental_aa'];
+const runtimeGameDataStatus=state.dataPack?hydrateGameData(state.dataPack,{battalions,supports,equipment,terrain},{year:state.dataSnapshotYear}):{equipment:0,battalions:0,supports:0,regimentalSupports:0,terrain:0};
+const importedRegimentalSupports=state.dataPack?importedRegimentalSupportIds(supports):[];
+const BASE_REGIMENTAL_SUPPORTS=importedRegimentalSupports.length?importedRegimentalSupports:LEGACY_REGIMENTAL_SUPPORTS;
+const BASE_DIVISIONAL_SUPPORTS=Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k)&&!(state.dataPack&&LEGACY_REGIMENTAL_SUPPORTS.includes(k)));
 const LEGACY_REGIMENTAL_MAP={support_artillery:'regimental_infantry_guns',support_at:'regimental_at',support_aa:'regimental_aa'};
 function ensureDesignerState(side){
   const key=side+'Grid';
@@ -96,16 +101,16 @@ function equipmentForSide(side='attacker'){
   for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls),rawDesign=buildTankDesign(state.tankDesigns[side][cls]),d=adjustedTankDesign(side,cls),eff=mioEffectFor(side,`${cls}_tank`);out[ids.equipment]=applyMioToEquipmentRecord(tankEquipmentRecord(out[ids.equipment],state.tankDesigns[side][cls]),eff);out[ids.equipment].designStats=d;}
   return out;
 }
-function validRegimentalSupports(side){ensureDesignerState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c));}
+function validRegimentalSupports(side){ensureDesignerState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c,key));}
 function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCounts(state[side+'Grid'],Object.keys(battalions));}
-function techData(side){const data=buildTechAdjustedData(battalions,supports,ensureTechState(side));ensureTankState();ensureMioState();for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls);data.battalions[ids.battalion]=applyTankDesignToBattalion(data.battalions[ids.battalion],state.tankDesigns[side][cls]);}return applyFamilyMioToData(data,side);}
+function techData(side){const data=buildTechAdjustedData(battalions,supports,ensureTechState(side),{pack:state.dataPack,year:state.dataSnapshotYear});ensureTankState();ensureMioState();for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls);if(data.battalions[ids.battalion])data.battalions[ids.battalion]=applyTankDesignToBattalion(data.battalions[ids.battalion],state.tankDesigns[side][cls]);}return applyFamilyMioToData(data,side);}
 function techProblems(side){ensureDesignerState(side);return techIssues(state[side+'Grid'],state[side+'Supports'],state[side+'RegimentalSupports'],ensureTechState(side));}
 ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
 let activeDesignerSide='attacker',activeLabPanel='template',designerPick=null;
-let dataPackStatus={battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
+let dataPackStatus={...runtimeGameDataStatus,battalionOverrides:0,supportOverrides:0,terrainOverrides:0,combatCount:0,productionCount:0};
 function applyCurrentDataPack(){
   if(!state.dataPack)return dataPackStatus;
-  dataPackStatus={...safeStructuralOverrides(state.dataPack,battalions,supports,terrain),...defineOverrides(state.dataPack,COMBAT_CONSTANTS,PRODUCTION_CONSTANTS)};
+  dataPackStatus={...runtimeGameDataStatus,...safeStructuralOverrides(state.dataPack,battalions,supports,terrain),...defineOverrides(state.dataPack,COMBAT_CONSTANTS,PRODUCTION_CONSTANTS)};
   return dataPackStatus;
 }
 applyCurrentDataPack();
@@ -191,7 +196,7 @@ const BATTALION_CODES={infantry:'INF',motorized:'MOT',mechanized:'MEC',artillery
 const SUPPORT_CODES={engineer:'ENG',support_artillery:'ART',recon:'REC',support_at:'AT',support_aa:'AA',regimental_infantry_guns:'IG',regimental_at:'RAT',regimental_aa:'RAA',logistics:'LOG',signal:'SIG'};
 function battalionTone(type){if(type.includes('armor'))return 'armor';if(['motorized','mechanized','cavalry'].includes(type))return 'mobile';if(type.includes('artillery')||type.includes('anti_tank')||type.includes('anti_air')||['support_at','support_aa'].includes(type))return 'fire';return 'infantry';}
 function regimentGroup(side,c,ignoreRow=null){ensureDesignerState(side);return gridRegimentGroup(state[side+'Grid'],c,battalions,ignoreRow);}
-function regimentalBaselineCompatible(side,c){return regimentGroup(side,c)==='infantry';}
+function regimentalBaselineCompatible(side,c,key=null){const group=regimentGroup(side,c);if(!key)return !!group;const required=supports[key]?.regimentGroup;if(required)return required==='any'||required===group;if(LEGACY_REGIMENTAL_SUPPORTS.includes(key))return group==='infantry';return true;}
 function templateIC(stats,side='attacker'){return replacementIC(stats.need||{},side);}
 function designerStatGroups(s){
   const groups=[
@@ -599,11 +604,11 @@ function data(c){
   ${pack&&snapshot.length?panel('Equipment lineage preview',`<div class="version-card"><div><strong>Equipment snapshot · ${state.dataSnapshotYear}</strong><p class="muted">Resolved through imported archetype/parent inheritance. This is a diagnostic preview; equipment stats are not yet injected into battalion combat values.</p></div><label>Snapshot year<input id="dataSnapshotYear" type="number" min="1910" max="2100" value="${state.dataSnapshotYear}"></label></div>${inheritedWarnings?`<p class="notice warn">${inheritedWarnings} selected equipment families carry inheritance warnings. Export the normalized pack before relying on them.</p>`:''}<div class="table-wrap compact-table"><table><thead><tr><th>Family</th><th>Selected model</th><th>Year</th><th>Variants</th><th>IC</th><th>Reliability</th><th>Soft</th><th>Hard</th><th>Defense</th><th>Piercing</th></tr></thead><tbody>${snapshot.slice(0,80).map(x=>`<tr><td>${esc(x.family)}</td><td>${esc(x.item.id)}</td><td>${fmt(x.item.year,0)}</td><td>${x.variants}</td><td>${fmt(x.item.cost,2)}</td><td>${x.item.reliability===undefined?'—':pct(x.item.reliability*100)}</td><td>${fmt(x.item.soft,1)}</td><td>${fmt(x.item.hard,1)}</td><td>${fmt(x.item.def,1)}</td><td>${fmt(x.item.piercing,1)}</td></tr>`).join('')}</tbody></table></div>${snapshot.length>80?`<p class="muted">Showing first 80 of ${snapshot.length} equipment families.</p>`:''}`):''}
   <div class="grid two">${panel('Import a common folder',`<label class="drop-zone">Select HOI4 <b>common</b> folder<input id="folderImport" type="file" multiple webkitdirectory directory></label><p class="muted">Best option on desktop. Select the game’s <code>common</code> directory or a smaller folder such as <code>common/units</code> or <code>common/defines</code>.</p>`)}${panel('Import selected files',`<label class="drop-zone">Select .txt / .lua files<input id="fileImport" type="file" accept=".txt,.lua,text/plain" multiple></label><p class="muted">Useful for smaller targeted imports. Unit, equipment, terrain and defines files are recognized.</p>`)}</div>
   ${panel('Importer policy',`<div class="check-grid"><span>✓ Parses Clausewitz key/value script</span><span>✓ Parses NDefines Lua constants</span><span>✓ Normalizes sub-unit structure</span><span>✓ Normalizes equipment records</span><span>✓ Normalizes tank/aircraft equipment modules</span><span>✓ Parses country-specific MIO organizations & traits</span><span>✓ Applies safe width/org/HP/manpower data</span><span>✓ Applies recognized combat/production defines</span></div><p class="notice">Equipment/module definitions and MIO organizations are parsed, including country restrictions, trait dependencies, equipment bonuses and production modifiers. Imported MIOs can already affect land equipment, tank variants and aircraft variants. The built-in tank/air module catalogs remain transparent analytical baselines until imported chassis/module compatibility can be resolved safely end-to-end.</p>`)} `;
-  if($('dataSnapshotYear'))$('dataSnapshotYear').onchange=()=>{state.dataSnapshotYear=Math.max(1910,Math.floor(+$('dataSnapshotYear').value||1940));save();shell();};
+  if($('dataSnapshotYear'))$('dataSnapshotYear').onchange=()=>{state.dataSnapshotYear=Math.max(1910,Math.floor(+$('dataSnapshotYear').value||1940));save();location.reload();};
   const importFiles=async files=>{
     if(!files?.length)return;
     const view=$('view');view.insertAdjacentHTML('afterbegin','<div id="importBusy" class="notice">Parsing selected game data…</div>');
-    try{const next=await buildDataPack(files);if(!next.meta.sourceFiles)throw new Error('No supported HOI4 text files were recognized.');state.dataPack=next;save();location.reload();}
+    try{const next=await buildExtendedDataPack(files);if(!next.meta.sourceFiles)throw new Error('No supported HOI4 text files were recognized.');state.dataPack=next;save();location.reload();}
     catch(error){$('importBusy')?.remove();alert(`Data-pack import failed: ${error?.message||error}`);}
   };
   $('folderImport').onchange=e=>importFiles(e.target.files);$('fileImport').onchange=e=>importFiles(e.target.files);

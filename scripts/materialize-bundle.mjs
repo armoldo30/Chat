@@ -21,6 +21,9 @@ const hash=crypto.createHash('sha256').update(Buffer.from(raw,'utf8')).digest('h
 if(Buffer.byteLength(raw,'utf8')!==1096485||hash!=='75f24d5adea04be19f3ac8ed7d321435b5b69b48cbd57f550953390e13f78c52'){
   throw new Error('Refusing to materialize non-authoritative data');
 }
+const pack=JSON.parse(raw);
+const requirementRelationships=Object.values(pack.requirements||{}).reduce((total,group)=>total+Object.values(group||{}).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0),0);
+if(requirementRelationships!==679)throw new Error(`Unexpected embedded prerequisite relationship count ${requirementRelationships}`);
 const size=50000;
 const chunks=[];
 for(let i=0;i<raw.length;i+=size)chunks.push(raw.slice(i,i+size));
@@ -28,13 +31,4 @@ if(chunks.length!==22)throw new Error(`Expected 22 raw chunks, got ${chunks.leng
 fs.rmSync(outDir,{recursive:true,force:true});
 fs.mkdirSync(outDir,{recursive:true});
 chunks.forEach((chunk,i)=>fs.writeFileSync(new URL(`r${String(i+1).padStart(2,'0')}.js`,outDir),`export default ${JSON.stringify(chunk)};\n`));
-
-const requirementSource=fs.readFileSync(new URL('requirements.js',sourceDir),'utf8');
-const requirementMatch=requirementSource.match(/const DATA='([A-Za-z0-9+/=]+)'/s);
-if(!requirementMatch)throw new Error('Cannot read compressed requirements index');
-const requirementRaw=zlib.gunzipSync(Buffer.from(requirementMatch[1],'base64')).toString('utf8');
-const requirements=JSON.parse(requirementRaw);
-const requirementCount=Object.values(requirements).reduce((total,group)=>total+Object.keys(group||{}).length,0);
-if(requirementCount<600)throw new Error(`Unexpected prerequisite index size ${requirementCount}`);
-fs.writeFileSync(new URL('requirements.js',outDir),`export default ${JSON.stringify(requirements)};\n`);
-console.log(`materialized ${chunks.length} authoritative runtime chunks (${raw.length} chars) and ${requirementCount} prerequisite records`);
+console.log(`materialized ${chunks.length} authoritative runtime chunks (${raw.length} chars) with ${requirementRelationships} embedded prerequisite relationships`);

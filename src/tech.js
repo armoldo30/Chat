@@ -1,6 +1,8 @@
 import { DEFAULT_LAND_DOCTRINE, DEFAULT_AIR_DOCTRINE, normalizeLandDoctrine, normalizeAirDoctrine, applyLandDoctrineToData } from './doctrine.js';
+import { resolveSubUnitFromPack } from './gameData.js';
 const clone=x=>structuredClone(x);
 
+// Fallback labels/deltas are retained only for sessions without an imported game-data pack.
 export const INFANTRY_EQUIPMENT_LEVELS = [
   {value:0,label:'Basic Infantry Equipment',delta:{soft:-3,hard:-0.5,def:-2,breakthrough:-1,piercing:-3}},
   {value:1,label:'Infantry Equipment I',delta:{soft:0,hard:0,def:0,breakthrough:0,piercing:0}},
@@ -9,7 +11,7 @@ export const INFANTRY_EQUIPMENT_LEVELS = [
 ];
 
 export const WEAPON_TIER_LEVELS = [
-  {value:0,label:'Not researched',mult:0},
+  {value:0,label:'Earliest equipment',mult:1},
   {value:1,label:'Equipment I',mult:1},
   {value:2,label:'Equipment II',mult:1.15},
   {value:3,label:'Equipment III',mult:1.30}
@@ -55,22 +57,37 @@ function doctrineMult(unit,profile){
   for(const [src,dst] of Object.entries(map))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+(Number(d[src])||0)/100));
 }
 
-export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile){
+function applyImportedEquipmentTier(target,pack,profile,year){
+  for(const unit of Object.values(target||{})){
+    const gameId=unit?.gameId;if(!gameId||!pack?.subUnits?.[gameId])continue;
+    const imported=resolveSubUnitFromPack(pack.subUnits[gameId],pack,{year,profile});
+    for(const k of ['width','hp','org','manpower','supply','hardness','armor','piercing','soft','hard','def','breakthrough','airAttack','need','sourceEquipment','source'])if(imported[k]!==undefined)unit[k]=imported[k];
+  }
+}
+
+export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gameContext=null){
   const profile=normalizeTechProfile(rawProfile),b=clone(baseBattalions),s=clone(baseSupports);
-  const inf=INFANTRY_EQUIPMENT_LEVELS.find(x=>x.value===profile.infantryEquipment)||INFANTRY_EQUIPMENT_LEVELS[1];
-  for(const key of ['infantry','motorized','mechanized','cavalry'])addDelta(b[key],inf.delta);
+  const pack=gameContext?.pack||gameContext?.dataPack||null,year=Number(gameContext?.year)||1940;
+  if(pack?.subUnits&&pack?.equipment){
+    // Real data path: choose actual equipment records from the imported family/tier.
+    // Do not layer the legacy guessed percentage/delta tables on top of game-file stats.
+    applyImportedEquipmentTier(b,pack,profile,year);
+    applyImportedEquipmentTier(s,pack,profile,year);
+  }else{
+    const inf=INFANTRY_EQUIPMENT_LEVELS.find(x=>x.value===profile.infantryEquipment)||INFANTRY_EQUIPMENT_LEVELS[1];
+    for(const key of ['infantry','motorized','mechanized','cavalry'])addDelta(b[key],inf.delta);
+    const art=WEAPON_TIER_LEVELS.find(x=>x.value===profile.artillery)?.mult??1;
+    const at=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiTank)?.mult??1;
+    const aa=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiAir)?.mult??1;
+    for(const key of ['artillery'])multiply(b[key],['soft','hard','piercing'],art||1);
+    for(const key of ['support_artillery','regimental_infantry_guns'])multiply(s[key],['soft','hard','piercing'],art||1);
+    for(const key of ['anti_tank'])multiply(b[key],['soft','hard','piercing'],at||1);
+    for(const key of ['support_at','regimental_at'])multiply(s[key],['soft','hard','piercing'],at||1);
+    for(const key of ['anti_air'])multiply(b[key],['soft','hard','piercing','airAttack'],aa||1);
+    for(const key of ['support_aa','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
+  }
 
-  const art=WEAPON_TIER_LEVELS.find(x=>x.value===profile.artillery)?.mult??1;
-  const at=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiTank)?.mult??1;
-  const aa=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiAir)?.mult??1;
-  for(const key of ['artillery'])multiply(b[key],['soft','hard','piercing'],art||1);
-  for(const key of ['support_artillery','regimental_infantry_guns'])multiply(s[key],['soft','hard','piercing'],art||1);
-  for(const key of ['anti_tank'])multiply(b[key],['soft','hard','piercing'],at||1);
-  for(const key of ['support_at','regimental_at'])multiply(s[key],['soft','hard','piercing'],at||1);
-  for(const key of ['anti_air'])multiply(b[key],['soft','hard','piercing','airAttack'],aa||1);
-  for(const key of ['support_aa','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
-
-  // Legacy manual doctrine modifiers remain readable for imported old scenarios, but the UI now uses staged 1.19 doctrines.
+  // Legacy manual doctrine modifiers remain readable for imported old scenarios. They are not research locks.
   for(const u of Object.values(b))doctrineMult(u,profile);
   for(const u of Object.values(s))doctrineMult(u,profile);
   const doctrine=applyLandDoctrineToData(b,s,profile.landDoctrine);

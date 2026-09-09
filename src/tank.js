@@ -1,4 +1,7 @@
+import { tankCatalogFromPack, equipmentToState, applyModuleEffects, chooseCatalogDefault } from './designerData.js';
+
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const humanize=id=>String(id||'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 
 export const TANK_CHASSIS={
   light_basic:{name:'Basic Light Chassis',class:'light',year:1934,cost:2.0,speed:7.0,reliability:.80,armor:10,breakthrough:5,defense:3,hardness:.80,fuel:1.2,weight:7,maxWeight:16,resources:{steel:1}},
@@ -60,39 +63,80 @@ export const TANK_SPECIALS={
   stabilizer:{name:'Stabilizer',breakthrough:6,attackMult:.05,cost:1.5,weight:.5}
 };
 
-const CLASS_DEFAULT_CHASSIS={light:'light_improved',medium:'medium_improved',heavy:'heavy_improved'};
-const CLASS_DEFAULT_GUN={light:'small_cannon',medium:'medium_cannon',heavy:'heavy_cannon'};
+const FALLBACK_DEFAULT_CHASSIS={light:'light_improved',medium:'medium_improved',heavy:'heavy_improved'};
+const FALLBACK_DEFAULT_GUN={light:'small_cannon',medium:'medium_cannon',heavy:'heavy_cannon'};
+let PACK_MODE=false,PACK_YEAR=1940,PACK_UPGRADES={},PACK_META=null;
+
+function replaceCatalog(target,next){for(const k of Object.keys(target))delete target[k];Object.assign(target,next);}
+function firstKey(map,exceptNone=false){return Object.keys(map).find(k=>!exceptNone||k!=='none')||Object.keys(map)[0]||null;}
+function chassisDefault(cls){return PACK_MODE?chooseCatalogDefault(TANK_CHASSIS,x=>x.class===cls,PACK_YEAR):FALLBACK_DEFAULT_CHASSIS[cls];}
+function gunDefault(cls){
+  if(!PACK_MODE)return FALLBACK_DEFAULT_GUN[cls];
+  const names=Object.keys(TANK_GUNS);if(!names.length)return null;
+  const classNamed=names.find(k=>k.includes(cls));return classNamed||names[0];
+}
+function defaultModule(map,fallback){return PACK_MODE?(firstKey(map,true)||firstKey(map)||fallback):fallback;}
+
+export function configureTankDataPack(pack,year=1940){
+  const cat=tankCatalogFromPack(pack);if(!cat.meta.chassis)return {active:false,...cat.meta};
+  replaceCatalog(TANK_CHASSIS,cat.chassis);
+  if(cat.meta.guns)replaceCatalog(TANK_GUNS,cat.guns);
+  if(cat.meta.turrets)replaceCatalog(TANK_TURRETS,cat.turrets);
+  if(cat.meta.suspensions)replaceCatalog(TANK_SUSPENSIONS,cat.suspensions);
+  if(cat.meta.armorTypes)replaceCatalog(TANK_ARMOR_TYPES,cat.armorTypes);
+  if(cat.meta.engines)replaceCatalog(TANK_ENGINES,cat.engines);
+  if(cat.meta.specials)replaceCatalog(TANK_SPECIALS,cat.specials);
+  PACK_MODE=true;PACK_YEAR=Number(year)||1940;PACK_UPGRADES=pack?.equipmentUpgrades||{};PACK_META=cat.meta;
+  return {active:true,...cat.meta,upgrades:Object.keys(PACK_UPGRADES).length};
+}
+export function tankDataStatus(){return {active:PACK_MODE,year:PACK_YEAR,...(PACK_META||{}),upgrades:Object.keys(PACK_UPGRADES).length};}
 
 export function defaultTankDesign(cls='medium'){
-  const c=['light','medium','heavy'].includes(cls)?cls:'medium';
-  return {name:`${c[0].toUpperCase()+c.slice(1)} Tank`,class:c,chassis:CLASS_DEFAULT_CHASSIS[c],gun:CLASS_DEFAULT_GUN[c],turret:'three_man',suspension:'torsion',armorType:'welded',engine:'diesel',engineUpgrades:3,armorUpgrades:3,specials:['radio','wet_ammo','none']};
+  const c=['light','medium','heavy'].includes(cls)?cls:'medium',chassis=chassisDefault(c)||firstKey(TANK_CHASSIS);
+  return {name:`${c[0].toUpperCase()+c.slice(1)} Tank`,class:c,chassis,gun:gunDefault(c)||firstKey(TANK_GUNS),turret:defaultModule(TANK_TURRETS,'three_man'),suspension:defaultModule(TANK_SUSPENSIONS,'torsion'),armorType:defaultModule(TANK_ARMOR_TYPES,'welded'),engine:defaultModule(TANK_ENGINES,'diesel'),engineUpgrades:PACK_MODE?0:3,armorUpgrades:PACK_MODE?0:3,specials:[defaultModule(TANK_SPECIALS,'none'),'none','none']};
 }
 
 export function normalizeTankDesign(raw,cls='medium'){
-  const base=defaultTankDesign(raw?.class||cls),out={...base,...(raw||{})};
+  const desired=['light','medium','heavy'].includes(raw?.class)?raw.class:cls,base=defaultTankDesign(desired),out={...base,...(raw||{})};
   if(!TANK_CHASSIS[out.chassis])out.chassis=base.chassis;
-  out.class=TANK_CHASSIS[out.chassis].class;
-  if(!TANK_GUNS[out.gun])out.gun=CLASS_DEFAULT_GUN[out.class];
-  if(!TANK_TURRETS[out.turret])out.turret='three_man';
-  if(!TANK_SUSPENSIONS[out.suspension])out.suspension='torsion';
-  if(!TANK_ARMOR_TYPES[out.armorType])out.armorType='welded';
-  if(!TANK_ENGINES[out.engine])out.engine='diesel';
+  out.class=TANK_CHASSIS[out.chassis]?.class||desired;
+  if(!TANK_GUNS[out.gun])out.gun=gunDefault(out.class)||firstKey(TANK_GUNS);
+  if(!TANK_TURRETS[out.turret])out.turret=defaultModule(TANK_TURRETS,'three_man');
+  if(!TANK_SUSPENSIONS[out.suspension])out.suspension=defaultModule(TANK_SUSPENSIONS,'torsion');
+  if(!TANK_ARMOR_TYPES[out.armorType])out.armorType=defaultModule(TANK_ARMOR_TYPES,'welded');
+  if(!TANK_ENGINES[out.engine])out.engine=defaultModule(TANK_ENGINES,'diesel');
   out.engineUpgrades=clamp(Math.round(Number(out.engineUpgrades)||0),0,20);
   out.armorUpgrades=clamp(Math.round(Number(out.armorUpgrades)||0),0,20);
   out.specials=Array.from({length:3},(_,i)=>TANK_SPECIALS[out.specials?.[i]]?out.specials[i]:'none');
-  out.name=String(out.name||TANK_CHASSIS[out.chassis].name).slice(0,80);
+  out.name=String(out.name||TANK_CHASSIS[out.chassis]?.name||humanize(out.chassis)).slice(0,80);
   return out;
 }
 
 function mergeResources(...sources){const out={};for(const src of sources)for(const [k,v] of Object.entries(src||{}))out[k]=(out[k]||0)+(Number(v)||0);return out;}
+const UPGRADE_STAT_MAP={soft_attack:'softAttack',hard_attack:'hardAttack',ap_attack:'piercing',armor_value:'armor',defense:'defense',breakthrough:'breakthrough',maximum_speed:'maxSpeed',reliability:'reliability',fuel_consumption:'fuelConsumption',build_cost_ic:'buildCost',air_attack:'airAttack'};
+function applyPackUpgrade(state,id,requested){
+  const def=PACK_UPGRADES?.[id]?.raw||PACK_UPGRADES?.[id];if(!def||typeof def!=='object')return;
+  const max=Number(def.max_level);const level=clamp(Math.round(Number(requested)||0),0,Number.isFinite(max)?max:20);if(!level)return;
+  for(const [rawKey,dst] of Object.entries(UPGRADE_STAT_MAP)){
+    const per=Number(def[rawKey]);if(!Number.isFinite(per))continue;
+    state[dst]=(Number(state[dst])||0)*(1+per*level);
+  }
+}
+function buildImportedTankDesign(raw){
+  const d=normalizeTankDesign(raw),c=TANK_CHASSIS[d.chassis];
+  const selected=[TANK_GUNS[d.gun],TANK_TURRETS[d.turret],TANK_SUSPENSIONS[d.suspension],TANK_ARMOR_TYPES[d.armorType],TANK_ENGINES[d.engine],...d.specials.map(k=>TANK_SPECIALS[k])];
+  let state=applyModuleEffects(equipmentToState(c?._equipment||c),selected.map(x=>x?._module).filter(Boolean));
+  applyPackUpgrade(state,'tank_engine_upgrade',d.engineUpgrades);applyPackUpgrade(state,'tank_armor_upgrade',d.armorUpgrades);
+  state.reliability=clamp(Number(state.reliability)||0,.01,1);state.maxSpeed=Math.max(0,Number(state.maxSpeed)||0);state.buildCost=Math.max(0,Number(state.buildCost)||0);
+  return {...d,year:c?.year,softAttack:Number(state.softAttack)||0,hardAttack:Number(state.hardAttack)||0,piercing:Number(state.piercing)||0,breakthrough:Number(state.breakthrough)||0,defense:Number(state.defense)||0,reliability:state.reliability,maxSpeed:state.maxSpeed,armor:Math.max(0,Number(state.armor)||0),hardness:clamp(Number(state.hardness)||0,0,1),buildCost:state.buildCost,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),weight:Number(state.weight)||0,maxWeight:0,overloaded:false,overload:0,resources:{...(state.resources||{})},airAttack:Number(state.airAttack)||0,source:'game-pack',averageStatInference:!!state.averageStatInference,upgradeSource:Object.keys(PACK_UPGRADES).length?'game-pack':'none'};
+}
 
-export function buildTankDesign(raw){
+function buildFallbackTankDesign(raw){
   const d=normalizeTankDesign(raw),c=TANK_CHASSIS[d.chassis],g=TANK_GUNS[d.gun],t=TANK_TURRETS[d.turret],s=TANK_SUSPENSIONS[d.suspension],a=TANK_ARMOR_TYPES[d.armorType],e=TANK_ENGINES[d.engine],special=d.specials.map(k=>TANK_SPECIALS[k]);
   let soft=g.soft||0,hard=g.hard||0,piercing=g.piercing||0,breakthrough=c.breakthrough+(t.breakthrough||0)+(s.breakthrough||0)+(e.breakthrough||0),defense=c.defense+(t.defense||0),reliability=c.reliability+(g.reliability||0)+(t.reliability||0)+(s.reliability||0)+(e.reliability||0),speed=c.speed+(s.speed||0)+(e.speed||0),fuel=Math.max(.1,c.fuel+(e.fuel||0));
   let armor=c.armor*a.armorMult,armorMult=1,attackMult=1,cost=c.cost+(g.cost||0)+(t.cost||0)+(s.cost||0)+(a.cost||0)+(e.cost||0),weight=(c.weight+(g.weight||0)+(t.weight||0)+(s.weight||0)+(e.weight||0))*a.weightMult;
   for(const m of special){soft+=m.soft||0;hard+=m.hard||0;piercing+=m.piercing||0;breakthrough+=m.breakthrough||0;defense+=m.defense||0;reliability+=m.reliability||0;speed+=m.speed||0;cost+=m.cost||0;weight+=m.weight||0;armorMult+=m.armorMult||0;attackMult+=m.attackMult||0;}
   armor*=armorMult;
-  // Upgrade dials are deliberately transparent approximations until imported module/upgrades data is active.
   speed+=d.engineUpgrades*.32;cost+=d.engineUpgrades*.22;reliability-=d.engineUpgrades*.008;fuel+=d.engineUpgrades*.035;
   armor*=1+d.armorUpgrades*.045;cost+=d.armorUpgrades*.28;reliability-=d.armorUpgrades*.009;speed-=d.armorUpgrades*.055;weight+=d.armorUpgrades*.45;
   soft*=attackMult;hard*=attackMult;
@@ -102,12 +146,14 @@ export function buildTankDesign(raw){
   const resources=mergeResources(c.resources,g.resources);
   if(d.armorUpgrades>=6)resources.steel=(resources.steel||0)+1;
   if(d.armorType==='cast')resources.steel=(resources.steel||0)+1;
-  return {...d,year:c.year,softAttack:soft,hardAttack:hard,piercing,breakthrough,defense,reliability,maxSpeed:speed,armor,hardness:c.hardness,buildCost:cost,fuelConsumption:fuel,weight,maxWeight:c.maxWeight,overloaded:overload>0,overload,resources};
+  return {...d,year:c.year,softAttack:soft,hardAttack:hard,piercing,breakthrough,defense,reliability,maxSpeed:speed,armor,hardness:c.hardness,buildCost:cost,fuelConsumption:fuel,weight,maxWeight:c.maxWeight,overloaded:overload>0,overload,resources,source:'fallback'};
 }
+
+export function buildTankDesign(raw){return PACK_MODE?buildImportedTankDesign(raw):buildFallbackTankDesign(raw);}
 
 export function applyTankDesignToBattalion(baseBattalion,rawDesign){
   const d=buildTankDesign(rawDesign),base={...baseBattalion};
-  return {...base,soft:d.softAttack,hard:d.hardAttack,def:d.defense,breakthrough:d.breakthrough,hardness:d.hardness,armor:d.armor,piercing:d.piercing,designReliability:d.reliability,designSpeed:d.maxSpeed,designFuel:d.fuelConsumption};
+  return {...base,soft:d.softAttack,hard:d.hardAttack,def:d.defense,breakthrough:d.breakthrough,hardness:d.hardness,armor:d.armor,piercing:d.piercing,airAttack:d.airAttack??base.airAttack,designReliability:d.reliability,designSpeed:d.maxSpeed,designFuel:d.fuelConsumption};
 }
 
 export function tankEquipmentRecord(baseEquipment,rawDesign){

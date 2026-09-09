@@ -24,6 +24,7 @@ jobs:
           node scripts/upgrade-015.mjs
           node scripts/upgrade-015-data.mjs
           node scripts/upgrade-015-parser.mjs
+          node scripts/upgrade-015-designers.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site

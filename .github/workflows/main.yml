@@ -35,8 +35,10 @@ jobs:
           fi
           node scripts/upgrade-015-runtime.mjs
           python scripts/release-hardening-015.py
-      - name: Verify bundled 1.19.2 bytes
-        run: node scripts/check-bundle.mjs
+      - name: Verify and materialize bundled 1.19.2 data
+        run: |
+          node scripts/check-bundle.mjs
+          node scripts/materialize-bundle.mjs
       - name: Engine tests
         run: npm test
       - name: Build static site
@@ -46,7 +48,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js
+          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js src/builtin1192raw
           if ! git diff --cached --quiet; then
             git commit -m "feat: persist final 0.15 runtime hardening"
             git push

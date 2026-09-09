@@ -1,3 +1,5 @@
+import { airCatalogFromPack, equipmentToState, applyModuleEffects, chooseCatalogDefault } from './designerData.js';
+
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
 export const AIRFRAMES={
@@ -42,25 +44,52 @@ export const AIR_SPECIALS={
   non_strategic_materials:{name:'Non-Strategic Materials',costMult:-.08,reliability:-.03,weight:.2}
 };
 
+let PACK_MODE=false,PACK_YEAR=1940,PACK_META=null;
+function replaceCatalog(target,next){for(const k of Object.keys(target))delete target[k];Object.assign(target,next);}
+function firstKey(map,exceptNone=false){return Object.keys(map).find(k=>!exceptNone||k!=='none')||Object.keys(map)[0]||null;}
+function defaultFrame(size){return PACK_MODE?chooseCatalogDefault(AIRFRAMES,x=>x.size===size,PACK_YEAR):(size==='medium'?'medium_improved':'small_improved');}
+
+export function configureAirDataPack(pack,year=1940){
+  const cat=airCatalogFromPack(pack);if(!cat.meta.airframes)return {active:false,...cat.meta};
+  replaceCatalog(AIRFRAMES,cat.airframes);
+  if(cat.meta.engines)replaceCatalog(AIR_ENGINES,cat.engines);
+  if(cat.meta.weapons)replaceCatalog(AIR_WEAPONS,cat.weapons);
+  if(cat.meta.defense)replaceCatalog(AIR_DEFENSE_MODULES,cat.defense);
+  if(cat.meta.specials)replaceCatalog(AIR_SPECIALS,cat.specials);
+  PACK_MODE=true;PACK_YEAR=Number(year)||1940;PACK_META=cat.meta;
+  return {active:true,...cat.meta};
+}
+export function airDataStatus(){return {active:PACK_MODE,year:PACK_YEAR,...(PACK_META||{})};}
+
 export function defaultAirDesign(size='small'){
-  const s=size==='medium'?'medium':'small';
+  const s=['small','medium','large'].includes(size)?size:'small',frame=defaultFrame(s)||firstKey(AIRFRAMES),engine=firstKey(AIR_ENGINES,true)||firstKey(AIR_ENGINES),weapon=firstKey(AIR_WEAPONS,true)||'none';
+  if(PACK_MODE)return {name:s==='small'?'Fighter Design':`${s[0].toUpperCase()+s.slice(1)} Aircraft`,airframe:frame,engine,weapons:[weapon,'none','none'],defense:'none',specials:['none','none']};
   return {name:s==='small'?'Fighter Design':'Heavy Fighter Design',airframe:s==='small'?'small_improved':'medium_improved',engine:'engine_2',weapons:s==='small'?['heavy_mg','heavy_mg','none']:['heavy_mg','cannon_1','none'],defense:'self_sealing',specials:['drop_tanks','none']};
 }
 
 export function normalizeAirDesign(raw,size='small'){
   const base=defaultAirDesign(size),out={...base,...(raw||{})};
   if(!AIRFRAMES[out.airframe])out.airframe=base.airframe;
-  if(!AIR_ENGINES[out.engine])out.engine='engine_2';
+  if(!AIR_ENGINES[out.engine])out.engine=firstKey(AIR_ENGINES,true)||firstKey(AIR_ENGINES);
   out.weapons=Array.from({length:3},(_,i)=>AIR_WEAPONS[out.weapons?.[i]]?out.weapons[i]:'none');
   if(!AIR_DEFENSE_MODULES[out.defense])out.defense='none';
   out.specials=Array.from({length:2},(_,i)=>AIR_SPECIALS[out.specials?.[i]]?out.specials[i]:'none');
-  out.name=String(out.name||AIRFRAMES[out.airframe].name).slice(0,80);
+  out.name=String(out.name||AIRFRAMES[out.airframe]?.name||'Aircraft').slice(0,80);
   return out;
 }
 
 function mergeResources(...sources){const out={};for(const src of sources)for(const [k,v] of Object.entries(src||{}))out[k]=(out[k]||0)+(Number(v)||0);return out;}
 
-export function buildAirDesign(raw){
+function buildImportedAirDesign(raw){
+  const d=normalizeAirDesign(raw),f=AIRFRAMES[d.airframe],selected=[AIR_ENGINES[d.engine],...d.weapons.map(k=>AIR_WEAPONS[k]),AIR_DEFENSE_MODULES[d.defense],...d.specials.map(k=>AIR_SPECIALS[k])];
+  const state=applyModuleEffects(equipmentToState(f?._equipment||f),selected.map(x=>x?._module).filter(Boolean));
+  const thrust=Math.max(0,Number(state.thrust)||0),weight=Math.max(0,Number(state.weight)||0),required=weight,overweight=thrust>0&&weight>thrust;
+  const airAttack=Math.max(0,Number(state.airAttack)||0),groundAttack=Math.max(0,Number(state.groundAttack)||0),navalAttack=Math.max(0,Number(state.navalAttack)||0);
+  const roles=[];if(airAttack>0)roles.push('fighter');if(groundAttack>0)roles.push('cas');if(navalAttack>0)roles.push('naval_bomber');
+  return {...d,size:f?.size||'small',year:f?.year,airAttack,airDefense:Math.max(0,Number(state.airDefense)||0),groundAttack,navalAttack,agility:Math.max(0,Number(state.agility)||0),maxSpeed:Math.max(0,Number(state.maxSpeed)||0),range:Math.max(0,Number(state.range)||0),reliability:clamp(Number(state.reliability)||0,.01,1),buildCost:Math.max(0,Number(state.buildCost)||0),weight,thrust,requiredThrust:required,thrustRatio:required>0?thrust/required:1,overweight,missionEfficiency:1,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),resources:{...(state.resources||{})},roles,source:'game-pack',averageStatInference:!!state.averageStatInference};
+}
+
+function buildFallbackAirDesign(raw){
   const d=normalizeAirDesign(raw),f=AIRFRAMES[d.airframe],e=AIR_ENGINES[d.engine],weapons=d.weapons.map(k=>AIR_WEAPONS[k]),def=AIR_DEFENSE_MODULES[d.defense],specials=d.specials.map(k=>AIR_SPECIALS[k]);
   let airAttack=def.airAttack||0,groundAttack=0,navalAttack=0,defense=f.defense+(def.defense||0),agility=f.agility,speed=f.speed+e.speed,range=f.range+(def.range||0),reliability=f.reliability+(e.reliability||0)+(def.reliability||0),cost=f.cost+e.cost+(def.cost||0),weight=f.weight+e.weight+(def.weight||0),missionEfficiency=1,costMult=1,fuel=f.fuel+(e.fuel||0);
   for(const w of weapons){airAttack+=w.airAttack||0;groundAttack+=w.groundAttack||0;navalAttack+=w.navalAttack||0;agility+=w.agility||0;cost+=w.cost||0;weight+=w.weight||0;}
@@ -71,8 +100,10 @@ export function buildAirDesign(raw){
   agility=Math.max(1,agility);speed=Math.max(100,speed);range=Math.max(100,range);reliability=clamp(reliability,.10,1);cost=Math.max(1,cost);defense=Math.max(1,defense);
   const resources=mergeResources(f.resources,def.resources);
   const roles=[];if(airAttack>0)roles.push('fighter');if(groundAttack>=6)roles.push('cas');if(navalAttack>=6)roles.push('naval_bomber');
-  return {...d,size:f.size,year:f.year,airAttack,airDefense:defense,groundAttack,navalAttack,agility,maxSpeed:speed,range,reliability,buildCost:cost,weight,thrust,requiredThrust:required,thrustRatio,overweight,missionEfficiency,fuelConsumption:fuel,resources,roles};
+  return {...d,size:f.size,year:f.year,airAttack,airDefense:defense,groundAttack,navalAttack,agility,maxSpeed:speed,range,reliability,buildCost:cost,weight,thrust,requiredThrust:required,thrustRatio,overweight,missionEfficiency,fuelConsumption:fuel,resources,roles,source:'fallback'};
 }
+
+export function buildAirDesign(raw){return PACK_MODE?buildImportedAirDesign(raw):buildFallbackAirDesign(raw);}
 
 function combatModifier(attacker,defender,opts={}){
   const agilityRatio=attacker.agility/Math.max(1,defender.agility),speedRatio=attacker.maxSpeed/Math.max(1,defender.maxSpeed);
@@ -83,7 +114,7 @@ function combatModifier(attacker,defender,opts={}){
 
 export function compareBuiltAirDesigns(a,b,opts={}){
   const countA=Math.max(1,Number(opts.countA)||100),countB=Math.max(1,Number(opts.countB)||100),sorties=Math.max(1,Number(opts.sorties)||1000);
-  // Analytical exchange model. It intentionally exposes its approximation rather than claiming executable parity.
+  // Air-to-air exchange remains an analytical executable approximation; imported airframes/modules feed the inputs, not a claim of bit-for-bit NAir resolution.
   const lethality=.018;
   const attackA=(a.airAttack/Math.max(1,b.airDefense))*combatModifier(a,b,{missionEfficiency:opts.missionEfficiencyA,detection:opts.detectionA});
   const attackB=(b.airAttack/Math.max(1,a.airDefense))*combatModifier(b,a,{missionEfficiency:opts.missionEfficiencyB,detection:opts.detectionB});
@@ -100,9 +131,8 @@ export function compareBuiltAirDesigns(a,b,opts={}){
 export function compareAirDesigns(rawA,rawB,opts={}){return compareBuiltAirDesigns(buildAirDesign(rawA),buildAirDesign(rawB),opts);}
 
 export function airMissionEfficiencyBuilt(d,mission='air_superiority'){
-  if(mission==='cas')return {score:d.groundAttack/d.buildCost*100,primary:d.groundAttack,label:'Ground attack / IC'};
-  if(mission==='naval_strike')return {score:d.navalAttack/d.buildCost*100,primary:d.navalAttack,label:'Naval attack / IC'};
-  return {score:(d.airAttack*Math.sqrt(d.agility)*Math.sqrt(d.maxSpeed/300))/Math.max(1,d.buildCost),primary:d.airAttack,label:'Air combat value / IC'};
+  if(mission==='cas')return {score:d.groundAttack/Math.max(.001,d.buildCost)*100,primary:d.groundAttack,label:'Ground attack / IC'};
+  if(mission==='naval_strike')return {score:d.navalAttack/Math.max(.001,d.buildCost)*100,primary:d.navalAttack,label:'Naval attack / IC'};
+  return {score:(d.airAttack*Math.sqrt(Math.max(0,d.agility))*Math.sqrt(Math.max(.01,d.maxSpeed/300)))/Math.max(.001,d.buildCost),primary:d.airAttack,label:'Air combat value / IC'};
 }
 export function airMissionEfficiency(raw,mission='air_superiority'){return airMissionEfficiencyBuilt(buildAirDesign(raw),mission);}
-

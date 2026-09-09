@@ -39,6 +39,12 @@ jobs:
         run: |
           node scripts/check-bundle.mjs
           node scripts/materialize-bundle.mjs
+      - name: Audit runtime loader
+        run: |
+          echo '--- builtin1192.js ---'
+          sed -n '1,120p' src/builtin1192.js
+          echo '--- DecompressionStream references ---'
+          grep -R -n --exclude-dir=.git "DecompressionStream" src tests scripts || true
       - name: Engine tests
         run: npm test
       - name: Build static site

@@ -63,7 +63,7 @@ export function applyModuleEffects(base,modules=[]){
   return state;
 }
 
-function resolvedEquipment(pack,id){try{return resolveEquipment(pack?.equipment||{},id);}catch{return pack?.equipment?.[id]||null;}}
+function resolvedEquipment(pack,id){try{return resolveEquipment(pack?.equipment||{})[id]||null;}catch{return pack?.equipment?.[id]||null;}}
 function hasSlots(e){return e&&isObj(e.moduleSlots)&&Object.keys(e.moduleSlots).length>0;}
 function tankClass(id,e){
   const s=`${id} ${e?.archetype||''} ${(e?.types||[]).join(' ')}`.toLowerCase();

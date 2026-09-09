@@ -121,7 +121,7 @@ export function airCatalogFromPack(pack){
     const e=resolvedEquipment(pack,id),size=airSize(id,e);if(!size||!hasSlots(e))continue;
     out.airframes[id]=airframeRecord(id,e,size,pack);
   }
-  for(const m of Object.values(pack?.modules||{})){const bucket=airModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m);}
+  for(const m of Object.values(pack?.modules||{})){const bucket=airModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m,pack);}
   out.meta={airframes:Object.keys(out.airframes).length,engines:Object.keys(out.engines).length,weapons:Object.keys(out.weapons).length-1,defense:Object.keys(out.defense).length-1,specials:Object.keys(out.specials).length-1};
   return out;
 }

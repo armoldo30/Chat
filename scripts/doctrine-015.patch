@@ -1,0 +1,96 @@
+--- a/src/doctrine.js
++++ b/src/doctrine.js
+@@ -92,7 +92,48 @@
+   return target;
+ }
+ 
+-export function landDoctrineEffects(raw){
++const DOCTRINE_META_KEYS=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
++const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],maximum_speed:['speed','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','mult']};
++const IMPORTED_GLOBAL_MAP={land_night_attack:'nightAttack',max_dig_in_factor:'entrenchment',planning_speed:'planningSpeed',max_planning:'maxPlanning',army_speed_factor:'armySpeed',supply_consumption_factor:'supply'};
++const importedGrandId=(state,folder,pack)=>{const ids=folder==='air'?[`new_${state.grand}`,state.grand]:[state.grand,`new_${state.grand}`];return ids.find(id=>pack?.doctrines?.[id]?.kind==='grand')||ids.find(id=>pack?.doctrines?.[id])||null;};
++const importedSubDoctrineId=(choice,folder,pack)=>{const ids=folder==='air'?[`air_subdoctrine_${choice}`,choice]:[choice];return ids.find(id=>pack?.doctrines?.[id]?.kind==='subdoctrine')||ids.find(id=>pack?.doctrines?.[id])||null;};
++function importedUnitScopeMatches(scope,id,unit){
++  if(!scope||!unit)return false;
++  const gameId=unit.gameId||id,categories=unit.categories||[],types=unit.types||[];
++  return scope===id||scope===gameId||categories.includes(scope)||types.includes(scope);
++}
++function collectImportedUnitBlock(unit,block,mods){
++  if(!unit||!block||typeof block!=='object'||Array.isArray(block))return false;
++  const bucket=mods.get(unit)||{mult:{},flat:{}};let applied=false;
++  for(const [src,[dst,mode]] of Object.entries(IMPORTED_LAND_STAT_MAP)){
++    const value=Number(block[src]);if(!Number.isFinite(value)||value===0)continue;applied=true;bucket[mode][dst]=(bucket[mode][dst]||0)+value;
++  }
++  if(applied)mods.set(unit,bucket);return applied;
++}
++function applyImportedLandNode(node,battalions,supports,global,mods){
++  if(!node||typeof node!=='object'||Array.isArray(node))return;
++  for(const [key,value] of Object.entries(node)){
++    if(DOCTRINE_META_KEYS.has(key))continue;
++    if(Number.isFinite(Number(value))&&IMPORTED_GLOBAL_MAP[key]){const dst=IMPORTED_GLOBAL_MAP[key];global[dst]=(global[dst]||0)+Number(value);continue;}
++    if(!value||typeof value!=='object'||Array.isArray(value))continue;
++    for(const [id,unit] of Object.entries(battalions))if(importedUnitScopeMatches(key,id,unit))collectImportedUnitBlock(unit,value,mods);
++    for(const [id,unit] of Object.entries(supports))if(importedUnitScopeMatches(key,id,unit))collectImportedUnitBlock(unit,value,mods);
++  }
++}
++function applyCollectedImportedUnitMods(mods){for(const [unit,bucket] of mods){for(const [dst,v] of Object.entries(bucket.mult))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+v));for(const [dst,v] of Object.entries(bucket.flat))unit[dst]=Math.max(0,(Number(unit[dst])||0)+v);}}
++function importedLandDoctrineApply(battalions,supports,raw,pack){
++  const state=normalizeLandDoctrine(raw),b=clone(battalions),s=clone(supports),global={},used=[],mods=new Map();
++  const grandId=importedGrandId(state,'land',pack),grand=grandId?pack.doctrines[grandId]:null;
++  if(grand?.raw){applyImportedLandNode(grand.raw,b,s,global,mods);used.push(grandId);}
++  for(const [track,t] of Object.entries(state.tracks)){
++    const id=importedSubDoctrineId(t.choice,'land',pack),doc=id?pack.doctrines[id]:null;if(!doc?.raw)continue;used.push(id);applyImportedLandNode(doc.raw,b,s,global,mods);
++    const rewards=Object.values(doc.raw.rewards||{});for(let i=0;i<Math.min(t.mastery,rewards.length);i++)applyImportedLandNode(rewards[i],b,s,global,mods);
++    if(t.mastery>=5&&grand?.raw){const order=Array.isArray(grand.tracks)&&grand.tracks.length?grand.tracks:Array.isArray(grand.raw.tracks)?grand.raw.tracks:[];const idx=order.indexOf(track),milestones=Array.isArray(grand.raw.milestones)?grand.raw.milestones:[];if(idx>=0&&milestones[idx])applyImportedLandNode(milestones[idx],b,s,global,mods);}
++  }
++  applyCollectedImportedUnitMods(mods);return {battalions:b,supports:s,state,global,source:'game-pack',used};
++}
++
++export function landDoctrineEffects(raw,pack=null){
+   const state=normalizeLandDoctrine(raw),grand=GRAND_DOCTRINES[state.grand],effects={global:{},all:{}};
+   mergeEffect(effects,{global:grand.global, ...(grand.categories||{})});
+   for(const [track,t] of Object.entries(state.tracks)){
+@@ -127,8 +168,9 @@
+   if(vals.supply)unit.supply=Math.max(0,(Number(unit.supply)||0)*(1+vals.supply));
+ }
+ 
+-export function applyLandDoctrineToData(battalions,supports,raw){
+-  const {state,effects}=landDoctrineEffects(raw),b=clone(battalions),s=clone(supports);
++export function applyLandDoctrineToData(battalions,supports,raw,pack=null){
++  if(pack?.doctrines&&Object.keys(pack.doctrines).length)return importedLandDoctrineApply(battalions,supports,raw,pack);
++  const {state,effects}=landDoctrineEffects(raw,pack),b=clone(battalions),s=clone(supports);
+   for(const [id,u] of Object.entries(b)){
+     applyUnitEffect(u,effects.all);
+     for(const [scope,vals] of Object.entries(effects))if(!['global','all'].includes(scope)&&scopeMatches(id,u,scope,false))applyUnitEffect(u,vals);
+@@ -186,10 +228,29 @@
+ };
+ export function normalizeAirDoctrine(raw){const src=raw&&typeof raw==='object'?raw:{},out=clone(DEFAULT_AIR_DOCTRINE);if(AIR_GRAND_DOCTRINES[src.grand])out.grand=src.grand;for(const [track,meta] of Object.entries(AIR_DOCTRINE_TRACKS)){const t=src.tracks?.[track]||{},allowed=new Set(meta.choices.map(x=>x[0]));if(allowed.has(t.choice))out.tracks[track].choice=t.choice;out.tracks[track].mastery=Math.max(0,Math.min(5,Math.floor(Number(t.mastery??0))));}return out;}
+ function addFlatBonus(target,src){for(const [k,v] of Object.entries(src||{}))target[k]=(target[k]||0)+(Number(v)||0);return target;}
+-export function airDoctrineEffects(raw,design){
++const IMPORTED_AIR_STAT_MAP={air_agility:'agility',air_attack:'airAttack',air_defence:'airDefense',maximum_speed:'maxSpeed',air_range:'range',air_ground_attack:'groundAttack',naval_strike_attack:'navalAttack',reliability:'reliability'};
++function importedAirScopeMatches(scope,design){const roles=design?.roles||[],size=design?.size;return scope==='category_all_aircraft'||(scope==='category_fighter'&&roles.includes('fighter'))||(scope==='category_cas'&&roles.includes('cas'))||(scope==='category_naval_bomber'&&roles.includes('naval_bomber'))||(scope==='category_heavy_fighter'&&size==='medium'&&roles.includes('fighter'))||(scope==='tac_bomber'&&size==='medium')||(scope==='strat_bomber'&&size==='large');}
++function applyImportedAirNode(node,design,variant,mission,ctx){
++  if(!node||typeof node!=='object'||Array.isArray(node))return;
++  for(const [key,value] of Object.entries(node)){
++    if(DOCTRINE_META_KEYS.has(key))continue;
++    if(Number.isFinite(Number(value))){const v=Number(value);if(key==='air_superiority_efficiency')mission.air_superiority=(mission.air_superiority||0)+v;else if(key==='air_cas_efficiency'||key==='air_cas_present_factor')mission.cas=(mission.cas||0)+v;else if(key==='air_nav_efficiency')mission.naval_strike=(mission.naval_strike||0)+v;else if(key==='air_superiority_detect_factor'||key==='air_interception_detect_factor')ctx.detection+=v;continue;}
++    if(!value||typeof value!=='object'||Array.isArray(value)||!importedAirScopeMatches(key,design))continue;
++    for(const [src,dst] of Object.entries(IMPORTED_AIR_STAT_MAP)){const v=Number(value[src]);if(Number.isFinite(v)&&v!==0)variant[dst]=(variant[dst]||0)+v;}
++  }
++}
++function importedAirDoctrineEffects(raw,design,pack){
++  const state=normalizeAirDoctrine(raw),variant={},mission={},ctx={detection:0},used=[];const grandId=importedGrandId(state,'air',pack),grand=grandId?pack.doctrines[grandId]:null;
++  if(grand?.raw){applyImportedAirNode(grand.raw,design,variant,mission,ctx);used.push(grandId);}
++  const relevant=[];if(design?.size==='large')relevant.push('heavy_aircraft');else if(design?.size==='medium')relevant.push('medium_aircraft');else relevant.push('fighter_aircraft');if(design?.roles?.some(x=>['cas','naval_bomber'].includes(x)))relevant.push('strike_aircraft');
++  for(const track of [...new Set(relevant)]){const t=state.tracks[track],id=importedSubDoctrineId(t.choice,'air',pack),doc=id?pack.doctrines[id]:null;if(!doc?.raw)continue;used.push(id);applyImportedAirNode(doc.raw,design,variant,mission,ctx);const rewards=Object.values(doc.raw.rewards||{});for(let i=0;i<Math.min(t.mastery,rewards.length);i++)applyImportedAirNode(rewards[i],design,variant,mission,ctx);if(t.mastery>=5&&grand?.raw){const order=Array.isArray(grand.tracks)&&grand.tracks.length?grand.tracks:Array.isArray(grand.raw.tracks)?grand.raw.tracks:[];const idx=order.indexOf(track),milestones=Array.isArray(grand.raw.milestones)?grand.raw.milestones:[];if(idx>=0&&milestones[idx])applyImportedAirNode(milestones[idx],design,variant,mission,ctx);}}
++  return {state,variant,mission,detection:ctx.detection,source:'game-pack',used};
++}
++export function airDoctrineEffects(raw,design,pack=null){
++  if(pack?.doctrines&&Object.keys(pack.doctrines).length)return importedAirDoctrineEffects(raw,design,pack);
+   const state=normalizeAirDoctrine(raw),grand=AIR_GRAND_DOCTRINES[state.grand],variant={},mission={...(grand.mission||{})};let detection=grand.detection||0;
+   const relevant=[];if(design?.size==='medium')relevant.push('medium_aircraft');else relevant.push('fighter_aircraft');if(design?.roles?.some(x=>['cas','naval_bomber'].includes(x)))relevant.push('strike_aircraft');
+   for(const track of relevant){const t=state.tracks[track],rewards=AIR_REWARDS[t.choice]||[];for(let i=0;i<Math.min(t.mastery,rewards.length);i++){const r=rewards[i];for(const [k,v] of Object.entries(r)){if(k==='missionEfficiency')mission.air_superiority=(mission.air_superiority||0)+v;else if(k==='detection')detection+=v;else variant[k]=(variant[k]||0)+v;}}if(t.mastery>=5){const m=grand.milestones?.[track]||{};addFlatBonus(variant,m.variant);for(const [k,v] of Object.entries(m.mission||{}))mission[k]=(mission[k]||0)+v;detection+=m.detection||0;}}
+   return {state,variant,mission,detection};
+ }
+-export function applyAirDoctrineToVariant(design,raw){const fx=airDoctrineEffects(raw,design),out=clone(design);for(const [k,v] of Object.entries(fx.variant)){if(Number.isFinite(Number(out[k])))out[k]=Math.max(0,Number(out[k])*(1+v));}return {...out,doctrineEffects:fx};}
++export function applyAirDoctrineToVariant(design,raw,pack=null){const fx=airDoctrineEffects(raw,design,pack),out=clone(design);for(const [k,v] of Object.entries(fx.variant)){if(Number.isFinite(Number(out[k])))out[k]=Math.max(0,Number(out[k])*(1+v));}return {...out,doctrineEffects:fx};}

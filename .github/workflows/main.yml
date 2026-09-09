@@ -34,15 +34,7 @@ jobs:
             git apply scripts/doctrine-015.patch
           fi
           node scripts/upgrade-015-runtime.mjs
-          python - <<'PY'
-          from pathlib import Path
-          p=Path('src/builtin1192/q1b_02.js')
-          s=p.read_text()
-          fixed=s.replace('Vv79ekoOT','Vv79zekoOT',1)
-          if fixed == s:
-              raise SystemExit('Verified bundle repair marker not found')
-          p.write_text(fixed)
-          PY
+          python scripts/release-hardening-015.py
       - name: Engine tests
         run: npm test
       - name: Build static site
@@ -52,9 +44,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js src/builtin1192/q1b_02.js
+          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js
           if ! git diff --cached --quiet; then
-            git commit -m "feat: persist bundled 1.19.2 runtime wiring"
+            git commit -m "feat: persist final 0.15 runtime hardening"
             git push
           fi
       - name: Configure Pages

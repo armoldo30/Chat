@@ -3,13 +3,16 @@ on:
   push:
     branches: [main, staging-0.15.0]
   workflow_dispatch:
+
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: pages-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,48 +21,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Apply staged 0.15.0 source migrations
-        if: github.ref == 'refs/heads/staging-0.15.0'
-        run: |
-          if grep -q "configureTankDataPack" src/main.js; then
-            echo "Designer migration already persisted."
-          else
-            node scripts/upgrade-015-designers.mjs
-          fi
-          node scripts/upgrade-015-parser-v2.mjs
-          node scripts/upgrade-015-parser-v3.mjs
-          node scripts/upgrade-015-parser-v4.mjs
-          if grep -q "importedLandDoctrineApply" src/doctrine.js; then
-            echo "Doctrine migration already persisted."
-          else
-            git apply scripts/doctrine-015.patch
-          fi
-          node scripts/upgrade-015-runtime.mjs
-          python scripts/release-hardening-015.py
-      - name: Verify and materialize bundled 1.19.2 data
-        run: |
-          node scripts/check-bundle.mjs
-          node scripts/materialize-bundle.mjs
-      - name: Audit runtime loader
-        run: |
-          echo '--- builtin1192.js ---'
-          sed -n '1,120p' src/builtin1192.js
-          echo '--- DecompressionStream references ---'
-          grep -R -n --exclude-dir=.git "DecompressionStream" src tests scripts || true
-      - name: Engine tests
+      - name: Test
         run: npm test
       - name: Build static site
         run: npm run build
-      - name: Persist validated staging migration
-        if: github.ref == 'refs/heads/staging-0.15.0'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/parser.js src/doctrine.js src/tech.js src/gameData.js src/designerData.js src/mio.js src/data.js src/builtin1192raw
-          if ! git diff --cached --quiet; then
-            git commit -m "feat: persist final 0.15 runtime hardening"
-            git push
-          fi
       - name: Configure Pages
         if: github.ref == 'refs/heads/main'
         uses: actions/configure-pages@v5
@@ -68,6 +33,7 @@ jobs:
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
+
   deploy:
     if: github.ref == 'refs/heads/main'
     environment:

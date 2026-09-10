@@ -65,11 +65,12 @@ const infantryWidth=infantry.width;
 applySelectedTechnologyEffects(widthB,widthS,builtin1192,['revolutionary_mass_assault']);
 close(findUnit(widthB,'infantry').width,Math.max(0,infantryWidth-0.2),'combat_width is a flat sub-unit width change');
 
-const supplyB=structuredClone(battalions),supplyS=structuredClone(supports),superHeavyArt=findUnit(supplyB,'super_heavy_artillery');
-assert.ok(superHeavyArt,'super_heavy_artillery must be hydrated for supply certification');
-const superHeavySupply=superHeavyArt.supply;
-applySelectedTechnologyEffects(supplyB,supplyS,builtin1192,['sp_artillery_purpose_built_gun_motor_carriages_tech']);
-close(findUnit(supplyB,'super_heavy_artillery').supply,Math.max(0,superHeavySupply-0.1),'supply_consumption is a flat sub-unit supply-use change');
+// `land_cruiser` is outside the current Division Lab hydration set, but its exact source effect is useful to certify
+// the generic flat supply mapping without pretending the excluded unit is selectable in the planner.
+const supplyB={landCruiserFixture:{id:'landCruiserFixture',gameId:'land_cruiser',supply:1}},supplyS={};
+const supplyMeta=applySelectedTechnologyEffects(supplyB,supplyS,builtin1192,['sp_armored_lc_naval_engine_conversion_tech']);
+close(supplyB.landCruiserFixture.supply,0.98,'supply_consumption is a flat sub-unit supply-use change');
+assert.deepEqual(supplyMeta.appliedTechnologies,['sp_armored_lc_naval_engine_conversion_tech']);
 
 const countryB=structuredClone(battalions),countryS=structuredClone(supports);
 const countryOnly=applySelectedTechnologyEffects(countryB,countryS,builtin1192,['radio']);

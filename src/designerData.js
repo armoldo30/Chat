@@ -86,14 +86,18 @@ function moduleRecord(m,pack){return {id:m.id,name:humanize(m.id),category:m.cat
 function chassisRecord(id,e,cls,pack){const s=equipmentToState(e);return {id,name:humanize(id),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
 function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:humanize(id),size,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
 
+const TANK_GUN_CATEGORIES=new Set(['tank_main_armament','tank_small_main_armament','tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament','tank_flamethrower']);
+const TANK_TURRET_CATEGORIES=new Set(['tank_turret_type','tank_light_turret_type','tank_medium_turret_type','tank_heavy_turret_type','tank_super_heavy_turret_type','tank_modern_turret_type']);
+const TANK_SUSPENSION_CATEGORIES=new Set(['tank_suspension_type','tank_non_tracked_suspension_type']);
+const TANK_SPECIAL_CATEGORIES=new Set(['tank_special_module','tank_radio_module','tank_secondary_turret']);
 function tankModuleBucket(m){
-  const c=text(m.category),id=text(m.id),all=`${c} ${text(m.guiCategory)} ${id}`;
-  if(c==='tank_main_armament'||/tank.*main.*armament|tank.*weapon|cannon|howitzer|flamethrower/.test(all))return 'guns';
-  if(c==='tank_turret_type'||/tank.*turret/.test(all))return 'turrets';
-  if(c==='tank_suspension'||/tank.*suspension/.test(all))return 'suspensions';
-  if(c==='tank_armor_type'||/tank.*armor.*type/.test(all))return 'armorTypes';
-  if(c==='tank_engine_type'||/tank.*engine.*type/.test(all))return 'engines';
-  if(c.startsWith('tank_')||id.startsWith('tank_')||(m.allowEquipmentType||[]).some(x=>/armor|tank/i.test(x)))return 'specials';
+  const c=String(m?.category||'');
+  if(TANK_GUN_CATEGORIES.has(c))return 'guns';
+  if(TANK_TURRET_CATEGORIES.has(c))return 'turrets';
+  if(TANK_SUSPENSION_CATEGORIES.has(c))return 'suspensions';
+  if(c==='tank_armor_type')return 'armorTypes';
+  if(c==='tank_engine_type')return 'engines';
+  if(TANK_SPECIAL_CATEGORIES.has(c))return 'specials';
   return null;
 }
 function airModuleBucket(m){

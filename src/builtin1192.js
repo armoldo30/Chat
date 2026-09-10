@@ -23,6 +23,7 @@ import r22 from './builtin1192raw/r22.js';
 import tankModulesA from './builtin1192/tank-modules-a.js';
 import tankModulesB from './builtin1192/tank-modules-b.js';
 import tankModuleRequirements from './builtin1192/tank-module-requirements.js';
+import tankModuleCompatibility1192 from './builtin1192/tank-module-compatibility-1192.js';
 import moduleSlotCategories1192 from './builtin1192/module-slot-categories-1192.js';
 import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-1192.js';
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
@@ -32,6 +33,15 @@ const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
 BUILTIN_1192.modules={...(BUILTIN_1192.modules||{}),...tankModulesA,...tankModulesB};
+for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
+  const module=BUILTIN_1192.modules?.[id];if(!module)continue;
+  Object.assign(module,rule);
+  module.raw={...(module.raw||{}),
+    ...(rule.allowedModuleCategories?{allowed_module_categories:rule.allowedModuleCategories}:{}),
+    ...(rule.forbidEquipmentTypeExactMatch?{forbid_equipment_type_exact_match:rule.forbidEquipmentTypeExactMatch}:{}),
+    ...(rule.forbidEquipmentTypeExactMatchForCategory?{forbid_equipment_type_exact_match_for_category:rule.forbidEquipmentTypeExactMatchForCategory}:{}),
+    ...(rule.forbidEquipmentType?{forbid_equipment_type:rule.forbidEquipmentType}:{})};
+}
 BUILTIN_1192.equipment={...(BUILTIN_1192.equipment||{}),...landEquipment1192};
 BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192};
 materializeDuplicateArchetypes(BUILTIN_1192.equipment,BUILTIN_1192.duplicateArchetypes);
@@ -52,5 +62,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length};
 export default BUILTIN_1192;

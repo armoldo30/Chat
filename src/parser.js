@@ -135,6 +135,17 @@ function plainModuleSlots(v){
   return out;
 }
 
+function plainCategoryMap(v){
+  const out={};
+  for(const [slotId,cats] of Object.entries(obj(last(v))))if(slotId!=='__items')out[slotId]=items(cats);
+  return out;
+}
+function plainScalarMap(v){
+  const out={};
+  for(const [key,value] of Object.entries(obj(last(v))))if(key!=='__items')out[key]=String(last(value));
+  return out;
+}
+
 function cloneRecord(value){
   return value&&typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value));
 }
@@ -228,7 +239,7 @@ export function extractEquipmentModules(parsed){
   const out={};
   for(const root of roots)for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
-    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(raw.allow_equipment_type),forbidEquipmentType:items(raw.forbid_equipment_type),addEquipmentType:items(raw.add_equipment_type),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
+    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(raw.allow_equipment_type),forbidEquipmentType:items(raw.forbid_equipment_type),addEquipmentType:items(raw.add_equipment_type),allowedModuleCategories:plainCategoryMap(raw.allowed_module_categories),forbidEquipmentTypeExactMatch:items(raw.forbid_equipment_type_exact_match),forbidEquipmentTypeExactMatchForCategory:plainScalarMap(raw.forbid_equipment_type_exact_match_for_category),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
   }
   return out;
 }

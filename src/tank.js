@@ -91,25 +91,75 @@ export function configureTankDataPack(pack,year=1940){
 }
 export function tankDataStatus(){return {active:PACK_MODE,year:PACK_YEAR,...(PACK_META||{}),upgrades:Object.keys(PACK_UPGRADES).length};}
 
+const list=v=>Array.isArray(v)?v:v==null?[]:[v];
+function chassisSlots(chassis){return chassis?._equipment?.moduleSlots||chassis?.moduleSlots||{};}
+function moduleSource(record){return record?._module||record||{};}
+function allowedCategories(chassis,slotId,selected=[]){
+  const out=new Set(list(chassisSlots(chassis)?.[slotId]?.allowed_module_categories));
+  for(const record of selected.filter(Boolean))for(const cat of list(moduleSource(record)?.allowedModuleCategories?.[slotId]))out.add(cat);
+  return out;
+}
+function compatible(record,chassis,slotId,selected=[]){
+  if(!record)return false;if(record.id==='none'||record.name==='Empty')return true;
+  return allowedCategories(chassis,slotId,selected).has(moduleSource(record)?.category||record.category);
+}
+function compatibleIds(map,chassis,slotId,selected=[]){return new Set(Object.entries(map||{}).filter(([,record])=>compatible(record,chassis,slotId,selected)).map(([id])=>id));}
+function firstCompatible(map,chassis,slotId,selected=[],preferred=[]){
+  const ids=compatibleIds(map,chassis,slotId,selected);
+  for(const id of preferred)if(ids.has(id))return id;
+  return [...ids][0]||null;
+}
+const preferredTurret={light:['tank_light_three_man_tank_turret','tank_light_two_man_tank_turret'],medium:['tank_medium_three_man_tank_turret','tank_medium_two_man_tank_turret'],heavy:['tank_heavy_three_man_tank_turret','tank_heavy_two_man_tank_turret']};
+const preferredGun={light:['tank_small_cannon','tank_auto_cannon','tank_heavy_machine_gun'],medium:['tank_medium_cannon','tank_small_cannon_2','tank_small_cannon'],heavy:['tank_heavy_cannon','tank_medium_cannon_2','tank_medium_cannon']};
+function packDefaults(c,chassis){
+  const ch=TANK_CHASSIS[chassis];
+  const turret=firstCompatible(TANK_TURRETS,ch,'turret_type_slot',[],preferredTurret[c]||[]);
+  const selectedTurret=TANK_TURRETS[turret];
+  const gun=firstCompatible(TANK_GUNS,ch,'main_armament_slot',[selectedTurret],preferredGun[c]||[]);
+  const suspension=firstCompatible(TANK_SUSPENSIONS,ch,'suspension_type_slot');
+  const armorType=firstCompatible(TANK_ARMOR_TYPES,ch,'armor_type_slot');
+  const engine=firstCompatible(TANK_ENGINES,ch,'engine_type_slot');
+  return {turret,gun,suspension,armorType,engine};
+}
+
 export function defaultTankDesign(cls='medium'){
   const c=['light','medium','heavy'].includes(cls)?cls:'medium',chassis=chassisDefault(c)||firstKey(TANK_CHASSIS);
-  return {name:`${c[0].toUpperCase()+c.slice(1)} Tank`,class:c,chassis,gun:gunDefault(c)||firstKey(TANK_GUNS),turret:defaultModule(TANK_TURRETS,'three_man'),suspension:defaultModule(TANK_SUSPENSIONS,'torsion'),armorType:defaultModule(TANK_ARMOR_TYPES,'welded'),engine:defaultModule(TANK_ENGINES,'diesel'),engineUpgrades:PACK_MODE?0:3,armorUpgrades:PACK_MODE?0:3,specials:[defaultModule(TANK_SPECIALS,'none'),'none','none']};
+  if(PACK_MODE){const m=packDefaults(c,chassis);return {name:`${c[0].toUpperCase()+c.slice(1)} Tank`,class:c,chassis,...m,engineUpgrades:0,armorUpgrades:0,specials:['none','none','none','none']};}
+  return {name:`${c[0].toUpperCase()+c.slice(1)} Tank`,class:c,chassis,gun:gunDefault(c)||firstKey(TANK_GUNS),turret:defaultModule(TANK_TURRETS,'three_man'),suspension:defaultModule(TANK_SUSPENSIONS,'torsion'),armorType:defaultModule(TANK_ARMOR_TYPES,'welded'),engine:defaultModule(TANK_ENGINES,'diesel'),engineUpgrades:3,armorUpgrades:3,specials:[defaultModule(TANK_SPECIALS,'none'),'none','none','none']};
 }
 
 export function normalizeTankDesign(raw,cls='medium'){
   const desired=['light','medium','heavy'].includes(raw?.class)?raw.class:cls,base=defaultTankDesign(desired),out={...base,...(raw||{})};
-  if(!TANK_CHASSIS[out.chassis])out.chassis=base.chassis;
+  if(!TANK_CHASSIS[out.chassis]||TANK_CHASSIS[out.chassis]?.class!==desired)out.chassis=base.chassis;
   out.class=TANK_CHASSIS[out.chassis]?.class||desired;
-  if(!TANK_GUNS[out.gun])out.gun=gunDefault(out.class)||firstKey(TANK_GUNS);
-  if(!TANK_TURRETS[out.turret])out.turret=defaultModule(TANK_TURRETS,'three_man');
-  if(!TANK_SUSPENSIONS[out.suspension])out.suspension=defaultModule(TANK_SUSPENSIONS,'torsion');
-  if(!TANK_ARMOR_TYPES[out.armorType])out.armorType=defaultModule(TANK_ARMOR_TYPES,'welded');
-  if(!TANK_ENGINES[out.engine])out.engine=defaultModule(TANK_ENGINES,'diesel');
+  if(PACK_MODE){
+    const ch=TANK_CHASSIS[out.chassis],defaults=packDefaults(out.class,out.chassis);
+    if(!compatible(TANK_TURRETS[out.turret],ch,'turret_type_slot'))out.turret=defaults.turret;
+    const turret=TANK_TURRETS[out.turret];
+    if(!compatible(TANK_GUNS[out.gun],ch,'main_armament_slot',[turret]))out.gun=firstCompatible(TANK_GUNS,ch,'main_armament_slot',[turret],preferredGun[out.class]||[])||defaults.gun;
+    if(!compatible(TANK_SUSPENSIONS[out.suspension],ch,'suspension_type_slot'))out.suspension=defaults.suspension;
+    if(!compatible(TANK_ARMOR_TYPES[out.armorType],ch,'armor_type_slot'))out.armorType=defaults.armorType;
+    if(!compatible(TANK_ENGINES[out.engine],ch,'engine_type_slot'))out.engine=defaults.engine;
+    out.specials=Array.from({length:4},(_,i)=>{const id=out.specials?.[i]||'none';return id==='none'||compatible(TANK_SPECIALS[id],ch,`special_type_slot_${i+1}`)?id:'none';});
+  }else{
+    if(!TANK_GUNS[out.gun])out.gun=gunDefault(out.class)||firstKey(TANK_GUNS);
+    if(!TANK_TURRETS[out.turret])out.turret=defaultModule(TANK_TURRETS,'three_man');
+    if(!TANK_SUSPENSIONS[out.suspension])out.suspension=defaultModule(TANK_SUSPENSIONS,'torsion');
+    if(!TANK_ARMOR_TYPES[out.armorType])out.armorType=defaultModule(TANK_ARMOR_TYPES,'welded');
+    if(!TANK_ENGINES[out.engine])out.engine=defaultModule(TANK_ENGINES,'diesel');
+    out.specials=Array.from({length:4},(_,i)=>TANK_SPECIALS[out.specials?.[i]]?out.specials[i]:'none');
+  }
   out.engineUpgrades=clamp(Math.round(Number(out.engineUpgrades)||0),0,20);
   out.armorUpgrades=clamp(Math.round(Number(out.armorUpgrades)||0),0,20);
-  out.specials=Array.from({length:3},(_,i)=>TANK_SPECIALS[out.specials?.[i]]?out.specials[i]:'none');
   out.name=String(out.name||TANK_CHASSIS[out.chassis]?.name||humanize(out.chassis)).slice(0,80);
   return out;
+}
+
+export function tankDesignOptions(raw){
+  const c=TANK_CHASSIS[raw?.chassis]||TANK_CHASSIS[chassisDefault(raw?.class||'medium')]||TANK_CHASSIS[firstKey(TANK_CHASSIS)];
+  if(!PACK_MODE){const all=map=>new Set(Object.keys(map));return {guns:all(TANK_GUNS),turrets:all(TANK_TURRETS),suspensions:all(TANK_SUSPENSIONS),armorTypes:all(TANK_ARMOR_TYPES),engines:all(TANK_ENGINES),specials:Array.from({length:4},()=>all(TANK_SPECIALS))};}
+  const turret=TANK_TURRETS[raw?.turret];
+  return {guns:compatibleIds(TANK_GUNS,c,'main_armament_slot',[turret]),turrets:compatibleIds(TANK_TURRETS,c,'turret_type_slot'),suspensions:compatibleIds(TANK_SUSPENSIONS,c,'suspension_type_slot'),armorTypes:compatibleIds(TANK_ARMOR_TYPES,c,'armor_type_slot'),engines:compatibleIds(TANK_ENGINES,c,'engine_type_slot'),specials:Array.from({length:4},(_,i)=>new Set(['none',...compatibleIds(TANK_SPECIALS,c,`special_type_slot_${i+1}`)]))};
 }
 
 function mergeResources(...sources){const out={};for(const src of sources)for(const [k,v] of Object.entries(src||{}))out[k]=(out[k]||0)+(Number(v)||0);return out;}

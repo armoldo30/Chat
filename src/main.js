@@ -7,7 +7,7 @@ import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_D
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
-import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds, configureTankDataPack, tankDataStatus } from './tank.js';
+import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds, configureTankDataPack, tankDataStatus, tankDesignOptions } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus } from './air.js';
 import BUILTIN_1192 from './builtin1192.js';
 
@@ -434,14 +434,14 @@ function showBattle(compare){
 }
 
 
-function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([,v])=>filter(v)).map(([k,v])=>{const req=Array.isArray(v.requirements)?v.requirements:[];return `<option value="${k}" ${k===current?'selected':''} title="${esc(req.length?'Prerequisite: '+req.join(', '):'')}">${esc(v.name)}${req.length?' ⓘ':''}</option>`;}).join('');}
+function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([k,v])=>filter(v,k)).map(([k,v])=>{const req=Array.isArray(v.requirements)?v.requirements:[];return `<option value="${k}" ${k===current?'selected':''} title="${esc(req.length?'Prerequisite: '+req.join(', '):'')}">${esc(v.name)}${req.length?' ⓘ':''}</option>`;}).join('');}
 function tankCurrent(){ensureTankState();return state.tankDesigns[state.tankDesigner.side][state.tankDesigner.class];}
 function tankStatsGrid(d){
   const rows=[['Soft Attack',d.softAttack,1],['Hard Attack',d.hardAttack,1],['Piercing',d.piercing,1],['Armor',d.armor,1],['Breakthrough',d.breakthrough,1],['Defense',d.defense,1],['Max Speed',d.maxSpeed,2,' km/h'],['Reliability',d.reliability*100,1,'%'],['Fuel Use',d.fuelConsumption,2],['Weight',d.weight,1],['IC Cost',d.buildCost,2]];
   return `<div class="tank-stat-grid">${rows.map(([k,v,n,suf=''])=>`<div><span>${k}</span><b>${fmt(v,n)}${suf}</b></div>`).join('')}</div>`;
 }
 function tank(c){
-  ensureTankState();const side=state.tankDesigner.side,cls=state.tankDesigner.class,raw=tankCurrent(),d=adjustedTankDesign(side,cls),ids=tankClassIds(cls),unit=techData(side).battalions[ids.battalion],eq=equipmentForSide(side)[ids.equipment],other=side==='attacker'?'defender':'attacker';
+  ensureTankState();const side=state.tankDesigner.side,cls=state.tankDesigner.class,raw=tankCurrent(),choices=tankDesignOptions(raw),d=adjustedTankDesign(side,cls),ids=tankClassIds(cls),unit=techData(side).battalions[ids.battalion],eq=equipmentForSide(side)[ids.equipment],other=side==='attacker'?'defender':'attacker';
   const resourceText=Object.entries(d.resources||{}).map(([k,v])=>`<span class="resource-chip">${k.toUpperCase()} ${fmt(v,0)}/MIC</span>`).join('')||'<span class="resource-chip">No strategic resource</span>';
   c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">ARMORED FORCES · EQUIPMENT DESIGN</p><h1>Tank Designer</h1><p>Build the tank variant that the Division Lab actually uses. Module choices alter armor, firepower, reliability, speed and IC/resource burden.</p></div>${badge('Variant-linked','good')}</section>
   <div class="designer-tabs tank-tabs"><button class="${side==='attacker'?'active':''}" data-tank-side="attacker"><span>ATTACKER</span><b>${esc(state.attackerName)}</b></button><button class="${side==='defender'?'active':''}" data-tank-side="defender"><span>DEFENDER</span><b>${esc(state.defenderName)}</b></button><button class="swap-tab" id="copyTank">COPY → ${other.toUpperCase()}</button></div>
@@ -450,12 +450,12 @@ function tank(c){
     <div class="tank-blueprint panel"><div class="tank-nameplate"><div><span class="eyebrow">${cls.toUpperCase()} ARMOR VARIANT</span><input id="tank-name" value="${esc(raw.name)}" aria-label="Tank design name"></div><div class="tank-silhouette"><span>▰</span><b>${fmt(d.armor,0)}</b><small>ARMOR</small></div></div>
       <div class="tank-module-grid">
         <label class="fixed-slot"><span>CHASSIS</span><select id="tank-chassis">${optionList(TANK_CHASSIS,raw.chassis,v=>v.class===cls)}</select></label>
-        <label class="fixed-slot weapon"><span>MAIN ARMAMENT</span><select id="tank-gun">${optionList(TANK_GUNS,raw.gun)}</select></label>
-        <label><span>TURRET</span><select id="tank-turret">${optionList(TANK_TURRETS,raw.turret)}</select></label>
-        <label><span>SUSPENSION</span><select id="tank-suspension">${optionList(TANK_SUSPENSIONS,raw.suspension)}</select></label>
-        <label><span>ARMOR TYPE</span><select id="tank-armorType">${optionList(TANK_ARMOR_TYPES,raw.armorType)}</select></label>
-        <label><span>ENGINE</span><select id="tank-engine">${optionList(TANK_ENGINES,raw.engine)}</select></label>
-        ${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="tank-special-${i}">${optionList(TANK_SPECIALS,v)}</select></label>`).join('')}
+        <label class="fixed-slot weapon"><span>MAIN ARMAMENT</span><select id="tank-gun">${optionList(TANK_GUNS,raw.gun,(v,k)=>choices.guns.has(k))}</select></label>
+        <label><span>TURRET</span><select id="tank-turret">${optionList(TANK_TURRETS,raw.turret,(v,k)=>choices.turrets.has(k))}</select></label>
+        <label><span>SUSPENSION</span><select id="tank-suspension">${optionList(TANK_SUSPENSIONS,raw.suspension,(v,k)=>choices.suspensions.has(k))}</select></label>
+        <label><span>ARMOR TYPE</span><select id="tank-armorType">${optionList(TANK_ARMOR_TYPES,raw.armorType,(v,k)=>choices.armorTypes.has(k))}</select></label>
+        <label><span>ENGINE</span><select id="tank-engine">${optionList(TANK_ENGINES,raw.engine,(v,k)=>choices.engines.has(k))}</select></label>
+        ${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="tank-special-${i}">${optionList(TANK_SPECIALS,v,(m,k)=>choices.specials[i].has(k))}</select></label>`).join('')}
       </div>
       <div class="tank-upgrades"><label>Engine upgrades <input id="tank-engineUpgrades" type="range" min="0" max="20" value="${raw.engineUpgrades}"><b>${raw.engineUpgrades}</b></label><label>Armor upgrades <input id="tank-armorUpgrades" type="range" min="0" max="20" value="${raw.armorUpgrades}"><b>${raw.armorUpgrades}</b></label></div>
       ${d.overloaded?`<p class="notice stop"><b>Chassis overloaded:</b> ${fmt(d.overload,1)} weight above the ${fmt(d.maxWeight,0)} baseline capacity. Speed/reliability penalties are active.</p>`:`<p class="notice good"><b>Weight within chassis capacity.</b> ${fmt(d.weight,1)} / ${fmt(d.maxWeight,0)}.</p>`}

@@ -1,0 +1,30 @@
+name: Air Module Hash Diagnostic
+on:
+  push:
+    branches: [audit-1.19.2]
+permissions:
+  contents: read
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Split Air module fingerprints
+        run: |
+          node --input-type=module <<'JS'
+          import crypto from 'node:crypto';
+          import B from './src/builtin1192.js';
+          const stable=v=>Array.isArray(v)?v.map(stable):v&&typeof v==='object'?Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])])):v;
+          const digest=v=>crypto.createHash('sha256').update(JSON.stringify(stable(v))).digest('hex');
+          const frames=Object.values(B.equipment||{}).filter(e=>/^(?:cv_)?(?:small|medium|large)_plane_airframe_\d+$/.test(e?.id||''));
+          const {resolveEquipment}=await import('./src/parser.js');const R=resolveEquipment(B.equipment||{});
+          const cats=new Set();for(const e0 of frames){const e=R[e0.id]||e0;for(const slot of Object.values(e.moduleSlots||{}))for(const c of slot.allowed_module_categories||[])cats.add(c);}
+          const ids=Object.keys(B.modules||{}).filter(id=>cats.has(B.modules[id]?.category)).sort();
+          const add=(o,k,v)=>{if(v!==undefined)o[k]=v;};const modules={};
+          for(const id of ids){const m=B.modules[id],x={id};for(const key of ['category','guiCategory','parent'])add(x,key,m?.[key]);x.addStats={...(m?.addStats||{})};x.multiplyStats={...(m?.multiplyStats||{})};x.addAverageStats={...(m?.addAverageStats||{})};x.resources={...(m?.resources||{})};x.allowEquipmentType=[...(m?.allowEquipmentType||[])];x.forbidEquipmentType=[...(m?.forbidEquipmentType||[])];x.addEquipmentType=[...(m?.addEquipmentType||[])];x.allowedModuleCategories={...(m?.allowedModuleCategories||{})};x.forbidEquipmentTypeExactMatch=[...(m?.forbidEquipmentTypeExactMatch||[])];x.forbidEquipmentTypeExactMatchForCategory={...(m?.forbidEquipmentTypeExactMatchForCategory||{})};x.missionTypeStats=(m?.missionTypeStats||[]).map(v=>structuredClone(v));add(x,'xpCost',m?.xpCost);modules[id]=x;}
+          const structural={},effects={},missions={};for(const [id,x] of Object.entries(modules)){const {addStats,multiplyStats,addAverageStats,resources,missionTypeStats,...rest}=x;structural[id]=rest;effects[id]={addStats,multiplyStats,addAverageStats,resources};missions[id]=missionTypeStats;}
+          console.log('AIR_MODULE_COUNT',ids.length);console.log('MODULES_ALL',digest(modules));console.log('STRUCTURAL',digest(structural));console.log('BASE_EFFECTS',digest(effects));console.log('MISSION_EFFECTS',digest(missions));
+          JS

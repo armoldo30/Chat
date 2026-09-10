@@ -1,4 +1,5 @@
 import { resolveMIOs } from './parser.js';
+import mioSourceCorrections1192, { mergeMioSourceRecord1192 } from './builtin1192/mio-source-corrections-1192.js';
 const clone=x=>structuredClone(x);
 const arr=v=>Array.isArray(v)?v:v==null?[]:[v];
 
@@ -15,14 +16,30 @@ export function normalizeMioSelection(raw){return {organization:raw?.organizatio
 
 function addBonus(target,source){for(const [k,v] of Object.entries(source||{}))if(Number.isFinite(Number(v)))target[k]=(target[k]||0)+Number(v);return target;}
 
+function applyBundled1192SourceCorrections(mios){
+  const corrected={};
+  for(const [id,org] of Object.entries(mios||{}))corrected[id]=clone(org);
+  for(const [id,patch] of Object.entries(mioSourceCorrections1192)){
+    const org=mergeMioSourceRecord1192(corrected[id]||{id,name:id,countries:[],equipmentTypes:[],traits:{}},patch);
+    org.id=id;if(!org.name)org.name=id;
+    for(const traitId of org.removeTraits||[])delete org.traits?.[traitId];
+    delete org.removeTraits;
+    corrected[id]=org;
+  }
+  return corrected;
+}
+
 const MIO_PACK_CACHE=new WeakMap();
 export function mioCatalog(pack){
   let imported=pack?.mios||{};
-  if(pack?.meta?.mioInheritance==='runtime'&&pack&&typeof pack==='object'){if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,resolveMIOs(imported));imported=MIO_PACK_CACHE.get(pack);}
+  if(pack?.meta?.mioInheritance==='runtime'&&pack&&typeof pack==='object'){
+    if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,resolveMIOs(applyBundled1192SourceCorrections(imported)));
+    imported=MIO_PACK_CACHE.get(pack);
+  }
   return {...BUILTIN_MIOS,...imported};
 }
 export function mioAvailable(org,country,equipmentFamily){
-  if(!org)return false;
+  if(!org||org.staticDisabled)return false;
   if(org.countries?.length&&country&&!org.countries.includes(country.toUpperCase()))return false;
   if(!equipmentFamily||!org.equipmentTypes?.length)return true;
   const e=String(equipmentFamily).toLowerCase(),types=org.equipmentTypes.map(x=>String(x).toLowerCase());
@@ -33,6 +50,7 @@ export function traitSelectable(org,traitId,selected){
   const t=org?.traits?.[traitId];if(!t)return false;const set=new Set(selected||[]);
   if(t.parents?.length&&!t.parents.some(x=>set.has(x)))return false;
   if(t.allParents?.length&&!t.allParents.every(x=>set.has(x)))return false;
+  if(t.parentTraits?.length){const needed=Math.max(1,Number.isFinite(Number(t.parentCount))?Number(t.parentCount):1);if(t.parentTraits.filter(x=>set.has(x)).length<needed)return false;}
   if(t.mutuallyExclusive?.some(x=>set.has(x)))return false;
   return true;
 }

@@ -12,6 +12,7 @@ const profile=normalizeTechProfile({...DEFAULT_TECH_PROFILE,technologies:[]});
 const directB=structuredClone(battalions),directS=structuredClone(supports);
 const lineSoft=directB.artillery.soft,supportSoft=directS.support_artillery.soft;
 const artilleryMeta=applySelectedTechnologyEffects(directB,directS,builtin1192,['interwar_artillery']);
+console.log('TECH_EFFECT_DIAGNOSTIC',JSON.stringify({line:{id:directB.artillery.id,gameId:directB.artillery.gameId,categories:directB.artillery.categories,types:directB.artillery.types,before:lineSoft,after:directB.artillery.soft},support:{id:directS.support_artillery.id,gameId:directS.support_artillery.gameId,categories:directS.support_artillery.categories,types:directS.support_artillery.types,before:supportSoft,after:directS.support_artillery.soft},effects:builtin1192.technologies.interwar_artillery.directEffects,meta:artilleryMeta}));
 assert.ok(Math.abs(directB.artillery.soft-lineSoft*1.10)<1e-9,'line artillery source modifier applies as an additive percentage factor');
 assert.ok(Math.abs(directS.support_artillery.soft-supportSoft*1.05)<1e-9,'support artillery receives its distinct source modifier');
 assert.deepEqual(artilleryMeta.appliedTechnologies,['interwar_artillery']);

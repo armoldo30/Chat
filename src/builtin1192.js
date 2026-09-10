@@ -32,7 +32,7 @@ import technologySource1192 from './builtin1192/technology-source-manifest-1192.
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
 import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
-import { extractTechnologies } from './gameDataParser.js';
+import { extractTechnologies, normalizeTechnologyGraph } from './gameDataParser.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
@@ -48,6 +48,7 @@ for(const [id,record] of Object.entries(BUILTIN_1192.technologies||{})){
   const parsed=extractTechnologies({technologies:{[id]:record?.raw||{}}},technologySourceFileById[id]||'');
   if(parsed[id])normalizedTechnologies[id]=parsed[id];
 }
+normalizeTechnologyGraph(normalizedTechnologies);
 const expectedTechnologyIds=Object.values(technologySource1192.files||{}).flatMap(source=>source.ids||[]).sort();
 const actualTechnologyIds=Object.keys(normalizedTechnologies).sort();
 if(expectedTechnologyIds.length!==technologySource1192.recordCount||actualTechnologyIds.length!==expectedTechnologyIds.length||actualTechnologyIds.some((id,i)=>id!==expectedTechnologyIds[i]))throw new Error(`HOI4 1.19.2 technology inventory mismatch: expected ${expectedTechnologyIds.length}, got ${actualTechnologyIds.length}`);

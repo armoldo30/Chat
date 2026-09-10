@@ -54,22 +54,46 @@ function technologyDependencies(v){
   return out;
 }
 
+function technologyGateTokens(raw){
+  return [...new Set([...prerequisiteTokens(raw?.allow),...prerequisiteTokens(raw?.allow_branch)])];
+}
+
 export function extractTechnologies(parsed,sourceFile=''){
   const out={};
   for(const [id,raw0] of entries(parsed,'technologies')){
     // Script variables live beside technology definitions in HOI4 files. They are source constants, not technologies.
     if(String(id).startsWith('@'))continue;
     // Empty technology blocks are valid (for example fleet_submarines), so preserve them as real records.
-    const raw=isObj(last(raw0))?last(raw0):{};
+    const raw=isObj(last(raw0))?last(raw0):{},dependencies=technologyDependencies(raw.dependencies),xor=[...new Set([...items(raw.XOR),...items(raw.xor)])],gateTokens=technologyGateTokens(raw);
     out[id]={
       id,sourceFile:String(sourceFile||''),folder:last(raw.folder),startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),
       categories:[...new Set([...items(raw.category),...items(raw.categories)])],
       specialProjectSpecializations:items(raw.special_project_specialization),
-      paths:technologyPaths(raw.path),dependencies:technologyDependencies(raw.dependencies),xor:[...new Set([...items(raw.XOR),...items(raw.xor)])],
+      paths:technologyPaths(raw.path),pathPrerequisites:[],dependencies,xor,
       enableEquipment:items(raw.enable_equipments),enableModules:items(raw.enable_equipment_modules),enableSubUnits:items(raw.enable_subunits),subTechnologies:items(raw.sub_technologies),
       isSpecialProjectTech:last(raw.is_special_project_tech)===true,
-      prerequisites:prerequisiteTokens(raw),raw:clean(raw)
+      requirements:{dependencies:Object.keys(dependencies),path:[],xor:[...xor],allow:raw.allow===undefined?null:clean(raw.allow),allowBranch:raw.allow_branch===undefined?null:clean(raw.allow_branch)},
+      prerequisites:[...new Set([...Object.keys(dependencies),...gateTokens])],raw:clean(raw)
     };
+  }
+  return out;
+}
+
+export function normalizeTechnologyGraph(technologies){
+  const out=technologies||{};
+  for(const tech of Object.values(out)){
+    tech.pathPrerequisites=[];
+    tech.requirements={...(tech.requirements||{}),dependencies:Object.keys(tech.dependencies||{}),path:[],xor:[...(tech.xor||[])]};
+  }
+  for(const source of Object.values(out))for(const path of source.paths||[]){
+    const target=out[path?.leadsToTech];if(!target)continue;
+    if(!target.pathPrerequisites.includes(source.id))target.pathPrerequisites.push(source.id);
+  }
+  for(const tech of Object.values(out)){
+    tech.pathPrerequisites.sort();
+    tech.requirements.path=[...tech.pathPrerequisites];
+    const gateTokens=technologyGateTokens(tech.raw||{});
+    tech.prerequisites=[...new Set([...tech.pathPrerequisites,...Object.keys(tech.dependencies||{}),...gateTokens])];
   }
   return out;
 }
@@ -148,6 +172,7 @@ export async function buildExtendedDataPack(files){
     else if(path.includes('/doctrines/subdoctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine'));
     else if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed,'legacy'));
   }
+  normalizeTechnologyGraph(pack.technologies);
   pack.meta={...(pack.meta||{}),technologyCount:Object.keys(pack.technologies).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,parserVersion:'0.15.0'};
   return pack;
 }

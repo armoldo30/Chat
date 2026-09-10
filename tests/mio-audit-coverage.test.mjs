@@ -21,7 +21,7 @@ assert.equal(MIO_SOURCE_1192.recordCount,552,'organization source record census'
 assert.equal(MIO_SOURCE_1192.sourceVariableCount,51,'file-local MIO constants');
 assert.equal(MIO_EQUIPMENT_GROUPS_SOURCE_1192.groupCount,24,'MIO equipment groups');
 assert.equal(Object.keys(groups).length,24,'bundled MIO equipment-group corpus');
-assert.equal(MIO_POLICY_SOURCE_1192.policyCount,22,'MIO policy source census');
+assert.equal(Object.keys(MIO_POLICY_SOURCE_1192).length,22,'MIO policy source census');
 assert.equal(Object.keys(policies).length,22,'bundled MIO policy corpus');
 
 console.log('MIO correction coverage',JSON.stringify({

@@ -87,7 +87,7 @@ function airSize(id,e){
 }
 function moduleRecord(m,pack){return {id:m.id,name:humanize(m.id),category:m.category,guiCategory:m.guiCategory,parent:m.parent,requirements:mergedRequirements(pack,'modules',m.id,m.raw),_module:m,source:'game-pack'};}
 function chassisRecord(id,e,cls,pack){const s=equipmentToState(e);return {id,name:humanize(id),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
-function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:humanize(id),size,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
+function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:humanize(id),size,carrier:/^cv_/.test(id),year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
 
 const TANK_GUN_CATEGORIES=new Set(['tank_main_armament','tank_small_main_armament','tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament','tank_flamethrower']);
 const TANK_TURRET_CATEGORIES=new Set(['tank_turret_type','tank_light_turret_type','tank_medium_turret_type','tank_heavy_turret_type','tank_super_heavy_turret_type','tank_modern_turret_type']);
@@ -129,13 +129,24 @@ export function tankCatalogFromPack(pack){
 }
 
 export function airCatalogFromPack(pack){
-  const out={airframes:{},engines:{},weapons:{none:{id:'none',name:'Empty',source:'system',_module:null}},defense:{none:{id:'none',name:'No Defense Module',source:'system',_module:null}},specials:{none:{id:'none',name:'Empty',source:'system',_module:null}}};
+  const none={id:'none',name:'Empty',source:'system',_module:null};
+  const out={airframes:{},slotModules:{none},engines:{},weapons:{none},defense:{none:{...none,name:'No Defense Module'}},specials:{none}};
+  const slotCategories=new Set();
   for(const id of Object.keys(pack?.equipment||{})){
-    const e=resolvedEquipment(pack,id),size=airSize(id,e);if(!size||!hasSlots(e))continue;
+    const e=resolvedEquipment(pack,id),size=airSize(id,e);
+    if(!size||!hasSlots(e)||!/^(?:cv_)?(?:small|medium|large)_plane_airframe_\d+$/.test(id))continue;
     out.airframes[id]=airframeRecord(id,e,size,pack);
+    for(const slot of Object.values(e.moduleSlots||{}))for(const category of (Array.isArray(slot.allowed_module_categories)?slot.allowed_module_categories:[slot.allowed_module_categories]))if(category)slotCategories.add(String(category));
   }
-  for(const m of Object.values(pack?.modules||{})){const bucket=airModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m,pack);}
-  out.meta={airframes:Object.keys(out.airframes).length,engines:Object.keys(out.engines).length,weapons:Object.keys(out.weapons).length-1,defense:Object.keys(out.defense).length-1,specials:Object.keys(out.specials).length-1};
+  const weaponCategories=new Set(['fighter_weapon','cas_weapon','nav_bomber_weapon','strat_weapon','tac_weapon','kamikaze_bomber_weapon','recon_camera','mine_warfare_offense']);
+  for(const m of Object.values(pack?.modules||{})){
+    if(!slotCategories.has(String(m?.category||'')))continue;
+    const rec=moduleRecord(m,pack),category=String(m.category||'');out.slotModules[m.id]=rec;
+    if(/engine_type$/.test(category))out.engines[m.id]=rec;
+    else if(weaponCategories.has(category))out.weapons[m.id]=rec;
+    else {out.specials[m.id]=rec;if(/defense_turret|mine_warfare_defense/.test(category)||/armor_plate|self_sealing/.test(m.id))out.defense[m.id]=rec;}
+  }
+  out.meta={airframes:Object.keys(out.airframes).length,carrierAirframes:Object.values(out.airframes).filter(x=>x.carrier).length,slotCategories:slotCategories.size,slotModules:Object.keys(out.slotModules).length-1,engines:Object.keys(out.engines).length,weapons:Object.keys(out.weapons).length-1,defense:Object.keys(out.defense).length-1,specials:Object.keys(out.specials).length-1};
   return out;
 }
 

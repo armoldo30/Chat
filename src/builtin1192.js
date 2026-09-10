@@ -58,11 +58,12 @@ for(const [id,slots] of Object.entries(moduleSlotCategories1192)){
     equipment.raw={...(equipment.raw||{}),module_slots:{...rawSlots,[slotId]:{...rawCurrent,allowed_module_categories:categories}}};
   }
 }
+for(const module of Object.values(BUILTIN_1192.modules||{}))if(!Array.isArray(module.missionTypeStats)&&module.raw?.mission_type_stats)module.missionTypeStats=[module.raw.mission_type_stats];
 BUILTIN_1192.requirements=BUILTIN_1192.requirements||{};
 BUILTIN_1192.requirements.modules={...(BUILTIN_1192.requirements.modules||{}),...tankModuleRequirements};
 const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((total,group)=>total+Object.values(group||{}).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0),0);
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:false,airDuplicateArchetypesCertified:false};
 export default BUILTIN_1192;

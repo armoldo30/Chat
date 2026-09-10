@@ -69,7 +69,7 @@ close(airEffectsM2.mission.cas,0.1,'CAS-presence modifier does not leak into CAS
 // A general mission-efficiency modifier from another selected track applies globally, independent of aircraft category.
 const crossTrack=structuredClone(airState);crossTrack.tracks.strike_aircraft.mastery=0;crossTrack.tracks.medium_aircraft.choice='operational_air_support';
 const crossTrackFx=airDoctrineEffects(crossTrack,{...design,roles:['fighter'],equipmentTypes:['fighter']},builtin1192);
-close(crossTrackFx.mission.air_superiority,0.15,'general mission efficiency combines with Operational Integrity air-superiority efficiency');
+close(crossTrackFx.mission.air_superiority,0.25,'grand + fighter-choice + global mission-efficiency bonuses accumulate from all selected tracks');
 close(crossTrackFx.mission.cas,0.05,'general air_mission_efficiency applies to CAS');
 close(crossTrackFx.mission.naval_strike,0.05,'general air_mission_efficiency applies to naval strike');
 

@@ -1,5 +1,6 @@
 import { resolveMIOs } from './parser.js';
 import mioSourceCorrections1192, { mergeMioSourceRecord1192 } from './builtin1192/mio-source-corrections-1192.js';
+import MIO_EQUIPMENT_GROUPS_1192 from './builtin1192/mio-equipment-groups-1192.js';
 const clone=x=>structuredClone(x);
 const arr=v=>Array.isArray(v)?v:v==null?[]:[v];
 
@@ -21,31 +22,56 @@ function applyBundled1192SourceCorrections(mios){
   for(const [id,org] of Object.entries(mios||{}))corrected[id]=clone(org);
   for(const [id,patch] of Object.entries(mioSourceCorrections1192)){
     const org=mergeMioSourceRecord1192(corrected[id]||{id,name:id,countries:[],equipmentTypes:[],traits:{}},patch);
-    org.id=id;if(!org.name)org.name=id;
-    for(const traitId of org.removeTraits||[])delete org.traits?.[traitId];
-    delete org.removeTraits;
-    corrected[id]=org;
+    org.id=id;if(!org.name)org.name=id;corrected[id]=org;
   }
   return corrected;
+}
+function applySourceRemovalsAfterInheritance(resolved){
+  for(const [id,patch] of Object.entries(mioSourceCorrections1192)){
+    const org=resolved?.[id];if(!org)continue;
+    if(patch.removeTraits?.length){org.traits={...(org.traits||{})};for(const traitId of patch.removeTraits)delete org.traits[traitId];}
+    delete org.removeTraits;
+  }
+  return resolved;
 }
 
 const MIO_PACK_CACHE=new WeakMap();
 export function mioCatalog(pack){
   let imported=pack?.mios||{};
   if(pack?.meta?.mioInheritance==='runtime'&&pack&&typeof pack==='object'){
-    if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,resolveMIOs(applyBundled1192SourceCorrections(imported)));
+    if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,applySourceRemovalsAfterInheritance(resolveMIOs(applyBundled1192SourceCorrections(imported))));
     imported=MIO_PACK_CACHE.get(pack);
   }
   return {...BUILTIN_MIOS,...imported};
 }
-export function mioAvailable(org,country,equipmentFamily){
-  if(!org||org.staticDisabled)return false;
-  if(org.countries?.length&&country&&!org.countries.includes(country.toUpperCase()))return false;
-  if(!equipmentFamily||!org.equipmentTypes?.length)return true;
-  const e=String(equipmentFamily).toLowerCase(),types=org.equipmentTypes.map(x=>String(x).toLowerCase());
-  const isTank=e.includes('tank'),isSmallAir=e.includes('small_airframe'),isMediumAir=e.includes('medium_airframe');
-  return types.some(t=>e.includes(t)||t.includes(e)||(isTank&&(t.includes('tank')||t.includes('armor')))||(isSmallAir&&(t.includes('small_plane')||t.includes('light_aircraft')||t.includes('all_aircraft')))||(isMediumAir&&(t.includes('medium_plane')||t.includes('medium_aircraft')||t.includes('all_aircraft'))));
+
+function normalizedEquipmentId(value){
+  return String(value||'').toLowerCase().replace('small_airframe','small_plane_airframe').replace('medium_airframe','medium_plane_airframe').replace('large_airframe','large_plane_airframe');
 }
+function directEquipmentMatch(type,equipment){
+  const t=normalizedEquipmentId(type),e=normalizedEquipmentId(equipment);if(!t||!e)return false;
+  if(e===t||e.includes(t)||t.includes(e))return true;
+  const isTank=e.includes('tank');
+  if(isTank&&(t.includes('tank')||t.includes('armor')))return true;
+  if(e.includes('small_plane_airframe')&&(t.includes('small_plane')||t.includes('light_aircraft')||t.includes('all_aircraft')))return true;
+  if(e.includes('medium_plane_airframe')&&(t.includes('medium_plane')||t.includes('medium_aircraft')||t.includes('all_aircraft')))return true;
+  if(e.includes('large_plane_airframe')&&(t.includes('large_plane')||t.includes('heavy_aircraft')||t.includes('all_aircraft')))return true;
+  return false;
+}
+export function mioEquipmentCompatible(restrictions,equipmentFamily){
+  const types=arr(restrictions).filter(Boolean);if(!equipmentFamily||!types.length)return true;
+  return types.some(type=>{
+    const members=MIO_EQUIPMENT_GROUPS_1192[type];
+    return members?members.some(member=>directEquipmentMatch(member,equipmentFamily)):directEquipmentMatch(type,equipmentFamily);
+  });
+}
+export function mioEligibility(org,country,equipmentFamily){
+  const structuralCompatible=!!org&&!org.staticDisabled&&mioEquipmentCompatible(org?.equipmentTypes,equipmentFamily);
+  const countryEligible=!org?.countries?.length||!country||org.countries.includes(String(country).toUpperCase());
+  return {selectable:structuralCompatible,structuralCompatible,countryEligible,classification:'informational-only-country-requirement'};
+}
+export function mioAvailable(org,country,equipmentFamily){return mioEligibility(org,country,equipmentFamily).selectable;}
+
 export function traitSelectable(org,traitId,selected){
   const t=org?.traits?.[traitId];if(!t)return false;const set=new Set(selected||[]);
   if(t.parents?.length&&!t.parents.some(x=>set.has(x)))return false;
@@ -54,17 +80,24 @@ export function traitSelectable(org,traitId,selected){
   if(t.mutuallyExclusive?.some(x=>set.has(x)))return false;
   return true;
 }
-export function mioEffects(catalog,selection){
+export function mioEffects(catalog,selection,context={}){
   const sel=normalizeMioSelection(selection),org=catalog?.[sel.organization];
-  const out={equipmentBonus:{},productionBonus:{},organizationModifier:{},selected:[]};
+  const out={equipmentBonus:{},productionBonus:{},organizationModifier:{},selected:[],appliedTraits:[],equipmentFilteredTraits:[]};
   if(!org)return out;
-  addBonus(out.equipmentBonus,org.initial?.equipmentBonus);addBonus(out.productionBonus,org.initial?.productionBonus);addBonus(out.organizationModifier,org.initial?.organizationModifier);
+  const equipment=context?.equipmentType||context?.equipmentFamily||context?.id||null;
+  if(mioEquipmentCompatible(org.initial?.equipmentTypes,equipment)){
+    addBonus(out.equipmentBonus,org.initial?.equipmentBonus);addBonus(out.productionBonus,org.initial?.productionBonus);addBonus(out.organizationModifier,org.initial?.organizationModifier);
+  }
   const accepted=[];
-  for(const id of sel.traits){if(!traitSelectable(org,id,accepted))continue;const t=org.traits?.[id];if(!t)continue;accepted.push(id);addBonus(out.equipmentBonus,t.equipmentBonus);addBonus(out.productionBonus,t.productionBonus);addBonus(out.organizationModifier,t.organizationModifier);}
+  for(const id of sel.traits){
+    if(!traitSelectable(org,id,accepted))continue;const t=org.traits?.[id];if(!t)continue;accepted.push(id);
+    if(!mioEquipmentCompatible(t.equipmentTypes,equipment)){out.equipmentFilteredTraits.push(id);continue;}
+    addBonus(out.equipmentBonus,t.equipmentBonus);addBonus(out.productionBonus,t.productionBonus);addBonus(out.organizationModifier,t.organizationModifier);out.appliedTraits.push(id);
+  }
   out.selected=accepted;return out;
 }
 
-const STAT_MAP={soft_attack:'soft',hard_attack:'hard',defense:'def',breakthrough:'breakthrough',armor_value:'armor',ap_attack:'piercing',air_attack:'airAttack',reliability:'reliability',maximum_speed:'speed',air_defence:'airDefense',air_agility:'agility',air_attack:'airAttack',build_cost_ic:'cost'};
+const STAT_MAP={soft_attack:'soft',hard_attack:'hard',defense:'def',breakthrough:'breakthrough',armor_value:'armor',ap_attack:'piercing',air_attack:'airAttack',reliability:'reliability',maximum_speed:'speed',air_defence:'airDefense',air_agility:'agility',build_cost_ic:'cost'};
 export function applyMioEquipmentBonus(record,bonus){
   const out=clone(record||{});for(const [src,v] of Object.entries(bonus||{})){const key=STAT_MAP[src]||src;if(!Number.isFinite(Number(v)))continue;const base=Number(out[key]);if(Number.isFinite(base))out[key]=Math.max(0,base*(1+Number(v)));}
   return out;

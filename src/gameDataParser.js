@@ -84,7 +84,7 @@ const TECHNOLOGY_STRUCTURAL_KEYS=new Set([
   'research_cost','start_year','year','categories','category','folder','path','dependencies','XOR','xor',
   'enable_equipments','enable_equipment_modules','enable_subunits','sub_technologies','special_project_specialization','is_special_project_tech',
   'allow','allow_branch','ai_will_do','ai_research_weights','xp_research_type','xp_boost_cost','xp_research_bonus',
-  'force_use_small_tech_layout','show_effect_as_desc','show_equipment_icon'
+  'force_use_small_tech_layout','show_effect_as_desc','show_equipment_icon','desc','sub_tech_index'
 ]);
 function technologyDirectEffects(raw,variables){
   const out={};

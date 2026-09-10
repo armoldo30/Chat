@@ -34,6 +34,7 @@ import technologyGraphSupport1192 from './builtin1192/technology-graph-support-1
 import technologyGraphInfantry1192 from './builtin1192/technology-graph-infantry-1192.js';
 import technologyGraphBbaAir1192 from './builtin1192/technology-graph-bba-air-1192.js';
 import technologyGraphSpecialProjects1192 from './builtin1192/technology-graph-special-projects-1192.js';
+import technologyEffects1192, { TECHNOLOGY_EFFECT_SOURCE_COUNTS_1192 } from './builtin1192/technology-effects-index-1192.js';
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
 import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
@@ -43,7 +44,7 @@ const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
 
-// The original bundled extended pack was generated before the technology census was audited. Re-normalize what survived compaction, then overlay exact source-derived graph/unlock slices for planner-relevant technology files.
+// The original bundled extended pack was generated before the technology census was audited. Re-normalize what survived compaction, then overlay exact source-derived graph/unlock slices and direct effects for planner-relevant technology files.
 const bundledTechnologyRecordCount=Object.keys(BUILTIN_1192.technologies||{}).length;
 const technologySourceFileById={};
 for(const [sourceFile,source] of Object.entries(technologySource1192.files||{}))for(const id of source.ids||[])technologySourceFileById[id]=sourceFile;
@@ -60,6 +61,11 @@ for(const [id,sourceGraph] of Object.entries(technologyGraph1192)){
   if(!technology)throw new Error(`Missing bundled 1.19.2 technology ${id}`);
   for(const [key,value] of Object.entries(sourceGraph))technology[key]=structuredClone(value);
   technology.requirements={...(technology.requirements||{}),dependencies:Object.keys(technology.dependencies||{}),path:[...(technology.pathPrerequisites||[])],xor:[...(technology.xor||[])]};
+}
+for(const [id,effects] of Object.entries(technologyEffects1192)){
+  const technology=normalizedTechnologies[id];
+  if(!technology)throw new Error(`Technology effect source references missing 1.19.2 technology ${id}`);
+  technology.directEffects=structuredClone(effects);
 }
 const expectedTechnologyIds=Object.values(technologySource1192.files||{}).flatMap(source=>source.ids||[]).sort();
 const actualTechnologyIds=Object.keys(normalizedTechnologies).sort();
@@ -113,5 +119,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true,technologyCount:actualTechnologyIds.length,technologySourceFileCount:technologySource1192.fileCount,technologySourceRecordCount:technologySource1192.recordCount,technologyScriptVariableRecordsRemoved:bundledTechnologyRecordCount-actualTechnologyIds.length,technologySourceInventoryCertified:true,technologyGraphNormalized:true,technologyGraphSourceRestoredCount:Object.keys(technologyGraph1192).length};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true,technologyCount:actualTechnologyIds.length,technologySourceFileCount:technologySource1192.fileCount,technologySourceRecordCount:technologySource1192.recordCount,technologyScriptVariableRecordsRemoved:bundledTechnologyRecordCount-actualTechnologyIds.length,technologySourceInventoryCertified:true,technologyGraphNormalized:true,technologyGraphSourceRestoredCount:Object.keys(technologyGraph1192).length,technologyEffectSourceRestoredCount:Object.keys(technologyEffects1192).length,technologyEffectSourceCounts:{...TECHNOLOGY_EFFECT_SOURCE_COUNTS_1192}};
 export default BUILTIN_1192;

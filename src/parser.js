@@ -258,11 +258,12 @@ export function extractMIOs(parsed){
     const raw=obj(last(raw0));
     const token=String(last(raw.token)||fallback||'');
     if(!token)return null;
-    return {id:token,name:String(last(raw.name)||token),equipmentBonus:plainNeed(raw.equipment_bonus),productionBonus:plainNeed(raw.production_bonus),organizationModifier:plainNeed(raw.organization_modifier),parents:items(raw.any_parent),allParents:items(raw.all_parents),mutuallyExclusive:items(raw.mutually_exclusive),equipmentTypes:items(raw.limit_to_equipment_type)};
+    const parent=obj(last(raw.parent));
+    return {id:token,name:String(last(raw.name)||token),equipmentBonus:plainNeed(raw.equipment_bonus),productionBonus:plainNeed(raw.production_bonus),organizationModifier:plainNeed(raw.organization_modifier),parents:items(raw.any_parent),allParents:items(raw.all_parents),parentTraits:items(parent.traits),parentCount:num(last(parent.num_parents_needed)),mutuallyExclusive:items(raw.mutually_exclusive),equipmentTypes:items(raw.limit_to_equipment_type)};
   };
   for(const [id,raw0] of Object.entries(parsed||{})){
     if(id==='__items')continue;const raw=obj(last(raw0));
-    if(!(raw.include||raw.equipment_type||raw.equipment_types||raw.initial_trait||raw.trait||raw.add_trait||raw.override_trait||raw.allowed))continue;
+    if(!(raw.include||raw.equipment_type||raw.equipment_types||raw.initial_trait||raw.trait||raw.add_trait||raw.override_trait||raw.remove_trait||raw.allowed))continue;
     const allowed=obj(last(raw.allowed));
     let countries=items(allowed.original_tag);
     if(!countries.length&&typeof last(allowed.original_tag)==='string')countries=[String(last(allowed.original_tag))];
@@ -270,7 +271,8 @@ export function extractMIOs(parsed){
     for(const x of initList){const t=obj(last(x));Object.assign(initial.equipmentBonus,{...initial.equipmentBonus,...plainNeed(t.equipment_bonus)});Object.assign(initial.productionBonus,{...initial.productionBonus,...plainNeed(t.production_bonus)});Object.assign(initial.organizationModifier,{...initial.organizationModifier,...plainNeed(t.organization_modifier)});}
     const traits={};
     for(const source of [raw.trait,raw.add_trait,raw.override_trait])for(const t0 of arrify(source)){const t=normalizeTrait(t0);if(t)traits[t.id]=t;}
-    out[id]={id,name:String(last(raw.name)||id),include:String(last(raw.include)||''),countries,equipmentTypes:[...new Set([...items(raw.equipment_type),...items(raw.equipment_types)])],initial,traits};
+    const removeTraits=[...new Set(arrify(raw.remove_trait).flatMap(value=>{const item=last(value);if(typeof item==='string'||typeof item==='number')return [String(item)];const removal=obj(item);return [...items(removal.token),...items(removal.trait),...items(removal.traits)];}))];
+    out[id]={id,name:String(last(raw.name)||id),include:String(last(raw.include)||''),countries,equipmentTypes:[...new Set([...items(raw.equipment_type),...items(raw.equipment_types)])],initial,traits,removeTraits};
   }
   return out;
 }
@@ -288,6 +290,8 @@ export function resolveMIOs(mios){
       initial:{equipmentBonus:mergeBonus(base.initial?.equipmentBonus,raw.initial?.equipmentBonus),productionBonus:mergeBonus(base.initial?.productionBonus,raw.initial?.productionBonus),organizationModifier:mergeBonus(base.initial?.organizationModifier,raw.initial?.organizationModifier)},
       traits:{...(base.traits||{}),...(raw.traits||{})}
     };
+    if(raw.removeTraits?.length){result.traits={...(result.traits||{})};for(const traitId of raw.removeTraits)delete result.traits[traitId];}
+    delete result.removeTraits;
     if(raw.include&&!parent)result.inheritanceWarning=`missing-include:${raw.include}`;
     visiting.delete(id);resolved[id]=result;return result;
   };

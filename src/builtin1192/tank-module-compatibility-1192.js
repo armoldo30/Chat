@@ -6,7 +6,7 @@ export default {
   tank_medium_two_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament']}},
   tank_medium_three_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament']}},
   tank_medium_fixed_superstructure_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament','tank_heavy_main_armament']},forbidEquipmentType:['anti_air'],forbidEquipmentTypeExactMatchForCategory:{tank_heavy_main_armament:'armor',tank_super_heavy_main_armament:'armor'}},
-  tank_heavy_two_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament','tank_heavy_main_armament']}},
+  tank_heavy_two_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_heavy_main_armament']}},
   tank_heavy_three_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament','tank_heavy_main_armament']}},
   tank_heavy_fixed_superstructure_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament']},forbidEquipmentType:['anti_air'],forbidEquipmentTypeExactMatchForCategory:{tank_super_heavy_main_armament:'armor'}},
   tank_super_heavy_three_man_tank_turret:{allowedModuleCategories:{main_armament_slot:['tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament']}},

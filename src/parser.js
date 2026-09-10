@@ -145,7 +145,13 @@ function plainScalarMap(v){
   for(const [key,value] of Object.entries(obj(last(v))))if(key!=='__items')out[key]=String(last(value));
   return out;
 }
-function plainMissionTypeStats(v){return (Array.isArray(v)?v:[v]).map(x=>obj(x)).filter(x=>Object.keys(x).length).map(x=>plainMap(x));}
+function plainMissionTypeStats(v){
+  return (Array.isArray(v)?v:[v]).map(x=>obj(x)).filter(x=>Object.keys(x).length).map(x=>{
+    const out=plainMap(x);
+    if(Object.prototype.hasOwnProperty.call(x,'limit'))out.limit=items(x.limit);
+    return out;
+  });
+}
 
 function cloneRecord(value){
   return value&&typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value));

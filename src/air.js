@@ -149,7 +149,7 @@ function rolesForTypes(types,state){
 function buildImportedAirDesign(raw){
   const d=normalizeAirDesign(raw),f=AIRFRAMES[d.airframe],selected=selectedPackModules(d),state=applyModuleEffects(equipmentToState(frameSource(f)),selected.map(moduleSource));
   const thrust=Math.max(0,Number(state.thrust)||0),weight=Math.max(0,Number(state.weight)||0),required=weight,overweight=thrust>0&&weight>thrust,types=equipmentTypesForModules(selected),roles=rolesForTypes(types,state);
-  return {...d,size:f?.size||'small',carrier:!!f?.carrier,year:f?.year,airAttack:Math.max(0,Number(state.airAttack)||0),airDefense:Math.max(0,Number(state.airDefense)||0),groundAttack:Math.max(0,Number(state.groundAttack)||0),navalAttack:Math.max(0,Number(state.navalAttack)||0),agility:Math.max(0,Number(state.agility)||0),maxSpeed:Math.max(0,Number(state.maxSpeed)||0),range:Math.max(0,Number(state.range)||0),reliability:clamp(Number(state.reliability)||0,.01,1),buildCost:Math.max(0,Number(state.buildCost)||0),weight,thrust,requiredThrust:required,thrustRatio:required>0?thrust/required:1,overweight,missionEfficiency:1,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),resources:{...(state.resources||{})},roles,equipmentTypes:types,source:'game-pack',averageStatInference:!!state.averageStatInference,missionStatCompleteness:'partial-bundle'};
+  return {...d,size:f?.size||'small',carrier:!!f?.carrier,year:f?.year,airAttack:Math.max(0,Number(state.airAttack)||0),airDefense:Math.max(0,Number(state.airDefense)||0),groundAttack:Math.max(0,Number(state.groundAttack)||0),navalAttack:Math.max(0,Number(state.navalAttack)||0),agility:Math.max(0,Number(state.agility)||0),maxSpeed:Math.max(0,Number(state.maxSpeed)||0),range:Math.max(0,Number(state.range)||0),reliability:clamp(Number(state.reliability)||0,.01,1),buildCost:Math.max(0,Number(state.buildCost)||0),weight,thrust,requiredThrust:required,thrustRatio:required>0?thrust/required:1,overweight,missionEfficiency:1,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),resources:{...(state.resources||{})},roles,equipmentTypes:types,source:'game-pack',averageStatInference:!!state.averageStatInference,missionStatCompleteness:'source-complete-data'};
 }
 
 function buildFallbackAirDesign(raw){
@@ -165,7 +165,7 @@ function buildFallbackAirDesign(raw){
 export function buildAirDesign(raw){return PACK_MODE?buildImportedAirDesign(raw):buildFallbackAirDesign(raw);}
 
 const AIR_MISSION_IDS={
-  air_superiority:['air_superiority'],cas:['close_air_support'],naval_strike:['naval_bomber'],interception:['interception'],
+  air_superiority:['air_superiority'],cas:['cas','close_air_support'],naval_strike:['naval_bomber'],interception:['interception'],
   strategic_bombing:['strategic_bomber'],port_strike:['port_strike'],logistics_strike:['attack_logistics'],naval_patrol:['naval_patrol'],
   minelaying:['naval_mines_planting'],kamikaze:['naval_kamikaze']
 };
@@ -196,7 +196,7 @@ export function airMissionProfileBuilt(design,mission='air_superiority'){
   }
   state.weight=Math.max(0,Number(state.weight)||0);state.requiredThrust=state.weight;state.thrustRatio=state.requiredThrust>0?(Number(state.thrust)||0)/state.requiredThrust:1;state.overweight=Number(state.thrust)>0&&state.weight>Number(state.thrust);
   state.mission=mission;state.appliedMissionBlocks=applied.length;state.appliedMissionSources=applied;state.missionAverageStatInference=averageInference;
-  state.missionStatCompleteness=design?.source==='game-pack'?'partial-bundle':'analytical-fallback';
+  state.missionStatCompleteness=design?.source==='game-pack'?'source-complete-data':'analytical-fallback';
   return state;
 }
 export function airMissionProfile(raw,mission='air_superiority'){return airMissionProfileBuilt(buildAirDesign(raw),mission);}

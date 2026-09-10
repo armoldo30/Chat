@@ -26,6 +26,8 @@ import tankModuleRequirements from './builtin1192/tank-module-requirements.js';
 import tankModuleCompatibility1192 from './builtin1192/tank-module-compatibility-1192.js';
 import moduleSlotCategories1192 from './builtin1192/module-slot-categories-1192.js';
 import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-1192.js';
+import airMissionTypeStats1192, { AIR_MISSION_SOURCE_1192 } from './builtin1192/air-mission-type-stats-1192.js';
+import airDuplicateArchetypes1192, { AIR_DUPLICATE_SOURCE_1192 } from './builtin1192/duplicate-archetypes-air-1192.js';
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
 import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
@@ -44,7 +46,7 @@ for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
     ...(rule.forbidEquipmentType?{forbid_equipment_type:rule.forbidEquipmentType}:{})};
 }
 BUILTIN_1192.equipment={...(BUILTIN_1192.equipment||{}),...landEquipment1192};
-BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192};
+BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192,...airDuplicateArchetypes1192};
 materializeDuplicateArchetypes(BUILTIN_1192.equipment,BUILTIN_1192.duplicateArchetypes);
 for(const id of ['land_cruiser_chassis','land_cruiser_chassis_1'])if(BUILTIN_1192.equipment?.[id])BUILTIN_1192.equipment[id].moduleCountLimits=landCruiserCountLimits1192.map(x=>({...x}));
 for(const [id,slots] of Object.entries(moduleSlotCategories1192)){
@@ -58,6 +60,11 @@ for(const [id,slots] of Object.entries(moduleSlotCategories1192)){
     equipment.raw={...(equipment.raw||{}),module_slots:{...rawSlots,[slotId]:{...rawCurrent,allowed_module_categories:categories}}};
   }
 }
+for(const [id,blocks] of Object.entries(airMissionTypeStats1192)){
+  const module=BUILTIN_1192.modules?.[id];
+  if(!module)throw new Error(`Missing Air source module ${id}`);
+  module.missionTypeStats=blocks.map(block=>JSON.parse(JSON.stringify(block)));
+}
 for(const module of Object.values(BUILTIN_1192.modules||{}))if(!Array.isArray(module.missionTypeStats)&&module.raw?.mission_type_stats)module.missionTypeStats=[module.raw.mission_type_stats];
 BUILTIN_1192.requirements=BUILTIN_1192.requirements||{};
 BUILTIN_1192.requirements.modules={...(BUILTIN_1192.requirements.modules||{}),...tankModuleRequirements};
@@ -65,5 +72,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:false,airDuplicateArchetypesCertified:false};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256};
 export default BUILTIN_1192;

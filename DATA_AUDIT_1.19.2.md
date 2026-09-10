@@ -134,7 +134,7 @@ The following items were deferred from the land-data pass and handled in later d
 | Land equipment | **PASS for planner scope** | **PASS** | **PASS for source selection/hydration** | **Certified** |
 | Tank modules/designer | **PASS for source-backed designer scope** | **PASS for source data and structural rules** | **PASS for 28 variants / 36 linked unit targets** | **Certified source/structural layer** |
 | Air equipment/modules | **PASS — 21 frames / 94 slot modules / 13 duplicate archetypes** | **PASS — exact field fingerprints + 43/43 mission blocks** | **PASS for source-slot and mission-profile hydration** | **Certified data layer** |
-| Technologies/requirements | Not started | Not started | Not started | Pending |
+| Technologies/requirements | **PASS — 552-ID/13-file inventory; exact payload boundary measured** | **PASS — 226 exact graph + 208 exact direct-effect records** | **PASS — informational requirements + all current core-land scalar mappings; other domains classified/deferred** | **Audit complete / bounded source certification** |
 | Doctrines | Not started | Not started | Not started | Pending |
 | MIOs | Not started | Not started | Not started | Pending |
 | Terrain/tactics/modifiers | Not started | Not started | Not started | Pending |
@@ -191,3 +191,21 @@ Permanent CI now fingerprints every planner-consumed normalized field for all **
 Certified as source data: all 21 concrete designable airframes, their complete source slot graph and inheritance state, all 94 slot-compatible Air modules and planner-consumed fields, base stats/resources, all 43 mission-specific stat blocks, all multi-mission limit lists, all 13 aircraft duplicate-archetype specifications, carrier identity, and equipment-role metadata. Runtime hydration applies the recovered mission blocks to the matching mission profile without cross-mission leakage.
 
 This certifies the **Air data layer**, not bit-for-bit `hoi4.exe` behavior. Exact `NAir` combat resolution and executable aggregation semantics such as `add_average_stats` remain classified for the later formula audit.
+
+## Phase 4 — Technologies / Requirements
+
+Status: **PASS — audit complete with bounded source certification; current planner-core land runtime certified as executable-inferred**
+
+The source census is exactly **13 files / 552 technologies**, with every ID and source-file SHA-256 retained. The audit removed 36 false `@...` script-variable records from the old technology count while preserving valid empty technology definitions.
+
+Exact recovered source overlays cover **226 graph/unlock records** across industry, support, infantry, BBA aircraft, and Special Project technologies, plus **208 direct-effect records across nine source groups**. The raw source text needed to reconstruct every omitted graph/effect field for all 552 technologies is not currently available, so the remaining exact-source surface is explicitly bounded rather than filled with public/wiki approximations.
+
+The recovered effect corpus is now machine-classified. It contains **505 top-level effect targets**, **345 direct scalar effect occurrences**, **161 terrain-specific blocks**, and **12 `battalion_mult` blocks**. Of the 345 direct scalar occurrences, **257** map directly onto core land stats already represented by the planner and are supported by the explicit selected-technology runtime. These include soft/hard attack, defense, breakthrough, air attack, piercing, armor, hardness, supply factors, combat width, HP/strength, organization, and flat supply use.
+
+The remaining source effects are not discarded: terrain effects are assigned to terrain/combat formulas; `battalion_mult` to aggregation formulas; country/global/industry/research/building effects to their global/production systems; specialist support/equipment/air fields to their relevant domain audits; and scripted completion effects remain separate from direct stat aggregation.
+
+Requirements are source-backed and informational-only. Dependencies, path prerequisites, XOR conflicts, `allow` / `allow_branch`, Special Project metadata, and unknown technology IDs can be reported, but structurally valid theorycraft content remains selectable.
+
+The all-effects certification fixture selects every one of the **208** exact effect-source technologies. **80** have effects applicable to the current core land model, producing **386** applied unit/stat modifier pairs with **0 unknown technology IDs**.
+
+Detailed certification, field mappings, exclusions, test coverage, and the explicit non-parity boundary are recorded in `TECHNOLOGY_AUDIT_1.19.2.md`.

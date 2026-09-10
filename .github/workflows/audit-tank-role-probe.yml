@@ -1,0 +1,23 @@
+name: Tank Role Probe
+on:
+  push:
+    branches: [audit-1.19.2]
+    paths: ['.github/workflows/audit-tank-role-probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 24}
+      - name: Probe roles
+        run: |
+          node --input-type=module <<'JS'
+          import B from './src/builtin1192.js';
+          const tankUnits=Object.values(B.subUnits).filter(u=>Object.keys(u.need||{}).some(k=>/tank|armor|land_cruiser/.test(k)));
+          console.log('TANK_UNITS',JSON.stringify(tankUnits.map(u=>({id:u.id,group:u.group,types:u.types,categories:u.categories,need:u.need})).sort((a,b)=>a.id.localeCompare(b.id))));
+          console.log('DUPLICATES',JSON.stringify(Object.values(B.duplicateArchetypes||{}).map(x=>({id:x.id,archetype:x.archetype,types:x.types,set:x.set})).sort((a,b)=>a.id.localeCompare(b.id))));
+          console.log('ROLE_MODULES',JSON.stringify(Object.values(B.modules||{}).filter(m=>(m.allowEquipmentType?.length||m.addEquipmentType?.length||m.forbidEquipmentType?.length||m.forbidEquipmentTypeExactMatch?.length||Object.keys(m.forbidEquipmentTypeExactMatchForCategory||{}).length)).map(m=>({id:m.id,category:m.category,allow:m.allowEquipmentType,add:m.addEquipmentType,forbid:m.forbidEquipmentType,forbidExact:m.forbidEquipmentTypeExactMatch,forbidCategory:m.forbidEquipmentTypeExactMatchForCategory})).filter(x=>/^tank_|^flame|amphibious/.test(x.id)).sort((a,b)=>a.id.localeCompare(b.id))));
+          JS

@@ -1,0 +1,43 @@
+name: Persist Tank Structural Audit Fixes v3
+on:
+  push:
+    branches: [audit-1.19.2]
+    paths:
+      - '.github/workflows/audit-tank-structural-fix-v3.yml'
+permissions:
+  contents: write
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Reapply reviewed structural patch
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          text=Path('.github/workflows/audit-tank-structural-fix.yml').read_text()
+          body=text.split("          python - <<'PY'\n",1)[1].split("\n          PY",1)[0]
+          lines=[line[10:] if line.startswith('          ') else line for line in body.splitlines()]
+          exec('\n'.join(lines),{'__name__':'__main__'})
+          p=Path('src/designerData.js');s=p.read_text()
+          s=s.replace("new Set(['tank_small_main_armament','tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament','tank_flamethrower'])","new Set(['tank_main_armament','tank_small_main_armament','tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament','tank_flamethrower'])",1)
+          s=s.replace("new Set(['tank_light_turret_type','tank_medium_turret_type','tank_heavy_turret_type','tank_super_heavy_turret_type','tank_modern_turret_type'])","new Set(['tank_turret_type','tank_light_turret_type','tank_medium_turret_type','tank_heavy_turret_type','tank_super_heavy_turret_type','tank_modern_turret_type'])",1)
+          p.write_text(s)
+          PY
+      - name: Test
+        run: npm test
+      - name: Build static site
+        run: npm run build
+      - name: Persist validated structural fixes
+        shell: bash
+        run: |
+          rm -f tests/tank-designer-probe.mjs .github/workflows/audit-tank-probe.yml .github/workflows/audit-tank-structural-fix.yml .github/workflows/audit-tank-structural-fix-v2.yml .github/workflows/audit-tank-structural-fix-v3.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: enforce source tank slot compatibility'
+          git push origin HEAD:audit-1.19.2

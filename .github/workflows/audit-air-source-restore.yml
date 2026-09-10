@@ -1,0 +1,170 @@
+name: Restore Air Source Certification
+on:
+  push:
+    branches: [audit-1.19.2]
+permissions:
+  contents: write
+jobs:
+  restore:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Wire authoritative Air source supplements
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json
+
+          # Preserve multi-mission limits inside mission_type_stats instead of collapsing them to the final token.
+          p=Path('src/parser.js');s=p.read_text()
+          old="function plainMissionTypeStats(v){return (Array.isArray(v)?v:[v]).map(x=>obj(x)).filter(x=>Object.keys(x).length).map(x=>plainMap(x));}"
+          new="""function plainMissionTypeStats(v){
+            return (Array.isArray(v)?v:[v]).map(x=>obj(x)).filter(x=>Object.keys(x).length).map(x=>{
+              const out=plainMap(x);
+              if(Object.prototype.hasOwnProperty.call(x,'limit'))out.limit=items(x.limit);
+              return out;
+            });
+          }"""
+          if old not in s: raise SystemExit('plainMissionTypeStats anchor missing')
+          p.write_text(s.replace(old,new,1))
+
+          # Wire recovered 1.19.2 Air source data into the built-in pack.
+          p=Path('src/builtin1192.js');s=p.read_text()
+          anchor="import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-1192.js';\n"
+          add=anchor+"import airMissionTypeStats1192, { AIR_MISSION_SOURCE_1192 } from './builtin1192/air-mission-type-stats-1192.js';\nimport airDuplicateArchetypes1192, { AIR_DUPLICATE_SOURCE_1192 } from './builtin1192/duplicate-archetypes-air-1192.js';\n"
+          if "AIR_MISSION_SOURCE_1192" not in s:
+            if anchor not in s: raise SystemExit('builtin import anchor missing')
+            s=s.replace(anchor,add,1)
+          old="BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192};"
+          new="BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192,...airDuplicateArchetypes1192};"
+          if old not in s: raise SystemExit('duplicate merge anchor missing')
+          s=s.replace(old,new,1)
+          anchor="for(const module of Object.values(BUILTIN_1192.modules||{}))if(!Array.isArray(module.missionTypeStats)&&module.raw?.mission_type_stats)module.missionTypeStats=[module.raw.mission_type_stats];"
+          injected="""for(const [id,blocks] of Object.entries(airMissionTypeStats1192)){
+            const module=BUILTIN_1192.modules?.[id];
+            if(!module)throw new Error(`Missing Air source module ${id}`);
+            module.missionTypeStats=blocks.map(block=>JSON.parse(JSON.stringify(block)));
+          }
+          for(const module of Object.values(BUILTIN_1192.modules||{}))if(!Array.isArray(module.missionTypeStats)&&module.raw?.mission_type_stats)module.missionTypeStats=[module.raw.mission_type_stats];"""
+          if 'Missing Air source module' not in s:
+            if anchor not in s: raise SystemExit('mission supplement anchor missing')
+            s=s.replace(anchor,injected,1)
+          oldmeta="airMissionStatBlocksCertified:false,airDuplicateArchetypesCertified:false"
+          newmeta="airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256"
+          if oldmeta not in s: raise SystemExit('Air meta anchor missing')
+          p.write_text(s.replace(oldmeta,newmeta,1))
+
+          # Mission aliases and completeness labels now reflect the fully recovered source corpus.
+          p=Path('src/air.js');s=p.read_text()
+          old="air_superiority:['air_superiority'],cas:['close_air_support'],naval_strike:['naval_bomber'],interception:['interception'],"
+          new="air_superiority:['air_superiority'],cas:['cas','close_air_support'],naval_strike:['naval_bomber'],interception:['interception'],"
+          if old not in s: raise SystemExit('Air mission id anchor missing')
+          s=s.replace(old,new,1)
+          s=s.replace("missionStatCompleteness:'partial-bundle'","missionStatCompleteness:'source-complete-data'",1)
+          s=s.replace("design?.source==='game-pack'?'partial-bundle':'analytical-fallback'","design?.source==='game-pack'?'source-complete-data':'analytical-fallback'",1)
+          p.write_text(s)
+
+          # Update UI disclosure: source data is complete, executable aggregation/combat behavior is still not claimed exact.
+          p=Path('src/main.js');s=p.read_text()
+          old="Source-slot aircraft data is active; exact NAir executable parity and repeated mission-specific module effects remain separately audited."
+          new="Source-slot aircraft data and the recovered 1.19.2 mission-stat corpus are active. Exact NAir executable parity and add_average_stats aggregation semantics remain separately classified rather than presented as source-data uncertainty."
+          if old in s:s=s.replace(old,new,1)
+          p.write_text(s)
+
+          # Parser regression now covers repeated mission blocks and multi-token mission limits.
+          Path('tests/air-parser-certification.test.mjs').write_text("""import assert from 'node:assert/strict';
+          import { parseClausewitz, extractEquipmentModules } from '../src/parser.js';
+          const parsed=parseClausewitz(`equipment_modules={ bomb={ category=cas_weapon mission_type_stats={ limit={ cas attack_logistics } add_stats={ air_ground_attack=6 } } mission_type_stats={ limit={ naval_bomber port_strike } add_stats={ naval_strike_attack=2 } } } }`);
+          const m=extractEquipmentModules(parsed).bomb;
+          assert.equal(m.missionTypeStats.length,2);
+          assert.deepEqual(m.missionTypeStats[0].limit,['cas','attack_logistics']);
+          assert.equal(m.missionTypeStats[0].add_stats.air_ground_attack,6);
+          assert.deepEqual(m.missionTypeStats[1].limit,['naval_bomber','port_strike']);
+          assert.equal(m.missionTypeStats[1].add_stats.naval_strike_attack,2);
+          console.log('Air repeated/multi-mission parser invariants passed.');
+          """)
+
+          # Structural designer test now requires the recovered source-completeness markers.
+          p=Path('tests/air-designer-certification.test.mjs');s=p.read_text()
+          s=s.replace("assert.equal(built.missionStatCompleteness,'partial-bundle');","assert.equal(built.missionStatCompleteness,'source-complete-data');")
+          s=s.replace("assert.ok(cas.roles.includes('cas'),'CAS role is identified from source equipment type metadata even while mission-stat blocks remain incomplete');","assert.ok(cas.roles.includes('cas'),'CAS role is identified from source equipment type metadata');")
+          old="assert.equal(BUILTIN.meta.airMissionStatBlocksCertified,false);assert.equal(BUILTIN.meta.airDuplicateArchetypesCertified,false);"
+          new="assert.equal(BUILTIN.meta.airMissionStatBlocksCertified,true);assert.equal(BUILTIN.meta.airMissionStatBlockCount,43);assert.equal(BUILTIN.meta.airMissionStatModuleCount,33);assert.equal(BUILTIN.meta.airDuplicateArchetypesCertified,true);assert.equal(BUILTIN.meta.airDuplicateArchetypeCount,13);assert.equal(BUILTIN.meta.duplicateArchetypeCount,34);"
+          if old not in s: raise SystemExit('designer certification meta anchor missing')
+          p.write_text(s.replace(old,new,1))
+
+          # Mission runtime test checks restored CAS/naval/logistics profiles and no leakage.
+          Path('tests/air-mission-runtime-certification.test.mjs').write_text("""import assert from 'node:assert/strict';
+          import BUILTIN from '../src/builtin1192.js';
+          import { configureAirDataPack, AIRFRAMES, defaultAirDesign, normalizeAirDesign, airDesignOptions, buildAirDesign, airMissionProfileBuilt, airMissionEfficiencyBuilt } from '../src/air.js';
+          const close=(a,b,msg)=>assert.ok(Math.abs(a-b)<1e-9,`${msg}: ${a} != ${b}`);
+          configureAirDataPack(BUILTIN,1940);
+          const frameId=Object.keys(AIRFRAMES).find(id=>!AIRFRAMES[id].carrier&&AIRFRAMES[id].size==='small'&&Object.keys(AIRFRAMES[id]._equipment.moduleSlots||{}).some(slot=>airDesignOptions({airframe:id,size:'small'}).slots[slot]?.has('bomb_locks')));assert.ok(frameId,'source graph must expose a small airframe slot for bomb_locks');
+          let raw=normalizeAirDesign({...defaultAirDesign('small'),airframe:frameId},'small'),opts=airDesignOptions(raw),bombSlot=Object.keys(opts.slots).find(slot=>opts.slots[slot].has('bomb_locks'));assert.ok(bombSlot);raw=normalizeAirDesign({...raw,slotModules:{...raw.slotModules,[bombSlot]:'bomb_locks'}},'small');const base=buildAirDesign(raw);
+          const nav=airMissionProfileBuilt(base,'naval_strike');assert.equal(nav.appliedMissionBlocks,1);close(nav.navalAttack,base.navalAttack+2,'bomb locks naval attack');close(nav.agility,base.agility-15,'bomb locks naval agility');close(nav.weight,base.weight+4,'bomb locks naval weight');close(nav.navalTargeting,4,'bomb locks naval targeting');assert.equal(nav.missionStatCompleteness,'source-complete-data');
+          const cas=airMissionProfileBuilt(base,'cas');assert.equal(cas.appliedMissionBlocks,1,'restored CAS block must apply');close(cas.groundAttack,base.groundAttack+6,'bomb locks CAS ground attack');close(cas.agility,base.agility-15,'bomb locks CAS agility');close(cas.weight,base.weight+4,'bomb locks CAS weight');close(cas.navalAttack,base.navalAttack,'naval attack does not leak into CAS');
+          const logistics=airMissionProfileBuilt(base,'logistics_strike');assert.equal(logistics.appliedMissionBlocks,1,'multi-mission CAS/logistics limit must preserve both missions');close(logistics.groundAttack,base.groundAttack+6,'bomb locks logistics ground attack');
+          const eff=airMissionEfficiencyBuilt(base,'naval_strike');assert.equal(eff.primary,nav.navalAttack);assert.equal(eff.appliedBlocks,1);assert.equal(eff.completeness,'source-complete-data');
+          const rocketFrame='small_plane_airframe_5',rocketBase=normalizeAirDesign({...defaultAirDesign('small'),airframe:rocketFrame},'small'),rocketOpts=airDesignOptions(rocketBase),engineSlot=Object.keys(rocketOpts.slots).find(slot=>rocketOpts.slots[slot].has('rocket_engine_1'));assert.ok(engineSlot);const rocket=buildAirDesign(normalizeAirDesign({...rocketBase,slotModules:{...rocketBase.slotModules,[engineSlot]:'rocket_engine_1'}},'small')),intercept=airMissionProfileBuilt(rocket,'interception');assert.equal(intercept.appliedMissionBlocks,1);close(intercept.agility,rocket.agility*1.1,'rocket interception agility');assert.equal(airMissionProfileBuilt(rocket,'air_superiority').appliedMissionBlocks,0,'interception multiplier must not leak into air superiority');
+          console.log('Air mission-specific runtime invariants passed.');
+          """)
+
+          # Exact source-completeness gate for recovered 1.19.2 Air supplements.
+          Path('tests/air-source-completeness-certification.test.mjs').write_text("""import assert from 'node:assert/strict';
+          import BUILTIN from '../src/builtin1192.js';
+          import airMissionStats,{AIR_MISSION_SOURCE_1192} from '../src/builtin1192/air-mission-type-stats-1192.js';
+          import airDuplicates,{AIR_DUPLICATE_SOURCE_1192} from '../src/builtin1192/duplicate-archetypes-air-1192.js';
+          assert.equal(AIR_MISSION_SOURCE_1192.sha256,'b077c40bd386b53ea3b6af97acee44247c07056c9476a143de48e7130c74b692');
+          assert.equal(AIR_MISSION_SOURCE_1192.moduleCount,94);assert.equal(AIR_MISSION_SOURCE_1192.missionModuleCount,33);assert.equal(AIR_MISSION_SOURCE_1192.missionBlockCount,43);
+          assert.equal(Object.keys(airMissionStats).length,33);assert.equal(Object.values(airMissionStats).reduce((n,x)=>n+x.length,0),43);
+          for(const [id,blocks] of Object.entries(airMissionStats)){const module=BUILTIN.modules[id];assert.ok(module,`missing Air module ${id}`);assert.deepEqual(module.missionTypeStats,blocks,`${id} mission block mismatch`);for(const block of blocks)assert.ok(Array.isArray(block.limit)&&block.limit.length>0,`${id} mission limit must preserve all source tokens`);}
+          assert.deepEqual(airMissionStats.bomb_locks[0].limit,['cas','attack_logistics']);assert.equal(airMissionStats.bomb_locks[0].add_stats.air_ground_attack,6);assert.deepEqual(airMissionStats.torpedo_mounting[0].limit,['naval_bomber','port_strike']);assert.equal(airMissionStats.medium_bomb_bay.length,3);
+          assert.equal(AIR_DUPLICATE_SOURCE_1192.sha256,'0747e1a834d4c44eeee593bc0d5cbd7f636be6f34be89be53b19f83afcd08f8a');assert.equal(AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,13);assert.equal(Object.keys(airDuplicates).length,13);
+          const expected=['small_plane_cas_airframe','cv_small_plane_cas_airframe','small_plane_naval_bomber_airframe','cv_small_plane_naval_bomber_airframe','small_plane_suicide_airframe','cv_small_plane_suicide_airframe','medium_plane_fighter_airframe','medium_plane_scout_plane_airframe','large_plane_maritime_patrol_plane_airframe','jet_fighter_equipment','rocket_interceptor_equipment','jet_tac_bomber_equipment','jet_strat_bomber_equipment'];
+          assert.deepEqual(Object.keys(airDuplicates),expected);for(const id of expected)assert.deepEqual(BUILTIN.duplicateArchetypes[id],airDuplicates[id],`${id} duplicate archetype mismatch`);
+          assert.deepEqual(airDuplicates.medium_plane_fighter_airframe.types,['heavy_fighter']);assert.equal(airDuplicates.medium_plane_fighter_airframe.raw.for_each.air_superiority.set,1.25);assert.equal(airDuplicates.rocket_interceptor_equipment.onlyDuplicateArchetype,true);assert.equal(airDuplicates.cv_small_plane_naval_bomber_airframe.raw.default_carrier_composition_weight,1);
+          assert.equal(BUILTIN.meta.airMissionStatBlocksCertified,true);assert.equal(BUILTIN.meta.airDuplicateArchetypesCertified,true);assert.equal(BUILTIN.meta.duplicateArchetypeCount,34);
+          console.log('1.19.2 Air source completeness invariants passed.');
+          """)
+
+          p=Path('package.json');data=json.loads(p.read_text());cmd=data['scripts']['test']
+          if 'air-source-completeness-certification.test.mjs' not in cmd:
+            cmd=cmd.replace('node tests/air-mission-runtime-certification.test.mjs','node tests/air-mission-runtime-certification.test.mjs && node tests/air-source-completeness-certification.test.mjs',1)
+          data['scripts']['test']=cmd;p.write_text(json.dumps(data,indent=2)+"\n")
+
+          # Close the Air source-data defects while keeping executable behavior explicitly separate.
+          p=Path('DATA_AUDIT_1.19.2.md');s=p.read_text()
+          s=s.replace('| Air equipment/modules | **PASS for concrete frame/slot graph; 13 duplicate archetypes open** | **PASS for base stats; repeated mission blocks open** | **PASS for source-slot runtime; mission effects partial** | **In progress** |','| Air equipment/modules | **PASS — 21 frames / 94 slot modules / 13 duplicate archetypes** | **PASS — base + 43/43 mission blocks source-certified** | **PASS for source-slot and mission-profile hydration** | **Certified data layer** |')
+          s=s.replace('Status: **IN PROGRESS — source-slot structure implemented; mission/source-completeness defects remain open**','Status: **PASS — Air source-data layer certified; exact NAir combat remains a separate formula audit**')
+          s=s.replace('### A-003 — repeated `mission_type_stats` importer loss — PARSER + RUNTIME FIXED / BUILT-IN DATA REIMPORT PENDING','### A-003 — repeated + multi-mission `mission_type_stats` loss — FIXED AND SOURCE-CERTIFIED')
+          old="`equipment_modules` may contain repeated `mission_type_stats` blocks. The old module normalizer retained only the final nested block in `raw`, which means the current built-in 1.19.2 bundle cannot be claimed source-complete for CAS/naval/strategic mission-specific attack and targeting effects. The parser now preserves every repeated block for future imports, with a permanent two-block regression test. The current bundled modules are explicitly marked `airMissionStatBlocksCertified: false` until the authoritative 1.19.2 plane-module source is re-imported. The Air runtime now also applies every surviving mission block only to its exact mission profile (for example `naval_bomber`, `interception`, or `port_strike`) and carries mission-specific attack, agility, weight, targeting, bombing, detection, and night modifiers into mission scoring. Missing blocks remain missing rather than being inferred as zero-value source facts."
+          new="The authoritative supplied 1.19.2 `00_plane_modules.txt` has now been recovered and fingerprinted (`b077c40bd386b53ea3b6af97acee44247c07056c9476a143de48e7130c74b692`). It contains **94** Air modules, **33** modules with mission-specific effects, and **43 / 43** `mission_type_stats` blocks. Nine modules contain repeated mission blocks; those repetitions are restored. The audit also found and fixed a second parser issue: a single `limit = { ... }` block can name multiple missions, and the old normalizer collapsed that list to its final token. Multi-mission limits such as `bomb_locks = { cas attack_logistics }` and `torpedo_mounting = { naval_bomber port_strike }` are now preserved exactly. Permanent tests verify repeated blocks, multi-token limits, source counts, source hash, mission isolation, CAS/logistics reuse, naval strike effects, and interception-only rocket effects. `airMissionStatBlocksCertified` is now true. `add_average_stats` values are source-complete but their exact executable aggregation semantics remain explicitly flagged as inferred rather than treated as a data gap."
+          if old not in s: raise SystemExit('A-003 body anchor missing')
+          s=s.replace(old,new,1)
+          s=s.replace('### A-004 — aircraft `duplicate_archetypes` missing from built-in runtime — OPEN','### A-004 — aircraft `duplicate_archetypes` missing from built-in runtime — FIXED AND SOURCE-CERTIFIED')
+          old="The original source inventory recorded **13 aircraft duplicate-archetype definitions**, but the current bundled runtime contains only the 21 tank definitions restored during the land/tank audit. This is now an explicit completeness defect (`airDuplicateArchetypesCertified: false`), not silently treated as covered. The source-slot designer does not invent replacements; the 13 records must be restored from the authoritative 1.19.2 source before Air data can receive full source-completeness certification."
+          new="The authoritative supplied 1.19.2 `x_plane_airframes.txt` has now been recovered and fingerprinted (`0747e1a834d4c44eeee593bc0d5cbd7f636be6f34be89be53b19f83afcd08f8a`). All **13 / 13** aircraft `duplicate_archetypes` are retained in the built-in runtime alongside the 21 tank definitions, for **34** total duplicate-archetype specifications. Their IDs, base archetypes, equipment types, `only_duplicate_archetype` flags, carrier metadata, variant-name mappings, `for_each` values, substitutes and other normalized source metadata are regression-tested. The current Air Lab derives design roles from source module `add_equipment_type`; these duplicate specifications are therefore retained as exact source data rather than artificially materialized into selectable base airframes. `airDuplicateArchetypesCertified` is now true."
+          if old not in s: raise SystemExit('A-004 body anchor missing')
+          old="Source-backed and testable now: concrete airframe selection, slot topology, allowed module categories, base airframe/module stats, IC/resources, carrier-frame identity, equipment-role metadata (`add_equipment_type`), and mission-profile application semantics for every mission block actually present in the bundle. Weight/thrust and CAS/naval/strategic mission statistics remain only partially complete because many source mission blocks are absent from the current bundle. Still not certified: completeness of repeated mission-specific module effects, the missing 13 aircraft duplicate archetypes, and exact `hoi4.exe`/`NAir` combat resolution."
+          new="Certified as source data: all 21 concrete designable airframes, their complete source slot graph, all 94 slot-compatible Air modules, base stats/resources, all 43 mission-specific stat blocks, all multi-mission limit lists, all 13 aircraft duplicate-archetype specifications, carrier identity, and equipment-role metadata. Runtime hydration applies the recovered mission blocks to the matching mission profile without cross-mission leakage. This certifies the **Air data layer**, not bit-for-bit `hoi4.exe` behavior: exact `NAir` combat resolution and executable aggregation semantics such as `add_average_stats` remain classified for the later formula audit."
+          if old not in s: raise SystemExit('Air boundary anchor missing')
+          p.write_text(s.replace(old,new,1))
+          PY
+      - name: Test full certification suite
+        run: npm test
+      - name: Build static site
+        run: npm run build
+      - name: Persist validated Air source restoration
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src tests package.json DATA_AUDIT_1.19.2.md
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "audit: certify complete 1.19.2 Air source data"
+          git push

@@ -23,6 +23,7 @@ export const DEFAULT_TECH_PROFILE = {
   artillery:1,
   antiTank:1,
   antiAir:1,
+  technologies:[],
   unlocks:{mechanized:true,lightArmor:true,mediumArmor:true,heavyArmor:true,engineer:true,recon:true,logistics:true,signal:true},
   doctrine:{org:0,soft:0,hard:0,def:0,breakthrough:0},
   landDoctrine:structuredClone(DEFAULT_LAND_DOCTRINE),
@@ -35,6 +36,7 @@ export function normalizeTechProfile(raw){
   for(const k of ['infantryEquipment','artillery','antiTank','antiAir']){
     const max=3;out[k]=Math.max(0,Math.min(max,Math.floor(Number(src[k]??out[k]))));
   }
+  out.technologies=[...new Set((Array.isArray(src.technologies)?src.technologies:[]).map(x=>String(x||'').trim()).filter(Boolean))];
   if(src.unlocks&&typeof src.unlocks==='object')for(const k of Object.keys(out.unlocks))out.unlocks[k]=src.unlocks[k]===undefined?out.unlocks[k]:!!src.unlocks[k];
   if(src.doctrine&&typeof src.doctrine==='object')for(const k of Object.keys(out.doctrine))out.doctrine[k]=Number(src.doctrine[k]??out.doctrine[k])||0;
   out.landDoctrine=normalizeLandDoctrine(src.landDoctrine||out.landDoctrine);
@@ -55,6 +57,48 @@ function doctrineMult(unit,profile){
   const d=profile.doctrine||{};
   const map={org:'org',soft:'soft',hard:'hard',def:'def',breakthrough:'breakthrough'};
   for(const [src,dst] of Object.entries(map))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+(Number(d[src])||0)/100));
+}
+
+const TECHNOLOGY_UNIT_FACTOR_FIELDS={
+  soft_attack:'soft',hard_attack:'hard',defence:'def',defense:'def',breakthrough:'breakthrough',air_attack:'airAttack',supply_consumption_factor:'supply'
+};
+function technologyTargetMatches(unit,targetId){
+  if(!unit||!targetId)return false;
+  if(unit.gameId===targetId||unit.id===targetId)return true;
+  if((unit.categories||[]).includes(targetId)||(unit.types||[]).includes(targetId))return true;
+  return false;
+}
+
+// Source technology values are exact; the interpretation below is intentionally narrow and classified executable-inferred.
+// Only direct unit/category percentage fields with clear planner equivalents are applied. Terrain blocks, battalion_mult,
+// country modifiers, scripted completion effects and unsupported stats remain preserved in pack.technologies but are not guessed here.
+export function applySelectedTechnologyEffects(battalions,supports,pack,technologyIds=[]){
+  const selected=[...new Set((technologyIds||[]).map(x=>String(x||'').trim()).filter(Boolean))],units=[...Object.values(battalions||{}),...Object.values(supports||{})];
+  const accumulated=new Map(),appliedTechnologies=[],unknownTechnologies=[];let skippedEffectFields=0;
+  for(const techId of selected){
+    const tech=pack?.technologies?.[techId];
+    if(!tech){unknownTechnologies.push(techId);continue;}
+    const effects=tech.directEffects&&typeof tech.directEffects==='object'?tech.directEffects:{};let techApplied=false;
+    for(const [targetId,block] of Object.entries(effects)){
+      if(!block||typeof block!=='object'||Array.isArray(block))continue;
+      const matched=units.filter(unit=>technologyTargetMatches(unit,targetId));
+      if(!matched.length)continue;
+      for(const [sourceField,value] of Object.entries(block)){
+        const targetField=TECHNOLOGY_UNIT_FACTOR_FIELDS[sourceField],amount=Number(value);
+        if(!targetField||!Number.isFinite(amount)){skippedEffectFields++;continue;}
+        for(const unit of matched){
+          let row=accumulated.get(unit);if(!row){row={};accumulated.set(unit,row);}
+          row[targetField]=(row[targetField]||0)+amount;techApplied=true;
+        }
+      }
+    }
+    if(techApplied)appliedTechnologies.push(techId);
+  }
+  let appliedModifierCount=0;
+  for(const [unit,fields] of accumulated)for(const [field,amount] of Object.entries(fields)){
+    unit[field]=Math.max(0,(Number(unit[field])||0)*(1+amount));appliedModifierCount++;
+  }
+  return {selected,appliedTechnologies,unknownTechnologies,appliedModifierCount,skippedEffectFields,classification:'executable-inferred'};
 }
 
 function applyImportedEquipmentTier(target,pack,profile,year){
@@ -87,11 +131,13 @@ export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gam
     for(const key of ['support_aa','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
   }
 
+  const technologyEffects=pack?.technologies?applySelectedTechnologyEffects(b,s,pack,profile.technologies):{selected:[],appliedTechnologies:[],unknownTechnologies:[],appliedModifierCount:0,skippedEffectFields:0,classification:'not-applied'};
+
   // Legacy manual doctrine modifiers remain readable for imported old scenarios. They are not research locks.
   for(const u of Object.values(b))doctrineMult(u,profile);
   for(const u of Object.values(s))doctrineMult(u,profile);
   const doctrine=applyLandDoctrineToData(b,s,profile.landDoctrine,pack);
-  return {battalions:doctrine.battalions,supports:doctrine.supports,profile,doctrineGlobal:doctrine.global,landDoctrine:doctrine.state};
+  return {battalions:doctrine.battalions,supports:doctrine.supports,profile,technologyEffects,doctrineGlobal:doctrine.global,landDoctrine:doctrine.state};
 }
 
 export function techAvailable(kind,key,rawProfile){

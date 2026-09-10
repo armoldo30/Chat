@@ -64,7 +64,10 @@ const TECHNOLOGY_UNIT_FACTOR_FIELDS={
 };
 function technologyTargetMatches(unit,targetId){
   if(!unit||!targetId)return false;
-  if(unit.gameId===targetId||unit.id===targetId)return true;
+  // HOI4 technology targets refer source sub-unit IDs. Hydrated planner aliases can collide with different source IDs
+  // (for example planner `artillery` = source `artillery_brigade`, while source `artillery` is support artillery).
+  if(unit.gameId===targetId)return true;
+  if(!unit.gameId&&unit.id===targetId)return true;
   if((unit.categories||[]).includes(targetId)||(unit.types||[]).includes(targetId))return true;
   return false;
 }

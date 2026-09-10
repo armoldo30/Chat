@@ -135,6 +135,54 @@ function plainModuleSlots(v){
   return out;
 }
 
+function cloneRecord(value){
+  return value&&typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value));
+}
+
+export function extractDuplicateArchetypes(parsed){
+  const out={};
+  for(const root of blockRoots(parsed?.duplicate_archetypes))for(const [id,raw0] of Object.entries(root)){
+    if(id==='__items')continue;
+    const raw=obj(last(raw0)),forEach=obj(last(raw.for_each)),set={};
+    for(const [key,value0] of Object.entries(forEach)){
+      const value=obj(last(value0));
+      if(Object.prototype.hasOwnProperty.call(value,'set'))set[key]=last(value.set);
+    }
+    out[id]={id,archetype:String(last(raw.archetype)||''),types:items(raw.type),onlyDuplicateArchetype:last(raw.only_duplicate_archetype)===true,forEachSet:set,raw:plainMap(raw)};
+  }
+  return out;
+}
+
+export function materializeDuplicateArchetypes(equipment,duplicates){
+  const target=equipment||{};
+  for(const spec of Object.values(duplicates||{})){
+    const baseId=spec?.archetype,base=target[baseId];
+    if(!baseId||!base||!/(?:^|_)tank_chassis$/.test(baseId))continue;
+    if(!target[spec.id]){
+      const archetype=cloneRecord(base);
+      archetype.id=spec.id;delete archetype.archetype;delete archetype.parent;
+      archetype.types=[...(spec.types||[])];archetype.duplicateOf=baseId;archetype.duplicateRole=(spec.types||[]).find(x=>x!=='armor')||null;
+      archetype.raw={...(cloneRecord(base.raw)||{}),type:[...(spec.types||[])],duplicate_of:baseId};
+      target[spec.id]=archetype;
+    }
+    if(spec.onlyDuplicateArchetype)continue;
+    const children=Object.values(target).filter(item=>item?.archetype===baseId&&item?.id!==spec.id&&!item?.duplicateOf);
+    for(const child of children){
+      const suffix=String(child.id).startsWith(baseId)?String(child.id).slice(baseId.length):null;if(suffix===null)continue;
+      const id=spec.id+suffix;if(target[id])continue;const copy=cloneRecord(child);copy.id=id;copy.archetype=spec.id;copy.duplicateOf=child.id;copy.duplicateRole=target[spec.id].duplicateRole;
+      if(copy.parent&&String(copy.parent).startsWith(baseId))copy.parent=spec.id+String(copy.parent).slice(baseId.length);
+      for(const [rawKey,value] of Object.entries(spec.forEachSet||{})){
+        const map={hardness:'hardness',build_cost_ic:'cost',reliability:'reliability',defense:'def',breakthrough:'breakthrough',armor_value:'armor',soft_attack:'soft',hard_attack:'hard',ap_attack:'piercing',air_attack:'airAttack',maximum_speed:'speed',fuel_consumption:'fuel',weight:'weight',thrust:'thrust'};
+        if(map[rawKey])copy[map[rawKey]]=Number(value);
+      }
+      copy.raw={...(cloneRecord(child.raw)||{}),archetype:spec.id,duplicate_of:child.id};
+      for(const key of ['alias','type','variant_name','derived_variant_name'])delete copy.raw[key];
+      if(copy.parent)copy.raw.parent=copy.parent;for(const [k,v] of Object.entries(spec.forEachSet||{}))copy.raw[k]=v;
+      target[id]=copy;
+    }
+  }
+  return target;
+}
 
 export function extractSubUnits(parsed){
   const out={};
@@ -161,7 +209,7 @@ export function extractEquipment(parsed){
       soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),
       speed:num(last(raw.maximum_speed)),fuel:num(last(raw.fuel_consumption)),weight:num(last(raw.weight)),thrust:num(last(raw.thrust)),
       airDefense:num(last(raw.air_defence)),airAgility:num(last(raw.air_agility)),airRange:num(last(raw.air_range)),groundAttack:num(last(raw.air_ground_attack)),navalAttack:num(last(raw.naval_strike_attack)),
-      resources:plainNeed(raw.resources),moduleSlots:plainModuleSlots(raw.module_slots),types:items(raw.type),upgrades:items(raw.upgrades),raw:{...plainMap(raw),module_slots:plainModuleSlots(raw.module_slots)}
+      resources:plainNeed(raw.resources),moduleSlots:plainModuleSlots(raw.module_slots),moduleSlotsInherit:last(raw.module_slots)==='inherit',types:raw.type===undefined?undefined:items(raw.type),upgrades:raw.upgrades===undefined?undefined:items(raw.upgrades),raw:{...plainMap(raw),...(raw.module_slots===undefined?{}:{module_slots:last(raw.module_slots)==='inherit'?'inherit':plainModuleSlots(raw.module_slots)})}
     };
   }
   return out;
@@ -246,7 +294,13 @@ export function resolveEquipment(packOrEquipment){
       }else warnings.push(`missing-parent:${parentId}`);
     }
     const own=definedEntries(raw);
+    const rawSource=raw.raw||{};
+    const inheritSlots=raw.moduleSlotsInherit||rawSource.module_slots==='inherit';
+    if(inheritSlots){delete own.moduleSlots;delete own.moduleSlotsInherit;}
+    if(!Object.prototype.hasOwnProperty.call(rawSource,'type'))delete own.types;
+    if(!Object.prototype.hasOwnProperty.call(rawSource,'upgrades'))delete own.upgrades;
     const result={...base,...own,resources:{...(base.resources||{}),...(raw.resources||{})},id};
+    if(inheritSlots)result.moduleSlots={...(base.moduleSlots||{})};
     if(warnings.length)result.inheritanceWarning=[...new Set(warnings)].join(',');
     visiting.delete(id);resolved[id]=result;return result;
   };
@@ -302,7 +356,7 @@ function mergeDefines(target,source){for(const [g,vals] of Object.entries(source
 export async function buildDataPack(files){
   const pack={
     meta:{format:1,createdAt:new Date().toISOString(),sourceFiles:0,unitFiles:0,equipmentFiles:0,defineFiles:0,terrainFiles:0,technologyFiles:0,moduleFiles:0,mioFiles:0,warnings:[]},
-    defines:{},subUnits:{},equipment:{},modules:{},mios:{},terrain:{},technologyFiles:[]
+    defines:{},subUnits:{},equipment:{},duplicateArchetypes:{},modules:{},mios:{},terrain:{},technologyFiles:[]
   };
   for(const file of Array.from(files||[])){
     const path=(file.webkitRelativePath||file.name||'').replaceAll('\\','/').toLowerCase();
@@ -312,13 +366,13 @@ export async function buildDataPack(files){
       if(path.includes('/defines/')||path.includes('defines')||/(?:NDefines\.)?N[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*\s*=/.test(text)){mergeDefines(pack.defines,parseDefinesLua(text));pack.meta.defineFiles++;continue;}
       if(path.includes('military_industrial_organization/organizations/')||path.startsWith('organizations/')){mergeMap(pack.mios,extractMIOs(parseClausewitz(text)));pack.meta.mioFiles++;continue;}
       if(path.includes('/units/equipment/modules/')||/\bequipment_modules\s*=\s*\{/.test(text)){mergeMap(pack.modules,extractEquipmentModules(parseClausewitz(text)));pack.meta.moduleFiles++;continue;}
-      if(path.includes('/units/equipment/')||/\bequipments\s*=\s*\{/.test(text)){mergeMap(pack.equipment,extractEquipment(parseClausewitz(text)));pack.meta.equipmentFiles++;continue;}
+      if(path.includes('/units/equipment/')||/\bequipments\s*=\s*\{|\bduplicate_archetypes\s*=\s*\{/.test(text)){const parsed=parseClausewitz(text);mergeMap(pack.equipment,extractEquipment(parsed));mergeMap(pack.duplicateArchetypes,extractDuplicateArchetypes(parsed));pack.meta.equipmentFiles++;continue;}
       if(path.includes('/units/')||/\bsub_units\s*=\s*\{/.test(text)){mergeMap(pack.subUnits,extractSubUnits(parseClausewitz(text)));pack.meta.unitFiles++;continue;}
       if(path.includes('/terrain/')||path.includes('terrain')){mergeMap(pack.terrain,extractTerrain(parseClausewitz(text)));pack.meta.terrainFiles++;continue;}
       if(path.includes('/technologies/')||path.includes('technolog')||/\btechnologies\s*=\s*\{/.test(text)){pack.technologyFiles.push(file.webkitRelativePath||file.name);pack.meta.technologyFiles++;}
     }catch(error){pack.meta.warnings.push(`${file.name}: ${error?.message||'parse error'}`);}
   }
-  pack.mios=resolveMIOs(pack.mios);pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.moduleCount=Object.keys(pack.modules).length;pack.meta.mioCount=Object.keys(pack.mios).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;
+  materializeDuplicateArchetypes(pack.equipment,pack.duplicateArchetypes);pack.mios=resolveMIOs(pack.mios);pack.meta.duplicateArchetypeCount=Object.keys(pack.duplicateArchetypes).length;pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.moduleCount=Object.keys(pack.modules).length;pack.meta.mioCount=Object.keys(pack.mios).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;
   return pack;
 }
 

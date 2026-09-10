@@ -58,7 +58,9 @@ export function selectEquipment(pack,needId,{year=1940,tier}={}){
     return buildable[Math.max(0,Math.min(buildable.length-1,Math.floor(Number(tier))))]||ordered[0];
   }
   const eligible=ordered.filter(x=>!Number.isFinite(Number(x.year))||Number(x.year)<=Number(year));
-  return eligible.length?eligible.at(-1):ordered[0];
+  const pool=eligible.length?eligible:ordered;
+  const finished=pool.filter(x=>['soft','hard','piercing','airAttack','breakthrough'].some(k=>x?.[k]!==undefined));
+  return (finished.length?finished:pool).at(-1)||ordered[0];
 }
 
 function tierForNeed(needId,profile){
@@ -81,7 +83,8 @@ export function resolveSubUnitFromPack(raw,pack,{year=1940,profile}={}){
   const out={
     width:n(raw?.width)??0,hp:n(raw?.hp)??0,org:n(raw?.org)??0,manpower:n(raw?.manpower)??0,supply:n(raw?.supply)??0,
     hardness:0,armor:0,piercing:0,soft:0,hard:0,def:0,breakthrough:0,airAttack:0,
-    need:Object.fromEntries(Object.entries(raw?.need||{}).map(([k,v])=>[equipmentAlias(k),Number(v)||0]))
+    need:Object.fromEntries(Object.entries(raw?.need||{}).map(([k,v])=>[equipmentAlias(k),Number(v)||0])),
+    equipmentModifiers:{soft:n(raw?.soft)??0,hard:n(raw?.hard)??0,def:n(raw?.def)??0,breakthrough:n(raw?.breakthrough)??0,hardness:n(raw?.hardness)??0,armor:n(raw?.armor)??0,piercing:n(raw?.piercing)??0,airAttack:n(raw?.airAttack)??0}
   };
   for(const [dst,key] of Object.entries(COMBAT_KEYS))out[dst]=apply(sum(key),raw?.[dst]);
   const weighted=(key)=>{
@@ -96,6 +99,7 @@ export function resolveSubUnitFromPack(raw,pack,{year=1940,profile}={}){
   out.armor=apply(Math.max(0,...equipment.map(x=>Number(x?.armor)||0)),raw?.armor);
   out.piercing=apply(Math.max(0,...equipment.map(x=>Number(x?.piercing)||0)),raw?.piercing);
   out.sourceEquipment=equipment.map(x=>x.id);
+  out.variantDependent=equipment.some(x=>!!x?.duplicateRole&&!['soft','hard','piercing','airAttack','breakthrough'].some(k=>x?.[k]!==undefined));
   out.source='game-pack';
   return out;
 }

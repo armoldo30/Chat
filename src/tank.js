@@ -131,6 +131,8 @@ function buildImportedTankDesign(raw){
   return {...d,year:c?.year,softAttack:Number(state.softAttack)||0,hardAttack:Number(state.hardAttack)||0,piercing:Number(state.piercing)||0,breakthrough:Number(state.breakthrough)||0,defense:Number(state.defense)||0,reliability:state.reliability,maxSpeed:state.maxSpeed,armor:Math.max(0,Number(state.armor)||0),hardness:clamp(Number(state.hardness)||0,0,1),buildCost:state.buildCost,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),weight:Number(state.weight)||0,maxWeight:0,overloaded:false,overload:0,resources:{...(state.resources||{})},airAttack:Number(state.airAttack)||0,source:'game-pack',averageStatInference:!!state.averageStatInference,upgradeSource:Object.keys(PACK_UPGRADES).length?'game-pack':'none'};
 }
 
+
+function applyUnitEquipmentModifier(value,modifier){return Math.max(0,(Number(value)||0)*(1+(Number(modifier)||0)));}
 function buildFallbackTankDesign(raw){
   const d=normalizeTankDesign(raw),c=TANK_CHASSIS[d.chassis],g=TANK_GUNS[d.gun],t=TANK_TURRETS[d.turret],s=TANK_SUSPENSIONS[d.suspension],a=TANK_ARMOR_TYPES[d.armorType],e=TANK_ENGINES[d.engine],special=d.specials.map(k=>TANK_SPECIALS[k]);
   let soft=g.soft||0,hard=g.hard||0,piercing=g.piercing||0,breakthrough=c.breakthrough+(t.breakthrough||0)+(s.breakthrough||0)+(e.breakthrough||0),defense=c.defense+(t.defense||0),reliability=c.reliability+(g.reliability||0)+(t.reliability||0)+(s.reliability||0)+(e.reliability||0),speed=c.speed+(s.speed||0)+(e.speed||0),fuel=Math.max(.1,c.fuel+(e.fuel||0));
@@ -152,8 +154,8 @@ function buildFallbackTankDesign(raw){
 export function buildTankDesign(raw){return PACK_MODE?buildImportedTankDesign(raw):buildFallbackTankDesign(raw);}
 
 export function applyTankDesignToBattalion(baseBattalion,rawDesign){
-  const d=buildTankDesign(rawDesign),base={...baseBattalion};
-  return {...base,soft:d.softAttack,hard:d.hardAttack,def:d.defense,breakthrough:d.breakthrough,hardness:d.hardness,armor:d.armor,piercing:d.piercing,airAttack:d.airAttack??base.airAttack,designReliability:d.reliability,designSpeed:d.maxSpeed,designFuel:d.fuelConsumption};
+  const d=buildTankDesign(rawDesign),base={...baseBattalion},m=base.equipmentModifiers||{};
+  return {...base,soft:applyUnitEquipmentModifier(d.softAttack,m.soft),hard:applyUnitEquipmentModifier(d.hardAttack,m.hard),def:applyUnitEquipmentModifier(d.defense,m.def),breakthrough:applyUnitEquipmentModifier(d.breakthrough,m.breakthrough),hardness:clamp(applyUnitEquipmentModifier(d.hardness,m.hardness),0,1),armor:applyUnitEquipmentModifier(d.armor,m.armor),piercing:applyUnitEquipmentModifier(d.piercing,m.piercing),airAttack:applyUnitEquipmentModifier(d.airAttack??base.airAttack,m.airAttack),designReliability:d.reliability,designSpeed:d.maxSpeed,designFuel:d.fuelConsumption,designStats:d};
 }
 
 export function tankEquipmentRecord(baseEquipment,rawDesign){

@@ -67,10 +67,12 @@ export function applyModuleEffects(base,modules=[]){
 function resolvedEquipment(pack,id){try{return resolveEquipment(pack?.equipment||{})[id]||null;}catch{return pack?.equipment?.[id]||null;}}
 function hasSlots(e){return e&&isObj(e.moduleSlots)&&Object.keys(e.moduleSlots).length>0;}
 function tankClass(id,e){
+  if(e?.duplicateRole||e?.raw?.is_archetype===true)return null;
   const s=`${id} ${e?.archetype||''} ${(e?.types||[]).join(' ')}`.toLowerCase();
+  if(/super_heavy|modern_tank|amphibious_tank|land_cruiser/.test(s))return null;
   if(/light.*tank|tank.*light/.test(s))return 'light';
-  if(/heavy.*tank|tank.*heavy/.test(s))return 'heavy';
   if(/medium.*tank|tank.*medium/.test(s))return 'medium';
+  if(/heavy.*tank|tank.*heavy/.test(s))return 'heavy';
   return null;
 }
 function airSize(id,e){

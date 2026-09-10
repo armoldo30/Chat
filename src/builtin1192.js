@@ -46,6 +46,12 @@ for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
     ...(rule.forbidEquipmentType?{forbid_equipment_type:rule.forbidEquipmentType}:{})};
 }
 BUILTIN_1192.equipment={...(BUILTIN_1192.equipment||{}),...landEquipment1192};
+for(const id of ['small_plane_airframe_0','cv_small_plane_airframe_0','medium_plane_airframe_0','large_plane_airframe_0']){
+  const equipment=BUILTIN_1192.equipment?.[id];
+  if(!equipment)throw new Error(`Missing 1.19.2 Airframe ${id}`);
+  equipment.moduleSlotsInherit=true;
+  equipment.raw={...(equipment.raw||{}),module_slots:'inherit'};
+}
 BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192,...airDuplicateArchetypes1192};
 materializeDuplicateArchetypes(BUILTIN_1192.equipment,BUILTIN_1192.duplicateArchetypes);
 for(const id of ['land_cruiser_chassis','land_cruiser_chassis_1'])if(BUILTIN_1192.equipment?.[id])BUILTIN_1192.equipment[id].moduleCountLimits=landCruiserCountLimits1192.map(x=>({...x}));
@@ -72,5 +78,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true};
 export default BUILTIN_1192;

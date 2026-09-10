@@ -122,14 +122,9 @@ It also verifies representative inheritance and selection behavior for:
 
 This is a **data-selection/hydration certification**, not a claim of executable parity for every combat aggregation formula. Combat aggregation remains part of the later combat-formula audit.
 
-### Explicitly deferred to Tank Designer / later phases
+### Explicitly deferred from Phase 1
 
-- Exact module-slot compatibility enforcement for every tank module/chassis combination
-- Correct default module selection in designer UI
-- Final player-designed flame/amphibious variant stats
-- Full super-heavy, modern and Land Cruiser designer UX if/when exposed
-- Aircraft `duplicate_archetypes` (13 definitions), which belong to the Air audit
-- Industry/combat formula parity, which consume the now-certified source data but are audited separately
+The following items were deferred from the land-data pass and handled in later designer/formula phases: exact tank module compatibility, designer defaults, player-designed variant stats, extended chassis UX, aircraft duplicate archetypes, and industry/combat formula parity.
 
 ## Overall certification matrix
 
@@ -137,8 +132,8 @@ This is a **data-selection/hydration certification**, not a claim of executable 
 |---|---|---|---|---|
 | Land sub-units | **PASS** | **PASS** | **PASS for source selection/hydration** | **Certified** |
 | Land equipment | **PASS for planner scope** | **PASS** | **PASS for source selection/hydration** | **Certified** |
-| Tank modules/designer | Source corpus present; slot-list defect fixed | Not fully certified | Not fully certified | **Next** |
-| Air equipment/modules | **PASS — 21 frames / 94 slot modules / 13 duplicate archetypes** | **PASS — base + 43/43 mission blocks source-certified** | **PASS for source-slot and mission-profile hydration** | **Certified data layer** |
+| Tank modules/designer | **PASS for source-backed designer scope** | **PASS for source data and structural rules** | **PASS for 28 variants / 36 linked unit targets** | **Certified source/structural layer** |
+| Air equipment/modules | **PASS — 21 frames / 94 slot modules / 13 duplicate archetypes** | **PASS — exact field fingerprints + 43/43 mission blocks** | **PASS for source-slot and mission-profile hydration** | **Certified data layer** |
 | Technologies/requirements | Not started | Not started | Not started | Pending |
 | Doctrines | Not started | Not started | Not started | Pending |
 | MIOs | Not started | Not started | Not started | Pending |
@@ -146,7 +141,6 @@ This is a **data-selection/hydration certification**, not a claim of executable 
 | Defines | Not started | Not started | Not started | Pending |
 | Production formulas | Not started | Not started | Not started | Pending |
 | Combat formulas | Not started | Not started | Not started | Pending |
-
 
 ## Phase 3 — Air Designer
 
@@ -158,7 +152,7 @@ The audit branch now derives the Air Designer catalog directly from each concret
 
 ### A-001 — heuristic module catalog / fixed slot layout — FIXED
 
-Pack-mode Air Designer no longer uses a fixed 3-weapon + 1-defense + 2-special layout or text heuristics to decide which modules are aircraft modules. It renders the actual slots on the selected 1.19.2 frame and limits every picker to the source `allowed_module_categories` for that slot. The source corpus currently resolves to exactly **21 airframes / 29 categories / 94 slot modules / 33 engine modules / 29 weapon-role modules**.
+Pack-mode Air Designer no longer uses a fixed 3-weapon + 1-defense + 2-special layout or text heuristics to decide which modules are aircraft modules. It renders the actual slots on the selected 1.19.2 frame and limits every picker to the source `allowed_module_categories` for that slot. The source corpus resolves to exactly **21 airframes / 29 categories / 94 slot modules / 33 engine modules / 29 weapon-role modules**.
 
 ### A-002 — airframe archetype templates exposed as buildable — FIXED
 
@@ -166,12 +160,34 @@ The four unnumbered airframe archetypes are excluded. Only numbered concrete fra
 
 ### A-003 — repeated + multi-mission `mission_type_stats` loss — FIXED AND SOURCE-CERTIFIED
 
-The authoritative supplied 1.19.2 `00_plane_modules.txt` has now been recovered and fingerprinted (`b077c40bd386b53ea3b6af97acee44247c07056c9476a143de48e7130c74b692`). It contains **94** Air modules, **33** modules with mission-specific effects, and **43 / 43** `mission_type_stats` blocks. Nine modules contain repeated mission blocks; those repetitions are restored. The audit also found and fixed a second parser issue: a single `limit = { ... }` block can name multiple missions, and the old normalizer collapsed that list to its final token. Multi-mission limits such as `bomb_locks = { cas attack_logistics }` and `torpedo_mounting = { naval_bomber port_strike }` are now preserved exactly. Permanent tests verify repeated blocks, multi-token limits, source counts, source hash, mission isolation, CAS/logistics reuse, naval strike effects, and interception-only rocket effects. `airMissionStatBlocksCertified` is now true. `add_average_stats` values are source-complete but their exact executable aggregation semantics remain explicitly flagged as inferred rather than treated as a data gap.
+The authoritative supplied 1.19.2 `00_plane_modules.txt` has been recovered and fingerprinted (`b077c40bd386b53ea3b6af97acee44247c07056c9476a143de48e7130c74b692`). It contains **94** Air modules, **33** modules with mission-specific effects, and **43 / 43** `mission_type_stats` blocks. Nine modules contain repeated mission blocks; those repetitions are restored.
 
-### A-004 — aircraft `duplicate_archetypes` missing from built-in runtime — FIXED AND SOURCE-CERTIFIED
+The audit also found and fixed a second parser issue: a single `limit = { ... }` block can name multiple missions, and the old normalizer collapsed that list to its final token. Multi-mission limits such as `bomb_locks = { cas attack_logistics }` and `torpedo_mounting = { naval_bomber port_strike }` are now preserved exactly. Permanent tests verify repeated blocks, multi-token limits, source counts, source hash, mission isolation, CAS/logistics reuse, naval-strike effects, and interception-only rocket effects. `add_average_stats` values are source-complete, but their exact executable aggregation semantics remain explicitly classified as inferred rather than treated as a data gap.
 
-The original source inventory recorded **13 aircraft duplicate-archetype definitions**, but the current bundled runtime contains only the 21 tank definitions restored during the land/tank audit. This is now an explicit completeness defect (`airDuplicateArchetypesCertified: false`), not silently treated as covered. The source-slot designer does not invent replacements; the 13 records must be restored from the authoritative 1.19.2 source before Air data can receive full source-completeness certification.
+### A-004 — aircraft `duplicate_archetypes` — FIXED AND SOURCE-CERTIFIED
+
+The authoritative supplied 1.19.2 `x_plane_airframes.txt` was recovered and fingerprinted (`0747e1a834d4c44eeee593bc0d5cbd7f636be6f34be89be53b19f83afcd08f8a`). All **13 / 13** aircraft `duplicate_archetypes` are retained alongside the 21 tank definitions, for **34** total duplicate-archetype specifications.
+
+Their IDs, base archetypes, equipment types, `only_duplicate_archetype` flags, carrier metadata, variant-name mappings, `for_each` values, substitutes and other normalized source metadata are regression-tested. The Air Lab derives design roles from source module `add_equipment_type`; the duplicate specifications are therefore retained as exact source data rather than artificially exposed as selectable base airframes. `airDuplicateArchetypesCertified` is true.
+
+### A-005 — 1933 airframe slot inheritance — FIXED AND SOURCE-CERTIFIED
+
+Exact per-record fingerprinting found that four 1933 concrete frames had lost their source `module_slots = inherit` marker in the old built-in JSON: `small_plane_airframe_0`, `cv_small_plane_airframe_0`, `medium_plane_airframe_0`, and `large_plane_airframe_0`. Restoring the inheritance flag reproduces the authoritative normalized fingerprint for all four frames exactly.
+
+The permanent Air field-value certification now checks **21 / 21 concrete airframes** across scalar stats, resources, archetype/parent metadata, slot topology/category lists, and slot-inheritance state.
+
+### A-006 — Recon Camera exact-match category restrictions — FIXED AND SOURCE-CERTIFIED
+
+The final 94-module structural fingerprint mismatch was isolated to a single source field on `recon_camera`: `forbid_equipment_type_exact_match_for_category`. The restored 1.19.2 map requires `scout_plane` when Recon Camera is combined with `fighter_weapon`, `cas_weapon`, `nav_bomber_weapon`, `tac_weapon`, or `mine_warfare_offense` categories.
+
+After restoring that map, every independently hashed Air module field family matches the authoritative 1.19.2 extraction: category/gui/parent/XP metadata, allow/forbid equipment lists, `add_equipment_type`, allowed categories, exact-match restrictions, base effects/resources, and mission effects.
+
+### Exact Air value certification — PASS
+
+Permanent CI now fingerprints every planner-consumed normalized field for all **21 concrete airframes** and **94 source-slot-compatible modules**. It separately checks airframe scalar/resource metadata, airframe slot topology, module structural metadata, base effects/resources, and mission-specific effects. The normalized fingerprints match the supplied 1.19.2 source corpus after the A-005 and A-006 repairs.
 
 ### Current Air certification boundary
 
-Certified as source data: all 21 concrete designable airframes, their complete source slot graph, all 94 slot-compatible Air modules, base stats/resources, all 43 mission-specific stat blocks, all multi-mission limit lists, all 13 aircraft duplicate-archetype specifications, carrier identity, and equipment-role metadata. Runtime hydration applies the recovered mission blocks to the matching mission profile without cross-mission leakage. This certifies the **Air data layer**, not bit-for-bit `hoi4.exe` behavior: exact `NAir` combat resolution and executable aggregation semantics such as `add_average_stats` remain classified for the later formula audit.
+Certified as source data: all 21 concrete designable airframes, their complete source slot graph and inheritance state, all 94 slot-compatible Air modules and planner-consumed fields, base stats/resources, all 43 mission-specific stat blocks, all multi-mission limit lists, all 13 aircraft duplicate-archetype specifications, carrier identity, and equipment-role metadata. Runtime hydration applies the recovered mission blocks to the matching mission profile without cross-mission leakage.
+
+This certifies the **Air data layer**, not bit-for-bit `hoi4.exe` behavior. Exact `NAir` combat resolution and executable aggregation semantics such as `add_average_stats` remain classified for the later formula audit.

@@ -23,13 +23,25 @@ import r22 from './builtin1192raw/r22.js';
 import tankModulesA from './builtin1192/tank-modules-a.js';
 import tankModulesB from './builtin1192/tank-modules-b.js';
 import tankModuleRequirements from './builtin1192/tank-module-requirements.js';
+import moduleSlotCategories1192 from './builtin1192/module-slot-categories-1192.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
 BUILTIN_1192.modules={...(BUILTIN_1192.modules||{}),...tankModulesA,...tankModulesB};
+for(const [id,slots] of Object.entries(moduleSlotCategories1192)){
+  const equipment=BUILTIN_1192.equipment?.[id];
+  if(!equipment)continue;
+  for(const [slotId,categories] of Object.entries(slots)){
+    const current=equipment.moduleSlots?.[slotId]||{};
+    equipment.moduleSlots={...(equipment.moduleSlots||{}),[slotId]:{...current,allowed_module_categories:categories}};
+    const rawSlots=equipment.raw?.module_slots||{};
+    const rawCurrent=rawSlots?.[slotId]||{};
+    equipment.raw={...(equipment.raw||{}),module_slots:{...rawSlots,[slotId]:{...rawCurrent,allowed_module_categories:categories}}};
+  }
+}
 BUILTIN_1192.requirements=BUILTIN_1192.requirements||{};
 BUILTIN_1192.requirements.modules={...(BUILTIN_1192.requirements.modules||{}),...tankModuleRequirements};
 const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((total,group)=>total+Object.values(group||{}).reduce((n,list)=>n+(Array.isArray(list)?list.length:0),0),0);
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true};
 export default BUILTIN_1192;

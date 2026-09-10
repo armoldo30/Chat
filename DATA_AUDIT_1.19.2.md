@@ -70,6 +70,34 @@ The bundle intentionally filters many records outside current planner scope. Thr
 
 Railway-gun sub-units are also omitted, but they are map units rather than division-template units and may remain explicitly out of planner scope.
 
+
+### Finding L-003 — nested module-slot lists were truncated — FIXED ON AUDIT BRANCH
+
+The first scalar/top-level comparison did not independently decode nested `module_slots`. A second raw-structure audit found **234** multi-category slot definitions whose built-in `allowed_module_categories` had been reduced to only the final category: **34 tank**, **184 aircraft**, and **16 other** slot definitions. Examples included tank gun/turret/special slots and aircraft weapon/engine/special slots.
+
+The audit branch now uses a targeted slot normalizer (the only list-valued slot field in the 1.19.2 inventory is `allowed_module_categories`) and a source-derived built-in supplement. Permanent tests verify all 234 restored lists. This correction is not yet on live `main`.
+
+### Finding L-004 — six selectable dynamic tank roles currently resolve to zero equipment stats — OPEN
+
+The following included sub-units request designer-derived equipment families that do not exist as normal static equipment records in the current built-in selection path:
+
+- `amphibious_light_armor` → `light_tank_amphibious_chassis`
+- `amphibious_medium_armor` → `medium_tank_amphibious_chassis`
+- `amphibious_heavy_armor` → `heavy_tank_amphibious_chassis`
+- `light_flame_tank` → `light_tank_flame_chassis`
+- `medium_flame_tank` → `medium_tank_flame_chassis`
+- `heavy_flame_tank` → `heavy_tank_flame_chassis`
+
+At present these can hydrate with an empty `sourceEquipment` set and zero equipment-derived combat stats. This requires an explicit designer-role solution; inventing fallback stats would violate the certification standard.
+
+### Finding L-005 — explicit regimental-support category should override name heuristics — FIXED ON AUDIT BRANCH
+
+`super_heavy_tank_destroyer_brigade` was falsely classified as regimental support by a name heuristic even though the source marks it as divisional support. The audit branch now treats `category_regimental_support_battalions` as authoritative whenever explicit categories are present, retaining heuristics only for legacy/category-less data.
+
+### Inheritance/completeness notes
+
+A full-source versus bundled equipment-family selection comparison found only seven selection-ID differences across the 44 equipment families requested by bundled land sub-units at 1936/1940/1945/1950: four Land Cruiser cases and three motorbike cases. `motorbike_equipment_1` carries no distinct combat stats beyond its archetype, so that gap is mainly provenance/completeness. Land Cruiser remains a substantive open case because the bundled archetype alone has no designed armament stats.
+
 ### Next checks
 
 - Fix and regression-test multi-value list parsing.

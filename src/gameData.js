@@ -23,9 +23,10 @@ const indexedRequirements=(pack,kind,id)=>[...new Set(pack?.requirements?.[kind]
 
 export function equipmentAlias(id){return EQUIPMENT_ALIAS[id]||id;}
 export function classifySubUnit(u){
-  const text=words(u),group=String(u?.group||'').toLowerCase();
+  const text=words(u),group=String(u?.group||'').toLowerCase(),categories=Array.isArray(u?.categories)?u.categories.map(x=>String(x).toLowerCase()):[];
   const support=u?.width===undefined||u?.width===0||group==='support'||/category_(?:all_)?support|\bsupport\b/.test(text);
-  const regimental=support&&(/regiment|regimental|infantry_gun|heavy_weapon|rocket_battery|anti_air_battery|anti_tank_battery|tank_destroyer.*support|spaa.*support/.test(text));
+  const hasExplicitCategories=categories.length>0;
+  const regimental=support&&(hasExplicitCategories?categories.includes('category_regimental_support_battalions'):/regiment|regimental|infantry_gun|heavy_weapon|rocket_battery|anti_air_battery|anti_tank_battery|tank_destroyer.*support|spaa.*support/.test(text));
   let regimentGroup=null;
   if(/armor|tank|spaa|tank_destroyer/.test(text))regimentGroup='armor';
   else if(/motor|mechanized|mobile/.test(text))regimentGroup='mobile';

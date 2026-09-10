@@ -122,6 +122,20 @@ function items(v){
 
 function blockRoots(v){return (Array.isArray(v)?v:[v]).map(obj).filter(root=>Object.keys(root).length);}
 
+function plainModuleSlots(v){
+  const out={};
+  for(const [slotId,slot0] of Object.entries(obj(last(v)))){
+    if(slotId==='__items')continue;
+    const slot=obj(last(slot0)),record={};
+    if(Object.prototype.hasOwnProperty.call(slot,'required'))record.required=last(slot.required);
+    if(Object.prototype.hasOwnProperty.call(slot,'allowed_module_categories'))record.allowed_module_categories=items(slot.allowed_module_categories);
+    if(Object.prototype.hasOwnProperty.call(slot,'gfx'))record.gfx=last(slot.gfx);
+    out[slotId]=record;
+  }
+  return out;
+}
+
+
 export function extractSubUnits(parsed){
   const out={};
   for(const root of blockRoots(parsed?.sub_units))for(const [id,raw0] of Object.entries(root)){
@@ -147,7 +161,7 @@ export function extractEquipment(parsed){
       soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),
       speed:num(last(raw.maximum_speed)),fuel:num(last(raw.fuel_consumption)),weight:num(last(raw.weight)),thrust:num(last(raw.thrust)),
       airDefense:num(last(raw.air_defence)),airAgility:num(last(raw.air_agility)),airRange:num(last(raw.air_range)),groundAttack:num(last(raw.air_ground_attack)),navalAttack:num(last(raw.naval_strike_attack)),
-      resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots),types:items(raw.type),upgrades:items(raw.upgrades),raw:plainMap(raw)
+      resources:plainNeed(raw.resources),moduleSlots:plainModuleSlots(raw.module_slots),types:items(raw.type),upgrades:items(raw.upgrades),raw:{...plainMap(raw),module_slots:plainModuleSlots(raw.module_slots)}
     };
   }
   return out;

@@ -1,0 +1,35 @@
+name: Air Designer Source Probe
+on:
+  push:
+    branches: [audit-1.19.2]
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Probe airframes and modules
+        run: |
+          node --input-type=module <<'JS'
+          import B from './src/builtin1192.js';
+          import { resolveEquipment } from './src/parser.js';
+          import { airCatalogFromPack } from './src/designerData.js';
+          const R=resolveEquipment(B.equipment),cat=airCatalogFromPack(B);
+          console.log('AIR_META',JSON.stringify(cat.meta));
+          for(const [id,a] of Object.entries(cat.airframes).sort(([a],[b])=>a.localeCompare(b))){
+            const e=R[id];
+            console.log('FRAME',id,JSON.stringify({size:a.size,year:a.year,cost:e?.cost,reliability:e?.reliability,speed:e?.speed,airDefense:e?.airDefense,airAgility:e?.airAgility,airRange:e?.airRange,weight:e?.weight,thrust:e?.thrust,fuel:e?.fuel,resources:e?.resources,types:e?.types,archetype:e?.archetype,slots:e?.moduleSlots,raw:e?.raw}));
+          }
+          const mods=Object.values(B.modules).filter(m=>/^plane_|air_|.*(bomb|torpedo|cannon|machine_gun|rocket|engine).*$/i.test(String(m.category||''))||/^plane_|air_|.*(bomb|torpedo|cannon|machine_gun|rocket|engine).*$/i.test(String(m.id||'')));
+          const groups={};for(const m of mods)(groups[m.category]??=[]).push(m);
+          for(const [category,rows] of Object.entries(groups).sort(([a],[b])=>String(a).localeCompare(String(b)))){
+            console.log('CATEGORY',category,rows.length,JSON.stringify(rows.map(m=>m.id).sort()));
+          }
+          for(const m of mods.sort((a,b)=>String(a.id).localeCompare(String(b.id)))){
+            console.log('MODULE',m.id,JSON.stringify({category:m.category,guiCategory:m.guiCategory,add:m.addStats,mult:m.multiplyStats,avg:m.addAverageStats,resources:m.resources,allow:m.allowEquipmentType,forbid:m.forbidEquipmentType,allowed:m.allowedModuleCategories,raw:m.raw}));
+          }
+          JS

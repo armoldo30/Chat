@@ -164,19 +164,33 @@ export function tankDesignOptions(raw){
 
 function mergeResources(...sources){const out={};for(const src of sources)for(const [k,v] of Object.entries(src||{}))out[k]=(out[k]||0)+(Number(v)||0);return out;}
 const UPGRADE_STAT_MAP={soft_attack:'softAttack',hard_attack:'hardAttack',ap_attack:'piercing',armor_value:'armor',defense:'defense',breakthrough:'breakthrough',maximum_speed:'maxSpeed',reliability:'reliability',fuel_consumption:'fuelConsumption',build_cost_ic:'buildCost',air_attack:'airAttack'};
-function applyPackUpgrade(state,id,requested){
-  const def=PACK_UPGRADES?.[id]?.raw||PACK_UPGRADES?.[id];if(!def||typeof def!=='object')return;
-  const max=Number(def.max_level);const level=clamp(Math.round(Number(requested)||0),0,Number.isFinite(max)?max:20);if(!level)return;
+const upgradeRaw=id=>PACK_UPGRADES?.[id]?.raw||PACK_UPGRADES?.[id];
+function numericLevelMap(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{}};
+export function applyTankUpgradeDefinition(state,def0,requested){
+  const def=def0?.raw||def0;if(!def||typeof def!=='object')return 0;
+  const max=Number(def.max_level);const level=clamp(Math.round(Number(requested)||0),0,Number.isFinite(max)?max:20);if(!level)return 0;
   for(const [rawKey,dst] of Object.entries(UPGRADE_STAT_MAP)){
     const per=Number(def[rawKey]);if(!Number.isFinite(per))continue;
     state[dst]=(Number(state[dst])||0)*(1+per*level);
   }
+  for(const [rawKey,value] of Object.entries(numericLevelMap(def.add_stats))){
+    const dst=UPGRADE_STAT_MAP[rawKey],per=Number(value);if(!dst||!Number.isFinite(per))continue;
+    state[dst]=(Number(state[dst])||0)+per*level;
+  }
+  const thresholds=numericLevelMap(def.resource_cost_thresholds),eligible=Object.keys(thresholds).map(Number).filter(x=>Number.isFinite(x)&&x<=level).sort((a,b)=>a-b);
+  if(eligible.length){
+    const resources=numericLevelMap(thresholds[String(eligible.at(-1))]??thresholds[eligible.at(-1)]);state.resources={...(state.resources||{})};
+    for(const [resource,value] of Object.entries(resources)){const q=Number(value);if(Number.isFinite(q))state.resources[resource]=(Number(state.resources[resource])||0)+q;}
+  }
+  return level;
 }
+function applyPackUpgrade(state,id,requested){return applyTankUpgradeDefinition(state,upgradeRaw(id),requested);}
+function tankUpgradeId(kind){const nsb=`tank_nsb_${kind}_upgrade`,legacy=`tank_${kind}_upgrade`;return upgradeRaw(nsb)?nsb:legacy;}
 function buildImportedTankDesign(raw){
   const d=normalizeTankDesign(raw),c=TANK_CHASSIS[d.chassis];
   const selected=[TANK_GUNS[d.gun],TANK_TURRETS[d.turret],TANK_SUSPENSIONS[d.suspension],TANK_ARMOR_TYPES[d.armorType],TANK_ENGINES[d.engine],...d.specials.map(k=>TANK_SPECIALS[k])];
   let state=applyModuleEffects(equipmentToState(c?._equipment||c),selected.map(x=>x?._module).filter(Boolean));
-  applyPackUpgrade(state,'tank_engine_upgrade',d.engineUpgrades);applyPackUpgrade(state,'tank_armor_upgrade',d.armorUpgrades);
+  applyPackUpgrade(state,tankUpgradeId('engine'),d.engineUpgrades);applyPackUpgrade(state,tankUpgradeId('armor'),d.armorUpgrades);
   state.reliability=clamp(Number(state.reliability)||0,.01,1);state.maxSpeed=Math.max(0,Number(state.maxSpeed)||0);state.buildCost=Math.max(0,Number(state.buildCost)||0);
   return {...d,year:c?.year,softAttack:Number(state.softAttack)||0,hardAttack:Number(state.hardAttack)||0,piercing:Number(state.piercing)||0,breakthrough:Number(state.breakthrough)||0,defense:Number(state.defense)||0,reliability:state.reliability,maxSpeed:state.maxSpeed,armor:Math.max(0,Number(state.armor)||0),hardness:clamp(Number(state.hardness)||0,0,1),buildCost:state.buildCost,fuelConsumption:Math.max(0,Number(state.fuelConsumption)||0),weight:Number(state.weight)||0,maxWeight:0,overloaded:false,overload:0,resources:{...(state.resources||{})},airAttack:Number(state.airAttack)||0,source:'game-pack',averageStatInference:!!state.averageStatInference,upgradeSource:Object.keys(PACK_UPGRADES).length?'game-pack':'none'};
 }

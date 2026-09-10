@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import BUILTIN from '../src/builtin1192.js';
+import { configureTankDataPack, defaultTankDesign, buildTankDesign, applyTankUpgradeDefinition } from '../src/tank.js';
+const close=(a,b,msg)=>assert.ok(Math.abs(a-b)<1e-9,`${msg}: ${a} != ${b}`);
+const engine=BUILTIN.equipmentUpgrades?.tank_nsb_engine_upgrade?.raw||BUILTIN.equipmentUpgrades?.tank_nsb_engine_upgrade;
+const armor=BUILTIN.equipmentUpgrades?.tank_nsb_armor_upgrade?.raw||BUILTIN.equipmentUpgrades?.tank_nsb_armor_upgrade;
+assert.ok(engine&&armor,'bundled 1.19.2 pack must contain NSB tank upgrade definitions');
+assert.equal(Number(engine.max_level),20);assert.equal(Number(armor.max_level),20);
+assert.equal(Number(engine.reliability),-.015);assert.deepEqual(engine.add_stats,{fuel_consumption:.05,build_cost_ic:.1,maximum_speed:.1});
+assert.equal(Number(armor.reliability),-.015);assert.deepEqual(armor.add_stats,{maximum_speed:-.1,breakthrough:1.25,build_cost_ic:.2,armor_value:2.5});
+const eState={reliability:.8,maxSpeed:5,fuelConsumption:2,buildCost:10,resources:{steel:2}};assert.equal(applyTankUpgradeDefinition(eState,engine,10),10);close(eState.reliability,.68,'engine reliability');close(eState.maxSpeed,6,'engine speed');close(eState.fuelConsumption,2.5,'engine fuel');close(eState.buildCost,11,'engine cost');
+const aState={reliability:.8,maxSpeed:5,breakthrough:10,armor:30,buildCost:10,resources:{steel:2}};assert.equal(applyTankUpgradeDefinition(aState,armor,5),5);close(aState.reliability,.74,'armor reliability');close(aState.maxSpeed,4.5,'armor speed');close(aState.breakthrough,16.25,'armor breakthrough');close(aState.armor,42.5,'armor value');close(aState.buildCost,11,'armor cost');assert.equal(aState.resources.steel,3);
+const a15={reliability:.8,maxSpeed:5,breakthrough:10,armor:30,buildCost:10,resources:{steel:2}};applyTankUpgradeDefinition(a15,armor,15);assert.equal(a15.resources.steel,3,'resource thresholds are total, not cumulative');
+configureTankDataPack(BUILTIN,1940);const d=defaultTankDesign('medium'),base=buildTankDesign({...d,engineUpgrades:0,armorUpgrades:0}),e20=buildTankDesign({...d,engineUpgrades:20,armorUpgrades:0});close(e20.maxSpeed,base.maxSpeed+2,'20 NSB engine levels remain usable in theorycraft mode');close(e20.fuelConsumption,base.fuelConsumption+1,'20 NSB engine levels add source fuel cost');close(e20.buildCost,base.buildCost+2,'20 NSB engine levels add source IC');
+console.log('1.19.2 NSB tank upgrade formulas certified.');

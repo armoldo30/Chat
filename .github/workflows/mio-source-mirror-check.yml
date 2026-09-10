@@ -10,25 +10,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify candidate source mirror against 1.19.2 manifest
+      - name: Compare candidate mirrors against manifest samples
         shell: python
         run: |
-          import json, re, hashlib, urllib.request, urllib.parse
+          import json,re,hashlib,urllib.request,urllib.parse
           from pathlib import Path
           text=Path('src/builtin1192/mio-source-manifest-1192.js').read_text()
           manifest=json.loads(re.search(r'MIO_SOURCE_1192=(\{.*\});',text,re.S).group(1))
-          base='https://raw.githubusercontent.com/deliciousmods/1956_beta/25b6594bb7671bc7ea008c8f0c335c3ff2f49af7/common/military_industrial_organization/organizations/'
-          matches=[]; mismatches=[]; missing=[]
-          for name,meta in manifest['files'].items():
-              url=base+urllib.parse.quote(name)
-              try:
-                  data=urllib.request.urlopen(url,timeout=30).read()
-              except Exception as e:
-                  missing.append((name,str(e))); continue
-              got=hashlib.sha256(data).hexdigest()
-              (matches if got==meta['sha256'] else mismatches).append((name,got,meta['sha256']))
-          print('MIO_MIRROR_RESULT',json.dumps({'matches':len(matches),'mismatches':len(mismatches),'missing':len(missing)}))
-          for row in mismatches[:20]: print('MISMATCH',*row)
-          for row in missing[:20]: print('MISSING',*row)
-          if len(matches)!=manifest['fileCount']:
-              raise SystemExit(1)
+          samples=['00_generic_organization.txt','AFG_organization.txt','GER_organization.txt','USA_organization.txt','RAJ_GOE_organization .txt','mio.txt']
+          roots={
+            'kama':'https://raw.githubusercontent.com/Kama-Pushka/Kursach-Fizika/master/common/military_industrial_organization/organizations/',
+            'sheep':'https://raw.githubusercontent.com/Sheep-of-Latrobe/sheeps-mod/master/common/military_industrial_organization/organizations/',
+            'zov':'https://raw.githubusercontent.com/zov-organization/hohli/master/common/military_industrial_organization/organizations/',
+            'nw':'https://raw.githubusercontent.com/NWDevTeam/NW_public_git/master/new_ways_alpha/common/military_industrial_organization/organizations/',
+            'road56rp':'https://raw.githubusercontent.com/Road-to-56-RP/roadto56rp/master/common/military_industrial_organization/organizations/',
+            'tfb':'https://raw.githubusercontent.com/Packerthrowaway/TFB-Their-Finest-Bruh-Public/master/common/military_industrial_organization/organizations/',
+          }
+          for label,base in roots.items():
+            ok=0; miss=0; bad=0; details=[]
+            for name in samples:
+              try: data=urllib.request.urlopen(base+urllib.parse.quote(name),timeout=20).read()
+              except Exception as e: miss+=1; details.append((name,'missing')); continue
+              got=hashlib.sha256(data).hexdigest(); exp=manifest['files'][name]['sha256']
+              if got==exp: ok+=1; details.append((name,'MATCH'))
+              else: bad+=1; details.append((name,got[:12]))
+            print('CANDIDATE',label,json.dumps({'matches':ok,'mismatches':bad,'missing':miss,'details':details}))

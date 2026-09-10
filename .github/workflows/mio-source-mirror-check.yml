@@ -17,7 +17,7 @@ jobs:
           from pathlib import Path
           text=Path('src/builtin1192/mio-source-manifest-1192.js').read_text()
           manifest=json.loads(re.search(r'MIO_SOURCE_1192=(\{.*\});',text,re.S).group(1))
-          base='https://raw.githubusercontent.com/LostPatrol/Heart-of-Iron-IV-mod/master/mod1-CPMOD_C/common/military_industrial_organization/organizations/'
+          base='https://raw.githubusercontent.com/deliciousmods/1956_beta/25b6594bb7671bc7ea008c8f0c335c3ff2f49af7/common/military_industrial_organization/organizations/'
           matches=[]; mismatches=[]; missing=[]
           for name,meta in manifest['files'].items():
               url=base+urllib.parse.quote(name)

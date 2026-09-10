@@ -59,9 +59,13 @@ function doctrineMult(unit,profile){
   for(const [src,dst] of Object.entries(map))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+(Number(d[src])||0)/100));
 }
 
+// These are the technology fields whose semantics map directly onto stats already consumed by the land planner.
+// Factor fields use HOI4's sub-unit modifier convention; additive fields modify the corresponding base sub-unit value.
 const TECHNOLOGY_UNIT_FACTOR_FIELDS={
-  soft_attack:'soft',hard_attack:'hard',defence:'def',defense:'def',breakthrough:'breakthrough',air_attack:'airAttack',supply_consumption_factor:'supply'
+  soft_attack:'soft',hard_attack:'hard',defence:'def',defense:'def',breakthrough:'breakthrough',air_attack:'airAttack',
+  ap_attack:'piercing',armor_value:'armor',hardness:'hardness',supply_consumption_factor:'supply'
 };
+const TECHNOLOGY_UNIT_ADDITIVE_FIELDS={combat_width:'width',max_strength:'hp',max_organisation:'org',supply_consumption:'supply'};
 function technologyTargetMatches(unit,targetId,pack){
   if(!unit||!targetId)return false;
   // Technology effect keys occupy distinct source namespaces. If the key names a real sub-unit, only that source
@@ -73,9 +77,9 @@ function technologyTargetMatches(unit,targetId,pack){
   return false;
 }
 
-// Source technology values are exact; the interpretation below is intentionally narrow and classified executable-inferred.
-// Only direct unit/category percentage fields with clear planner equivalents are applied. Terrain blocks, battalion_mult,
-// country modifiers, scripted completion effects and unsupported stats remain preserved in pack.technologies but are not guessed here.
+// Source technology values are exact; the interpretation below is intentionally limited to planner-consumed core land stats
+// and remains classified executable-inferred. Terrain blocks, battalion_mult, country modifiers, specialist support stats,
+// scripted completion effects and equipment/air effects remain preserved in pack.technologies but are not guessed here.
 export function applySelectedTechnologyEffects(battalions,supports,pack,technologyIds=[]){
   const selected=[...new Set((technologyIds||[]).map(x=>String(x||'').trim()).filter(Boolean))],units=[...Object.values(battalions||{}),...Object.values(supports||{})];
   const accumulated=new Map(),appliedTechnologies=[],unknownTechnologies=[];let skippedEffectFields=0;
@@ -88,21 +92,28 @@ export function applySelectedTechnologyEffects(battalions,supports,pack,technolo
       const matched=units.filter(unit=>technologyTargetMatches(unit,targetId,pack));
       if(!matched.length)continue;
       for(const [sourceField,value] of Object.entries(block)){
-        const targetField=TECHNOLOGY_UNIT_FACTOR_FIELDS[sourceField],amount=Number(value);
-        if(!targetField||!Number.isFinite(amount)){skippedEffectFields++;continue;}
+        const factorField=TECHNOLOGY_UNIT_FACTOR_FIELDS[sourceField],additiveField=TECHNOLOGY_UNIT_ADDITIVE_FIELDS[sourceField],amount=Number(value);
+        if((!factorField&&!additiveField)||!Number.isFinite(amount)){skippedEffectFields++;continue;}
         for(const unit of matched){
-          let row=accumulated.get(unit);if(!row){row={};accumulated.set(unit,row);}
-          row[targetField]=(row[targetField]||0)+amount;techApplied=true;
+          let row=accumulated.get(unit);if(!row){row={factor:{},additive:{}};accumulated.set(unit,row);}
+          const bucket=factorField?row.factor:row.additive,targetField=factorField||additiveField;
+          bucket[targetField]=(bucket[targetField]||0)+amount;techApplied=true;
         }
       }
     }
     if(techApplied)appliedTechnologies.push(techId);
   }
   let appliedModifierCount=0;
-  for(const [unit,fields] of accumulated)for(const [field,amount] of Object.entries(fields)){
-    unit[field]=Math.max(0,(Number(unit[field])||0)*(1+amount));appliedModifierCount++;
+  for(const [unit,row] of accumulated){
+    // Flat base-stat changes are applied before percentage factors. Exact cross-system ordering remains part of the formula audit.
+    for(const [field,amount] of Object.entries(row.additive||{})){
+      unit[field]=Math.max(0,(Number(unit[field])||0)+amount);appliedModifierCount++;
+    }
+    for(const [field,amount] of Object.entries(row.factor||{})){
+      unit[field]=Math.max(0,(Number(unit[field])||0)*(1+amount));appliedModifierCount++;
+    }
   }
-  return {selected,appliedTechnologies,unknownTechnologies,appliedModifierCount,skippedEffectFields,classification:'executable-inferred'};
+  return {selected,appliedTechnologies,unknownTechnologies,appliedModifierCount,skippedEffectFields,classification:'executable-inferred',applicationOrder:'additive-then-factor'};
 }
 
 function applyImportedEquipmentTier(target,pack,profile,year){

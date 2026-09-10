@@ -216,7 +216,7 @@ export function extractDoctrineMetadata(parsed,sourceFile=''){
 
 export async function buildExtendedDataPack(files){
   const list=[...files],pack=await buildDataPack(list);
-  pack.technologies=pack.technologies||{};pack.combatTactics=pack.combatTactics||{};pack.modifiers=pack.modifiers||{};pack.specialProjects=pack.specialProjects||{};pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};pack.doctrineMetadata=pack.doctrineMetadata||{};
+  pack.technologies=pack.technologies||{};pack.combatTactics=pack.combatTactics||{};pack.modifiers=pack.modifiers||{};pack.specialProjects=pack.specialProjects||{};pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};pack.doctrineMetadata=pack.doctrineMetadata||{};pack.doctrineMetadata=pack.doctrineMetadata||{};
   for(const file of list){
     const sourceFile=String(file.webkitRelativePath||file.name||'');
     const path=sourceFile.replaceAll('\\','/').toLowerCase();

@@ -2,7 +2,7 @@ import { buildDataPack, parseClausewitz } from './parser.js';
 
 const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const last=v=>Array.isArray(v)?v.at(-1):v;
-const items=v=>Array.isArray(v)?v.map(String):isObj(v)&&Array.isArray(v.__items)?v.__items.map(String):typeof v==='string'?[v]:[];
+const items=v=>Array.isArray(v)?v.flatMap(items):isObj(v)&&Array.isArray(v.__items)?v.__items.flatMap(items):typeof v==='string'||typeof v==='number'?[String(v)]:[];
 const num=v=>Number.isFinite(Number(last(v)))?Number(last(v)):undefined;
 const clean=v=>{
   if(Array.isArray(v))return v.map(clean);
@@ -28,7 +28,7 @@ function prerequisiteTokens(raw){
       if(k==='__items'){
         if(relevant.test(key))for(const t of items(v))found.add(t);
       }else if(relevant.test(k)){
-        if(typeof last(x)==='string')found.add(String(last(x)));else for(const t of items(last(x)))found.add(t);
+        if(typeof last(x)==='string')found.add(String(last(x)));else for(const t of items(x))found.add(t);
         walk(x,k);
       }else walk(x,k);
     }
@@ -41,7 +41,7 @@ export function extractTechnologies(parsed){
   const out={};
   for(const [id,raw0] of entries(parsed,'technologies')){
     const raw=isObj(last(raw0))?last(raw0):{};
-    out[id]={id,startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),categories:[...new Set([...items(last(raw.category)),...items(last(raw.categories))])],prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    out[id]={id,startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),categories:[...new Set([...items(raw.category),...items(raw.categories)])],prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   return out;
 }
@@ -95,7 +95,7 @@ export function extractDoctrines(parsed,kind='unknown'){
   for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):{};
     if(!Object.keys(raw).length)continue;
-    out[id]={id,kind,folder:last(raw.folder),track:last(raw.track),tracks:items(last(raw.tracks)),xpCost:num(raw.xp_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    out[id]={id,kind,folder:last(raw.folder),track:last(raw.track),tracks:items(raw.tracks),xpCost:num(raw.xp_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
   }
   return out;
 }

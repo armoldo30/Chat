@@ -114,9 +114,9 @@ function plainMap(v){
   const out={};for(const [k,q] of Object.entries(obj(last(v)))){if(k==='__items')continue;const value=last(q);out[k]=value&&typeof value==='object'&&!Array.isArray(value)?plainMap(value):value;}return out;
 }
 function items(v){
-  if(Array.isArray(v))return v.map(String);
-  if(v&&typeof v==='object'&&Array.isArray(v.__items))return v.__items.map(String);
-  if(typeof v==='string')return [v];
+  if(Array.isArray(v))return v.flatMap(items);
+  if(v&&typeof v==='object'&&Array.isArray(v.__items))return v.__items.flatMap(items);
+  if(typeof v==='string'||typeof v==='number')return [String(v)];
   return [];
 }
 
@@ -127,7 +127,7 @@ export function extractSubUnits(parsed){
   for(const root of blockRoots(parsed?.sub_units))for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
     out[id]={
-      id,group:last(raw.group),types:items(last(raw.type)),categories:items(last(raw.categories)),
+      id,group:last(raw.group),types:items(raw.type),categories:items(raw.categories),
       width:num(last(raw.combat_width)),hp:num(last(raw.max_strength)),org:num(last(raw.max_organisation)),manpower:num(last(raw.manpower)),
       supply:num(last(raw.supply_consumption)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),piercing:num(last(raw.ap_attack)),
       soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),airAttack:num(last(raw.air_attack)),
@@ -147,7 +147,7 @@ export function extractEquipment(parsed){
       soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),piercing:num(last(raw.ap_attack)),airAttack:num(last(raw.air_attack)),
       speed:num(last(raw.maximum_speed)),fuel:num(last(raw.fuel_consumption)),weight:num(last(raw.weight)),thrust:num(last(raw.thrust)),
       airDefense:num(last(raw.air_defence)),airAgility:num(last(raw.air_agility)),airRange:num(last(raw.air_range)),groundAttack:num(last(raw.air_ground_attack)),navalAttack:num(last(raw.naval_strike_attack)),
-      resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots),types:items(last(raw.type)),upgrades:items(last(raw.upgrades)),raw:plainMap(raw)
+      resources:plainNeed(raw.resources),moduleSlots:plainMap(raw.module_slots),types:items(raw.type),upgrades:items(raw.upgrades),raw:plainMap(raw)
     };
   }
   return out;
@@ -166,7 +166,7 @@ export function extractEquipmentModules(parsed){
   const out={};
   for(const root of roots)for(const [id,raw0] of Object.entries(root)){
     if(id==='__items')continue;const raw=obj(last(raw0));
-    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(last(raw.allow_equipment_type)),forbidEquipmentType:items(last(raw.forbid_equipment_type)),addEquipmentType:items(last(raw.add_equipment_type)),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
+    out[id]={id,category:last(raw.category),guiCategory:last(raw.gui_category),parent:last(raw.parent),addStats:plainNeed(raw.add_stats),multiplyStats:plainNeed(raw.multiply_stats),addAverageStats:plainNeed(raw.add_average_stats),resources:plainNeed(raw.build_cost_resources),allowEquipmentType:items(raw.allow_equipment_type),forbidEquipmentType:items(raw.forbid_equipment_type),addEquipmentType:items(raw.add_equipment_type),xpCost:num(last(raw.xp_cost)),raw:plainMap(raw)};
   }
   return out;
 }

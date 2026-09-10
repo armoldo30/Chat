@@ -3,10 +3,10 @@ import builtin1192 from '../src/builtin1192.js';
 import { applyLandDoctrineToData, LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, airDoctrineEffects, applyAirDoctrineToVariant } from '../src/doctrine.js';
 
 const close=(actual,expected,message)=>assert.ok(Math.abs((Number(actual)||0)-expected)<1e-9,`${message}: expected ${expected}, got ${actual}`);
-const actionable=Object.values(builtin1192.doctrines||{}).filter(d=>['grand','track','subdoctrine'].includes(d?.kind));
-const metadata=Object.values(builtin1192.doctrines||{}).filter(d=>d?.kind==='legacy');
+const actionable=Object.values(builtin1192.doctrines||{});
+const metadata=Object.values(builtin1192.doctrineMetadata||{});
 assert.equal(actionable.length,112,'1.19.2 bundled doctrine node catalog is 9 grand + 14 tracks + 89 subdoctrines');
-assert.equal(metadata.length,36,'36 generic doctrine-labelled records are AI/folder metadata, not selectable doctrine nodes');
+assert.equal(metadata.length,36,'36 generic doctrine-labelled records are preserved separately as AI/folder metadata');
 assert.equal(actionable.filter(d=>d.kind==='grand').length,9);
 assert.equal(actionable.filter(d=>d.kind==='track').length,14);
 assert.equal(actionable.filter(d=>d.kind==='subdoctrine').length,89);
@@ -51,10 +51,12 @@ close(ma.supports.reg.supply,0.28,'Mass Assault infantry milestone supply_consum
 
 // Real Air source path: base Flying Artillery gives CAS +15% air defence; mastery 1 adds +10% CAS mission efficiency.
 const airState={grand:'operational_integrity',tracks:{fighter_aircraft:{choice:'tactical_flexibility',mastery:0},strike_aircraft:{choice:'flying_artillery',mastery:1},medium_aircraft:{choice:'bomber_interception',mastery:0},heavy_aircraft:{choice:'flying_fortresses',mastery:0}}};
-const design={size:'small',roles:['cas']},variant={airDefense:20,agility:50,airAttack:10,maxSpeed:500,range:800,groundAttack:15,navalAttack:0,reliability:0.8};
-const airApplied=applyAirDoctrineToVariant(variant,airState,builtin1192,design);
+const design={size:'small',roles:['cas'],airDefense:20,agility:50,airAttack:10,maxSpeed:500,range:800,groundAttack:15,navalAttack:0,reliability:0.8};
+const airApplied=applyAirDoctrineToVariant(design,airState,builtin1192);
 close(airApplied.airDefense,23,'Flying Artillery source base effect applies +15% CAS air defence');
-const airEffects=airDoctrineEffects(airState,builtin1192,design);
+const airEffects=airDoctrineEffects(airState,design,builtin1192);
 close(airEffects.mission.cas,0.1,'Flying Artillery mastery 1 applies source +10% CAS mission efficiency');
+assert.equal(airEffects.source,'game-pack');
+assert.ok(airEffects.used.includes('air_subdoctrine_flying_artillery'));
 
 console.log('Doctrine real-pack runtime certification passed.');

@@ -38,18 +38,40 @@ function prerequisiteTokens(raw){
   return [...found];
 }
 
-function technologyPaths(v){
+function technologyVariables(parsed){
+  const root=isObj(last(parsed?.technologies))?last(parsed.technologies):{},out={};
+  for(const [id,value] of Object.entries(root))if(String(id).startsWith('@'))out[id]=value;
+  return out;
+}
+function resolveTechnologyScalar(value,variables,seen=new Set()){
+  const raw=last(value);
+  if(typeof raw!=='string'||!raw.startsWith('@')||!Object.prototype.hasOwnProperty.call(variables||{},raw))return raw;
+  if(seen.has(raw))return raw;
+  const next=new Set(seen);next.add(raw);return resolveTechnologyScalar(variables[raw],variables,next);
+}
+function resolveTechnologyValue(value,variables){
+  if(Array.isArray(value))return value.map(x=>resolveTechnologyValue(x,variables));
+  if(isObj(value)){
+    const out={};for(const [key,item] of Object.entries(value))out[key]=resolveTechnologyValue(item,variables);return out;
+  }
+  return resolveTechnologyScalar(value,variables);
+}
+function technologyNum(value,variables){
+  const resolved=resolveTechnologyScalar(value,variables);return Number.isFinite(Number(resolved))?Number(resolved):undefined;
+}
+
+function technologyPaths(v,variables){
   return blockList(v).map(path=>({
-    leadsToTech:String(last(path.leads_to_tech)||''),
-    researchCostCoeff:num(path.research_cost_coeff)
+    leadsToTech:String(resolveTechnologyScalar(path.leads_to_tech,variables)||''),
+    researchCostCoeff:technologyNum(path.research_cost_coeff,variables)
   })).filter(path=>path.leadsToTech);
 }
 
-function technologyDependencies(v){
+function technologyDependencies(v,variables){
   const source=isObj(last(v))?last(v):{},out={};
   for(const [id,value] of Object.entries(source)){
     if(id==='__items')continue;
-    const parsed=num(value);out[id]=parsed===undefined?last(value):parsed;
+    const parsed=technologyNum(value,variables);out[id]=parsed===undefined?resolveTechnologyScalar(value,variables):parsed;
   }
   return out;
 }
@@ -58,21 +80,43 @@ function technologyGateTokens(raw){
   return [...new Set([...prerequisiteTokens(raw?.allow),...prerequisiteTokens(raw?.allow_branch)])];
 }
 
-export function extractTechnologies(parsed,sourceFile=''){
+const TECHNOLOGY_STRUCTURAL_KEYS=new Set([
+  'research_cost','start_year','year','categories','category','folder','path','dependencies','XOR','xor',
+  'enable_equipments','enable_equipment_modules','enable_subunits','sub_technologies','special_project_specialization','is_special_project_tech',
+  'allow','allow_branch','ai_will_do','ai_research_weights','xp_research_type','xp_boost_cost','xp_research_bonus',
+  'force_use_small_tech_layout','show_effect_as_desc','show_equipment_icon'
+]);
+function technologyDirectEffects(raw,variables){
   const out={};
+  for(const [key,value] of Object.entries(raw||{})){
+    if(key==='__items'||TECHNOLOGY_STRUCTURAL_KEYS.has(key)||key==='on_research_complete'||key==='on_research_complete_limit')continue;
+    out[key]=clean(resolveTechnologyValue(value,variables));
+  }
+  return out;
+}
+function technologyScriptedEffects(raw,variables){
+  return {
+    onResearchComplete:raw?.on_research_complete===undefined?null:clean(resolveTechnologyValue(raw.on_research_complete,variables)),
+    limit:raw?.on_research_complete_limit===undefined?null:clean(resolveTechnologyValue(raw.on_research_complete_limit,variables))
+  };
+}
+
+export function extractTechnologies(parsed,sourceFile=''){
+  const out={},variables=technologyVariables(parsed);
   for(const [id,raw0] of entries(parsed,'technologies')){
     // Script variables live beside technology definitions in HOI4 files. They are source constants, not technologies.
     if(String(id).startsWith('@'))continue;
     // Empty technology blocks are valid (for example fleet_submarines), so preserve them as real records.
-    const raw=isObj(last(raw0))?last(raw0):{},dependencies=technologyDependencies(raw.dependencies),xor=[...new Set([...items(raw.XOR),...items(raw.xor)])],gateTokens=technologyGateTokens(raw);
+    const raw=isObj(last(raw0))?last(raw0):{},dependencies=technologyDependencies(raw.dependencies,variables),xor=[...new Set([...items(raw.XOR),...items(raw.xor)])],gateTokens=technologyGateTokens(raw);
     out[id]={
-      id,sourceFile:String(sourceFile||''),folder:last(raw.folder),startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),
+      id,sourceFile:String(sourceFile||''),folder:last(raw.folder),startYear:technologyNum(raw.start_year??raw.year,variables),researchCost:technologyNum(raw.research_cost,variables),
       categories:[...new Set([...items(raw.category),...items(raw.categories)])],
       specialProjectSpecializations:items(raw.special_project_specialization),
-      paths:technologyPaths(raw.path),pathPrerequisites:[],dependencies,xor,
+      paths:technologyPaths(raw.path,variables),pathPrerequisites:[],dependencies,xor,
       enableEquipment:items(raw.enable_equipments),enableModules:items(raw.enable_equipment_modules),enableSubUnits:items(raw.enable_subunits),subTechnologies:items(raw.sub_technologies),
       isSpecialProjectTech:last(raw.is_special_project_tech)===true,
       requirements:{dependencies:Object.keys(dependencies),path:[],xor:[...xor],allow:raw.allow===undefined?null:clean(raw.allow),allowBranch:raw.allow_branch===undefined?null:clean(raw.allow_branch)},
+      directEffects:technologyDirectEffects(raw,variables),scriptedEffects:technologyScriptedEffects(raw,variables),
       prerequisites:[...new Set([...Object.keys(dependencies),...gateTokens])],raw:clean(raw)
     };
   }
@@ -173,6 +217,7 @@ export async function buildExtendedDataPack(files){
     else if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed,'legacy'));
   }
   normalizeTechnologyGraph(pack.technologies);
-  pack.meta={...(pack.meta||{}),technologyCount:Object.keys(pack.technologies).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,parserVersion:'0.15.0'};
+  const technologyRecords=Object.values(pack.technologies);
+  pack.meta={...(pack.meta||{}),technologyCount:technologyRecords.length,technologyDirectEffectCount:technologyRecords.filter(tech=>Object.keys(tech.directEffects||{}).length).length,technologyScriptedEffectCount:technologyRecords.filter(tech=>tech.scriptedEffects?.onResearchComplete!==null||tech.scriptedEffects?.limit!==null).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,parserVersion:'0.15.0'};
   return pack;
 }

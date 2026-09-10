@@ -1,0 +1,1 @@
+export default {"advanced_modern_tank_turret_tech":{"enableModules":["advanced_modern_tank_turret"]},"land_multi_charge_large_caliber_gun_tech":{},"commercial_nuclear_reactor_tech":{},"stronghold_network_tech":{},"isotope_separation_centrifugal":{},"thermonuclear_bombs":{}};

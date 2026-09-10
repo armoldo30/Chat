@@ -1,0 +1,34 @@
+name: MIO source mirror check
+on:
+  push:
+    branches: [audit-1.19.2]
+permissions:
+  contents: read
+jobs:
+  verify:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify candidate source mirror against 1.19.2 manifest
+        shell: python
+        run: |
+          import json, re, hashlib, urllib.request, urllib.parse
+          from pathlib import Path
+          text=Path('src/builtin1192/mio-source-manifest-1192.js').read_text()
+          manifest=json.loads(re.search(r'MIO_SOURCE_1192=(\{.*\});',text,re.S).group(1))
+          base='https://raw.githubusercontent.com/LostPatrol/Heart-of-Iron-IV-mod/master/mod1-CPMOD_C/common/military_industrial_organization/organizations/'
+          matches=[]; mismatches=[]; missing=[]
+          for name,meta in manifest['files'].items():
+              url=base+urllib.parse.quote(name)
+              try:
+                  data=urllib.request.urlopen(url,timeout=30).read()
+              except Exception as e:
+                  missing.append((name,str(e))); continue
+              got=hashlib.sha256(data).hexdigest()
+              (matches if got==meta['sha256'] else mismatches).append((name,got,meta['sha256']))
+          print('MIO_MIRROR_RESULT',json.dumps({'matches':len(matches),'mismatches':len(mismatches),'missing':len(missing)}))
+          for row in mismatches[:20]: print('MISMATCH',*row)
+          for row in missing[:20]: print('MISSING',*row)
+          if len(matches)!=manifest['fileCount']:
+              raise SystemExit(1)

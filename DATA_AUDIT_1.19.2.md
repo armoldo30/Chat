@@ -136,7 +136,7 @@ The following items were deferred from the land-data pass and handled in later d
 | Air equipment/modules | **PASS — 21 frames / 94 slot modules / 13 duplicate archetypes** | **PASS — exact field fingerprints + 43/43 mission blocks** | **PASS for source-slot and mission-profile hydration** | **Certified data layer** |
 | Technologies/requirements | **PASS — 552-ID/13-file inventory; exact payload boundary measured** | **PASS — 226 exact graph + 208 exact direct-effect records** | **PASS — informational requirements + all current core-land scalar mappings; other domains classified/deferred** | **Audit complete / bounded source certification** |
 | Doctrines | **PASS — 21 files / 121 doctrine nodes** | **PASS — 121/121 raw-record fingerprints** | **PASS for current Land/Air planner surfaces; unsupported formula paths explicitly deferred** | **Certified source layer / bounded runtime** |
-| MIOs | Not started | Not started | Not started | Pending |
+| MIOs | **PASS — 55 files / 552 declarations / 51 source variables; payload boundary explicit** | **PASS for recovered exact payload — 85 trait corrections / 3 removals; 24 equipment groups / 22 policies retained** | **PASS for inheritance/tree/equipment-filter and current equipment/production behavior; policy/global/exact executable semantics deferred** | **Audit complete / bounded source certification** |
 | Terrain/tactics/modifiers | Not started | Not started | Not started | Pending |
 | Defines | Not started | Not started | Not started | Pending |
 | Production formulas | Not started | Not started | Not started | Pending |
@@ -262,3 +262,20 @@ All Naval and Special Forces doctrine records are present and exact in the 121-r
 
 Permanent certification coverage is provided by `doctrine-parser-certification.test.mjs`, `doctrine-source-certification.test.mjs`, `doctrine-audit-coverage.test.mjs`, `doctrine-effect-coverage.test.mjs`, `doctrine-runtime-certification.test.mjs`, and the existing doctrine regression tests.
 
+## Phase 6 — Military Industrial Organizations
+
+Status: **PASS — audit complete with bounded source certification; current structural/equipment/production runtime certified as executable-inferred**
+
+The recovered source census covers **55 organization files / 552 source declarations / 51 file-local MIO variables** with per-file SHA-256 hashes and declaration counts. The compact bundle contains **429 organization records / 960 traits / 401 include relationships**, resolving to **456 runtime organizations** after the recovered source-correction and inheritance path. Source declarations and final runtime organization counts are intentionally kept as separate measurements.
+
+Five committed source-correction chunks provide the exact recoverable organization/trait payload boundary. They touch **120 organizations** and retain **85 exact corrected trait definitions / 3 exact `remove_trait` relationships**, plus recovered static-disabled flags, country fields, initial equipment restrictions, and trait equipment restrictions. Permanent CI verifies every recovered correction reaches the resolved runtime catalog and every recovered removal is applied after inheritance.
+
+The earlier **235 trait / 9 removal** assertion was an unverified intermediate target and failed. No sixth authoritative correction chunk exists in the recovered branch history, so the audit does not relabel that failed expectation as source evidence.
+
+Parser/runtime certification covers include inheritance, post-inheritance removal, any/all/N-of-parent tree prerequisites, mutual exclusion, static-disabled structural behavior, exact equipment-group targeting, and prevention of trait-effect leakage onto incompatible equipment. Country eligibility remains informational-only so theorycraft-valid organizations are not research/country locked.
+
+The recovered auxiliary source corpus also retains **24 MIO equipment groups** and **22 MIO policy records**. Equipment groups participate in current structural runtime filtering. Policies are source-preserved but their complete size/funds/research/availability/application lifecycle is explicitly deferred; the current planner does not invent that executable behavior.
+
+Current equipment and designed-variant MIO stat application, together with current production-factor helpers, is regression-tested and classified **Executable inferred**. Exact HOI4 production-line interaction, organization/funds/task mechanics, unsupported modifier families, naval runtime, and modifier ordering remain assigned to later production/defines/combat formula work.
+
+Detailed boundaries, recovered payload counts, rejected historical targets, runtime semantics, and explicit non-parity claims are recorded in `MIO_AUDIT_1.19.2.md`.

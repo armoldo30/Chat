@@ -186,19 +186,37 @@ export function extractEquipmentUpgrades(parsed){
 }
 
 // HOI4 1.19 uses common/doctrines/{grand_doctrines,tracks,subdoctrines} rather than the old technology-shaped doctrine tree.
-export function extractDoctrines(parsed,kind='unknown'){
+function doctrineGateTokens(raw){
+  return [...new Set([...prerequisiteTokens(raw?.available),...prerequisiteTokens(raw?.visible),...prerequisiteTokens(raw?.allowed)])];
+}
+export function extractDoctrines(parsed,kind='unknown',sourceFile=''){
   const out={};
   for(const [id,raw0] of entries(parsed)){
+    if(String(id).startsWith('@'))continue;
     const raw=isObj(last(raw0))?last(raw0):{};
     if(!Object.keys(raw).length)continue;
-    out[id]={id,kind,folder:last(raw.folder),track:last(raw.track),tracks:items(raw.tracks),xpCost:num(raw.xp_cost),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    const xor=items(raw.xor);
+    out[id]={id,kind,sourceFile:String(sourceFile||''),folder:last(raw.folder),track:last(raw.track),tracks:items(raw.tracks),xpCost:num(raw.xp_cost),xor,
+      requirements:{available:raw.available===undefined?null:clean(raw.available),visible:raw.visible===undefined?null:clean(raw.visible),allowed:raw.allowed===undefined?null:clean(raw.allowed),xor:[...xor]},
+      prerequisites:doctrineGateTokens(raw),raw:clean(raw)};
+  }
+  return out;
+}
+
+export function extractDoctrineMetadata(parsed,sourceFile=''){
+  const out={};
+  for(const [id,raw0] of entries(parsed)){
+    if(String(id).startsWith('@'))continue;
+    const raw=isObj(last(raw0))?last(raw0):{};
+    if(!Object.keys(raw).length)continue;
+    out[id]={id,kind:'metadata',sourceFile:String(sourceFile||''),raw:clean(raw)};
   }
   return out;
 }
 
 export async function buildExtendedDataPack(files){
   const list=[...files],pack=await buildDataPack(list);
-  pack.technologies=pack.technologies||{};pack.combatTactics=pack.combatTactics||{};pack.modifiers=pack.modifiers||{};pack.specialProjects=pack.specialProjects||{};pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};
+  pack.technologies=pack.technologies||{};pack.combatTactics=pack.combatTactics||{};pack.modifiers=pack.modifiers||{};pack.specialProjects=pack.specialProjects||{};pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};pack.doctrineMetadata=pack.doctrineMetadata||{};
   for(const file of list){
     const sourceFile=String(file.webkitRelativePath||file.name||'');
     const path=sourceFile.replaceAll('\\','/').toLowerCase();
@@ -211,13 +229,13 @@ export async function buildExtendedDataPack(files){
     if(path.includes('/modifier_definition'))merge(pack.modifiers,extractModifierDefinitions(parsed));
     if(path.includes('/special_project'))merge(pack.specialProjects,extractSpecialProjects(parsed));
     if(path.includes('/equipment/upgrades'))merge(pack.equipmentUpgrades,extractEquipmentUpgrades(parsed));
-    if(path.includes('/doctrines/grand_doctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'grand'));
-    else if(path.includes('/doctrines/tracks/'))merge(pack.doctrines,extractDoctrines(parsed,'track'));
-    else if(path.includes('/doctrines/subdoctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine'));
-    else if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed,'legacy'));
+    if(path.includes('/doctrines/grand_doctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'grand',sourceFile));
+    else if(path.includes('/doctrines/tracks/'))merge(pack.doctrines,extractDoctrines(parsed,'track',sourceFile));
+    else if(path.includes('/doctrines/subdoctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine',sourceFile));
+    else if(path.includes('/doctrine'))merge(pack.doctrineMetadata,extractDoctrineMetadata(parsed,sourceFile));
   }
   normalizeTechnologyGraph(pack.technologies);
   const technologyRecords=Object.values(pack.technologies);
-  pack.meta={...(pack.meta||{}),technologyCount:technologyRecords.length,technologyDirectEffectCount:technologyRecords.filter(tech=>Object.keys(tech.directEffects||{}).length).length,technologyScriptedEffectCount:technologyRecords.filter(tech=>tech.scriptedEffects?.onResearchComplete!==null||tech.scriptedEffects?.limit!==null).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,parserVersion:'0.15.0'};
+  pack.meta={...(pack.meta||{}),technologyCount:technologyRecords.length,technologyDirectEffectCount:technologyRecords.filter(tech=>Object.keys(tech.directEffects||{}).length).length,technologyScriptedEffectCount:technologyRecords.filter(tech=>tech.scriptedEffects?.onResearchComplete!==null||tech.scriptedEffects?.limit!==null).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,doctrineMetadataCount:Object.keys(pack.doctrineMetadata).length,parserVersion:'0.15.0'};
   return pack;
 }

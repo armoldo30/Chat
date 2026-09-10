@@ -93,7 +93,7 @@ function mergeEffect(target,effect){
 }
 
 const DOCTRINE_META_KEYS=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
-const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],maximum_speed:['speed','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','mult']};
+const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],maximum_speed:['speed','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','flat']};
 const IMPORTED_GLOBAL_MAP={land_night_attack:'nightAttack',max_dig_in_factor:'entrenchment',planning_speed:'planningSpeed',max_planning:'maxPlanning',army_speed_factor:'armySpeed',supply_consumption_factor:'supply'};
 const importedGrandId=(state,folder,pack)=>{const ids=folder==='air'?[`new_${state.grand}`,state.grand]:[state.grand,`new_${state.grand}`];return ids.find(id=>pack?.doctrines?.[id]?.kind==='grand')||ids.find(id=>pack?.doctrines?.[id])||null;};
 const importedSubDoctrineId=(choice,folder,pack)=>{const ids=folder==='air'?[`air_subdoctrine_${choice}`,choice]:[choice];return ids.find(id=>pack?.doctrines?.[id]?.kind==='subdoctrine')||ids.find(id=>pack?.doctrines?.[id])||null;};

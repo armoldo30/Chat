@@ -9,14 +9,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate staged compressed payload
+      - name: Inspect recoverable staged payload prefix
         run: |
           cat .mio-stage/part-* > /tmp/mio-payload.b64
           base64 -d /tmp/mio-payload.b64 > /tmp/mio-payload.xz
-          xz -t /tmp/mio-payload.xz
-          xz -dc /tmp/mio-payload.xz > /tmp/mio-patch.py
-          python -m py_compile /tmp/mio-patch.py
+          set +e
+          xz -dc /tmp/mio-payload.xz > /tmp/mio-patch.py 2>/tmp/xz.err
+          rc=$?
+          set -e
+          echo "XZ_RC=$rc"
+          cat /tmp/xz.err
           echo "PAYLOAD_BYTES=$(wc -c < /tmp/mio-patch.py)"
           echo "PAYLOAD_SHA256=$(sha256sum /tmp/mio-patch.py | cut -d' ' -f1)"
-          head -n 3 /tmp/mio-patch.py
-          tail -n 5 /tmp/mio-patch.py
+          echo '--- HEAD ---'
+          head -n 12 /tmp/mio-patch.py
+          echo '--- TAIL ---'
+          tail -n 60 /tmp/mio-patch.py

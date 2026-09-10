@@ -28,13 +28,31 @@ import moduleSlotCategories1192 from './builtin1192/module-slot-categories-1192.
 import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-1192.js';
 import airMissionTypeStats1192, { AIR_MISSION_SOURCE_1192 } from './builtin1192/air-mission-type-stats-1192.js';
 import airDuplicateArchetypes1192, { AIR_DUPLICATE_SOURCE_1192 } from './builtin1192/duplicate-archetypes-air-1192.js';
+import technologySource1192 from './builtin1192/technology-source-manifest-1192.js';
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
 import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
+import { extractTechnologies } from './gameDataParser.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
+
+// The original bundled extended pack was generated before the technology census was audited. Re-normalize its preserved raw technology blocks with the certified extractor so script constants are not exposed as fake technologies and graph/unlock fields are explicit at runtime.
+const bundledTechnologyRecordCount=Object.keys(BUILTIN_1192.technologies||{}).length;
+const technologySourceFileById={};
+for(const [sourceFile,source] of Object.entries(technologySource1192.files||{}))for(const id of source.ids||[])technologySourceFileById[id]=sourceFile;
+const normalizedTechnologies={};
+for(const [id,record] of Object.entries(BUILTIN_1192.technologies||{})){
+  if(String(id).startsWith('@'))continue;
+  const parsed=extractTechnologies({technologies:{[id]:record?.raw||{}}},technologySourceFileById[id]||'');
+  if(parsed[id])normalizedTechnologies[id]=parsed[id];
+}
+const expectedTechnologyIds=Object.values(technologySource1192.files||{}).flatMap(source=>source.ids||[]).sort();
+const actualTechnologyIds=Object.keys(normalizedTechnologies).sort();
+if(expectedTechnologyIds.length!==technologySource1192.recordCount||actualTechnologyIds.length!==expectedTechnologyIds.length||actualTechnologyIds.some((id,i)=>id!==expectedTechnologyIds[i]))throw new Error(`HOI4 1.19.2 technology inventory mismatch: expected ${expectedTechnologyIds.length}, got ${actualTechnologyIds.length}`);
+BUILTIN_1192.technologies=normalizedTechnologies;
+
 BUILTIN_1192.modules={...(BUILTIN_1192.modules||{}),...tankModulesA,...tankModulesB};
 for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
   const module=BUILTIN_1192.modules?.[id];if(!module)continue;
@@ -82,5 +100,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true,technologyCount:actualTechnologyIds.length,technologySourceFileCount:technologySource1192.fileCount,technologySourceRecordCount:technologySource1192.recordCount,technologyScriptVariableRecordsRemoved:bundledTechnologyRecordCount-actualTechnologyIds.length,technologySourceInventoryCertified:true,technologyGraphNormalized:true};
 export default BUILTIN_1192;

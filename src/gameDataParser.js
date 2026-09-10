@@ -14,6 +14,7 @@ const entries=(parsed,key)=>{
   return Object.entries(root).filter(([k])=>k!=='__items');
 };
 const merge=(target,source)=>{for(const [k,v] of Object.entries(source||{}))target[k]=v;return target;};
+const blockList=v=>Array.isArray(v)?v.filter(isObj):isObj(v)?[v]:[];
 
 function prerequisiteTokens(raw){
   const found=new Set();
@@ -37,11 +38,38 @@ function prerequisiteTokens(raw){
   return [...found];
 }
 
-export function extractTechnologies(parsed){
+function technologyPaths(v){
+  return blockList(v).map(path=>({
+    leadsToTech:String(last(path.leads_to_tech)||''),
+    researchCostCoeff:num(path.research_cost_coeff)
+  })).filter(path=>path.leadsToTech);
+}
+
+function technologyDependencies(v){
+  const source=isObj(last(v))?last(v):{},out={};
+  for(const [id,value] of Object.entries(source)){
+    if(id==='__items')continue;
+    const parsed=num(value);out[id]=parsed===undefined?last(value):parsed;
+  }
+  return out;
+}
+
+export function extractTechnologies(parsed,sourceFile=''){
   const out={};
   for(const [id,raw0] of entries(parsed,'technologies')){
+    // Script variables live beside technology definitions in HOI4 files. They are source constants, not technologies.
+    if(String(id).startsWith('@'))continue;
+    // Empty technology blocks are valid (for example fleet_submarines), so preserve them as real records.
     const raw=isObj(last(raw0))?last(raw0):{};
-    out[id]={id,startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),categories:[...new Set([...items(raw.category),...items(raw.categories)])],prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    out[id]={
+      id,sourceFile:String(sourceFile||''),folder:last(raw.folder),startYear:num(raw.start_year??raw.year),researchCost:num(raw.research_cost),
+      categories:[...new Set([...items(raw.category),...items(raw.categories)])],
+      specialProjectSpecializations:items(raw.special_project_specialization),
+      paths:technologyPaths(raw.path),dependencies:technologyDependencies(raw.dependencies),xor:[...new Set([...items(raw.XOR),...items(raw.xor)])],
+      enableEquipment:items(raw.enable_equipments),enableModules:items(raw.enable_equipment_modules),enableSubUnits:items(raw.enable_subunits),subTechnologies:items(raw.sub_technologies),
+      isSpecialProjectTech:last(raw.is_special_project_tech)===true,
+      prerequisites:prerequisiteTokens(raw),raw:clean(raw)
+    };
   }
   return out;
 }
@@ -104,12 +132,13 @@ export async function buildExtendedDataPack(files){
   const list=[...files],pack=await buildDataPack(list);
   pack.technologies=pack.technologies||{};pack.combatTactics=pack.combatTactics||{};pack.modifiers=pack.modifiers||{};pack.specialProjects=pack.specialProjects||{};pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};
   for(const file of list){
-    const path=String(file.webkitRelativePath||file.name||'').replaceAll('\\','/').toLowerCase();
+    const sourceFile=String(file.webkitRelativePath||file.name||'');
+    const path=sourceFile.replaceAll('\\','/').toLowerCase();
     if(!/\.(txt|gui|asset)$/i.test(file.name||path))continue;
     const relevant=path.includes('/technolog')||path.includes('/combat_tactic')||path.includes('/modifier_definition')||path.includes('/special_project')||path.includes('/equipment/upgrades')||path.includes('/doctrine');
     if(!relevant)continue;
     let parsed;try{parsed=parseClausewitz(await file.text());}catch{continue;}
-    if(path.includes('/technolog'))merge(pack.technologies,extractTechnologies(parsed));
+    if(path.includes('/technolog'))merge(pack.technologies,extractTechnologies(parsed,sourceFile));
     if(path.includes('/combat_tactic'))merge(pack.combatTactics,extractCombatTactics(parsed));
     if(path.includes('/modifier_definition'))merge(pack.modifiers,extractModifierDefinitions(parsed));
     if(path.includes('/special_project'))merge(pack.specialProjects,extractSpecialProjects(parsed));

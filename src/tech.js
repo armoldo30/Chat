@@ -62,13 +62,14 @@ function doctrineMult(unit,profile){
 const TECHNOLOGY_UNIT_FACTOR_FIELDS={
   soft_attack:'soft',hard_attack:'hard',defence:'def',defense:'def',breakthrough:'breakthrough',air_attack:'airAttack',supply_consumption_factor:'supply'
 };
-function technologyTargetMatches(unit,targetId){
+function technologyTargetMatches(unit,targetId,pack){
   if(!unit||!targetId)return false;
-  // HOI4 technology targets refer source sub-unit IDs. Hydrated planner aliases can collide with different source IDs
-  // (for example planner `artillery` = source `artillery_brigade`, while source `artillery` is support artillery).
+  // Technology effect keys occupy distinct source namespaces. If the key names a real sub-unit, only that source
+  // gameId may match it. This prevents collisions such as source sub-unit `artillery` vs the broad type `artillery`.
+  if(pack?.subUnits?.[targetId])return unit.gameId===targetId;
+  if(String(targetId).startsWith('category_'))return (unit.categories||[]).includes(targetId);
   if(unit.gameId===targetId)return true;
   if(!unit.gameId&&unit.id===targetId)return true;
-  if((unit.categories||[]).includes(targetId)||(unit.types||[]).includes(targetId))return true;
   return false;
 }
 
@@ -84,7 +85,7 @@ export function applySelectedTechnologyEffects(battalions,supports,pack,technolo
     const effects=tech.directEffects&&typeof tech.directEffects==='object'?tech.directEffects:{};let techApplied=false;
     for(const [targetId,block] of Object.entries(effects)){
       if(!block||typeof block!=='object'||Array.isArray(block))continue;
-      const matched=units.filter(unit=>technologyTargetMatches(unit,targetId));
+      const matched=units.filter(unit=>technologyTargetMatches(unit,targetId,pack));
       if(!matched.length)continue;
       for(const [sourceField,value] of Object.entries(block)){
         const targetField=TECHNOLOGY_UNIT_FACTOR_FIELDS[sourceField],amount=Number(value);

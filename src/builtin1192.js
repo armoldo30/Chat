@@ -29,6 +29,8 @@ import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-119
 import airMissionTypeStats1192, { AIR_MISSION_SOURCE_1192 } from './builtin1192/air-mission-type-stats-1192.js';
 import airDuplicateArchetypes1192, { AIR_DUPLICATE_SOURCE_1192 } from './builtin1192/duplicate-archetypes-air-1192.js';
 import technologySource1192 from './builtin1192/technology-source-manifest-1192.js';
+import doctrineSource1192 from './builtin1192/doctrine-source-manifest-1192.js';
+import doctrineSourceSupplement1192 from './builtin1192/doctrine-source-supplement-1192.js';
 import technologyGraphIndustry1192 from './builtin1192/technology-graph-industry-1192.js';
 import technologyGraphSupport1192 from './builtin1192/technology-graph-support-1192.js';
 import technologyGraphInfantry1192 from './builtin1192/technology-graph-infantry-1192.js';
@@ -46,6 +48,10 @@ export const BUILTIN_1192=JSON.parse(text);
 const bundledDoctrineMetadata={};
 for(const [id,record] of Object.entries(BUILTIN_1192.doctrines||{}))if(record?.kind==='legacy'){bundledDoctrineMetadata[id]={...record,kind:'metadata'};delete BUILTIN_1192.doctrines[id];}
 BUILTIN_1192.doctrineMetadata={...(BUILTIN_1192.doctrineMetadata||{}),...bundledDoctrineMetadata};
+BUILTIN_1192.doctrines={...(BUILTIN_1192.doctrines||{}),...doctrineSourceSupplement1192};
+const expectedDoctrineIds=Object.values(doctrineSource1192.files||{}).flatMap(source=>source.ids||[]).sort();
+const actualDoctrineIds=Object.keys(BUILTIN_1192.doctrines||{}).sort();
+if(expectedDoctrineIds.length!==doctrineSource1192.recordCount||actualDoctrineIds.length!==expectedDoctrineIds.length||actualDoctrineIds.some((id,i)=>id!==expectedDoctrineIds[i]))throw new Error(`HOI4 1.19.2 doctrine inventory mismatch: expected ${expectedDoctrineIds.length}, got ${actualDoctrineIds.length}`);
 
 // The original bundled extended pack was generated before the technology census was audited. Re-normalize what survived compaction, then overlay exact source-derived graph/unlock slices and direct effects for planner-relevant technology files.
 const bundledTechnologyRecordCount=Object.keys(BUILTIN_1192.technologies||{}).length;
@@ -123,5 +129,5 @@ const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
 BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true,technologyCount:actualTechnologyIds.length,technologySourceFileCount:technologySource1192.fileCount,technologySourceRecordCount:technologySource1192.recordCount,technologyScriptVariableRecordsRemoved:bundledTechnologyRecordCount-actualTechnologyIds.length,technologySourceInventoryCertified:true,technologyGraphNormalized:true,technologyGraphSourceRestoredCount:Object.keys(technologyGraph1192).length,technologyEffectSourceRestoredCount:Object.keys(technologyEffects1192).length,technologyEffectSourceCounts:{...TECHNOLOGY_EFFECT_SOURCE_COUNTS_1192}};
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),doctrineCount:Object.keys(BUILTIN_1192.doctrines||{}).length,doctrineMetadataCount:Object.keys(BUILTIN_1192.doctrineMetadata||{}).length,doctrineNodeCatalogSeparated:true};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),doctrineCount:actualDoctrineIds.length,doctrineMetadataCount:Object.keys(BUILTIN_1192.doctrineMetadata||{}).length,doctrineNodeCatalogSeparated:true,doctrineSourceFileCount:doctrineSource1192.fileCount,doctrineSourceRecordCount:doctrineSource1192.recordCount,doctrineSourceInventoryCertified:true};
 export default BUILTIN_1192;

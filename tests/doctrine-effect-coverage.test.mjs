@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import builtin1192 from '../src/builtin1192.js';
 
-const LAND_UNIT_FIELDS=new Set(['soft_attack','hard_attack','defense','breakthrough','ap_attack','air_attack','maximum_speed','max_organisation','max_strength','combat_width','supply_consumption']);
-const LAND_GLOBAL_FIELDS=new Set(['land_night_attack','max_dig_in_factor','planning_speed','max_planning','army_speed_factor','supply_consumption_factor']);
+const LAND_UNIT_FIELDS=new Set(['soft_attack','hard_attack','defense','breakthrough','ap_attack','air_attack','max_organisation','max_strength','combat_width','supply_consumption']);
+const LAND_GLOBAL_FIELDS=new Set(['land_night_attack','supply_consumption_factor']);
 const AIR_UNIT_FIELDS=new Set(['air_agility','air_attack','air_defence','maximum_speed','air_range','air_ground_attack','naval_strike_attack','reliability']);
-const AIR_GLOBAL_FIELDS=new Set(['air_superiority_efficiency','air_cas_efficiency','air_cas_present_factor','air_nav_efficiency','air_superiority_detect_factor','air_interception_detect_factor']);
+const AIR_GLOBAL_FIELDS=new Set(['air_superiority_efficiency','air_cas_efficiency','air_nav_efficiency','air_mission_efficiency','ground_attack_factor','air_range_factor','air_fuel_consumption_factor','air_strategic_bomber_defence_factor']);
 const META=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
 const inc=(o,k,n=1)=>{o[k]=(o[k]||0)+n;};
 const summary={land:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},air:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},specialForces:{nodes:0},naval:{nodes:0}};

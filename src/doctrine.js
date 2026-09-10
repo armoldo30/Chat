@@ -93,8 +93,9 @@ function mergeEffect(target,effect){
 }
 
 const DOCTRINE_META_KEYS=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
-const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],maximum_speed:['speed','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','flat']};
-const IMPORTED_GLOBAL_MAP={land_night_attack:'nightAttack',max_dig_in_factor:'entrenchment',planning_speed:'planningSpeed',max_planning:'maxPlanning',army_speed_factor:'armySpeed',supply_consumption_factor:'supply'};
+const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','flat']};
+// Only modifiers with audited planner consumption are mapped. Planning accumulation, maximum entrenchment, movement speed and similar fields remain source-exact metadata until their formula audits.
+const IMPORTED_GLOBAL_MAP={land_night_attack:'nightAttack',supply_consumption_factor:'supply'};
 const importedGrandId=(state,folder,pack)=>{const ids=folder==='air'?[`new_${state.grand}`,state.grand]:[state.grand,`new_${state.grand}`];return ids.find(id=>pack?.doctrines?.[id]?.kind==='grand')||ids.find(id=>pack?.doctrines?.[id])||null;};
 const importedSubDoctrineId=(choice,folder,pack)=>{const ids=folder==='air'?[`air_subdoctrine_${choice}`,choice]:[choice];return ids.find(id=>pack?.doctrines?.[id]?.kind==='subdoctrine')||ids.find(id=>pack?.doctrines?.[id])||null;};
 function importedUnitScopeMatches(scope,id,unit){
@@ -130,7 +131,10 @@ function importedLandDoctrineApply(battalions,supports,raw,pack){
     const rewards=Object.values(doc.raw.rewards||{});for(let i=0;i<Math.min(t.mastery,rewards.length);i++)applyImportedLandNode(rewards[i],b,s,global,mods);
     if(t.mastery>=5&&grand?.raw){const order=Array.isArray(grand.tracks)&&grand.tracks.length?grand.tracks:Array.isArray(grand.raw.tracks)?grand.raw.tracks:[];const idx=order.indexOf(track),milestones=Array.isArray(grand.raw.milestones)?grand.raw.milestones:[];if(idx>=0&&milestones[idx])applyImportedLandNode(milestones[idx],b,s,global,mods);}
   }
-  applyCollectedImportedUnitMods(mods);return {battalions:b,supports:s,state,global,source:'game-pack',used};
+  applyCollectedImportedUnitMods(mods);
+  // Global supply factor applies after flat sub-unit supply changes.
+  if(Number.isFinite(Number(global.supply))&&global.supply!==0)for(const unit of [...Object.values(b),...Object.values(s)])if(Number.isFinite(Number(unit?.supply)))unit.supply=Math.max(0,Number(unit.supply)*(1+global.supply));
+  return {battalions:b,supports:s,state,global,source:'game-pack',used};
 }
 
 export function landDoctrineEffects(raw,pack=null){
@@ -229,22 +233,49 @@ const AIR_REWARDS={
 export function normalizeAirDoctrine(raw){const src=raw&&typeof raw==='object'?raw:{},out=clone(DEFAULT_AIR_DOCTRINE);if(AIR_GRAND_DOCTRINES[src.grand])out.grand=src.grand;for(const [track,meta] of Object.entries(AIR_DOCTRINE_TRACKS)){const t=src.tracks?.[track]||{},allowed=new Set(meta.choices.map(x=>x[0]));if(allowed.has(t.choice))out.tracks[track].choice=t.choice;out.tracks[track].mastery=Math.max(0,Math.min(5,Math.floor(Number(t.mastery??0))));}return out;}
 function addFlatBonus(target,src){for(const [k,v] of Object.entries(src||{}))target[k]=(target[k]||0)+(Number(v)||0);return target;}
 const IMPORTED_AIR_STAT_MAP={air_agility:'agility',air_attack:'airAttack',air_defence:'airDefense',maximum_speed:'maxSpeed',air_range:'range',air_ground_attack:'groundAttack',naval_strike_attack:'navalAttack',reliability:'reliability'};
-function importedAirScopeMatches(scope,design){const roles=design?.roles||[],size=design?.size;return scope==='category_all_aircraft'||(scope==='category_fighter'&&roles.includes('fighter'))||(scope==='category_cas'&&roles.includes('cas'))||(scope==='category_naval_bomber'&&roles.includes('naval_bomber'))||(scope==='category_heavy_fighter'&&size==='medium'&&roles.includes('fighter'))||(scope==='tac_bomber'&&size==='medium')||(scope==='strat_bomber'&&size==='large');}
+function importedAirScopeMatches(scope,design){
+  const roles=new Set(design?.roles||[]),types=new Set(design?.equipmentTypes||[]),size=design?.size,carrier=!!design?.carrier,typed=types.size>0;
+  if(scope==='category_all_aircraft')return true;
+  if(scope==='category_fighter')return types.has('fighter')||(!typed&&roles.has('fighter')&&size==='small');
+  if(scope==='category_carrier_fighter')return carrier&&(types.has('fighter')||(!typed&&roles.has('fighter')));
+  if(scope==='category_heavy_fighter')return types.has('heavy_fighter')||(!typed&&roles.has('fighter')&&size==='medium');
+  if(scope==='category_cas')return types.has('cas')||(!typed&&roles.has('cas'));
+  if(scope==='category_carrier_cas')return carrier&&(types.has('cas')||(!typed&&roles.has('cas')));
+  if(scope==='category_nav_bomber')return types.has('naval_bomber')||(!typed&&roles.has('naval_bomber'));
+  if(scope==='category_carrier_nav_bomber')return carrier&&(types.has('naval_bomber')||(!typed&&roles.has('naval_bomber')));
+  if(scope==='category_maritime_patrol_bomber')return types.has('maritime_patrol_plane')||(!typed&&roles.has('naval_bomber')&&size!=='small');
+  if(scope==='category_tac_bomber')return types.has('tactical_bomber')||(!typed&&roles.has('tactical_bomber'));
+  if(scope==='category_strat_bomber')return types.has('strategic_bomber')||(!typed&&roles.has('strategic_bomber'));
+  if(scope==='category_scout_plane')return types.has('scout_plane')||(!typed&&roles.has('recon'));
+  return false;
+}
 function applyImportedAirNode(node,design,variant,mission,ctx){
   if(!node||typeof node!=='object'||Array.isArray(node))return;
   for(const [key,value] of Object.entries(node)){
     if(DOCTRINE_META_KEYS.has(key))continue;
-    if(Number.isFinite(Number(value))){const v=Number(value);if(key==='air_superiority_efficiency')mission.air_superiority=(mission.air_superiority||0)+v;else if(key==='air_cas_efficiency'||key==='air_cas_present_factor')mission.cas=(mission.cas||0)+v;else if(key==='air_nav_efficiency')mission.naval_strike=(mission.naval_strike||0)+v;else if(key==='air_superiority_detect_factor'||key==='air_interception_detect_factor')ctx.detection+=v;continue;}
+    if(Number.isFinite(Number(value))){
+      const v=Number(value);
+      if(key==='air_superiority_efficiency')mission.air_superiority=(mission.air_superiority||0)+v;
+      else if(key==='air_cas_efficiency')mission.cas=(mission.cas||0)+v;
+      else if(key==='air_nav_efficiency')mission.naval_strike=(mission.naval_strike||0)+v;
+      else if(key==='air_mission_efficiency'){for(const missionId of ['air_superiority','cas','naval_strike'])mission[missionId]=(mission[missionId]||0)+v;}
+      else if(key==='ground_attack_factor')variant.groundAttack=(variant.groundAttack||0)+v;
+      else if(key==='air_range_factor')variant.range=(variant.range||0)+v;
+      else if(key==='air_fuel_consumption_factor')variant.fuelConsumption=(variant.fuelConsumption||0)+v;
+      else if(key==='air_strategic_bomber_defence_factor'&&((design?.equipmentTypes||[]).includes('strategic_bomber')||(design?.roles||[]).includes('strategic_bomber')))variant.airDefense=(variant.airDefense||0)+v;
+      // Detection modifiers are mission-specific and air_cas_present_factor belongs to land-combat CAS resolution. They remain source-exact metadata until those formula paths are modeled.
+      continue;
+    }
     if(!value||typeof value!=='object'||Array.isArray(value)||!importedAirScopeMatches(key,design))continue;
     for(const [src,dst] of Object.entries(IMPORTED_AIR_STAT_MAP)){const v=Number(value[src]);if(Number.isFinite(v)&&v!==0)variant[dst]=(variant[dst]||0)+v;}
   }
 }
 function importedAirDoctrineEffects(raw,design,pack){
-  const state=normalizeAirDoctrine(raw),variant={},mission={},ctx={detection:0},used=[];const grandId=importedGrandId(state,'air',pack),grand=grandId?pack.doctrines[grandId]:null;
+  const state=normalizeAirDoctrine(raw),variant={},mission={},ctx={},used=[];const grandId=importedGrandId(state,'air',pack),grand=grandId?pack.doctrines[grandId]:null;
   if(grand?.raw){applyImportedAirNode(grand.raw,design,variant,mission,ctx);used.push(grandId);}
-  const relevant=[];if(design?.size==='large')relevant.push('heavy_aircraft');else if(design?.size==='medium')relevant.push('medium_aircraft');else relevant.push('fighter_aircraft');if(design?.roles?.some(x=>['cas','naval_bomber'].includes(x)))relevant.push('strike_aircraft');
-  for(const track of [...new Set(relevant)]){const t=state.tracks[track],id=importedSubDoctrineId(t.choice,'air',pack),doc=id?pack.doctrines[id]:null;if(!doc?.raw)continue;used.push(id);applyImportedAirNode(doc.raw,design,variant,mission,ctx);const rewards=Object.values(doc.raw.rewards||{});for(let i=0;i<Math.min(t.mastery,rewards.length);i++)applyImportedAirNode(rewards[i],design,variant,mission,ctx);if(t.mastery>=5&&grand?.raw){const order=Array.isArray(grand.tracks)&&grand.tracks.length?grand.tracks:Array.isArray(grand.raw.tracks)?grand.raw.tracks:[];const idx=order.indexOf(track),milestones=Array.isArray(grand.raw.milestones)?grand.raw.milestones:[];if(idx>=0&&milestones[idx])applyImportedAirNode(milestones[idx],design,variant,mission,ctx);}}
-  return {state,variant,mission,detection:ctx.detection,source:'game-pack',used};
+  // All selected tracks can contain global modifiers. Category blocks filter themselves against this aircraft.
+  for(const [track,t] of Object.entries(state.tracks)){const id=importedSubDoctrineId(t.choice,'air',pack),doc=id?pack.doctrines[id]:null;if(!doc?.raw)continue;used.push(id);applyImportedAirNode(doc.raw,design,variant,mission,ctx);const rewards=Object.values(doc.raw.rewards||{});for(let i=0;i<Math.min(t.mastery,rewards.length);i++)applyImportedAirNode(rewards[i],design,variant,mission,ctx);if(t.mastery>=5&&grand?.raw){const order=Array.isArray(grand.tracks)&&grand.tracks.length?grand.tracks:Array.isArray(grand.raw.tracks)?grand.raw.tracks:[];const idx=order.indexOf(track),milestones=Array.isArray(grand.raw.milestones)?grand.raw.milestones:[];if(idx>=0&&milestones[idx])applyImportedAirNode(milestones[idx],design,variant,mission,ctx);}}
+  return {state,variant,mission,detection:0,source:'game-pack',used};
 }
 export function airDoctrineEffects(raw,design,pack=null){
   if(pack?.doctrines&&Object.keys(pack.doctrines).length)return importedAirDoctrineEffects(raw,design,pack);

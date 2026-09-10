@@ -1,0 +1,28 @@
+name: Tank Family Probe
+on:
+  push:
+    branches: [audit-1.19.2]
+    paths: ['.github/workflows/audit-tank-family-probe.yml']
+permissions:
+  contents: read
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 24 }
+      - name: Probe extended families
+        run: |
+          node --input-type=module <<'JS'
+          import B from './src/builtin1192.js';
+          import { resolveEquipment } from './src/parser.js';
+          import { hydrateGameData } from './src/gameData.js';
+          const R=resolveEquipment(B.equipment);
+          const ids=['modern_tank_chassis','modern_tank_chassis_1','super_heavy_tank_chassis','super_heavy_tank_chassis_1','amphibious_tank_chassis','amphibious_tank_chassis_1','land_cruiser_chassis','land_cruiser_chassis_1','land_cruiser_equipment_1'];
+          for(const id of ids){const e=R[id];console.log('EQUIP',id,JSON.stringify(e?{year:e.year,types:e.types,archetype:e.archetype,cost:e.cost,armor:e.armor,hardness:e.hardness,speed:e.speed,reliability:e.reliability,upgrades:e.upgrades,slots:e.moduleSlots}:null));}
+          const battalions={},supports={},equipment={},terrain={};hydrateGameData(B,{battalions,supports,equipment,terrain},{year:1950});
+          for(const id of ['modern_armor','modern_tank_destroyer_brigade','modern_sp_artillery_brigade','modern_sp_anti_air_brigade','super_heavy_armor','super_heavy_tank_destroyer_brigade','super_heavy_sp_artillery_brigade','super_heavy_sp_anti_air_brigade','amphibious_armor','land_cruiser'])console.log('UNIT',id,JSON.stringify({battalion:battalions[id]||null,support:supports[id]||null}));
+          const lcmods=Object.values(B.modules).filter(m=>String(m.category||'').startsWith('lc_')||String(m.id||'').startsWith('lc_'));
+          console.log('LC_MODS',JSON.stringify(lcmods.map(m=>({id:m.id,category:m.category,add:m.addStats,mult:m.multiplyStats,avg:m.addAverageStats,resources:m.resources,allow:m.allowEquipmentType,forbid:m.forbidEquipmentType,raw:m.raw})).sort((a,b)=>a.id.localeCompare(b.id))));
+          JS

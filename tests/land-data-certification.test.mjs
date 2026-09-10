@@ -8,7 +8,8 @@ import { configureTankDataPack, defaultTankDesign, applyTankDesignToBattalion } 
 assert.equal(B.meta.gameVersion,'1.19.2');
 assert.equal(Object.keys(B.subUnits).length,121,'division-template/support source scope must remain complete');
 assert.equal(Object.values(B.equipment).filter(x=>!x?.duplicateOf).length,218,'218 static planner-scope equipment records are source-backed');
-assert.equal(Object.keys(B.duplicateArchetypes||{}).length,21,'all 21 tank duplicate_archetypes definitions must be preserved');
+const tankDuplicateArchetypes=Object.values(B.duplicateArchetypes||{}).filter(x=>/(?:^|_)tank_chassis$/.test(String(x?.archetype||'')));
+assert.equal(tankDuplicateArchetypes.length,21,'all 21 tank duplicate_archetypes definitions must be preserved independently of other designer families');
 assert.equal(Object.values(B.equipment).filter(x=>x?.duplicateOf).length,87,'tank duplicate_archetypes must materialize 87 engine-generated records');
 assert.equal(Object.keys(B.equipment).length,305);
 for(const id of ['motorbike_equipment_1','land_cruiser_chassis_1','land_cruiser_equipment_1'])assert.ok(B.equipment[id],`${id} must be bundled`);

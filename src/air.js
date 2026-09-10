@@ -164,6 +164,43 @@ function buildFallbackAirDesign(raw){
 
 export function buildAirDesign(raw){return PACK_MODE?buildImportedAirDesign(raw):buildFallbackAirDesign(raw);}
 
+const AIR_MISSION_IDS={
+  air_superiority:['air_superiority'],cas:['close_air_support'],naval_strike:['naval_bomber'],interception:['interception'],
+  strategic_bombing:['strategic_bomber'],port_strike:['port_strike'],logistics_strike:['attack_logistics'],naval_patrol:['naval_patrol'],
+  minelaying:['naval_mines_planting'],kamikaze:['naval_kamikaze']
+};
+const AIR_MISSION_STAT_MAP={
+  air_attack:'airAttack',air_defence:'airDefense',air_agility:'agility',maximum_speed:'maxSpeed',air_range:'range',air_ground_attack:'groundAttack',
+  naval_strike_attack:'navalAttack',naval_strike_targetting:'navalTargeting',air_bombing:'strategicBombing',weight:'weight',fuel_consumption:'fuelConsumption',
+  night_penalty:'nightPenalty',surface_detection:'surfaceDetection',sub_detection:'subDetection'
+};
+function missionBlocks(record){const m=moduleSource(record);if(Array.isArray(m?.missionTypeStats))return m.missionTypeStats;return m?.raw?.mission_type_stats?[m.raw.mission_type_stats]:[];}
+function missionLimitMatches(limit,wanted){
+  if(typeof limit==='string')return wanted.has(limit);
+  if(Array.isArray(limit))return limit.some(x=>missionLimitMatches(x,wanted));
+  if(limit&&typeof limit==='object')return Object.entries(limit).some(([k,v])=>/mission|type|limit/i.test(k)&&missionLimitMatches(v,wanted));
+  return false;
+}
+function applyMissionStatMap(state,raw,mode='add'){
+  for(const [key,value] of Object.entries(raw||{})){
+    const dst=AIR_MISSION_STAT_MAP[key],n=Number(value);if(!dst||!Number.isFinite(n))continue;
+    if(mode==='multiply')state[dst]=(Number(state[dst])||0)*(1+n);else state[dst]=(Number(state[dst])||0)+n;
+  }
+}
+export function airMissionProfileBuilt(design,mission='air_superiority'){
+  const state={...design},wanted=new Set(AIR_MISSION_IDS[mission]||[mission]),applied=[];let averageInference=false;
+  if(design?.source==='game-pack')for(const rec of selectedPackModules(design))for(const block of missionBlocks(rec)){
+    if(!missionLimitMatches(block?.limit,wanted))continue;
+    applyMissionStatMap(state,block?.add_stats,'add');applyMissionStatMap(state,block?.multiply_stats,'multiply');applyMissionStatMap(state,block?.add_average_stats,'add');
+    if(block?.add_average_stats&&Object.keys(block.add_average_stats).length)averageInference=true;applied.push({module:rec.id,limit:block.limit});
+  }
+  state.weight=Math.max(0,Number(state.weight)||0);state.requiredThrust=state.weight;state.thrustRatio=state.requiredThrust>0?(Number(state.thrust)||0)/state.requiredThrust:1;state.overweight=Number(state.thrust)>0&&state.weight>Number(state.thrust);
+  state.mission=mission;state.appliedMissionBlocks=applied.length;state.appliedMissionSources=applied;state.missionAverageStatInference=averageInference;
+  state.missionStatCompleteness=design?.source==='game-pack'?'partial-bundle':'analytical-fallback';
+  return state;
+}
+export function airMissionProfile(raw,mission='air_superiority'){return airMissionProfileBuilt(buildAirDesign(raw),mission);}
+
 
 function combatModifier(attacker,defender,opts={}){
   const agilityRatio=attacker.agility/Math.max(1,defender.agility),speedRatio=attacker.maxSpeed/Math.max(1,defender.maxSpeed);
@@ -191,8 +228,9 @@ export function compareBuiltAirDesigns(a,b,opts={}){
 export function compareAirDesigns(rawA,rawB,opts={}){return compareBuiltAirDesigns(buildAirDesign(rawA),buildAirDesign(rawB),opts);}
 
 export function airMissionEfficiencyBuilt(d,mission='air_superiority'){
-  if(mission==='cas')return {score:d.groundAttack/Math.max(.001,d.buildCost)*100,primary:d.groundAttack,label:'Ground attack / IC'};
-  if(mission==='naval_strike')return {score:d.navalAttack/Math.max(.001,d.buildCost)*100,primary:d.navalAttack,label:'Naval attack / IC'};
-  return {score:(d.airAttack*Math.sqrt(Math.max(0,d.agility))*Math.sqrt(Math.max(.01,d.maxSpeed/300)))/Math.max(.001,d.buildCost),primary:d.airAttack,label:'Air combat value / IC'};
+  const p=airMissionProfileBuilt(d,mission),meta={profile:p,appliedBlocks:p.appliedMissionBlocks,completeness:p.missionStatCompleteness};
+  if(mission==='cas')return {...meta,score:p.groundAttack/Math.max(.001,p.buildCost)*100,primary:p.groundAttack,label:'Ground attack / IC'};
+  if(mission==='naval_strike')return {...meta,score:p.navalAttack/Math.max(.001,p.buildCost)*100,primary:p.navalAttack,label:'Naval attack / IC'};
+  return {...meta,score:(p.airAttack*Math.sqrt(Math.max(0,p.agility))*Math.sqrt(Math.max(.01,p.maxSpeed/300)))/Math.max(.001,p.buildCost),primary:p.airAttack,label:'Air combat value / IC'};
 }
 export function airMissionEfficiency(raw,mission='air_superiority'){return airMissionEfficiencyBuilt(buildAirDesign(raw),mission);}

@@ -164,9 +164,9 @@ Pack-mode Air Designer no longer uses a fixed 3-weapon + 1-defense + 2-special l
 
 The four unnumbered airframe archetypes are excluded. Only numbered concrete frames are selectable. Carrier-small frames remain distinguishable from land small frames.
 
-### A-003 — repeated `mission_type_stats` importer loss — PARSER FIXED / BUILT-IN DATA REIMPORT PENDING
+### A-003 — repeated `mission_type_stats` importer loss — PARSER + RUNTIME FIXED / BUILT-IN DATA REIMPORT PENDING
 
-`equipment_modules` may contain repeated `mission_type_stats` blocks. The old module normalizer retained only the final nested block in `raw`, which means the current built-in 1.19.2 bundle cannot be claimed source-complete for CAS/naval/strategic mission-specific attack and targeting effects. The parser now preserves every repeated block for future imports, with a permanent two-block regression test. The current bundled modules are explicitly marked `airMissionStatBlocksCertified: false` until the authoritative 1.19.2 plane-module source is re-imported.
+`equipment_modules` may contain repeated `mission_type_stats` blocks. The old module normalizer retained only the final nested block in `raw`, which means the current built-in 1.19.2 bundle cannot be claimed source-complete for CAS/naval/strategic mission-specific attack and targeting effects. The parser now preserves every repeated block for future imports, with a permanent two-block regression test. The current bundled modules are explicitly marked `airMissionStatBlocksCertified: false` until the authoritative 1.19.2 plane-module source is re-imported. The Air runtime now also applies every surviving mission block only to its exact mission profile (for example `naval_bomber`, `interception`, or `port_strike`) and carries mission-specific attack, agility, weight, targeting, bombing, detection, and night modifiers into mission scoring. Missing blocks remain missing rather than being inferred as zero-value source facts.
 
 ### A-004 — aircraft `duplicate_archetypes` missing from built-in runtime — OPEN
 
@@ -174,4 +174,4 @@ The original source inventory recorded **13 aircraft duplicate-archetype definit
 
 ### Current Air certification boundary
 
-Source-backed and testable now: concrete airframe selection, slot topology, allowed module categories, base airframe/module stats, IC/resources, weight/thrust, carrier-frame identity, and equipment-role metadata (`add_equipment_type`). Still not certified: repeated mission-specific module effects, the missing 13 aircraft duplicate archetypes, and exact `hoi4.exe`/`NAir` combat resolution.
+Source-backed and testable now: concrete airframe selection, slot topology, allowed module categories, base airframe/module stats, IC/resources, carrier-frame identity, equipment-role metadata (`add_equipment_type`), and mission-profile application semantics for every mission block actually present in the bundle. Weight/thrust and CAS/naval/strategic mission statistics remain only partially complete because many source mission blocks are absent from the current bundle. Still not certified: completeness of repeated mission-specific module effects, the missing 13 aircraft duplicate archetypes, and exact `hoi4.exe`/`NAir` combat resolution.

@@ -12,7 +12,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Probe exact air slot graph
+      - name: Probe air restrictions and duplicate archetypes
         run: |
           node --input-type=module <<'JS'
           import B from './src/builtin1192.js';
@@ -21,13 +21,9 @@ jobs:
           const frames=Object.entries(R).filter(([id,e])=>/(?:^|_)(small|medium|large)_plane_airframe(?:_|$)/.test(id)&&e?.moduleSlots&&Object.keys(e.moduleSlots).length&&e?.raw?.is_archetype!==true);
           const cats=new Set();for(const [,e] of frames)for(const slot of Object.values(e.moduleSlots||{}))for(const c of Array.isArray(slot.allowed_module_categories)?slot.allowed_module_categories:[slot.allowed_module_categories])if(c)cats.add(c);
           const mods=Object.values(B.modules).filter(m=>cats.has(m.category));
-          console.log('CONCRETE_FRAMES',frames.length,JSON.stringify(frames.map(([id])=>id).sort()));
-          console.log('SLOT_CATEGORIES',cats.size,JSON.stringify([...cats].sort()));
-          const groups={};for(const m of mods)(groups[m.category]??=[]).push(m.id);
-          for(const [c,ids] of Object.entries(groups).sort(([a],[b])=>a.localeCompare(b)))console.log('AIR_CATEGORY',c,ids.length,JSON.stringify(ids.sort()));
-          console.log('SLOT_MODULE_TOTAL',mods.length);
-          const dup=Object.values(B.duplicateArchetypes||{}).filter(x=>/plane_airframe/.test(String(x.archetype||'')));
-          console.log('AIR_DUPLICATES',dup.length,JSON.stringify(dup));
-          const mission=mods.filter(m=>m.raw?.mission_type_stats).map(m=>({id:m.id,mission:m.raw.mission_type_stats,add:m.addStats,mult:m.multiplyStats,avg:m.addAverageStats}));
-          console.log('MISSION_STAT_MODULES',mission.length,JSON.stringify(mission));
+          console.log('ALL_DUPLICATES',Object.keys(B.duplicateArchetypes||{}).length,JSON.stringify(B.duplicateArchetypes||{}));
+          console.log('AIR_RESTRICTIONS',JSON.stringify(mods.filter(m=>(m.allowEquipmentType?.length||m.forbidEquipmentType?.length||m.forbidEquipmentTypeExactMatch?.length||Object.keys(m.forbidEquipmentTypeExactMatchForCategory||{}).length)).map(m=>({id:m.id,category:m.category,allow:m.allowEquipmentType,forbid:m.forbidEquipmentType,exact:m.forbidEquipmentTypeExactMatch,exactCategory:m.forbidEquipmentTypeExactMatchForCategory}))));
+          console.log('AIR_TYPE_MISSION_META',JSON.stringify(mods.filter(m=>m.addEquipmentType?.length||m.raw?.allow_mission_type).map(m=>({id:m.id,category:m.category,addEquipmentType:m.addEquipmentType,allowMission:m.raw?.allow_mission_type}))));
+          console.log('AIR_FRAME_LIMITS',JSON.stringify(frames.filter(([,e])=>e.moduleCountLimits||e.raw?.module_count_limit).map(([id,e])=>({id,limits:e.moduleCountLimits,raw:e.raw?.module_count_limit}))));
+          console.log('PACK_KEYS',JSON.stringify(Object.keys(B).sort()));
           JS

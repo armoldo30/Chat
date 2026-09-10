@@ -37,11 +37,11 @@ assert.equal(supports.land_cruiser.soft,75);assert.equal(supports.land_cruiser.h
 assert.equal(selectEquipment(B,'motorbike_equipment',{year:1950}).id,'motorbike_equipment_1');
 
 const cat=tankCatalogFromPack(B);
-assert.equal(cat.meta.chassis,12,'designer catalog should contain four real year chassis for each supported light/medium/heavy class');
+assert.equal(cat.meta.chassis,16,'designer catalog includes 12 standard plus modern, super-heavy, dedicated amphibious and Land Cruiser chassis');assert.equal(cat.meta.standardChassis,12);assert.equal(cat.meta.extendedChassis,4);
 assert.equal(Object.values(cat.chassis).filter(x=>x.class==='light').length,4);
 assert.equal(Object.values(cat.chassis).filter(x=>x.class==='medium').length,4);
 assert.equal(Object.values(cat.chassis).filter(x=>x.class==='heavy').length,4);
-assert.ok(Object.keys(cat.chassis).every(id=>/_tank_chassis_[0-3]$/.test(id)));
+assert.ok(Object.entries(cat.chassis).filter(([,x])=>['light','medium','heavy'].includes(x.class)).every(([id])=>/_tank_chassis_[0-3]$/.test(id)),'standard light/medium/heavy chassis IDs remain the four 0-3 source generations');for(const id of ['modern_tank_chassis_1','super_heavy_tank_chassis_1','amphibious_tank_chassis_1','land_cruiser_chassis_1'])assert.ok(cat.chassis[id],`${id} must be exposed by the Tank Designer catalog`);
 
 configureTankDataPack(B,1940);
 const design=defaultTankDesign('medium');

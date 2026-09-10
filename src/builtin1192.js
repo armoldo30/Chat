@@ -27,6 +27,7 @@ import tankModuleCompatibility1192 from './builtin1192/tank-module-compatibility
 import moduleSlotCategories1192 from './builtin1192/module-slot-categories-1192.js';
 import duplicateArchetypes1192 from './builtin1192/duplicate-archetypes-tank-1192.js';
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
+import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
@@ -45,6 +46,7 @@ for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
 BUILTIN_1192.equipment={...(BUILTIN_1192.equipment||{}),...landEquipment1192};
 BUILTIN_1192.duplicateArchetypes={...(BUILTIN_1192.duplicateArchetypes||{}),...duplicateArchetypes1192};
 materializeDuplicateArchetypes(BUILTIN_1192.equipment,BUILTIN_1192.duplicateArchetypes);
+for(const id of ['land_cruiser_chassis','land_cruiser_chassis_1'])if(BUILTIN_1192.equipment?.[id])BUILTIN_1192.equipment[id].moduleCountLimits=landCruiserCountLimits1192.map(x=>({...x}));
 for(const [id,slots] of Object.entries(moduleSlotCategories1192)){
   const equipment=BUILTIN_1192.equipment?.[id];
   if(!equipment)continue;
@@ -62,5 +64,5 @@ const requirementRelationships=Object.values(BUILTIN_1192.requirements).reduce((
 const materializedDuplicateEquipmentCount=Object.values(BUILTIN_1192.equipment||{}).filter(item=>item?.duplicateOf).length;
 const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true};
 export default BUILTIN_1192;

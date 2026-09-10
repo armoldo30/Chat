@@ -66,13 +66,16 @@ export function applyModuleEffects(base,modules=[]){
 
 function resolvedEquipment(pack,id){try{return resolveEquipment(pack?.equipment||{})[id]||null;}catch{return pack?.equipment?.[id]||null;}}
 function hasSlots(e){return e&&isObj(e.moduleSlots)&&Object.keys(e.moduleSlots).length>0;}
-function tankClass(id,e){
+function tankFamily(id,e){
   if(e?.duplicateRole||e?.raw?.is_archetype===true)return null;
-  const s=`${id} ${e?.archetype||''} ${(e?.types||[]).join(' ')}`.toLowerCase();
-  if(/super_heavy|modern_tank|amphibious_tank|land_cruiser/.test(s))return null;
-  if(/light.*tank|tank.*light/.test(s))return 'light';
-  if(/medium.*tank|tank.*medium/.test(s))return 'medium';
-  if(/heavy.*tank|tank.*heavy/.test(s))return 'heavy';
+  const key=String(id||'').toLowerCase(),text=`${id} ${e?.archetype||''} ${(e?.types||[]).join(' ')}`.toLowerCase();
+  if(/^land_cruiser_chassis_\d+$/.test(key))return 'land_cruiser';
+  if(/^amphibious_tank_chassis_\d+$/.test(key))return 'amphibious';
+  if(/^super_heavy_tank_chassis_\d+$/.test(key))return 'super_heavy';
+  if(/^modern_tank_chassis_\d+$/.test(key))return 'modern';
+  if(/light.*tank.*chassis|tank.*light.*chassis/.test(text))return 'light';
+  if(/medium.*tank.*chassis|tank.*medium.*chassis/.test(text))return 'medium';
+  if(/heavy.*tank.*chassis|tank.*heavy.*chassis/.test(text))return 'heavy';
   return null;
 }
 function airSize(id,e){
@@ -111,13 +114,17 @@ function airModuleBucket(m){
 }
 
 export function tankCatalogFromPack(pack){
-  const out={chassis:{},guns:{},turrets:{},suspensions:{},armorTypes:{},engines:{},specials:{none:{id:'none',name:'Empty',source:'system',_module:null}}};
+  const out={chassis:{},guns:{},turrets:{},suspensions:{},armorTypes:{},engines:{},specials:{none:{id:'none',name:'Empty',source:'system',_module:null}},slotModules:{none:{id:'none',name:'Empty',source:'system',_module:null}}};
   for(const id of Object.keys(pack?.equipment||{})){
-    const e=resolvedEquipment(pack,id),cls=tankClass(id,e);if(!cls||!hasSlots(e))continue;
+    const e=resolvedEquipment(pack,id),cls=tankFamily(id,e);if(!cls||!hasSlots(e))continue;
     out.chassis[id]=chassisRecord(id,e,cls,pack);
   }
-  for(const m of Object.values(pack?.modules||{})){const bucket=tankModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m,pack);}
-  out.meta={chassis:Object.keys(out.chassis).length,guns:Object.keys(out.guns).length,turrets:Object.keys(out.turrets).length,suspensions:Object.keys(out.suspensions).length,armorTypes:Object.keys(out.armorTypes).length,engines:Object.keys(out.engines).length,specials:Object.keys(out.specials).length-1};
+  for(const m of Object.values(pack?.modules||{})){
+    const bucket=tankModuleBucket(m);if(bucket)out[bucket][m.id]=moduleRecord(m,pack);
+    if(String(m?.category||'').startsWith('lc_'))out.slotModules[m.id]=moduleRecord(m,pack);
+  }
+  const standardChassis=Object.values(out.chassis).filter(x=>['light','medium','heavy'].includes(x.class)).length;
+  out.meta={chassis:Object.keys(out.chassis).length,standardChassis,extendedChassis:Object.keys(out.chassis).length-standardChassis,guns:Object.keys(out.guns).length,turrets:Object.keys(out.turrets).length,suspensions:Object.keys(out.suspensions).length,armorTypes:Object.keys(out.armorTypes).length,engines:Object.keys(out.engines).length,specials:Object.keys(out.specials).length-1,slotModules:Object.keys(out.slotModules).length-1};
   return out;
 }
 

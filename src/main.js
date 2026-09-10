@@ -7,7 +7,7 @@ import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_D
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
-import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankClassIds, configureTankDataPack, tankDataStatus, tankDesignOptions } from './tank.js';
+import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus } from './air.js';
 import BUILTIN_1192 from './builtin1192.js';
 
@@ -34,7 +34,8 @@ const defaults={
     {type:'fighter',stock:100,target:700,factories:8,priority:3}
   ],
   tankDesigns:{attacker:{light:defaultTankDesign('light'),medium:defaultTankDesign('medium'),heavy:defaultTankDesign('heavy')},defender:{light:defaultTankDesign('light'),medium:defaultTankDesign('medium'),heavy:defaultTankDesign('heavy')}},
-  tankDesigner:{side:'attacker',class:'medium'},
+  tankVariants:null,
+  tankDesigner:{side:'attacker',class:'medium',role:'armor'},
   airLab:{a:defaultAirDesign('small'),b:{...defaultAirDesign('small'),name:'Enemy Fighter',engine:'engine_3',weapons:['cannon_1','heavy_mg','none']},countA:100,countB:100,sorties:1000,mission:'air_superiority',missionEfficiencyA:1,missionEfficiencyB:1,detectionA:1,detectionB:1},
   attackerTech:{...structuredClone(DEFAULT_TECH_PROFILE),countryTag:'GER'},
   defenderTech:{...structuredClone(DEFAULT_TECH_PROFILE),countryTag:'SOV'},
@@ -76,9 +77,23 @@ function ensureDesignerState(side){
 function ensureTechState(side){state[side+'Tech']=normalizeTechProfile(state[side+'Tech']);return state[side+'Tech'];}
 function ensureTankState(){
   if(!state.tankDesigns||typeof state.tankDesigns!=='object')state.tankDesigns=structuredClone(defaults.tankDesigns);
-  for(const side of ['attacker','defender']){state.tankDesigns[side]=state.tankDesigns[side]||{};for(const cls of ['light','medium','heavy'])state.tankDesigns[side][cls]=normalizeTankDesign(state.tankDesigns[side][cls],cls);}
-  state.tankDesigner={side:['attacker','defender'].includes(state.tankDesigner?.side)?state.tankDesigner.side:'attacker',class:['light','medium','heavy'].includes(state.tankDesigner?.class)?state.tankDesigner.class:'medium'};
+  if(!state.tankVariants||typeof state.tankVariants!=='object')state.tankVariants={attacker:{},defender:{}};
+  for(const side of ['attacker','defender']){
+    state.tankDesigns[side]=state.tankDesigns[side]||{};state.tankVariants[side]=state.tankVariants[side]||{};
+    for(const family of TANK_FAMILIES){
+      state.tankVariants[side][family]=state.tankVariants[side][family]||{};
+      for(const role of tankRolesForFamily(family)){
+        const legacy=role==='armor'&&['light','medium','heavy'].includes(family)?state.tankDesigns[side][family]:null;
+        const raw=state.tankVariants[side][family][role]||legacy||defaultTankDesign(family,role);
+        state.tankVariants[side][family][role]=normalizeTankDesign({...raw,class:family,role},family,role);
+      }
+      if(['light','medium','heavy'].includes(family))state.tankDesigns[side][family]=structuredClone(state.tankVariants[side][family].armor);
+    }
+  }
+  const family=TANK_FAMILIES.includes(state.tankDesigner?.class)?state.tankDesigner.class:'medium',roles=tankRolesForFamily(family),role=roles.includes(state.tankDesigner?.role)?state.tankDesigner.role:roles[0];
+  state.tankDesigner={side:['attacker','defender'].includes(state.tankDesigner?.side)?state.tankDesigner.side:'attacker',class:family,role};
 }
+function tankDesignFor(side,family,role='armor'){ensureTankState();return state.tankVariants[side][family][role]||state.tankVariants[side][family][tankRolesForFamily(family)[0]];}
 function ensureAirState(){
   state.airLab=state.airLab&&typeof state.airLab==='object'?state.airLab:{};state.airLab.a=normalizeAirDesign(state.airLab.a,'small');state.airLab.b=normalizeAirDesign(state.airLab.b,'small');
   for(const k of ['countA','countB','sorties'])state.airLab[k]=Math.max(1,Number(state.airLab[k])||defaults.airLab[k]);
@@ -93,21 +108,29 @@ function ensureMioState(){
 function currentMioCatalog(){return mioCatalog(state.dataPack);}
 function mioEffectFor(side,family){ensureMioState();return mioEffects(currentMioCatalog(),state.mioSelections[side][family]);}
 function applyFamilyMioToData(data,side){
-  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','regimental_aa']},light_tank:{b:['light_armor'],s:[]},medium_tank:{b:['medium_armor'],s:[]},heavy_tank:{b:['heavy_armor'],s:[]}};
+  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','regimental_aa']}};
   for(const [family,m] of Object.entries(maps)){const eff=mioEffectFor(side,family);for(const id of m.b)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],eff.equipmentBonus);for(const id of m.s)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],eff.equipmentBonus);}
+  for(const family of ['light','medium','heavy']){const mio=tankMioFamily(family),eff=mioEffectFor(side,mio);for(const role of tankRolesForFamily(family)){const target=tankVariantTargets(family,role);for(const u of target?.units||[]){const map=u.kind==='support'?data.supports:data.battalions;if(map[u.id])map[u.id]=applyMioEquipmentBonus(map[u.id],eff.equipmentBonus);}}}
   return data;
 }
-function adjustedTankDesign(side,cls){return applyMioToVariant(buildTankDesign(state.tankDesigns[side][cls]),mioEffectFor(side,`${cls}_tank`));}
+function adjustedTankDesign(side,family,role='armor'){const base=buildTankDesign(tankDesignFor(side,family,role)),mio=tankMioFamily(family);return mio?applyMioToVariant(base,mioEffectFor(side,mio)):base;}
 function adjustedAirDesign(side,raw){const base=buildAirDesign(raw),family=base.size==='large'?'large_airframe':base.size==='medium'?'medium_airframe':'small_airframe',withMio=applyMioToVariant(base,mioEffectFor(side,family));return applyAirDoctrineToVariant(withMio,ensureTechState(side).airDoctrine,state.dataPack);}
 function equipmentForSide(side='attacker'){
   ensureTankState();ensureMioState();const out=structuredClone(equipment);
   for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(side,family));
-  for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls),rawDesign=buildTankDesign(state.tankDesigns[side][cls]),d=adjustedTankDesign(side,cls),eff=mioEffectFor(side,`${cls}_tank`);out[ids.equipment]=applyMioToEquipmentRecord(tankEquipmentRecord(out[ids.equipment],state.tankDesigns[side][cls]),eff);out[ids.equipment].designStats=d;}
+  for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){
+    const target=tankVariantTargets(family,role),raw=tankDesignFor(side,family,role),base=buildTankDesign(raw),mio=tankMioFamily(family),eff=mio?mioEffectFor(side,mio):null,design=mio?applyMioToVariant(base,eff):base;
+    for(const key of [target?.equipmentKey,...(target?.aliases||[])].filter(Boolean))if(out[key]){out[key]=mio?applyMioToEquipmentRecord(tankEquipmentRecord(out[key],raw),eff):tankEquipmentRecord(out[key],raw);out[key].designStats=design;}
+  }
   return out;
 }
 function validRegimentalSupports(side){ensureDesignerState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c,key));}
 function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCounts(state[side+'Grid'],Object.keys(battalions));}
-function techData(side){const data=buildTechAdjustedData(battalions,supports,ensureTechState(side),{pack:state.dataPack,year:state.dataSnapshotYear});ensureTankState();ensureMioState();for(const cls of ['light','medium','heavy']){const ids=tankClassIds(cls);if(data.battalions[ids.battalion])data.battalions[ids.battalion]=applyTankDesignToBattalion(data.battalions[ids.battalion],state.tankDesigns[side][cls]);}return applyFamilyMioToData(data,side);}
+function techData(side){
+  const data=buildTechAdjustedData(battalions,supports,ensureTechState(side),{pack:state.dataPack,year:state.dataSnapshotYear});ensureTankState();ensureMioState();
+  for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){const target=tankVariantTargets(family,role),raw=tankDesignFor(side,family,role);for(const u of target?.units||[]){const map=u.kind==='support'?data.supports:data.battalions;if(map[u.id])map[u.id]=applyTankDesignToBattalion(map[u.id],raw);}}
+  return applyFamilyMioToData(data,side);
+}
 function techProblems(side){ensureDesignerState(side);return techIssues(state[side+'Grid'],state[side+'Supports'],state[side+'RegimentalSupports'],ensureTechState(side));}
 ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
 let activeDesignerSide='attacker',activeLabPanel='template',designerPick=null;
@@ -399,7 +422,7 @@ function battle(c){
   $('swapSides').onclick=()=>{[state.attackerGrid,state.defenderGrid]=[state.defenderGrid,state.attackerGrid];[state.attackerSupports,state.defenderSupports]=[state.defenderSupports,state.attackerSupports];[state.attackerRegimentalSupports,state.defenderRegimentalSupports]=[state.defenderRegimentalSupports,state.attackerRegimentalSupports];[state.attackerTech,state.defenderTech]=[state.defenderTech,state.attackerTech];[state.tankDesigns.attacker,state.tankDesigns.defender]=[state.tankDesigns.defender,state.tankDesigns.attacker];[state.mioSelections.attacker,state.mioSelections.defender]=[state.mioSelections.defender,state.mioSelections.attacker];[state.attackerDivisions,state.defenderDivisions]=[state.defenderDivisions,state.attackerDivisions];syncDesignerSide('attacker');syncDesignerSide('defender');designerPick=null;save();shell();};
   if(activeLabPanel==='template'){
     bindDivisionDesigner(activeDesignerSide);
-    document.querySelectorAll('[data-armor-link]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=activeDesignerSide;state.tankDesigner.class=el.dataset.armorLink;save();});
+    document.querySelectorAll('[data-armor-link]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=activeDesignerSide;state.tankDesigner.class=el.dataset.armorLink;state.tankDesigner.role='armor';save();});
   }
   if(activeLabPanel==='tech')bindTechDoctrine(activeDesignerSide);
   if(activeLabPanel==='combat'){
@@ -435,47 +458,63 @@ function showBattle(compare){
 
 
 function optionList(map,current,filter=()=>true){return Object.entries(map).filter(([k,v])=>filter(v,k)).map(([k,v])=>{const req=Array.isArray(v.requirements)?v.requirements:[];return `<option value="${k}" ${k===current?'selected':''} title="${esc(req.length?'Prerequisite: '+req.join(', '):'')}">${esc(v.name)}${req.length?' ⓘ':''}</option>`;}).join('');}
-function tankCurrent(){ensureTankState();return state.tankDesigns[state.tankDesigner.side][state.tankDesigner.class];}
+function tankCurrent(){ensureTankState();return tankDesignFor(state.tankDesigner.side,state.tankDesigner.class,state.tankDesigner.role);}
 function tankStatsGrid(d){
-  const rows=[['Soft Attack',d.softAttack,1],['Hard Attack',d.hardAttack,1],['Piercing',d.piercing,1],['Armor',d.armor,1],['Breakthrough',d.breakthrough,1],['Defense',d.defense,1],['Max Speed',d.maxSpeed,2,' km/h'],['Reliability',d.reliability*100,1,'%'],['Fuel Use',d.fuelConsumption,2],['Weight',d.weight,1],['IC Cost',d.buildCost,2]];
+  const rows=[['Soft Attack',d.softAttack,1],['Hard Attack',d.hardAttack,1],['Piercing',d.piercing,1],['Air Attack',d.airAttack||0,1],['Armor',d.armor,1],['Hardness',(d.hardness||0)*100,1,'%'],['Breakthrough',d.breakthrough,1],['Defense',d.defense,1],['Max Speed',d.maxSpeed,2,' km/h'],['Reliability',d.reliability*100,1,'%'],['Fuel Use',d.fuelConsumption,2],['IC Cost',d.buildCost,2]];
   return `<div class="tank-stat-grid">${rows.map(([k,v,n,suf=''])=>`<div><span>${k}</span><b>${fmt(v,n)}${suf}</b></div>`).join('')}</div>`;
 }
 function tank(c){
-  ensureTankState();const side=state.tankDesigner.side,cls=state.tankDesigner.class,raw=tankCurrent(),choices=tankDesignOptions(raw),d=adjustedTankDesign(side,cls),ids=tankClassIds(cls),unit=techData(side).battalions[ids.battalion],eq=equipmentForSide(side)[ids.equipment],other=side==='attacker'?'defender':'attacker';
+  ensureTankState();
+  const side=state.tankDesigner.side,cls=state.tankDesigner.class,role=state.tankDesigner.role,raw=tankCurrent(),choices=tankDesignOptions(raw),d=adjustedTankDesign(side,cls,role),target=tankVariantTargets(cls,role),other=side==='attacker'?'defender':'attacker',data=techData(side),eqMap=equipmentForSide(side);
+  const linked=(target?.units||[]).map(t=>({t,record:(t.kind==='support'?data.supports:data.battalions)?.[t.id]})).filter(x=>x.record),primary=linked[0]?.record||null,eq=target?.equipmentKey?eqMap[target.equipmentKey]:null,mioFamily=tankMioFamily(cls);
   const resourceText=Object.entries(d.resources||{}).map(([k,v])=>`<span class="resource-chip">${k.toUpperCase()} ${fmt(v,0)}/MIC</span>`).join('')||'<span class="resource-chip">No strategic resource</span>';
-  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">ARMORED FORCES · EQUIPMENT DESIGN</p><h1>Tank Designer</h1><p>Build the tank variant that the Division Lab actually uses. Module choices alter armor, firepower, reliability, speed and IC/resource burden.</p></div>${badge('Variant-linked','good')}</section>
-  <div class="designer-tabs tank-tabs"><button class="${side==='attacker'?'active':''}" data-tank-side="attacker"><span>ATTACKER</span><b>${esc(state.attackerName)}</b></button><button class="${side==='defender'?'active':''}" data-tank-side="defender"><span>DEFENDER</span><b>${esc(state.defenderName)}</b></button><button class="swap-tab" id="copyTank">COPY → ${other.toUpperCase()}</button></div>
-  <div class="tank-class-tabs">${['light','medium','heavy'].map(k=>`<button data-tank-class="${k}" class="${cls===k?'active':''}">${k.toUpperCase()}<small>${esc(state.tankDesigns[side][k].name)}</small></button>`).join('')}</div>
-  <section class="tank-designer-shell">
-    <div class="tank-blueprint panel"><div class="tank-nameplate"><div><span class="eyebrow">${cls.toUpperCase()} ARMOR VARIANT</span><input id="tank-name" value="${esc(raw.name)}" aria-label="Tank design name"></div><div class="tank-silhouette"><span>▰</span><b>${fmt(d.armor,0)}</b><small>ARMOR</small></div></div>
-      <div class="tank-module-grid">
-        <label class="fixed-slot"><span>CHASSIS</span><select id="tank-chassis">${optionList(TANK_CHASSIS,raw.chassis,v=>v.class===cls)}</select></label>
+  const familyTabs=TANK_FAMILIES.map(k=>{const firstRole=tankRolesForFamily(k)[0],design=state.tankVariants?.[side]?.[k]?.[firstRole];return `<button data-tank-class="${k}" class="${cls===k?'active':''}">${esc(tankFamilyLabel(k).toUpperCase())}<small>${esc(design?.name||tankFamilyLabel(k))}</small></button>`;}).join('');
+  const roleTabs=tankRolesForFamily(cls).map(r=>`<button data-tank-role="${r}" class="${role===r?'active':''}">${esc((TANK_ROLE_LABELS[r]||r).toUpperCase())}<small>${esc(state.tankVariants[side][cls][r].name)}</small></button>`).join('');
+  const standardModules=`
         <label class="fixed-slot weapon"><span>MAIN ARMAMENT</span><select id="tank-gun">${optionList(TANK_GUNS,raw.gun,(v,k)=>choices.guns.has(k))}</select></label>
         <label><span>TURRET</span><select id="tank-turret">${optionList(TANK_TURRETS,raw.turret,(v,k)=>choices.turrets.has(k))}</select></label>
         <label><span>SUSPENSION</span><select id="tank-suspension">${optionList(TANK_SUSPENSIONS,raw.suspension,(v,k)=>choices.suspensions.has(k))}</select></label>
         <label><span>ARMOR TYPE</span><select id="tank-armorType">${optionList(TANK_ARMOR_TYPES,raw.armorType,(v,k)=>choices.armorTypes.has(k))}</select></label>
         <label><span>ENGINE</span><select id="tank-engine">${optionList(TANK_ENGINES,raw.engine,(v,k)=>choices.engines.has(k))}</select></label>
-        ${raw.specials.map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="tank-special-${i}">${optionList(TANK_SPECIALS,v,(m,k)=>choices.specials[i].has(k))}</select></label>`).join('')}
+        ${(raw.specials||[]).map((v,i)=>`<label><span>SPECIAL ${i+1}</span><select id="tank-special-${i}">${optionList(TANK_SPECIALS,v,(m,k)=>choices.specials[i]?.has(k))}</select></label>`).join('')}`;
+  const genericModules=choices.genericSlots?Object.entries(choices.genericSlots).map(([slot,set])=>`<label class="${slot==='lc_main_armament_slot'?'fixed-slot weapon':''}"><span>${esc(slot.replace(/^lc_/,'').replaceAll('_',' ').toUpperCase())}</span><select id="tank-slot-${slot}">${optionList(TANK_SLOT_MODULES,raw.slotModules?.[slot]||'none',(m,k)=>set.has(k))}</select></label>`).join(''):'';
+  const capacityNotice=d.maxWeight>0?(d.overloaded?`<p class="notice stop"><b>Chassis overloaded:</b> ${fmt(d.overload,1)} weight above the ${fmt(d.maxWeight,0)} baseline capacity. Speed/reliability penalties are active.</p>`:`<p class="notice good"><b>Weight within chassis capacity.</b> ${fmt(d.weight,1)} / ${fmt(d.maxWeight,0)}.</p>`):`<p class="notice"><b>Source-slot validation active.</b> No executable weight-cap rule is asserted for this 1.19.2 designer chassis.</p>`;
+  const mioBlock=mioFamily?inlineMioPicker(side,mioFamily,'tank-active'):`<p class="muted">MIO effects are not inferred for ${esc(tankFamilyLabel(cls))}; source chassis/module behavior remains active.</p>`;
+  const linkedNames=linked.map(x=>x.record.name).join(', ');
+  const needQty=Number(primary?.need?.[target?.equipmentKey]||0),industrial=eq&&primary?`<div class="variant-link-card"><span>PRODUCTION EQUIPMENT</span><h3>${esc(eq.name)}</h3><strong class="big-ic">${fmt(eq.cost,2)} IC / vehicle</strong><p>${esc(primary.name)} requires ${fmt(needQty,0)} vehicles, so this unit carries roughly <b>${fmt(needQty*eq.cost,0)} IC</b> of designed equipment before losses.</p><a class="btn" href="#production">Test force production →</a></div>`:`<p class="notice">No production alias is available for this role target.</p>`;
+  const integration=primary?`<div class="variant-link-card"><span>${side.toUpperCase()} · ${esc((TANK_ROLE_LABELS[role]||role).toUpperCase())}</span><h3>${esc(primary.name)}</h3><div class="hq-stat-pair"><div><span>Soft attack</span><b>${fmt(primary.soft,1)}</b></div><div><span>Hard attack</span><b>${fmt(primary.hard,1)}</b></div><div><span>Armor</span><b>${fmt(primary.armor,1)}</b></div><div><span>Breakthrough</span><b>${fmt(primary.breakthrough,1)}</b></div></div><p>This design is active for ${linked.length} linked source unit${linked.length===1?'':'s'}${linkedNames?`: ${esc(linkedNames)}`:''}.</p><a class="btn" href="#battle">Open Division Lab →</a></div>`:`<p class="notice stop">No hydrated 1.19.2 unit target was found for this family/role.</p>`;
+  c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">ARMORED FORCES · EQUIPMENT DESIGN</p><h1>Tank Designer</h1><p>Build source-valid tank, TD, SPG, SPAA, flame, amphibious and special-project variants. Prerequisites stay informational; structural role and slot rules are enforced.</p></div>${badge('Source-linked','good')}</section>
+  <div class="designer-tabs tank-tabs"><button class="${side==='attacker'?'active':''}" data-tank-side="attacker"><span>ATTACKER</span><b>${esc(state.attackerName)}</b></button><button class="${side==='defender'?'active':''}" data-tank-side="defender"><span>DEFENDER</span><b>${esc(state.defenderName)}</b></button><button class="swap-tab" id="copyTank">COPY → ${other.toUpperCase()}</button></div>
+  <div class="tank-class-tabs">${familyTabs}</div>
+  <div class="tank-class-tabs tank-role-tabs">${roleTabs}</div>
+  <section class="tank-designer-shell">
+    <div class="tank-blueprint panel"><div class="tank-nameplate"><div><span class="eyebrow">${esc(tankFamilyLabel(cls).toUpperCase())} · ${esc((TANK_ROLE_LABELS[role]||role).toUpperCase())}</span><input id="tank-name" value="${esc(raw.name)}" aria-label="Tank design name"></div><div class="tank-silhouette"><span>▰</span><b>${fmt(d.armor,0)}</b><small>ARMOR</small></div></div>
+      <div class="tank-module-grid">
+        <label class="fixed-slot"><span>CHASSIS</span><select id="tank-chassis">${optionList(TANK_CHASSIS,raw.chassis,v=>v.class===cls)}</select></label>
+        ${choices.genericSlots?genericModules:standardModules}
       </div>
       <div class="tank-upgrades"><label>Engine upgrades <input id="tank-engineUpgrades" type="range" min="0" max="20" value="${raw.engineUpgrades}"><b>${raw.engineUpgrades}</b></label><label>Armor upgrades <input id="tank-armorUpgrades" type="range" min="0" max="20" value="${raw.armorUpgrades}"><b>${raw.armorUpgrades}</b></label></div>
-      ${d.overloaded?`<p class="notice stop"><b>Chassis overloaded:</b> ${fmt(d.overload,1)} weight above the ${fmt(d.maxWeight,0)} baseline capacity. Speed/reliability penalties are active.</p>`:`<p class="notice good"><b>Weight within chassis capacity.</b> ${fmt(d.weight,1)} / ${fmt(d.maxWeight,0)}.</p>`}
+      ${capacityNotice}
     </div>
-    <aside class="panel tank-performance"><div class="panel-head"><h2>Variant statistics</h2></div>${tankStatsGrid(d)}<div class="advisor-resources">${resourceText}</div>${inlineMioPicker(side,`${cls}_tank`,'tank-active')}<p class="muted">Bundled 1.19.2 chassis, module and upgrade data are active. Requirements are informational; executable-only module aggregation remains explicitly analytical where the files do not define the behavior.</p></aside>
+    <aside class="panel tank-performance"><div class="panel-head"><h2>Variant statistics</h2></div>${tankStatsGrid(d)}<div class="advisor-resources">${resourceText}</div>${mioBlock}<p class="muted">Bundled 1.19.2 chassis, duplicate-role hardness, module compatibility, role restrictions and NSB upgrades are active. Module aggregation order that is not explicit in data files remains labeled analytical.</p></aside>
   </section>
-  <div class="grid two">
-    ${panel('Division Lab integration',`<div class="variant-link-card"><span>${side.toUpperCase()} ${cls.toUpperCase()} BATTALION</span><h3>${esc(unit.name)}</h3><div class="hq-stat-pair"><div><span>Soft attack</span><b>${fmt(unit.soft,1)}</b></div><div><span>Hard attack</span><b>${fmt(unit.hard,1)}</b></div><div><span>Armor</span><b>${fmt(unit.armor,1)}</b></div><div><span>Breakthrough</span><b>${fmt(unit.breakthrough,1)}</b></div></div><p>This design is already active for every ${esc(unit.name)} in the ${side} template.</p><a class="btn" href="#battle">Open Division Lab →</a></div>`)}
-    ${panel('Industrial burden',`<div class="variant-link-card"><span>PRODUCTION EQUIPMENT</span><h3>${esc(eq.name)}</h3><strong class="big-ic">${fmt(eq.cost,2)} IC / tank</strong><p>A ${esc(unit.name)} currently requires ${fmt(unit.need?.[ids.equipment]||0,0)} vehicles, so one battalion carries roughly <b>${fmt((unit.need?.[ids.equipment]||0)*eq.cost,0)} IC</b> of tanks before losses.</p><a class="btn" href="#production">Test force production →</a></div>`)}
-  </div>`;
+  <div class="grid two">${panel('Division Lab integration',integration)}${panel('Industrial burden',industrial)}</div>`;
   document.querySelectorAll('[data-tank-side]').forEach(el=>el.onclick=()=>{state.tankDesigner.side=el.dataset.tankSide;save();shell();});
-  document.querySelectorAll('[data-tank-class]').forEach(el=>el.onclick=()=>{state.tankDesigner.class=el.dataset.tankClass;save();shell();});
-  $('copyTank').onclick=()=>{state.tankDesigns[other][cls]=structuredClone(state.tankDesigns[side][cls]);state.tankDesigns[other][cls].name=`Copy of ${state.tankDesigns[side][cls].name}`;save();shell();};
-  const set=(k,v)=>{state.tankDesigns[side][cls][k]=v;state.tankDesigns[side][cls]=normalizeTankDesign(state.tankDesigns[side][cls],cls);save();shell();};
-  $('tank-name').onchange=()=>set('name',$('tank-name').value.trim()||`${cls} tank`);
-  for(const k of ['chassis','gun','turret','suspension','armorType','engine'])$('tank-'+k).onchange=()=>set(k,$('tank-'+k).value);
-  raw.specials.forEach((_,i)=>{$('tank-special-'+i).onchange=()=>{const next=[...state.tankDesigns[side][cls].specials];next[i]=$('tank-special-'+i).value;set('specials',next);};});
+  document.querySelectorAll('[data-tank-class]').forEach(el=>el.onclick=()=>{state.tankDesigner.class=el.dataset.tankClass;const roles=tankRolesForFamily(state.tankDesigner.class);if(!roles.includes(state.tankDesigner.role))state.tankDesigner.role=roles[0];save();shell();});
+  document.querySelectorAll('[data-tank-role]').forEach(el=>el.onclick=()=>{state.tankDesigner.role=el.dataset.tankRole;save();shell();});
+  $('copyTank').onclick=()=>{state.tankVariants[other][cls][role]=structuredClone(state.tankVariants[side][cls][role]);state.tankVariants[other][cls][role].name=`Copy of ${state.tankVariants[side][cls][role].name}`;save();shell();};
+  const set=(k,v)=>{const design=state.tankVariants[side][cls][role];design[k]=v;state.tankVariants[side][cls][role]=normalizeTankDesign(design,cls,role);if(role==='armor'&&['light','medium','heavy'].includes(cls))state.tankDesigns[side][cls]=structuredClone(state.tankVariants[side][cls][role]);save();shell();};
+  $('tank-name').onchange=()=>set('name',$('tank-name').value.trim()||`${tankFamilyLabel(cls)} ${TANK_ROLE_LABELS[role]||'Tank'}`);
+  $('tank-chassis').onchange=()=>set('chassis',$('tank-chassis').value);
+  if(choices.genericSlots){for(const slot of Object.keys(choices.genericSlots)){const el=$('tank-slot-'+slot);if(el)el.onchange=()=>set('slotModules',{...(state.tankVariants[side][cls][role].slotModules||{}),[slot]:el.value});}}
+  else{
+    for(const k of ['gun','turret','suspension','armorType','engine']){const el=$('tank-'+k);if(el)el.onchange=()=>set(k,el.value);}
+    (raw.specials||[]).forEach((_,i)=>{const el=$('tank-special-'+i);if(el)el.onchange=()=>{const next=[...state.tankVariants[side][cls][role].specials];next[i]=el.value;set('specials',next);};});
+  }
   for(const k of ['engineUpgrades','armorUpgrades'])$('tank-'+k).onchange=()=>set(k,+$('tank-'+k).value);
-  bindInlineMio(side,`${cls}_tank`,'tank-active');
+  if(mioFamily)bindInlineMio(side,mioFamily,'tank-active');
 }
+
 
 function renderAirDoctrine(side,prefix){
   const p=ensureTechState(side),d=normalizeAirDoctrine(p.airDoctrine),grand=AIR_GRAND_DOCTRINES[d.grand]?.name||d.grand,mastery=Object.values(d.tracks).reduce((n,x)=>n+(+x.mastery||0),0);

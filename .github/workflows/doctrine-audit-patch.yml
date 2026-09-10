@@ -20,7 +20,6 @@ jobs:
         shell: python
         run: |
           from pathlib import Path
-          import re
 
           doctrine = Path('src/doctrine.js')
           text = doctrine.read_text()
@@ -66,12 +65,15 @@ jobs:
 
           '''
           text = text[:start] + replacement + text[end:]
-          text = text.replace('pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};', 'pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};pack.doctrineMetadata=pack.doctrineMetadata||{};')
+          text = text.replace('pack.doctrineMetadata=pack.doctrineMetadata||{};pack.doctrineMetadata=pack.doctrineMetadata||{};', 'pack.doctrineMetadata=pack.doctrineMetadata||{};')
+          if 'pack.doctrineMetadata=pack.doctrineMetadata||{};' not in text:
+              text = text.replace('pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};', 'pack.equipmentUpgrades=pack.equipmentUpgrades||{};pack.doctrines=pack.doctrines||{};pack.doctrineMetadata=pack.doctrineMetadata||{};')
           text = text.replace("merge(pack.doctrines,extractDoctrines(parsed,'grand'))", "merge(pack.doctrines,extractDoctrines(parsed,'grand',sourceFile))")
           text = text.replace("merge(pack.doctrines,extractDoctrines(parsed,'track'))", "merge(pack.doctrines,extractDoctrines(parsed,'track',sourceFile))")
           text = text.replace("merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine'))", "merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine',sourceFile))")
           text = text.replace("else if(path.includes('/doctrine'))merge(pack.doctrines,extractDoctrines(parsed,'legacy'));", "else if(path.includes('/doctrine'))merge(pack.doctrineMetadata,extractDoctrineMetadata(parsed,sourceFile));")
-          text = text.replace('doctrineCount:Object.keys(pack.doctrines).length,parserVersion:', 'doctrineCount:Object.keys(pack.doctrines).length,doctrineMetadataCount:Object.keys(pack.doctrineMetadata).length,parserVersion:')
+          if 'doctrineMetadataCount:' not in text:
+              text = text.replace('doctrineCount:Object.keys(pack.doctrines).length,parserVersion:', 'doctrineCount:Object.keys(pack.doctrines).length,doctrineMetadataCount:Object.keys(pack.doctrineMetadata).length,parserVersion:')
           parser.write_text(text)
 
           builtin = Path('src/builtin1192.js')
@@ -93,5 +95,5 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add src/doctrine.js src/gameDataParser.js src/builtin1192.js
           if git diff --cached --quiet; then exit 0; fi
-          git commit -m "fix: doctrine source runtime and parser boundaries"
+          git commit -m "fix: clean doctrine importer metadata initialization"
           git push origin HEAD:audit-1.19.2

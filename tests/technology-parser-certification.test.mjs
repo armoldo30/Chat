@@ -7,9 +7,11 @@ import builtin1192 from '../src/builtin1192.js';
 const fixture=`
 technologies = {
   @year = 1936
+  @cost = 2
+  @bonus = 0.05
   root_tech = {
-    start_year = 1936
-    research_cost = 2
+    start_year = @year
+    research_cost = @cost
     categories = { infantry equipment }
     path = { leads_to_tech = child_tech research_cost_coeff = 1 }
     path = { leads_to_tech = side_tech research_cost_coeff = 0.5 }
@@ -23,6 +25,9 @@ technologies = {
     special_project_specialization = land
     is_special_project_tech = yes
     allow = { has_dlc = "No Step Back" has_tech = prerequisite_tech }
+    category_light_infantry = { soft_attack = @bonus }
+    on_research_complete = { add_war_support = @bonus }
+    on_research_complete_limit = { has_war = yes }
     ai_will_do = { modifier = { factor = 5 has_tech = ai_weight_only_tech } }
   }
   fleet_submarines = { }
@@ -32,8 +37,8 @@ technologies = {
 const tech=extractTechnologies(parseClausewitz(fixture),'common/technologies/fixture.txt');
 assert.deepEqual(Object.keys(tech).sort(),['fleet_submarines','root_tech'],'script variables must not be counted as technologies while empty technology blocks remain valid');
 assert.equal(tech.root_tech.sourceFile,'common/technologies/fixture.txt');
-assert.equal(tech.root_tech.startYear,1936);
-assert.equal(tech.root_tech.researchCost,2);
+assert.equal(tech.root_tech.startYear,1936,'@ technology variables resolve for numeric source fields');
+assert.equal(tech.root_tech.researchCost,2,'@ technology variables resolve for research cost');
 assert.deepEqual(tech.root_tech.categories,['infantry','equipment']);
 assert.deepEqual(tech.root_tech.paths,[{leadsToTech:'child_tech',researchCostCoeff:1},{leadsToTech:'side_tech',researchCostCoeff:0.5}]);
 assert.deepEqual(tech.root_tech.dependencies,{radio:1,motorised_infantry:1});
@@ -50,12 +55,18 @@ assert.ok(tech.root_tech.prerequisites.includes('radio'));
 assert.ok(!tech.root_tech.prerequisites.includes('ai_weight_only_tech'),'AI research weighting must never be presented as a player prerequisite');
 assert.equal(tech.root_tech.requirements.allow.has_dlc,'No Step Back');
 assert.equal(tech.root_tech.raw.allow.has_dlc,'No Step Back','allow requirements must be preserved as source metadata rather than selection locks');
+assert.deepEqual(tech.root_tech.directEffects,{category_light_infantry:{soft_attack:0.05}},'plain source effects are normalized separately from graph metadata');
+assert.deepEqual(tech.root_tech.scriptedEffects,{onResearchComplete:{add_war_support:0.05},limit:{has_war:true}},'on-research scripts remain separate and are never treated as plain stat effects');
+assert.equal(tech.root_tech.raw.category_light_infantry.soft_attack,'@bonus','raw source tokens remain preserved alongside resolved effect values');
+assert.ok(!Object.prototype.hasOwnProperty.call(tech.root_tech.directEffects,'ai_will_do'),'AI metadata must not leak into direct effects');
 assert.deepEqual(tech.fleet_submarines.raw,{});
 
 const fakeFile={name:'fixture.txt',webkitRelativePath:'common/technologies/fixture.txt',text:async()=>fixture};
 const pack=await buildExtendedDataPack([fakeFile]);
 assert.equal(pack.meta.technologyFiles,1);
 assert.equal(pack.meta.technologyCount,2);
+assert.equal(pack.meta.technologyDirectEffectCount,1);
+assert.equal(pack.meta.technologyScriptedEffectCount,1);
 assert.equal(pack.technologies.root_tech.sourceFile,'common/technologies/fixture.txt');
 
 assert.equal(source1192.version,'1.19.2');

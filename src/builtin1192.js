@@ -45,6 +45,10 @@ for(const [id,rule] of Object.entries(tankModuleCompatibility1192)){
     ...(rule.forbidEquipmentTypeExactMatchForCategory?{forbid_equipment_type_exact_match_for_category:rule.forbidEquipmentTypeExactMatchForCategory}:{}),
     ...(rule.forbidEquipmentType?{forbid_equipment_type:rule.forbidEquipmentType}:{})};
 }
+const reconCamera1192=BUILTIN_1192.modules?.recon_camera;
+if(!reconCamera1192)throw new Error('Missing 1.19.2 Air module recon_camera');
+reconCamera1192.forbidEquipmentTypeExactMatchForCategory={fighter_weapon:'scout_plane',cas_weapon:'scout_plane',nav_bomber_weapon:'scout_plane',tac_weapon:'scout_plane',mine_warfare_offense:'scout_plane'};
+reconCamera1192.raw={...(reconCamera1192.raw||{}),forbid_equipment_type_exact_match_for_category:{...reconCamera1192.forbidEquipmentTypeExactMatchForCategory}};
 BUILTIN_1192.equipment={...(BUILTIN_1192.equipment||{}),...landEquipment1192};
 for(const id of ['small_plane_airframe_0','cv_small_plane_airframe_0','medium_plane_airframe_0','large_plane_airframe_0']){
   const equipment=BUILTIN_1192.equipment?.[id];

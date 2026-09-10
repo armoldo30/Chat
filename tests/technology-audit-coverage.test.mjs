@@ -11,16 +11,17 @@ import { battalions as baseBattalions, supports as baseSupports, equipment as ba
 import { hydrateGameData } from '../src/gameData.js';
 import { DEFAULT_TECH_PROFILE, buildTechAdjustedData } from '../src/tech.js';
 
-const DIRECT_UNIT_FACTOR_FIELDS=new Set(['soft_attack','hard_attack','defence','defense','breakthrough','air_attack','supply_consumption_factor']);
+const DIRECT_UNIT_FACTOR_FIELDS=new Set(['soft_attack','hard_attack','defence','defense','breakthrough','air_attack','ap_attack','armor_value','hardness','supply_consumption_factor']);
+const DIRECT_UNIT_ADDITIVE_FIELDS=new Set(['combat_width','max_strength','max_organisation','supply_consumption']);
 const TERRAIN_KEYS=new Set(Object.keys(builtin1192.terrain||{}));
 const counts=()=>({});
 const inc=(obj,key,n=1)=>{obj[key]=(obj[key]||0)+n;};
 const fieldCounts=counts(),targetKinds=counts(),deferredUnitFields=counts(),terrainFields=counts(),globalFields=counts();
-let targetEntries=0,directFieldOccurrences=0,supportedUnitFieldOccurrences=0,terrainBlocks=0,battalionMultBlocks=0;
+let targetEntries=0,directFieldOccurrences=0,supportedCoreFieldOccurrences=0,terrainBlocks=0,battalionMultBlocks=0;
 const byGroup={};
 
 for(const [group,records] of Object.entries(TECHNOLOGY_EFFECT_SOURCES_1192)){
-  const g=byGroup[group]={records:Object.keys(records).length,targetEntries:0,supportedUnitFields:0,deferredUnitFields:0,terrainBlocks:0,battalionMultBlocks:0,globalFields:0};
+  const g=byGroup[group]={records:Object.keys(records).length,targetEntries:0,supportedCoreFields:0,deferredUnitFields:0,terrainBlocks:0,battalionMultBlocks:0,globalFields:0};
   for(const effects of Object.values(records))for(const [target,value] of Object.entries(effects||{})){
     targetEntries++;g.targetEntries++;
     if(value===null||typeof value!=='object'||Array.isArray(value)){
@@ -62,7 +63,7 @@ for(const [group,records] of Object.entries(TECHNOLOGY_EFFECT_SOURCES_1192)){
         inc(deferredUnitFields,`nested.${field}`);g.deferredUnitFields++;continue;
       }
       directFieldOccurrences++;inc(fieldCounts,field);
-      if(DIRECT_UNIT_FACTOR_FIELDS.has(field)){supportedUnitFieldOccurrences++;g.supportedUnitFields++;}
+      if(DIRECT_UNIT_FACTOR_FIELDS.has(field)||DIRECT_UNIT_ADDITIVE_FIELDS.has(field)){supportedCoreFieldOccurrences++;g.supportedCoreFields++;}
       else {inc(deferredUnitFields,field);g.deferredUnitFields++;}
     }
   }
@@ -87,7 +88,7 @@ const summary={
   targetEntries,
   targetKinds,
   directFieldOccurrences,
-  supportedUnitFieldOccurrences,
+  supportedCoreFieldOccurrences,
   terrainBlocks,
   terrainFields,
   battalionMultBlocks,
@@ -102,10 +103,18 @@ const summary={
 
 assert.equal(source1192.fileCount,13);
 assert.equal(source1192.recordCount,552);
+assert.equal(graphOverlayTotal,226);
+assert.deepEqual(graphOverlayCounts,{industry:43,support:45,infantry:89,bbaAir:43,specialProjects:6});
 assert.equal(allEffectTechIds.length,208);
+assert.deepEqual(builtin1192.meta.technologyEffectSourceCounts,{armor:3,artillery:32,bbaAir:4,electronics:33,industry:39,infantry:61,nsbArmor:5,specialProjects:5,support:26});
+assert.equal(targetEntries,505);
+assert.equal(directFieldOccurrences,345);
+assert.equal(supportedCoreFieldOccurrences,257,'all source-derived direct fields that map to current planner core land stats must be classified as supported');
+assert.equal(terrainBlocks,161,'terrain-specific technology effects remain assigned to the terrain/combat formula audit');
+assert.equal(battalionMultBlocks,12,'battalion_mult technology effects remain assigned to aggregation formula audit');
 assert.equal(graphOverlayTotal,builtin1192.meta.technologyGraphSourceRestoredCount);
 assert.equal(runtime.unknownTechnologies.length,0);
-assert.ok(runtime.appliedTechnologies.length>0);
-assert.ok(targetEntries>0&&directFieldOccurrences>0);
+assert.ok(runtime.appliedTechnologies.length>=60,'expanded core mappings must not reduce executable technology coverage');
+assert.ok(runtime.appliedModifierCount>=183,'expanded core mappings must not reduce applied core modifiers');
 console.log('TECHNOLOGY_AUDIT_COVERAGE',JSON.stringify(summary));
-console.log('Technology audit coverage measurement passed.');
+console.log('Technology audit bounded coverage certification passed.');

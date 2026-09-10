@@ -18,7 +18,7 @@ const tactics=`combat_tactic = { elastic_defense = { days = 3 base = 4 trigger =
 const modifiers=`army_test_modifier = { color_type = good unit_modifier = { defense = 0.1 } }`;
 const projects=`special_projects = { advanced_support_vehicle = { prototype_cost = 12 available = { has_tech = infantry_weapons } } }`;
 const upgrades=`equipment_upgrades = { tank_engine_upgrade = { max_level = 20 cost = 1 } }`;
-const doctrines=`technologies = { mobile_warfare = { research_cost = 1 category = land_doctrine } }`;
+const doctrines=`mobile_warfare = { folder = land tracks = { infantry combat_support armor operations } planning_speed = 0.2 }`;
 
 const pack=await buildExtendedDataPack([
   fakeFile('infantry.txt',units,'common/units/infantry.txt'),
@@ -28,7 +28,7 @@ const pack=await buildExtendedDataPack([
   fakeFile('00_modifiers.txt',modifiers,'common/modifier_definitions/00_modifiers.txt'),
   fakeFile('00_projects.txt',projects,'common/special_projects/00_projects.txt'),
   fakeFile('00_upgrades.txt',upgrades,'common/units/equipment/upgrades/00_upgrades.txt'),
-  fakeFile('00_doctrines.txt',doctrines,'common/doctrines/00_doctrines.txt')
+  fakeFile('land.txt',doctrines,'common/doctrines/grand_doctrines/land.txt')
 ]);
 
 assert.equal(pack.meta.technologyCount,1);
@@ -37,7 +37,10 @@ assert.equal(pack.meta.modifierCount,1);
 assert.equal(pack.meta.specialProjectCount,1);
 assert.equal(pack.meta.equipmentUpgradeCount,1);
 assert.equal(pack.meta.doctrineCount,1);
+assert.equal(pack.meta.doctrineMetadataCount,0);
 assert.ok(pack.technologies.infantry_weapons);
+assert.ok(pack.doctrines.mobile_warfare);
+assert.equal(pack.doctrines.mobile_warfare.kind,'grand');
 assert.ok(pack.combatTactics.elastic_defense.prerequisites.includes('infantry_weapons'));
 assert.ok(pack.specialProjects.advanced_support_vehicle.prerequisites.includes('infantry_weapons'));
 

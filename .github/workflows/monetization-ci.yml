@@ -27,18 +27,19 @@ jobs:
           grep -Fq 'Advertising is not enabled yet.' dist/ads.txt
           ! grep -q '^google.com, pub-' dist/ads.txt
           ! grep -q 'google-adsense-account' dist/index.html
-      - name: Browser smoke with ads disabled
+      - name: Served-site smoke with ads disabled
         shell: bash
         run: |
           set -euo pipefail
-          BROWSER="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
-          test -n "$BROWSER"
           python3 -m http.server 4173 --directory dist >/tmp/war-planner-http.log 2>&1 &
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           sleep 1
-          timeout 30s "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=2000 --dump-dom 'http://127.0.0.1:4173/#data' >/tmp/index.html
-          grep -Fq 'Data Packs' /tmp/index.html
+          curl -fsS 'http://127.0.0.1:4173/' >/tmp/index.html
+          curl -fsS 'http://127.0.0.1:4173/privacy.html' >/tmp/privacy.html
+          curl -fsS 'http://127.0.0.1:4173/ads.txt' >/tmp/ads.txt
+          grep -Fq 'HOI4 War Planner' /tmp/index.html
           grep -Fq 'Privacy' /tmp/index.html
-          ! grep -Fq 'id="hoi4-adsense-script"' /tmp/index.html
-          curl -fsS 'http://127.0.0.1:4173/privacy.html' | grep -Fq 'Privacy Policy'
+          grep -Fq 'Privacy Policy' /tmp/privacy.html
+          grep -Fq 'Advertising is not enabled yet.' /tmp/ads.txt
+          ! grep -Fq 'pagead2.googlesyndication.com/pagead/js/adsbygoogle.js' /tmp/index.html

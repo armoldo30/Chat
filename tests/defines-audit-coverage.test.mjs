@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { DEFINE_VALUES_1192, PLANNER_ANALYTICAL_CONSTANTS_1192, DEFINES_SOURCE_1192, DEFINES_CERTIFICATION_1192 } from '../src/builtin1192/defines-certification-1192.js';
+import { DEFINE_VALUES_1192, DEFINES_SUPERSEDED_ANALYTICAL_1192, DEFINES_SOURCE_1192, DEFINES_CERTIFICATION_1192 } from '../src/builtin1192/defines-certification-1192.js';
 
 const military=Object.keys(DEFINE_VALUES_1192.NMilitary),production=Object.keys(DEFINE_VALUES_1192.NProduction);
 assert.equal(military.length,20,'20 planner-consumed NMilitary source defines are exact');
@@ -9,8 +9,10 @@ assert.equal(DEFINES_CERTIFICATION_1192.classification,'game-file-exact-consumed
 assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.authoritativeRawGameDefinesRetained,true);
 assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.fullDefinesCorpusCensused,true);
 assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.plannerConsumedSourceDefineValues,23);
-assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.plannerAnalyticalConstants,1);
-assert.equal(PLANNER_ANALYTICAL_CONSTANTS_1192.maxLineResourcePenalty,.90);
+assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.plannerAnalyticalConstants,0,'no active Defines-stage analytical Production placeholder may remain after Production audit');
+assert.equal(DEFINES_CERTIFICATION_1192.sourceBoundary.supersededPlannerAnalyticalConstants,1);
+assert.equal(DEFINES_SUPERSEDED_ANALYTICAL_1192.historicalMaxLineResourcePenalty.value,.90);
+assert.equal(DEFINES_SUPERSEDED_ANALYTICAL_1192.historicalMaxLineResourcePenalty.active,false);
 
 assert.equal(DEFINES_SOURCE_1192.sourceFiles.length,3);
 assert.equal(DEFINES_SOURCE_1192.totalBytes,498124);
@@ -27,10 +29,11 @@ assert.equal(DEFINES_SOURCE_1192.sourceFiles[2].sha256,'49a3c68dde41a092b1af9467
 assert.equal(DEFINES_CERTIFICATION_1192.corrections.length,5);
 assert.equal(DEFINES_CERTIFICATION_1192.provenanceCorrections.length,1);
 assert.equal(DEFINES_CERTIFICATION_1192.provenanceCorrections[0].runtime,'PRODUCTION_CONSTANTS.maxLineResourcePenalty');
-assert.equal(DEFINES_CERTIFICATION_1192.provenanceCorrections[0].classification,'planner-analytical');
+assert.equal(DEFINES_CERTIFICATION_1192.provenanceCorrections[0].classification,'superseded-by-production-formulas');
+assert.equal(DEFINES_CERTIFICATION_1192.provenanceCorrections[0].active,false);
 assert.equal(DEFINES_CERTIFICATION_1192.formulaDerived['PRODUCTION_CONSTANTS.efficiencyBaseGain'].sourceValue,1);
 assert.equal(DEFINES_CERTIFICATION_1192.formulaDerived['PRODUCTION_CONSTANTS.efficiencyBaseGain'].runtimeValue,.001);
-assert.equal(DEFINES_CERTIFICATION_1192.formulaDerived['PRODUCTION_CONSTANTS.efficiencyBaseGain'].deferredTo,'Production formulas');
-assert.ok(DEFINES_CERTIFICATION_1192.formulaDeferred.includes('exact define interaction/order inside combat and production formulas'));
-console.log('DEFINES_AUDIT_COVERAGE',JSON.stringify({military:military.length,production:production.length,sourceExact:23,analytical:1,namespaces:DEFINES_SOURCE_1192.namespaceCount,directAssignments:DEFINES_SOURCE_1192.directAssignmentCount,corrections:DEFINES_CERTIFICATION_1192.corrections.length}));
+assert.equal(DEFINES_CERTIFICATION_1192.formulaDerived['PRODUCTION_CONSTANTS.efficiencyBaseGain'].resolvedBy,'Production formulas audit');
+assert.ok(DEFINES_CERTIFICATION_1192.formulaDeferred.includes('exact define interaction/order inside combat formulas'));
+console.log('DEFINES_AUDIT_COVERAGE',JSON.stringify({military:military.length,production:production.length,sourceExact:23,activeAnalytical:0,supersededAnalytical:1,namespaces:DEFINES_SOURCE_1192.namespaceCount,directAssignments:DEFINES_SOURCE_1192.directAssignmentCount,corrections:DEFINES_CERTIFICATION_1192.corrections.length}));
 console.log('Defines exact-source audit coverage certification passed.');

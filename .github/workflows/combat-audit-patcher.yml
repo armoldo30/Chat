@@ -21,7 +21,9 @@ jobs:
         with:
           node-version: 22
       - name: Apply combat audit
-        run: python .combat-stage/patch.py
+        run: |
+          python .combat-stage/patch.py
+          python .combat-stage/fix1.py
       - name: Test
         run: npm test
       - name: Build

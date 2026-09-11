@@ -17,6 +17,19 @@ const DISPLAY_NAMES={
 };
 
 const ACRONYMS=new Map([['aa','AA'],['at','AT'],['cas','CAS'],['ic','IC'],['mio','MIO'],['spg','SPG'],['td','TD'],['mg','MG']]);
+let DISPLAY_LOCALIZATION={};
+
+export function setDisplayLocalization(localization={}){
+  DISPLAY_LOCALIZATION={...localization};
+}
+
+export function getDisplayLocalization(){return {...DISPLAY_LOCALIZATION};}
+
+function localizedValue(id,candidate=''){
+  const keys=[candidate,id,`${id}_name`,`${id}_NAME`,`${id}_title`,`${id}_TITLE`].filter(Boolean);
+  for(const key of keys){const value=DISPLAY_LOCALIZATION[key];if(typeof value==='string'&&value.trim())return value.trim();}
+  return '';
+}
 
 export function looksLikeIdentifier(value=''){
   const s=String(value||'').trim();
@@ -38,7 +51,8 @@ export function humanizeIdentifier(value=''){
 }
 
 export function displayLabel(value,candidate=''){
-  const id=String(value??'').trim(),shown=String(candidate??'').trim();
+  const id=String(value??'').trim(),shown=String(candidate??'').trim(),localized=localizedValue(id,shown);
+  if(localized)return localized;
   if(DISPLAY_NAMES[id])return DISPLAY_NAMES[id];
   if(shown&&shown!==id&&!looksLikeIdentifier(shown))return shown;
   return humanizeIdentifier(shown||id);

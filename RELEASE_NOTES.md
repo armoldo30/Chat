@@ -2,7 +2,7 @@
 
 ## Overview
 
-0.16.0 is the launch-candidate release built on the certified HOI4 1.19.2 data/combat foundation completed in 0.15.0. It adds the finished visual/UX layer, Division Gauntlet, persistence hardening and production-deployment cleanup while preserving the evidence boundary between game-file exact, executable-inferred and planner-analytical behavior.
+0.16.0 is the public launch release built on the certified HOI4 1.19.2 data/combat foundation completed in 0.15.0. It adds the finished visual/UX layer, Division Gauntlet, persistence and browser-recovery hardening, public feedback tooling, and production-deployment cleanup while preserving the evidence boundary between game-file exact, executable-inferred and planner-analytical behavior.
 
 ## Headline changes
 
@@ -14,7 +14,9 @@
 - Added ad-ready/privacy infrastructure while keeping advertising disabled until explicit activation.
 - Hardened full-scenario persistence/import/export: current schema is preserved, oversized/broken JSON imports are rejected gracefully, local-storage failures no longer crash the planner, and bundled data is omitted from redundant scenario exports.
 - Preserved the permanent page shell by rendering the SPA into `#app` rather than replacing the document body, keeping privacy controls and enhancement modules intact.
-- Removed historical MIO staging payloads and branch-specific temporary validation workflows from the release candidate.
+- Added a browser-side runtime recovery banner, local-state reset recovery and a no-JavaScript fallback so failed startup does not become a blank page. The recovery layer adds no telemetry.
+- Added structured public GitHub bug-report and feature-request templates plus an in-site **Report issue** link.
+- Removed historical MIO staging payloads and branch-specific temporary validation workflows from the release tree.
 - Simplified production deployment CI so GitHub Pages deploys only from `main`.
 
 ## Accuracy foundation retained from 0.15.0
@@ -29,14 +31,20 @@ Research, DLC and Special Project requirements remain informational for otherwis
 
 ## Verification target
 
-The 0.16.0 launch candidate must pass from a clean checkout:
+The 0.16.0 release must pass from a clean checkout:
 
 - complete `npm test`
 - full 10,000-opponent / 160,000-matchup Gauntlet smoke
 - `npm run build`
 - built-site asset/privacy/robots checks
-- served static-site smoke
+- served desktop/mobile static-site smoke
+- runtime-recovery and public-feedback regression checks
 - AdSense disabled/configuration sanity check
 - no historical staging payloads or temporary write-enabled workflows
 
-Production `main` is intentionally left unchanged until the release candidate is explicitly promoted.
+## Intentionally separate from 0.16.0 launch completion
+
+- **Oracle validation:** black-box HOI4-vs-Planner experiments remain the path toward higher executable fidelity.
+- **AdSense activation:** ad infrastructure is present, but publisher/client/slot IDs and consent activation remain deliberately disabled until the custom domain and account are ready.
+
+Live site: https://armoldo30.github.io/Chat/

@@ -1,0 +1,53 @@
+name: Gauntlet Integration Patcher
+on:
+  push:
+    branches: [gauntlet-1.19.2]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: gauntlet-1.19.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Integrate Gauntlet route
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('src/main.js')
+          s=p.read_text()
+          if "import { renderGauntlet } from './gauntlet-ui.js';" not in s:
+              anchor="import BUILTIN_1192 from './builtin1192.js';"
+              assert anchor in s
+              s=s.replace(anchor,anchor+"\nimport { renderGauntlet } from './gauntlet-ui.js';",1)
+          old="return ['dashboard','battle','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';"
+          new="return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';"
+          if old in s:s=s.replace(old,new,1)
+          assert new in s
+          oldnav="const nav=[['battle','DIV','Division Lab'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];"
+          newnav="const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];"
+          if oldnav in s:s=s.replace(oldnav,newnav,1)
+          assert newnav in s
+          oldrender="function render(r){const v=$('view');({dashboard,battle,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}"
+          newrender="function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}\nfunction gauntlet(c){renderGauntlet(c,{name:side=>state[side+'Name'],stats:side=>division(side),data:side=>techData(side),equipment:side=>equipmentForSide(side),battleOpts:()=>battleOpts()});}"
+          if oldrender in s:s=s.replace(oldrender,newrender,1)
+          assert newrender in s
+          p.write_text(s)
+          PY
+      - name: Full certification
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Commit integration
+        run: |
+          if git diff --quiet -- src/main.js; then exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/main.js
+          git commit -m "feat: integrate Division Gauntlet route"
+          git push origin HEAD:gauntlet-1.19.2

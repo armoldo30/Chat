@@ -1,3 +1,5 @@
+import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';
+
 export const MODEL_META = {
   appVersion: '0.15.0',
   gameVersion: '1.19.2',
@@ -7,34 +9,37 @@ export const MODEL_META = {
 };
 
 export const RESOURCES = ['steel','aluminum','rubber','tungsten','chromium'];
+const D1192_MIL=DEFINE_VALUES_1192.NMilitary;
+const D1192_PROD=DEFINE_VALUES_1192.NProduction;
 export const COMBAT_CONSTANTS = {
-  defendedHitChance: 0.10,
-  undefendedHitChance: 0.40,
-  overWidthPenaltyCap: 0.33,
-  overWidthPenaltyMultiplier: 1.0,
-  stackingLimitBase: 8,
-  stackingLimitPerDirection: 4,
-  stackingPenaltyPerDivision: 0.02,
-  fortPenaltyPerLevel: 0.15,
-  entrenchmentPerPoint: 0.02,
-  maxAirSuperiorityPenalty: 0.35,
-  nightAttackPenalty: 0.75,
-  orgDamageModifier: 0.05,
-  strengthDamageModifier: 0.05,
-  orgDice: 4,
-  armoredOrgDice: 6,
-  strengthDice: 2,
-  combatMinimumHours: 4,
-  equipmentCombatLossFactor: 0.70,
-  armorWeights: { max: 0.40, average: 0.60 },
-  piercingWeights: { max: 0.40, average: 0.60 }
+  defendedHitChance: 1-D1192_MIL.BASE_CHANCE_TO_AVOID_HIT/100,
+  undefendedHitChance: 1-D1192_MIL.CHANCE_TO_AVOID_HIT_AT_NO_DEF/100,
+  overWidthPenaltyCap: Math.abs(D1192_MIL.COMBAT_OVER_WIDTH_PENALTY_MAX),
+  overWidthPenaltyMultiplier: Math.abs(D1192_MIL.COMBAT_OVER_WIDTH_PENALTY),
+  stackingLimitBase: D1192_MIL.COMBAT_STACKING_START,
+  stackingLimitPerDirection: D1192_MIL.COMBAT_STACKING_EXTRA,
+  stackingPenaltyPerDivision: Math.abs(D1192_MIL.COMBAT_STACKING_PENALTY),
+  fortPenaltyPerLevel: Math.abs(D1192_MIL.BASE_FORT_PENALTY),
+  entrenchmentPerPoint: Math.abs(D1192_MIL.DIG_IN_FACTOR),
+  maxAirSuperiorityPenalty: Math.abs(D1192_MIL.ENEMY_AIR_SUPERIORITY_IMPACT),
+  nightAttackPenalty: Math.abs(D1192_MIL.BASE_NIGHT_ATTACK_PENALTY),
+  orgDamageModifier: D1192_MIL.LAND_COMBAT_ORG_DAMAGE_MODIFIER,
+  strengthDamageModifier: D1192_MIL.LAND_COMBAT_STR_DAMAGE_MODIFIER,
+  orgDice: D1192_MIL.LAND_COMBAT_ORG_DICE_SIZE,
+  armoredOrgDice: D1192_MIL.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE,
+  strengthDice: D1192_MIL.LAND_COMBAT_STR_DICE_SIZE,
+  combatMinimumHours: D1192_MIL.COMBAT_MINIMUM_TIME,
+  equipmentCombatLossFactor: D1192_MIL.EQUIPMENT_COMBAT_LOSS_FACTOR,
+  armorWeights: { max: D1192_MIL.ARMOR_VS_AVERAGE, average: 1-D1192_MIL.ARMOR_VS_AVERAGE },
+  piercingWeights: { max: D1192_MIL.PEN_VS_AVERAGE, average: 1-D1192_MIL.PEN_VS_AVERAGE }
 };
 
 export const PRODUCTION_CONSTANTS = {
+  // Formula-derived scale; exact use is certified in the Production Formulas audit, not as a literal define.
   efficiencyBaseGain: 0.001,
-  resourceLackPenaltyPerUnit: 0.05,
-  maxLineResourcePenalty: 0.90,
-  maxMilitaryFactoriesPerLine: 150
+  resourceLackPenaltyPerUnit: Math.abs(D1192_PROD.PRODUCTION_RESOURCE_LACK_PENALTY),
+  maxLineResourcePenalty: Math.abs(D1192_PROD.MAX_LINE_RESOURCE_PENALTY)/100,
+  maxMilitaryFactoriesPerLine: D1192_PROD.MAX_MIL_FACTORIES_PER_LINE
 };
 
 // Current 1.19-era combat widths. Attack modifiers are a public-data baseline and remain replaceable by imported game files.

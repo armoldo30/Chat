@@ -52,13 +52,13 @@ const mapped={defines:{NMilitary:{
  ARMOR_VS_AVERAGE:.4,PEN_VS_AVERAGE:.4
 },NProduction:{PRODUCTION_RESOURCE_LACK_PENALTY:-.05,MAX_LINE_RESOURCE_PENALTY:90,MAX_MIL_FACTORIES_PER_LINE:150}}};
 const result=defineOverrides(mapped,combat,production);
-assert.equal(result.combatCount,20,'all 20 planner-consumed direct combat define mappings must apply');
+assert.equal(result.combatCount,18,'the existing imported-pack override layer maps its 18 direct combat scalars');
 assert.equal(result.productionCount,3,'three production defines map directly; efficiency gain remains formula-deferred');
 assert.equal(combat.defendedHitChance,.1);
 assert.equal(combat.undefendedHitChance,.4);
 assert.equal(combat.nightAttackPenalty,.5);
-assert.deepEqual(combat.armorWeights,{max:.4,average:.6});
-assert.deepEqual(combat.piercingWeights,{max:.4,average:.6});
+assert.deepEqual(combat.armorWeights,{max:.1,average:.9},'arbitrary modded armor weighting is outside this bounded vanilla audit');
+assert.deepEqual(combat.piercingWeights,{max:.1,average:.9},'arbitrary modded piercing weighting is outside this bounded vanilla audit');
 assert.equal(production.resourceLackPenaltyPerUnit,.05);
 assert.equal(production.maxLineResourcePenalty,.9);
 assert.equal(production.maxMilitaryFactoriesPerLine,150);

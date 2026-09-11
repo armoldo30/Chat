@@ -22,6 +22,7 @@ jobs:
           node-version: 22
       - name: Apply combat audit
         run: |
+          # Run 3 includes the audited dsupply runtime wiring fix.
           python .combat-stage/patch.py
           python .combat-stage/fix1.py
       - name: Test

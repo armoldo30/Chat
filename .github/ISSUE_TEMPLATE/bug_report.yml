@@ -1,0 +1,64 @@
+name: Bug report
+description: Report a reproducible HOI4 War Planner problem
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a problem. The most useful reports include the planner route, exact steps, and browser/device. If the problem depends on a scenario, attach the exported scenario JSON when safe to share.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Division Lab
+        - Division Gauntlet
+        - Tank Designer
+        - Air Lab
+        - Industry
+        - Command / Front Planner / Intel
+        - Data Packs / import
+        - Scenario save / import / export
+        - Mobile / visual layout
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      placeholder: Describe the incorrect result, broken control, visual problem, or error message.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open ...
+        2. Select ...
+        3. Click ...
+        4. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and device
+      placeholder: "Example: Safari 18 on iPhone 14, or Chrome 140 on Windows 11"
+  - type: input
+    id: version
+    attributes:
+      label: Planner / HOI4 version shown by the site
+      placeholder: "Example: Planner 0.16.0 · HOI4 1.19.2"
+  - type: textarea
+    id: files
+    attributes:
+      label: Optional scenario, screenshot, or other evidence
+      description: Drag files here if useful. Do not attach anything private that you do not want public on GitHub.

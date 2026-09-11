@@ -1,0 +1,43 @@
+name: Finalize terrain tactics modifiers audit
+
+on:
+  push:
+    branches:
+      - audit-1.19.2
+    paths:
+      - .github/workflows/terrain-audit-finalize.yml
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-1.19.2
+      - name: Update master audit matrix
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('DATA_AUDIT_1.19.2.md')
+          text=p.read_text()
+          old='| Terrain/tactics/modifiers | Not started | Not started | Not started | Pending |'
+          new='| Terrain/tactics/modifiers | **PASS — 8 recovered land terrain records / 55 tactic raw blocks / 3 custom modifier definitions** | **PASS — recovered payloads fingerprinted; richer source structure preserved on import** | **PASS for current terrain width/inherent attack consumption; unit terrain/tactic execution assigned to combat formulas** | **Audit complete / bounded source/runtime certification** |'
+          if old not in text:
+              raise SystemExit('Expected pending terrain matrix row not found')
+          text=text.replace(old,new,1)
+          heading='## Phase 7 — Terrain / tactics / modifiers'
+          if heading not in text:
+              text += '''\n\n## Phase 7 — Terrain / tactics / modifiers\n\nStatus: **PASS — audit complete with bounded source/runtime certification**\n\nThe recovered 1.19.2 bundle contains **8 land-combat terrain records**, **55 combat tactics with 55 retained raw blocks**, and **3 custom modifier definitions with 3 retained raw blocks**. Permanent certification fingerprints lock the compact terrain payload and complete recovered tactic/modifier payloads. Built-in tactics and modifier definitions are re-normalized from their retained raw source blocks so bundled and freshly imported data share the same structured schema.\n\nFresh imports now preserve richer terrain fields and unit-scoped terrain attack/defence/movement blocks. The audit also removed a runtime provenance bug: source-backed units no longer silently inherit hand-written fallback terrain bonuses when the historic compact 1.19.2 bundle did not retain the exact unit terrain block. Missing source remains explicitly absent instead of being presented as certified data.\n\nCurrent terrain runtime certification covers recovered combat width, additional-direction width, and inherent attacker attack penalties reaching `battleContext`. Their exact interaction ordering with unit, technology, doctrine, river, fort, weather, tactics, and other modifiers remains classified **executable-inferred** until the combat-formula audit.\n\nCombat-tactic source structure is certified, including base weighting blocks, attacker/defender role and multipliers, triggers, phases, counter relationships, movement and organisation-damage modifiers, and tactic combat-width fields. Exact tactic selection, counter resolution, timing, phase changes, leader/recon interactions, and modifier ordering are explicitly deferred to **Defines / Combat Formulas** rather than approximated here.\n\nThe three recovered modifier definitions are operation/intelligence display/type metadata, not a generic catalog of every HOI4 modifier keyword; they have no current land-combat runtime role.\n\nDedicated certification details are in `TERRAIN_TACTICS_MODIFIERS_AUDIT_1.19.2.md`.\n\n**Next audit phase: Defines.**\n'''
+          p.write_text(text)
+          PY
+      - name: Remove one-shot workflow and commit
+        run: |
+          rm .github/workflows/terrain-audit-finalize.yml
+          git config user.name "armoldo30"
+          git config user.email "nkemp2421@gmail.com"
+          git add DATA_AUDIT_1.19.2.md .github/workflows/terrain-audit-finalize.yml
+          git commit -m "docs: close terrain tactics modifiers audit"
+          git push origin HEAD:audit-1.19.2

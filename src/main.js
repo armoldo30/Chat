@@ -10,6 +10,7 @@ import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, no
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, AIR_SLOT_MODULES, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus, airDesignOptions, airSlotLabel } from './air.js';
 import BUILTIN_1192 from './builtin1192.js';
+import { renderGauntlet } from './gauntlet-ui.js';
 
 const STORAGE='hoi4-war-planner-v7',LEGACY_STORAGE='hoi4-war-planner-v6';
 const $=id=>document.getElementById(id);
@@ -151,7 +152,7 @@ function applyCurrentDataPack(){
 }
 applyCurrentDataPack();
 function save(){const stored={...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};localStorage.setItem(STORAGE,JSON.stringify(stored));}
-function route(){const r=location.hash.replace('#','');return ['dashboard','battle','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
+function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}
 
@@ -178,7 +179,7 @@ function lastBattlePreview(){
 }
 
 function shell(){
-  const nav=[['battle','DIV','Division Lab'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];
+  const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];
   const active=route();
   document.title=`${state.operation} · HOI4 War Planner`;
   document.body.innerHTML=`<div class="app-shell">
@@ -191,7 +192,8 @@ function shell(){
   </div>`;
   render(active);
 }
-function render(r){const v=$('view');({dashboard,battle,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}
+function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}
+function gauntlet(c){renderGauntlet(c,{name:side=>state[side+'Name'],stats:side=>division(side),data:side=>techData(side),equipment:side=>equipmentForSide(side),battleOpts:()=>battleOpts()});}
 
 function dashboard(c){
   const eqA=equipmentForSide('attacker'),band=combatBand(),forcePlan=forceProductionPlan(),industry=productionReadiness(),ready=Math.round(industry*.65+clamp(band.adverse.winRate,0,100)*.35);

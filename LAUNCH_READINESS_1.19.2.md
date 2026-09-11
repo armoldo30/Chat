@@ -6,9 +6,9 @@ Candidate branch: `launch-candidate-1.19.2`
 
 ## Status
 
-**READY FOR RELEASE VALIDATION.**
+**READY FOR FINAL PROMOTION AFTER EXACT-HEAD VALIDATION.**
 
-This candidate consolidates the completed HOI4 1.19.2 audit foundation, visual/UX work, monetization-ready-but-disabled infrastructure, and Division Gauntlet. Oracle work and AdSense activation are explicitly outside this release-hardening pass.
+This candidate consolidates the completed HOI4 1.19.2 audit foundation, visual/UX work, monetization-ready-but-disabled infrastructure, Division Gauntlet, persistence hardening and browser-recovery/public-feedback safeguards. Oracle work and AdSense activation are explicitly outside this release-hardening pass.
 
 ## Completed before promotion
 
@@ -21,6 +21,9 @@ This candidate consolidates the completed HOI4 1.19.2 audit foundation, visual/U
 - Local-storage write failures and malformed/oversized JSON imports fail visibly without crashing the planner.
 - The SPA renders into `#app`, preserving the privacy/footer shell and enhancement modules across route changes.
 - Keyboard focus and reduced-motion behavior are under regression coverage.
+- A browser-side runtime recovery layer handles failed startup/runtime exceptions, offers reload/local-state reset, and adds no telemetry.
+- A `<noscript>` fallback prevents disabled JavaScript from presenting a blank page.
+- The public footer exposes a structured GitHub issue-reporting path, with dedicated bug and feature-request templates.
 - `robots.txt`, launch metadata, privacy policy and an explicit unofficial/non-affiliation footer are present.
 - The build will carry a future `CNAME` automatically if a custom domain is later supplied.
 - AdSense configuration remains deliberately disabled and contains no active publisher or slot IDs.
@@ -39,6 +42,8 @@ This candidate consolidates the completed HOI4 1.19.2 audit foundation, visual/U
 7. headless mobile Scenario render,
 8. preservation of the legal/privacy footer after the SPA starts.
 
+The full regression suite additionally covers runtime recovery, no-JavaScript/feedback surface, UI/accessibility regressions, monetization-disabled state and all certified mechanics/data tests.
+
 ## Intentionally not blocking this release
 
 ### Oracle
@@ -55,4 +60,11 @@ No custom domain is configured in this candidate. The existing GitHub Pages endp
 
 ## Promotion rule
 
-Promote this candidate to `main` only after the final release-candidate workflow succeeds on the exact candidate head. The subsequent `main` workflow must then pass tests/build and complete GitHub Pages deployment before 0.16.0 is considered live.
+Promote this candidate to `main` only after the final release-candidate workflow succeeds on the exact candidate head. The subsequent `main` workflow must then pass tests/build and complete GitHub Pages deployment before the hardening pass is considered live.
+
+## Remaining repository-account housekeeping
+
+The available connector can validate and modify repository contents but cannot create the GitHub Release or edit repository metadata. After code promotion, the only recommended manual GitHub housekeeping is:
+
+- change the repository description from `Gpt` to a useful HOI4 War Planner description,
+- optionally create a `0.16.0` GitHub Release/tag using `RELEASE_NOTES.md`.

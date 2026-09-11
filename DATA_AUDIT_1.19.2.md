@@ -137,7 +137,7 @@ The following items were deferred from the land-data pass and handled in later d
 | Technologies/requirements | **PASS — 552-ID/13-file inventory; exact payload boundary measured** | **PASS — 226 exact graph + 208 exact direct-effect records** | **PASS — informational requirements + all current core-land scalar mappings; other domains classified/deferred** | **Audit complete / bounded source certification** |
 | Doctrines | **PASS — 21 files / 121 doctrine nodes** | **PASS — 121/121 raw-record fingerprints** | **PASS for current Land/Air planner surfaces; unsupported formula paths explicitly deferred** | **Certified source layer / bounded runtime** |
 | MIOs | **PASS — 55 files / 552 declarations / 51 source variables; payload boundary explicit** | **PASS for recovered exact payload — 85 trait corrections / 3 removals; 24 equipment groups / 22 policies retained** | **PASS for inheritance/tree/equipment-filter and current equipment/production behavior; policy/global/exact executable semantics deferred** | **Audit complete / bounded source certification** |
-| Terrain/tactics/modifiers | Not started | Not started | Not started | Pending |
+| Terrain/tactics/modifiers | **PASS — 8 recovered land terrain records / 55 tactic raw blocks / 3 custom modifier definitions** | **PASS — recovered payloads fingerprinted; richer source structure preserved on import** | **PASS for current terrain width/inherent attack consumption; unit terrain/tactic execution assigned to combat formulas** | **Audit complete / bounded source/runtime certification** |
 | Defines | Not started | Not started | Not started | Pending |
 | Production formulas | Not started | Not started | Not started | Pending |
 | Combat formulas | Not started | Not started | Not started | Pending |
@@ -279,3 +279,22 @@ The recovered auxiliary source corpus also retains **24 MIO equipment groups** a
 Current equipment and designed-variant MIO stat application, together with current production-factor helpers, is regression-tested and classified **Executable inferred**. Exact HOI4 production-line interaction, organization/funds/task mechanics, unsupported modifier families, naval runtime, and modifier ordering remain assigned to later production/defines/combat formula work.
 
 Detailed boundaries, recovered payload counts, rejected historical targets, runtime semantics, and explicit non-parity claims are recorded in `MIO_AUDIT_1.19.2.md`.
+
+
+## Phase 7 — Terrain / tactics / modifiers
+
+Status: **PASS — audit complete with bounded source/runtime certification**
+
+The recovered 1.19.2 bundle contains **8 land-combat terrain records**, **55 combat tactics with 55 retained raw blocks**, and **3 custom modifier definitions with 3 retained raw blocks**. Permanent certification fingerprints lock the compact terrain payload and complete recovered tactic/modifier payloads. Built-in tactics and modifier definitions are re-normalized from their retained raw source blocks so bundled and freshly imported data share the same structured schema.
+
+Fresh imports now preserve richer terrain fields and unit-scoped terrain attack/defence/movement blocks. The audit also removed a runtime provenance bug: source-backed units no longer silently inherit hand-written fallback terrain bonuses when the historic compact 1.19.2 bundle did not retain the exact unit terrain block. Missing source remains explicitly absent instead of being presented as certified data.
+
+Current terrain runtime certification covers recovered combat width, additional-direction width, and inherent attacker attack penalties reaching `battleContext`. Their exact interaction ordering with unit, technology, doctrine, river, fort, weather, tactics, and other modifiers remains classified **executable-inferred** until the combat-formula audit.
+
+Combat-tactic source structure is certified, including base weighting blocks, attacker/defender role and multipliers, triggers, phases, counter relationships, movement and organisation-damage modifiers, and tactic combat-width fields. Exact tactic selection, counter resolution, timing, phase changes, leader/recon interactions, and modifier ordering are explicitly deferred to **Defines / Combat Formulas** rather than approximated here.
+
+The three recovered modifier definitions are operation/intelligence display/type metadata, not a generic catalog of every HOI4 modifier keyword; they have no current land-combat runtime role.
+
+Dedicated certification details are in `TERRAIN_TACTICS_MODIFIERS_AUDIT_1.19.2.md`.
+
+**Next audit phase: Defines.**

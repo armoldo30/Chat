@@ -28,8 +28,13 @@ export const DEFINE_VALUES_1192={
   }
 };
 
-export const PLANNER_ANALYTICAL_CONSTANTS_1192={
-  maxLineResourcePenalty:0.90
+export const DEFINES_SUPERSEDED_ANALYTICAL_1192={
+  historicalMaxLineResourcePenalty:{
+    value:0.90,
+    active:false,
+    supersededBy:'Production formulas audit',
+    replacement:'100% executable-inferred resource-shortage cap; individual factories may reach zero output'
+  }
 };
 
 export const DEFINES_SOURCE_1192={
@@ -60,8 +65,9 @@ export const DEFINES_CERTIFICATION_1192={
     authoritativeRawGameDefinesRetained:true,
     fullDefinesCorpusCensused:true,
     plannerConsumedSourceDefineValues:23,
-    plannerAnalyticalConstants:1,
-    note:'The preserved 1.19.2 handoff contains the authoritative common/defines corpus. Planner-consumed game-file values below are exact extractions from that corpus; executable transformations and planner-only constants remain separately classified.'
+    plannerAnalyticalConstants:0,
+    supersededPlannerAnalyticalConstants:1,
+    note:'The preserved 1.19.2 handoff contains the authoritative common/defines corpus. Planner-consumed game-file values below are exact extractions from that corpus; executable transformations remain separately classified. The one provisional Production analytical placeholder created during the Defines phase has been retired by the downstream Production formulas audit.'
   },
   corrections:[
     {runtime:'COMBAT_CONSTANTS.nightAttackPenalty',before:0.75,after:0.50,source:'NMilitary.BASE_NIGHT_ATTACK_PENALTY'},
@@ -71,10 +77,10 @@ export const DEFINES_CERTIFICATION_1192={
     {runtime:'COMBAT_CONSTANTS.strengthDamageModifier',before:0.05,after:0.060,source:'NMilitary.LAND_COMBAT_STR_DAMAGE_MODIFIER'}
   ],
   provenanceCorrections:[
-    {runtime:'PRODUCTION_CONSTANTS.maxLineResourcePenalty',value:0.90,previousClaim:'NProduction.MAX_LINE_RESOURCE_PENALTY = 90',classification:'planner-analytical',reason:'No MAX_LINE_RESOURCE_PENALTY assignment exists anywhere in the retained 1.19.2 common/defines corpus.'}
+    {runtime:'PRODUCTION_CONSTANTS.maxLineResourcePenalty',historicalValue:0.90,previousClaim:'NProduction.MAX_LINE_RESOURCE_PENALTY = 90',classification:'superseded-by-production-formulas',active:false,reason:'No MAX_LINE_RESOURCE_PENALTY assignment exists anywhere in the retained 1.19.2 common/defines corpus. The Production formulas audit supersedes the temporary 0.90 analytical placeholder with executable-inferred 100% starvation behavior.'}
   ],
   formulaDerived:{
-    'PRODUCTION_CONSTANTS.efficiencyBaseGain':{runtimeValue:0.001,sourceDefine:'NProduction.BASE_FACTORY_EFFICIENCY_GAIN',sourceValue:1,classification:'executable-inferred',deferredTo:'Production formulas',note:'0.001 is the planner runtime scale applied to the exact source value; the executable production formula remains deferred.'}
+    'PRODUCTION_CONSTANTS.efficiencyBaseGain':{runtimeValue:0.001,sourceDefine:'NProduction.BASE_FACTORY_EFFICIENCY_GAIN',sourceValue:1,classification:'executable-inferred',resolvedBy:'Production formulas audit',note:'The downstream Production formulas audit certifies the 0.001 runtime scale as part of the bounded nonlinear efficiency-growth formula.'}
   },
   formulaDeferred:[
     'piercingDamageFactor thresholds and partial-piercing damage factors',
@@ -82,7 +88,7 @@ export const DEFINES_CERTIFICATION_1192={
     'planning multiplier/cap',
     'CAS land-combat multiplier',
     '168-hour simulation safety horizon',
-    'exact define interaction/order inside combat and production formulas'
+    'exact define interaction/order inside combat formulas'
   ]
 };
 

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#20251f" />
   <meta name="color-scheme" content="dark" />
+  <meta name="application-name" content="HOI4 War Planner" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="robots" content="index,follow" />
   <meta name="description" content="HOI4 War Planner — data-backed division, tank, aircraft, industry and 10,000-design Gauntlet analysis for Hearts of Iron IV 1.19.2." />
   <meta property="og:title" content="HOI4 War Planner" />
@@ -13,6 +15,7 @@
   <meta name="twitter:card" content="summary" />
   <!-- ADSENSE_ACCOUNT_META -->
   <title>HOI4 War Planner</title>
+  <link rel="stylesheet" href="./src/runtime-guard.css" />
   <link rel="stylesheet" href="./src/style.css" />
   <link rel="stylesheet" href="./src/ui-polish.css" />
   <link rel="stylesheet" href="./src/nav-visuals.css" />
@@ -33,8 +36,10 @@
   <link rel="stylesheet" href="./src/ads.css" />
 </head>
 <body>
+  <noscript><section class="runtime-recovery noscript-recovery" role="alert"><div><span>JAVASCRIPT REQUIRED</span><h2>HOI4 War Planner needs JavaScript to run.</h2><p>Enable JavaScript for this site and reload the page.</p></div><a href="https://github.com/armoldo30/Chat/issues/new/choose" rel="noopener noreferrer">Report issue</a></section></noscript>
   <div id="app"></div>
-  <footer class="site-legal-footer" aria-label="Site information"><span>HOI4 War Planner</span><span>Unofficial fan-made tool · Not affiliated with Paradox Interactive</span><a href="./privacy.html">Privacy</a><button type="button" data-privacy-choices hidden>Privacy choices</button></footer>
+  <footer class="site-legal-footer" aria-label="Site information"><span>HOI4 War Planner</span><span>Unofficial fan-made tool · Not affiliated with Paradox Interactive</span><a href="./privacy.html">Privacy</a><a href="https://github.com/armoldo30/Chat/issues/new/choose" rel="noopener noreferrer">Report issue</a><button type="button" data-privacy-choices hidden>Privacy choices</button></footer>
+  <script type="module" src="./src/runtime-guard.js"></script>
   <script type="module" src="./src/main.js"></script>
   <script type="module" src="./src/ui-polish.js"></script>
   <script type="module" src="./src/nav-visuals.js"></script>

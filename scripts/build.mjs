@@ -10,6 +10,10 @@ await cp(resolve(root,'index.html'),resolve(dist,'index.html'));
 await cp(resolve(root,'privacy.html'),resolve(dist,'privacy.html'));
 await cp(resolve(root,'ads.txt'),resolve(dist,'ads.txt'));
 await cp(resolve(root,'src'),resolve(dist,'src'),{recursive:true});
+for(const file of ['CNAME','robots.txt']){
+  try{await cp(resolve(root,file),resolve(dist,file));}
+  catch(err){if(err?.code!=='ENOENT')throw err;}
+}
 
 const indexPath=resolve(dist,'index.html');
 let html=await readFile(indexPath,'utf8');

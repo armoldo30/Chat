@@ -1,4 +1,4 @@
-name: Launch hardening patcher
+name: Launch shell hardening patcher
 on:
   push:
     branches: [launch-candidate-1.19.2]
@@ -8,6 +8,7 @@ jobs:
   patch:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:
@@ -15,40 +16,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Harden persistence and release metadata
+      - name: Preserve page shell and release language
         run: |
           python3 - <<'PY'
           from pathlib import Path
           p=Path('src/main.js');s=p.read_text()
-          old="function save(){const stored={...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};localStorage.setItem(STORAGE,JSON.stringify(stored));}\nfunction route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}\nfunction downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}\nfunction readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}"
-          new=("let saveFailureShown=false;\n"
-               "function serializableState(){return {...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};}\n"
-               "function save(){\n"
-               "  try{localStorage.setItem(STORAGE,JSON.stringify(serializableState()));saveFailureShown=false;return true;}\n"
-               "  catch(err){console.error('Unable to save planner state locally.',err);if(!saveFailureShown){saveFailureShown=true;alert('Local save failed. Your current session is still open; export the scenario JSON before leaving this page.');}return false;}\n"
-               "}\n"
-               "function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}\n"
-               "function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}\n"
-               "function readJSON(file,cb){\n"
-               "  if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}\n"
-               "  const r=new FileReader();r.onerror=()=>alert('Could not read that JSON file.');r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);\n"
-               "}")
-          if old not in s: raise SystemExit('persistence anchor not found')
+          old="document.body.innerHTML=`<div class=\"app-shell\">"
+          new="$('app').innerHTML=`<div class=\"app-shell\">"
+          if old not in s: raise SystemExit('body render anchor not found')
           s=s.replace(old,new,1)
-          old="$('saveState').onclick=()=>{save();alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',state);"
-          new="$('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());"
-          if old not in s: raise SystemExit('scenario export anchor not found')
-          s=s.replace(old,new,1)
-          old="$('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{state=deepMerge(defaults,x);state.schema=6;ensureDesignerState('attacker');ensureDesignerState('defender');save();location.reload();});};"
-          new="$('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid scenario JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');if(save())location.reload();});};"
-          if old not in s: raise SystemExit('scenario import anchor not found')
-          s=s.replace(old,new,1)
-          old="$('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=6;save();location.reload();}};"
-          new="$('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};"
-          if old not in s: raise SystemExit('scenario reset anchor not found')
+          old='Newer patch data is not mixed into the 0.15.0 model.'
+          new='Newer patch data is not mixed into the 0.16.0 model.'
+          if old not in s: raise SystemExit('version notice anchor not found')
           s=s.replace(old,new,1)
           p.write_text(s)
-          p=Path('src/data.js');s=p.read_text();s=s.replace("appVersion: '0.15.0'","appVersion: '0.16.0'",1).replace("updated: '2026-09-09'","updated: '2026-09-11'",1);p.write_text(s)
           PY
       - name: Launch hardening regression
         run: node tests/launch-hardening.test.mjs
@@ -56,11 +37,11 @@ jobs:
         run: npm test
       - name: Static build
         run: npm run build
-      - name: Commit hardening fixes
+      - name: Commit shell hardening
         run: |
-          if git diff --quiet -- src/main.js src/data.js; then exit 0; fi
+          if git diff --quiet -- src/main.js; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/data.js
-          git commit -m "fix: harden scenario persistence for launch"
+          git add src/main.js
+          git commit -m "fix: preserve legal shell during app renders"
           git push origin HEAD:launch-candidate-1.19.2

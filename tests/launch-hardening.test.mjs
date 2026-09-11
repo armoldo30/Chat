@@ -3,8 +3,8 @@ import { access, readFile } from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [main,data,index,polish,ads,pkgText]=await Promise.all([
-  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json')
+const [main,data,index,polish,ads,pkgText,build]=await Promise.all([
+  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs')
 ]);
 const pkg=JSON.parse(pkgText);
 
@@ -20,11 +20,15 @@ assert.match(main,/r\.onerror=/,'JSON imports must handle FileReader failures');
 assert.doesNotMatch(main,/state\.schema=6/,'scenario import/reset must never downgrade schema 7 back to schema 6');
 assert.match(main,/state\.schema=defaults\.schema/,'scenario import must normalize to the current schema');
 assert.match(main,/downloadJSON\('war-planner-scenario\.json',serializableState\(\)\)/,'scenario export must omit the redundant bundled data pack');
+assert.match(main,/\$\('app'\)\.innerHTML=/,'the SPA must render inside the permanent #app mount');
+assert.doesNotMatch(main,/document\.body\.innerHTML=/,'app rendering must not delete the privacy footer or enhancement script nodes');
+assert.doesNotMatch(main,/0\.15\.0 model/,'visible scenario copy must not describe the release as 0.15.0');
 
-assert.match(index,/<html lang="en">/);assert.match(index,/name="viewport"/);assert.match(index,/href="\.\/privacy\.html"/);
+assert.match(index,/<html lang="en">/);assert.match(index,/id="app"/);assert.match(index,/class="site-legal-footer"/);assert.match(index,/name="viewport"/);assert.match(index,/href="\.\/privacy\.html"/);
 assert.match(polish,/:focus-visible/,'keyboard focus must remain visible');
 assert.match(polish,/prefers-reduced-motion:reduce/,'reduced-motion preference must be honored');
 assert.match(ads,/enabled:false/,'AdSense must remain disabled in the launch candidate');
+assert.match(build,/\['CNAME','robots\.txt'\]/,'build must carry optional custom-domain and crawler files when present');
 
 for(const path of [
   '.mio-stage',

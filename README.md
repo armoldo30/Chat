@@ -1,78 +1,49 @@
-# HOI4 War Planner — 0.15.0
+# HOI4 War Planner — 0.16.0
 
-A mobile-friendly Hearts of Iron IV analytical planning suite using a bundled **vanilla HOI4 1.19.2 game-file baseline**. Version 0.15.0 moves major planner systems away from curated reference data and onto parsed game data while retaining the compact, HOI4-familiar interface introduced in 0.14.2.
+A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.2** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
-## 0.15.0 release focus
+## 0.16.0 release focus
 
-0.15.0 is primarily a data-engine and accuracy overhaul. The planner now bundles normalized 1.19.2 data for combat/production defines, terrain, sub-units, equipment, tank and aircraft modules, technologies, doctrines, MIOs, combat tactics, modifiers, equipment upgrades and Special Projects.
+0.16.0 turns the certified 0.15.0 mechanics/data foundation into a launch-ready theorycrafting product. It keeps the audited 1.19.2 combat, production, technology, doctrine, MIO, tank and air data work; adds the visual/UX overhaul; and introduces **Division Gauntlet** as the headline analysis feature.
 
-**Country → Research/requirements info → Doctrine/MIO → Equipment Design → Division Design → Combat Performance → IC Allocation**
+**Research assumptions → Equipment design → Division design → Combat performance → Division Gauntlet → IC/supply tradeoffs**
 
-### Theorycraft first, legality second
+## Division Gauntlet
 
-Valid game content is available for theorycrafting immediately. Research, DLC, Special Project and related prerequisites are **informational only** in the planner; they do not disable or lock a valid battalion, support unit, chassis, module or design choice.
+Quick Gauntlet generates about **500** plausible opponent divisions. Full Gauntlet generates **10,000** deterministic opponent designs and screens the tested division across eight terrain types while attacking and defending: **160,000 terrain/role matchups**.
 
-- Prerequisites are shown through requirement text/tooltips where applicable.
-- Selecting a research profile does not unlock or remove design choices.
-- Missing DLC or Special Projects do not block simulations or production analysis.
-- Structural compatibility still applies: slot/category/regiment restrictions that define whether two game objects can actually be combined remain enforced.
+Opponent families include infantry walls, artillery infantry, cheap holders, motorized/mechanized formations, light/medium/heavy armor, breakthrough tanks, high-hardness formations, AT/AA counters, space-marine-style hybrids, high-ORG infantry, low-cost spam and elite divisions. Widths, support companies, equipment quality, doctrine assumptions, armor/piercing, IC cost and supply burden vary procedurally.
 
-This separation is deliberate: the planner is a design/analysis tool, not an in-game research progression simulator.
+The report separates **Raw Combat Grade** from **Practical Division Grade** and exposes offense, defense, terrain, matchup classes, IC efficiency, supply efficiency, consistency, counter resilience, best/worst matchups and percentile. Full-pool screening uses expected combat math; extreme cases receive a second-stage seeded stochastic check.
 
-## Bundled 1.19.2 data
-
-The built-in data pack is generated from the supplied HOI4 1.19.2 `common` files and is loaded automatically. It includes coverage for:
-
-- combat and production defines
-- terrain
-- battalions, divisional supports and advanced/regimental supports
-- equipment stats, costs and resource requirements
-- tank chassis, modules and equipment upgrades
-- aircraft airframes, engines, weapons and modules
-- technologies and prerequisite relationships
-- land and air doctrine records
-- military industrial organizations and inheritance
-- combat tactics
-- modifier definitions
-- Special Projects and relevant prerequisites
-
-The Clausewitz parser supports modern nested defines, dotted override defines, anonymous list objects, inheritance and repeated top-level blocks such as multiple `equipment_modules = { ... }` sections in the same file.
-
-### Tank Designer
-
-The Tank Designer uses imported 1.19.2 chassis/module data when the bundled pack is active. Standard tank engines, armor types, suspensions, turrets, cannons, howitzers, AA weapons, flamethrowers and special modules are sourced from the game-file corpus rather than the previous curated module catalog. Requirements remain informational.
-
-### Air Lab
-
-Aircraft designers use parsed airframe/module data and real equipment fields where available. Friendly/enemy designs feed the analytical air comparison and mission-output model. The underlying air-exchange model remains analytical rather than a claim of executable parity.
-
-### Division Lab
-
-Division Lab preserves the compact 5×5 regiment workflow, five divisional support slots and 1.19-style regimental-support handling. Parsed game sub-units and equipment hydrate the planner automatically. Research profiles may alter equipment snapshots or display requirement context, but do not lock valid units.
-
-### Doctrine and MIO
-
-0.15.0 reads the 1.19 doctrine structure and uses source-derived doctrine rewards where the planner can map them safely. MIO inheritance/includes are resolved from the imported organization data, including trait requirements and mutually exclusive choices.
-
-### Industry
-
-Industry continues to use the current planner designs and equipment bills to estimate production allocation, resource constraints, stockpiles and division-equivalent output. Parsed equipment IC/resource costs are used where available.
+Gauntlet opponent generation and grading are **planner analytical**. Battle resolution consumes the certified bounded 1.19.2 combat engine.
 
 ## Accuracy policy
 
-The app distinguishes three classes of behavior:
+The project distinguishes:
 
-1. **Game-file facts** — values and relationships directly present in the bundled HOI4 1.19.2 files.
-2. **Derived planner behavior** — deterministic transformations of those values, such as aggregating equipment/sub-unit stats into planner records.
-3. **Analytical/inferred behavior** — mechanics whose exact implementation lives in `hoi4.exe` or cannot be proven from the supplied files.
+1. **Game-file exact** — values/relationships directly retained from the supplied HOI4 1.19.2 files.
+2. **Executable inferred** — behavior constrained by source evidence but not provable without engine internals.
+3. **Planner analytical** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
 
-The UI and documentation should not imply executable parity for category 3.
+Exact tactic/counter selection, per-division reinforcement/coordination, direct CAS allocation/damage, commander/weather/experience interactions, some modifier ordering and other executable-only details remain outside parity claims. See the audit documents for the certified boundary.
 
-## Remaining analytical / inferred areas
+## Core tools
 
-Not claimed to be executable-parity include exact combat tactic/counter selection timing, per-division reinforcement/coordination behavior, exact CAS direct damage, some aggregate division-stat semantics, commander/leader effects not represented by the planner, weather/experience interactions, certain scripted doctrine/MIO edge cases, and the air-combat exchange model.
+- HOI-style 5×5 Division Lab with divisional and 1.19 regimental supports
+- Tank Designer and aircraft Air Lab using parsed 1.19.2 catalogs
+- Technology, doctrine and MIO modeling with theorycraft-first prerequisite handling
+- Stochastic battle simulation, uncertainty bands and terrain comparison
+- Industry/resource planning and equipment replacement estimates
+- Division Gauntlet Quick and Full modes
+- Local scenario persistence plus JSON import/export
+- Custom game-data pack import while retaining a bundled vanilla baseline
 
-Where source files provide a rule or value, 0.15.0 prefers that source data over invented progression bonuses or hard-coded approximations.
+Research, DLC and Special Project requirements are informational unless they define structural compatibility. The planner is a theorycrafting tool, not an in-game progression gate simulator.
+
+## Privacy and advertising readiness
+
+The planner works without an account and stores planner state locally in the browser. A privacy page and advertising integration layer are present, but **advertising remains disabled in source configuration** until activation is deliberately completed. No publisher/client ID is active in the launch candidate.
 
 ## Development and deployment
 
@@ -83,23 +54,8 @@ npm test
 npm run build
 ```
 
-`npm run build` creates the dependency-free static site in `dist/`. `dist/` is generated output and is not committed. GitHub Actions runs the complete test suite and clean static build before a `main` deployment is uploaded to GitHub Pages.
+`npm test` includes the certified mechanics/data suite, UI regressions, monetization-readiness checks, Gauntlet tests and a full 10,000-opponent/160,000-matchup smoke. `npm run build` creates a dependency-free static site in `dist/`.
 
-## 0.15.0 verification coverage
+Production deployment occurs only from `main` through GitHub Pages. The launch-candidate branch is validation-only and does not deploy.
 
-The release suite includes regression coverage for:
-
-- combat and industry engine behavior
-- nested and dotted defines parsing
-- repeated Clausewitz top-level blocks
-- bundled 1.19.2 data integrity and known source values
-- division/game-data hydration
-- theorycraft-first prerequisite behavior
-- Tank Designer and real module catalog ingestion
-- Air Designer/comparison
-- land and air doctrine behavior, including pack-derived rewards
-- MIO effects and inheritance parsing
-- tech/equipment snapshots
-- route-level UI smoke rendering
-
-See `RELEASE_NOTES.md` for the release summary.
+See `RELEASE_NOTES.md`, `DATA_AUDIT_1.19.2.md`, `COMBAT_FORMULAS_AUDIT_1.19.2.md` and `GAUNTLET_1.19.2.md` for details.

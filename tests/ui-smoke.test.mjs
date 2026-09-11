@@ -10,12 +10,14 @@ globalThis.location={hash:'#battle',reload(){}};
 globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 globalThis.alert=()=>{};globalThis.confirm=()=>true;
 
-// Route smoke coverage should validate rendering, not spend CI time re-running the
-// high-sample combat certification suite. Production defaults remain untouched.
+// Route smoke coverage validates rendering only. Keep the synthetic scenario at
+// engine-supported minima so these checks do not duplicate the combat/industry suites.
 store.set('hoi4-war-planner-v7',JSON.stringify({
   attackerDivisions:1,
   defenderDivisions:1,
-  battlefield:{runs:50,maxHours:24,seed:1944},
+  labDemandCount:1,
+  production:{days:1,factories:1},
+  battlefield:{runs:50,maxHours:4,seed:1944},
   intelUncertainty:0
 }));
 

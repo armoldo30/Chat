@@ -1,3 +1,4 @@
+// Final bounded Terrain / Tactics / Modifiers certification manifest; formula-dependent execution remains deferred.
 export const TERRAIN_TACTICS_MODIFIERS_CERTIFICATION_1192={
   classification:'bounded-recovered-source',
   terrain:{

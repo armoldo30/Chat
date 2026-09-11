@@ -1,0 +1,110 @@
+name: Apply defines audit integration
+on:
+  push:
+    branches: [audit-1.19.2]
+    paths: [.github/workflows/defines-audit-apply.yml]
+permissions:
+  contents: write
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: audit-1.19.2
+          fetch-depth: 0
+      - name: Apply audited define mappings
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json,re
+
+          p=Path('src/data.js')
+          s=p.read_text()
+          imp="import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';\n\n"
+          if "defines-certification-1192.js" not in s:
+              s=imp+s
+          military="const D1192_MIL=DEFINE_VALUES_1192.NMilitary;\nconst D1192_PROD=DEFINE_VALUES_1192.NProduction;\n"
+          start=s.index('export const COMBAT_CONSTANTS = {')
+          end=s.index('// Current 1.19-era combat widths.')
+          block=military+"""export const COMBAT_CONSTANTS = {
+            defendedHitChance: 1-D1192_MIL.BASE_CHANCE_TO_AVOID_HIT/100,
+            undefendedHitChance: 1-D1192_MIL.CHANCE_TO_AVOID_HIT_AT_NO_DEF/100,
+            overWidthPenaltyCap: Math.abs(D1192_MIL.COMBAT_OVER_WIDTH_PENALTY_MAX),
+            overWidthPenaltyMultiplier: Math.abs(D1192_MIL.COMBAT_OVER_WIDTH_PENALTY),
+            stackingLimitBase: D1192_MIL.COMBAT_STACKING_START,
+            stackingLimitPerDirection: D1192_MIL.COMBAT_STACKING_EXTRA,
+            stackingPenaltyPerDivision: Math.abs(D1192_MIL.COMBAT_STACKING_PENALTY),
+            fortPenaltyPerLevel: Math.abs(D1192_MIL.BASE_FORT_PENALTY),
+            entrenchmentPerPoint: Math.abs(D1192_MIL.DIG_IN_FACTOR),
+            maxAirSuperiorityPenalty: Math.abs(D1192_MIL.ENEMY_AIR_SUPERIORITY_IMPACT),
+            nightAttackPenalty: Math.abs(D1192_MIL.BASE_NIGHT_ATTACK_PENALTY),
+            orgDamageModifier: D1192_MIL.LAND_COMBAT_ORG_DAMAGE_MODIFIER,
+            strengthDamageModifier: D1192_MIL.LAND_COMBAT_STR_DAMAGE_MODIFIER,
+            orgDice: D1192_MIL.LAND_COMBAT_ORG_DICE_SIZE,
+            armoredOrgDice: D1192_MIL.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE,
+            strengthDice: D1192_MIL.LAND_COMBAT_STR_DICE_SIZE,
+            combatMinimumHours: D1192_MIL.COMBAT_MINIMUM_TIME,
+            equipmentCombatLossFactor: D1192_MIL.EQUIPMENT_COMBAT_LOSS_FACTOR,
+            armorWeights: { max: D1192_MIL.ARMOR_VS_AVERAGE, average: 1-D1192_MIL.ARMOR_VS_AVERAGE },
+            piercingWeights: { max: D1192_MIL.PEN_VS_AVERAGE, average: 1-D1192_MIL.PEN_VS_AVERAGE }
+          };
+
+          export const PRODUCTION_CONSTANTS = {
+            // Formula-derived scale; exact use is certified in the Production Formulas audit, not as a literal define.
+            efficiencyBaseGain: 0.001,
+            resourceLackPenaltyPerUnit: Math.abs(D1192_PROD.PRODUCTION_RESOURCE_LACK_PENALTY),
+            maxLineResourcePenalty: Math.abs(D1192_PROD.MAX_LINE_RESOURCE_PENALTY)/100,
+            maxMilitaryFactoriesPerLine: D1192_PROD.MAX_MIL_FACTORIES_PER_LINE
+          };
+
+          """
+          s=s[:start]+block+s[end:]
+          p.write_text(s)
+
+          p=Path('src/parser.js');s=p.read_text()
+          old="""  combatCount+=set(combat,'equipmentCombatLossFactor',mil.EQUIPMENT_COMBAT_LOSS_FACTOR);
+  const prod=pack?.defines?.NProduction||pack?.defines?.NMilitary||{};
+"""
+          new="""  combatCount+=set(combat,'equipmentCombatLossFactor',mil.EQUIPMENT_COMBAT_LOSS_FACTOR);
+  if(Number.isFinite(mil.ARMOR_VS_AVERAGE)){const max=Number(mil.ARMOR_VS_AVERAGE);combat.armorWeights={max,average:1-max};combatCount++;}
+  if(Number.isFinite(mil.PEN_VS_AVERAGE)){const max=Number(mil.PEN_VS_AVERAGE);combat.piercingWeights={max,average:1-max};combatCount++;}
+  const prod=pack?.defines?.NProduction||{};
+"""
+          if old not in s: raise SystemExit('parser defineOverrides anchor not found')
+          p.write_text(s.replace(old,new,1))
+
+          p=Path('src/builtin1192.js');s=p.read_text()
+          anchor="import terrainTacticsModifiersCertification1192 from './builtin1192/terrain-tactics-modifiers-certification-1192.js';\n"
+          add="import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';\n"
+          if add not in s:
+              if anchor not in s: raise SystemExit('builtin import anchor not found')
+              s=s.replace(anchor,anchor+add,1)
+          anchor="export const BUILTIN_1192=JSON.parse(text);\n"
+          fill="""export const BUILTIN_1192=JSON.parse(text);
+          BUILTIN_1192.defines=BUILTIN_1192.defines||{};
+          for(const [group,values] of Object.entries(DEFINE_VALUES_1192)){
+            const target=BUILTIN_1192.defines[group]||(BUILTIN_1192.defines[group]={});
+            for(const [key,value] of Object.entries(values))if(target[key]===undefined)target[key]=value;
+          }
+          BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'bounded-corroborated-source',plannerConsumedDefineCount:24};
+"""
+          if "plannerConsumedDefineCount:24" not in s:
+              if anchor not in s: raise SystemExit('builtin parse anchor not found')
+              s=s.replace(anchor,fill,1)
+          p.write_text(s)
+
+          p=Path('package.json');pkg=json.loads(p.read_text())
+          tests=['node tests/defines-parser-certification.test.mjs','node tests/defines-runtime-certification.test.mjs','node tests/defines-audit-coverage.test.mjs']
+          cmd=pkg['scripts']['test']
+          for t in tests:
+              if t not in cmd: cmd+=' && '+t
+          pkg['scripts']['test']=cmd
+          p.write_text(json.dumps(pkg,indent=2)+'\n')
+          PY
+          git rm .github/workflows/defines-audit-apply.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/data.js src/parser.js src/builtin1192.js package.json
+          git commit -m "audit: integrate bounded 1.19.2 defines"
+          git push origin HEAD:audit-1.19.2

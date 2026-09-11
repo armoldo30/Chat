@@ -33,6 +33,8 @@ jobs:
         run: node tests/nav-visuals.test.mjs
       - name: Battle report visual tests
         run: node tests/battle-report-visuals.test.mjs
+      - name: Visual stat language tests
+        run: node tests/stat-visuals.test.mjs
       - name: Build static site
         run: npm run build
       - name: Browser runtime smoke

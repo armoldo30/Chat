@@ -31,6 +31,7 @@ import airDuplicateArchetypes1192, { AIR_DUPLICATE_SOURCE_1192 } from './builtin
 import technologySource1192 from './builtin1192/technology-source-manifest-1192.js';
 import doctrineSource1192 from './builtin1192/doctrine-source-manifest-1192.js';
 import doctrineSourceSupplement1192 from './builtin1192/doctrine-source-supplement-1192.js';
+import terrainTacticsModifiersCertification1192 from './builtin1192/terrain-tactics-modifiers-certification-1192.js';
 import technologyGraphIndustry1192 from './builtin1192/technology-graph-industry-1192.js';
 import technologyGraphSupport1192 from './builtin1192/technology-graph-support-1192.js';
 import technologyGraphInfantry1192 from './builtin1192/technology-graph-infantry-1192.js';
@@ -40,11 +41,13 @@ import technologyEffects1192, { TECHNOLOGY_EFFECT_SOURCE_COUNTS_1192 } from './b
 import landEquipment1192 from './builtin1192/land-equipment-1192.js';
 import landCruiserCountLimits1192 from './builtin1192/land-cruiser-count-limits-1192.js';
 import { materializeDuplicateArchetypes } from './parser.js';
-import { extractTechnologies, normalizeTechnologyGraph } from './gameDataParser.js';
+import { extractTechnologies, normalizeTechnologyGraph, normalizeCombatTacticRecord, normalizeModifierDefinitionRecord } from './gameDataParser.js';
 
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
+for(const [id,record] of Object.entries(BUILTIN_1192.combatTactics||{}))BUILTIN_1192.combatTactics[id]=normalizeCombatTacticRecord(id,record?.raw||{});
+for(const [id,record] of Object.entries(BUILTIN_1192.modifiers||{}))BUILTIN_1192.modifiers[id]=normalizeModifierDefinitionRecord(id,record?.raw||{});
 const bundledDoctrineMetadata={};
 for(const [id,record] of Object.entries(BUILTIN_1192.doctrines||{}))if(record?.kind==='legacy'){bundledDoctrineMetadata[id]={...record,kind:'metadata'};delete BUILTIN_1192.doctrines[id];}
 BUILTIN_1192.doctrineMetadata={...(BUILTIN_1192.doctrineMetadata||{}),...bundledDoctrineMetadata};
@@ -130,4 +133,5 @@ const equipmentCount=Object.keys(BUILTIN_1192.equipment||{}).length;
 const staticEquipmentCount=equipmentCount-materializedDuplicateEquipmentCount;
 BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),moduleCount:Object.keys(BUILTIN_1192.modules).length,equipmentCount,staticEquipmentCount,materializedDuplicateEquipmentCount,requirementIndex:true,requirementRecords:requirementRelationships,repeatedBlockParserFix:true,moduleSlotListsCertified:true,tankModuleCompatibilityCertified:true,duplicateArchetypeCount:Object.keys(BUILTIN_1192.duplicateArchetypes).length,landEquipmentSupplementCount:Object.keys(landEquipment1192).length,landCruiserCountLimitsCertified:true,airMissionStatBlocksCertified:true,airMissionStatModuleCount:AIR_MISSION_SOURCE_1192.missionModuleCount,airMissionStatBlockCount:AIR_MISSION_SOURCE_1192.missionBlockCount,airMissionSourceSha256:AIR_MISSION_SOURCE_1192.sha256,airDuplicateArchetypesCertified:true,airDuplicateArchetypeCount:AIR_DUPLICATE_SOURCE_1192.duplicateArchetypeCount,airDuplicateSourceSha256:AIR_DUPLICATE_SOURCE_1192.sha256,airFrameInheritanceCertified:true,technologyCount:actualTechnologyIds.length,technologySourceFileCount:technologySource1192.fileCount,technologySourceRecordCount:technologySource1192.recordCount,technologyScriptVariableRecordsRemoved:bundledTechnologyRecordCount-actualTechnologyIds.length,technologySourceInventoryCertified:true,technologyGraphNormalized:true,technologyGraphSourceRestoredCount:Object.keys(technologyGraph1192).length,technologyEffectSourceRestoredCount:Object.keys(technologyEffects1192).length,technologyEffectSourceCounts:{...TECHNOLOGY_EFFECT_SOURCE_COUNTS_1192}};
 BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),doctrineCount:actualDoctrineIds.length,doctrineMetadataCount:Object.keys(BUILTIN_1192.doctrineMetadata||{}).length,doctrineNodeCatalogSeparated:true,doctrineSourceFileCount:doctrineSource1192.fileCount,doctrineSourceRecordCount:doctrineSource1192.recordCount,doctrineSourceInventoryCertified:true};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),terrainTacticsModifiersAudit:'bounded-source-certified',terrainSourceFileCount:terrainTacticsModifiersCertification1192.terrain.sourceFiles,terrainSourceRecordCount:terrainTacticsModifiersCertification1192.terrain.recordCount,terrainConsumedFieldSha256:terrainTacticsModifiersCertification1192.terrain.consumedFieldSha256,terrainFullRawSourceRetained:false,tacticSourceRecordCount:terrainTacticsModifiersCertification1192.tactics.recordCount,tacticRawSourceRecordCount:terrainTacticsModifiersCertification1192.tactics.rawRecordCount,tacticRawSha256:terrainTacticsModifiersCertification1192.tactics.rawSha256,tacticRuntimeClassification:'deferred-combat-formula',modifierDefinitionSourceRecordCount:terrainTacticsModifiersCertification1192.modifierDefinitions.recordCount,modifierDefinitionRawSha256:terrainTacticsModifiersCertification1192.modifierDefinitions.rawSha256,modifierDefinitionRuntimeClassification:'not-applicable-to-current-land-combat',subUnitTerrainRuntimeClassification:'source-preserved-formula-deferred'};
 export default BUILTIN_1192;

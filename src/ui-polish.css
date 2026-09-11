@@ -1,0 +1,353 @@
+/*
+ * UI polish layer for HOI4 War Planner 1.19.2
+ * Cosmetic/UX-only overrides. No simulation or data-model behavior lives here.
+ */
+
+:root{
+  --ui-ink:#f1ecd9;
+  --ui-ink-soft:#c9c5ae;
+  --ui-muted:#a7aa96;
+  --ui-gold:#d6bb73;
+  --ui-gold-soft:#9f8d5f;
+  --ui-olive:#59614d;
+  --ui-panel:#2c3228;
+  --ui-panel-deep:#20251f;
+  --ui-panel-soft:#343a2f;
+  --ui-border:#646954;
+  --ui-border-soft:#4a5041;
+  --ui-focus:#ead08a;
+  --ui-shadow:0 18px 44px rgba(0,0,0,.28);
+  --ui-shadow-soft:0 8px 22px rgba(0,0,0,.20);
+  --ui-radius:5px;
+}
+
+html{scroll-behavior:smooth;background:#151813}
+body{background:
+  radial-gradient(circle at 72% -8%,rgba(129,139,101,.14),transparent 32%),
+  linear-gradient(rgba(255,255,255,.012) 1px,transparent 1px),
+  linear-gradient(90deg,rgba(255,255,255,.009) 1px,transparent 1px),
+  #171a15;
+  background-size:auto,42px 42px,42px 42px;
+  color:var(--ui-ink);
+}
+
+::selection{background:rgba(214,187,115,.28);color:#fff8df}
+*{scrollbar-width:thin;scrollbar-color:#646954 #20251f}
+*::-webkit-scrollbar{width:9px;height:9px}
+*::-webkit-scrollbar-track{background:#20251f}
+*::-webkit-scrollbar-thumb{background:#5f654f;border:2px solid #20251f;border-radius:999px}
+*::-webkit-scrollbar-thumb:hover{background:#777b61}
+
+/* Desktop shell */
+.app-shell{grid-template-columns:248px minmax(0,1fr)}
+.sidebar{
+  padding:20px 14px 16px;
+  background:linear-gradient(180deg,rgba(38,43,35,.99),rgba(24,28,24,.99));
+  border-right:1px solid #575c49;
+  box-shadow:inset -1px 0 #10130f,10px 0 28px rgba(0,0,0,.16);
+}
+.brand{margin:0 5px 22px;padding:4px 2px}
+.brand-mark{
+  width:42px;height:42px;
+  border-radius:4px;
+  background:linear-gradient(150deg,#697058,#3d4438 62%,#30362d);
+  border:1px solid #93886b;
+  box-shadow:inset 0 0 0 1px #272c24,0 3px 8px rgba(0,0,0,.24);
+}
+.brand b{font-size:.82rem;letter-spacing:.11em;color:#eee6ca}
+.brand small{font-size:.68rem;color:#a9aa96}
+
+.sidebar nav{display:grid;gap:3px;align-content:start}
+.nav-group-label{
+  margin:13px 9px 4px;
+  color:#7f8473;
+  font-size:.55rem;
+  line-height:1;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  font-weight:900;
+}
+.nav-group-label:first-child{margin-top:0}
+.sidebar nav a{
+  min-height:43px;
+  display:grid;
+  grid-template-columns:38px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  padding:6px 9px;
+  border:1px solid transparent;
+  border-radius:4px;
+  color:#c4c4ae;
+  letter-spacing:.045em;
+  transition:background .14s ease,border-color .14s ease,color .14s ease,transform .14s ease;
+}
+.sidebar nav a .nav-code{
+  display:grid;
+  place-items:center;
+  width:34px;
+  height:29px;
+  border:1px solid #555a48;
+  background:#20251f;
+  color:#bcae7e;
+  font-size:.55rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.018);
+}
+.sidebar nav a:hover{
+  background:linear-gradient(180deg,#3c4336,#2c3229);
+  border-color:#656a55;
+  color:#f0e8cd;
+  transform:translateX(1px);
+}
+.sidebar nav a.active,
+.sidebar nav a[aria-current="page"]{
+  background:linear-gradient(180deg,#505746,#363d32);
+  border-color:#81795f;
+  color:#fff4d4;
+  box-shadow:inset 3px 0 var(--ui-gold),inset 0 1px rgba(255,255,255,.045),0 3px 10px rgba(0,0,0,.14);
+}
+.sidebar nav a.active .nav-code,
+.sidebar nav a[aria-current="page"] .nav-code{
+  border-color:#a18e60;
+  color:#f0d58d;
+  background:#282e26;
+}
+.side-meta{margin-top:auto;padding:14px 7px 0;border-top:1px solid #474c3e;color:#888c7b}
+.side-meta span{color:#b6b39d;font-weight:700}
+
+.topbar{
+  height:68px;
+  padding:0 30px;
+  background:linear-gradient(180deg,rgba(43,48,40,.96),rgba(30,34,29,.96));
+  border-bottom:1px solid #5c614d;
+  box-shadow:0 7px 20px rgba(0,0,0,.18);
+  backdrop-filter:blur(10px);
+}
+.topbar>div:first-child{min-width:0}
+.topbar b{max-width:52vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eee8d4}
+.top-actions{gap:6px}
+.badge{border-radius:999px;padding:6px 10px;background:#2d332b;border-color:#5a604d;font-size:.67rem;letter-spacing:.02em}
+.badge.good{background:#314036;border-color:#657761;color:#dbe7d2}
+
+.view{max-width:1540px;padding:30px 30px 44px}
+.view>*{animation:ui-enter .18s ease-out both}
+@keyframes ui-enter{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:none}}
+
+/* Page heads */
+.hero,.tool-head{margin-bottom:20px;gap:24px}
+.hero h1,.tool-head h1,.command-title h1{
+  color:#f0e7c9;
+  text-wrap:balance;
+  letter-spacing:-.028em;
+}
+.hero p,.tool-head p{margin-top:.35rem;color:#aaa995}
+.eyebrow,.kicker{letter-spacing:.16em;color:#d7bf7e}
+.hoi-tool-head,.operational-head,.intel-head{padding-bottom:10px}
+
+/* Surface system */
+.panel,.metric{
+  border-color:#5c614e;
+  border-radius:var(--ui-radius);
+  background:linear-gradient(180deg,rgba(49,55,45,.98),rgba(36,41,34,.98));
+  box-shadow:inset 0 0 0 1px rgba(13,16,13,.64),var(--ui-shadow-soft);
+}
+.panel:before{inset:3px;border-radius:3px;border-color:rgba(236,224,183,.055)}
+.panel{padding:18px}
+.panel-head{margin:-2px 0 13px;padding:0 0 9px;border-color:#555a49}
+.panel h2{font-size:1rem;color:#eee5c8}
+.panel h3{color:#b7b29b}
+.metric{padding:16px}
+.metric span,.result-grid span{color:#9ea18e}
+.metric strong{color:#f0e5c3}
+.grid{gap:12px}.grid.two{gap:12px}
+
+/* Inputs and actions */
+label{color:#b7b8a3}
+input,select,textarea{
+  min-height:40px;
+  border-radius:4px;
+  border-color:#5c614e;
+  background:#1d211c;
+  color:#f0ead8;
+  transition:border-color .12s ease,box-shadow .12s ease,background .12s ease;
+}
+textarea{min-height:84px;resize:vertical}
+input:hover,select:hover,textarea:hover{border-color:#747760;background:#20251f}
+input:focus,select:focus,textarea:focus{border-color:#a99663;box-shadow:0 0 0 3px rgba(214,187,115,.10),inset 0 1px 4px rgba(0,0,0,.36)}
+button,.btn,.primary{
+  min-height:40px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  border-radius:4px;
+  padding:9px 13px;
+  transition:filter .12s ease,transform .12s ease,border-color .12s ease,box-shadow .12s ease;
+}
+button:hover,.btn:hover{filter:brightness(1.1);transform:translateY(-1px)}
+button:active,.btn:active{transform:translateY(0);filter:brightness(.98)}
+.primary{background:linear-gradient(180deg,#dcc27c,#a98f52);border-color:#ead397;color:#211f17;box-shadow:inset 0 1px rgba(255,255,255,.25),0 3px 8px rgba(0,0,0,.22)}
+.danger{border-color:#79584f!important}
+
+:where(a,button,input,select,textarea,summary):focus-visible{
+  outline:2px solid var(--ui-focus);
+  outline-offset:2px;
+}
+
+/* Drawers/details */
+details{border-radius:4px}
+details>summary{
+  cursor:pointer;
+  list-style:none;
+  min-height:43px;
+  transition:background .12s ease,border-color .12s ease;
+}
+details>summary::-webkit-details-marker{display:none}
+details>summary:hover{background-color:rgba(255,255,255,.025)}
+details>summary:after{content:"▾";margin-left:10px;color:#bba66e;font-size:.72rem;transition:transform .14s ease}
+details[open]>summary:after{transform:rotate(180deg)}
+.advanced-settings>summary,.equipment-drawer>summary,.industry-settings>summary{border-radius:4px}
+.drawer-body{animation:ui-drawer .15s ease-out both}
+@keyframes ui-drawer{from{opacity:.55;transform:translateY(-2px)}to{opacity:1;transform:none}}
+
+/* Tables and dense data */
+.table-wrap{border:1px solid #4f5443;border-radius:4px;background:#20251f}
+table{background:transparent}
+thead th{position:sticky;top:0;z-index:2;background:#262c24;color:#bbb69f;box-shadow:0 1px #515644}
+tbody tr{transition:background .1s ease}
+tbody tr:hover{background:rgba(214,187,115,.035)}
+th,td{border-color:#4d5242}
+code{border-radius:3px;background:#1a1e19;border-color:#4d5241;color:#d9d4bf}
+
+/* Status and information blocks */
+.notice{padding:8px 0 8px 11px;border-left-width:3px}
+.notice.good{border-left-color:#71855f}
+.notice.warn{border-left-color:#a18b56}
+.notice.stop{border-left-color:#975d4b}
+.staff-warning,.staff-clear,.hq-force>div,.hq-report,.orders-form label,.dossier-head,.uncertainty-control{
+  border-radius:3px;
+}
+.readiness-meter{min-width:0}
+.meter-track{height:7px;border-radius:999px;overflow:hidden}
+.meter-track i{border-radius:999px}
+
+/* Dashboard/front/intel refinements */
+.command-hero{
+  border-radius:6px 6px 0 0;
+  background:linear-gradient(110deg,#343a30 0%,#292f27 58%,#1e231d 100%);
+  box-shadow:inset 0 0 0 1px #191d18,var(--ui-shadow-soft);
+}
+.command-readiness{border-radius:3px}
+.war-room-strip{border-radius:0 0 5px 5px;overflow:hidden}
+.war-room-grid{gap:12px}
+.staff-sections a{border-radius:4px;transition:background .12s ease,border-color .12s ease,transform .12s ease}
+.staff-sections a:hover{transform:translateY(-1px)}
+.operations-board,.industry-verdict{border-radius:5px;overflow:hidden}
+.intel-confidence,.order-status{border-radius:4px}
+
+/* Designers: keep HOI grid language, reduce visual noise */
+.hoi-designer,.tank-blueprint,.aircraft-designer{border-radius:5px}
+.designer-topbar,.tank-nameplate,.aircraft-head{background:linear-gradient(180deg,#505746,#3a4035)}
+.hoi-support-slot,.hoi-battalion-slot{border-radius:3px}
+.hoi-support-slot:hover,.hoi-battalion-slot:hover{transform:translateY(-1px);box-shadow:inset 0 0 0 2px rgba(13,16,13,.46),0 4px 9px rgba(0,0,0,.28)}
+.designer-tabs{gap:5px}
+.designer-tabs button{border-radius:4px}
+.resource-chip,.cost-chips span{border-radius:3px}
+
+/* Import/data areas */
+.drop-zone{
+  border-radius:5px;
+  border-color:#626955;
+  background:linear-gradient(180deg,#252b23,#20251f);
+  transition:border-color .12s ease,background .12s ease,transform .12s ease;
+}
+.drop-zone:hover{transform:translateY(-1px);border-color:#a28f60;background:linear-gradient(180deg,#2b3128,#232820)}
+.check-grid span{border-radius:4px}
+
+/* Small quality-of-life */
+.saved-battle,.version-card,.decision,.posture,.intel-judgement{border-radius:4px}
+.actions{gap:7px}
+.actions>.btn,.actions>button{flex:0 0 auto}
+.file{min-height:40px}
+.range-value{color:#dfc57f}
+.muted{color:#a7a994}
+
+/* Responsive command bar */
+@media(max-width:1100px){
+  .app-shell{grid-template-columns:220px minmax(0,1fr)}
+  .view{padding:24px 22px 38px}
+}
+
+@media(max-width:980px){
+  .app-shell{display:block}
+  .sidebar{
+    position:sticky;
+    top:0;
+    z-index:40;
+    height:auto;
+    padding:7px 10px 6px;
+    border-right:0;
+    border-bottom:1px solid #5d624e;
+    box-shadow:0 5px 18px rgba(0,0,0,.24);
+  }
+  .brand{display:none}
+  .sidebar nav{
+    display:flex;
+    gap:5px;
+    overflow-x:auto;
+    overscroll-behavior-inline:contain;
+    scrollbar-width:none;
+    padding:0 0 3px;
+  }
+  .sidebar nav::-webkit-scrollbar{display:none}
+  .nav-group-label{display:none}
+  .sidebar nav a{
+    flex:0 0 auto;
+    min-height:42px;
+    display:flex;
+    gap:6px;
+    padding:6px 9px;
+    white-space:nowrap;
+    transform:none!important;
+  }
+  .sidebar nav a .nav-code{width:29px;height:27px;font-size:.5rem}
+  .side-meta{display:none}
+  .topbar{top:55px;height:54px;padding:0 16px;z-index:30}
+  .topbar b{max-width:54vw;font-size:.85rem}
+  .view{padding:20px 14px 34px}
+  .panel{padding:15px}
+}
+
+@media(max-width:680px){
+  .topbar{top:55px;height:50px}
+  .topbar .kicker{font-size:.58rem}
+  .topbar b{max-width:78vw;font-size:.8rem}
+  .top-actions{display:none}
+  .view{padding:17px 11px 30px}
+  .tool-head,.hero{margin-bottom:16px}
+  .tool-head h1,.hero h1,.command-title h1{font-size:clamp(1.65rem,8vw,2.35rem)}
+  .panel{padding:13px}
+  .grid,.grid.two{gap:9px}
+  .metric-grid{gap:8px}
+  button,.btn,.primary,input,select{min-height:42px}
+  .command-hero{padding:14px}
+  .command-readiness strong{font-size:2.65rem}
+  .war-room-strip{gap:1px}
+  .staff-sections{gap:6px}
+  .table-wrap{margin-inline:-2px}
+}
+
+@media(max-width:430px){
+  .sidebar{padding-inline:7px}
+  .sidebar nav a{padding-inline:7px;font-size:.69rem}
+  .sidebar nav a .nav-code{width:26px}
+  .view{padding-inline:9px}
+  .panel{padding:12px}
+  .badge{font-size:.61rem}
+}
+
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}

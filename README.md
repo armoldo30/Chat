@@ -2,6 +2,9 @@
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.2** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
+**Live site:** https://armoldo30.github.io/Chat/  
+**Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
 ## 0.16.0 release focus
 
 0.16.0 turns the certified 0.15.0 mechanics/data foundation into a launch-ready theorycrafting product. It keeps the audited 1.19.2 combat, production, technology, doctrine, MIO, tank and air data work; adds the visual/UX overhaul; and introduces **Division Gauntlet** as the headline analysis feature.
@@ -41,9 +44,11 @@ Exact tactic/counter selection, per-division reinforcement/coordination, direct 
 
 Research, DLC and Special Project requirements are informational unless they define structural compatibility. The planner is a theorycrafting tool, not an in-game progression gate simulator.
 
-## Privacy and advertising readiness
+## Privacy, resilience and advertising readiness
 
-The planner works without an account and stores planner state locally in the browser. A privacy page and advertising integration layer are present, but **advertising remains disabled in source configuration** until activation is deliberately completed. No publisher/client ID is active in the launch candidate.
+The planner works without an account and stores planner state locally in the browser. A privacy page and advertising integration layer are present, but **advertising remains disabled in source configuration** until activation is deliberately completed. No publisher/client ID is active in 0.16.0.
+
+The public build also includes a browser-side recovery path for failed module/runtime startup, a no-JavaScript fallback, local-state reset recovery, and structured GitHub bug/feature reporting. The recovery layer does not add telemetry.
 
 ## Development and deployment
 
@@ -54,8 +59,8 @@ npm test
 npm run build
 ```
 
-`npm test` includes the certified mechanics/data suite, UI regressions, monetization-readiness checks, Gauntlet tests and a full 10,000-opponent/160,000-matchup smoke. `npm run build` creates a dependency-free static site in `dist/`.
+`npm test` includes the certified mechanics/data suite, UI regressions, monetization-readiness checks, Gauntlet tests, runtime-recovery checks and a full 10,000-opponent/160,000-matchup smoke. `npm run build` creates a dependency-free static site in `dist/`.
 
-Production deployment occurs only from `main` through GitHub Pages. The launch-candidate branch is validation-only and does not deploy.
+Production deployment occurs only from `main` through GitHub Pages. Release-candidate branches are validation-only and do not deploy.
 
 See `RELEASE_NOTES.md`, `DATA_AUDIT_1.19.2.md`, `COMBAT_FORMULAS_AUDIT_1.19.2.md` and `GAUNTLET_1.19.2.md` for details.

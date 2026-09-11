@@ -1,0 +1,43 @@
+name: MIO UI Completeness Patch
+on:
+  push:
+    branches: [ui-visual-overhaul-1.19.2]
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ui-visual-overhaul-1.19.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Remove compact MIO trait cap
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('src/main.js')
+          text=path.read_text()
+          old='.slice(0,24).map('
+          count=text.count(old)
+          if count != 2:
+              raise SystemExit(f'Expected exactly 2 MIO trait caps, found {count}')
+          path.write_text(text.replace(old,'.map('))
+          PY
+      - name: Verify MIO UI and certified tests
+        run: |
+          ! grep -q 'traits||{}).slice(0,24)' src/main.js
+          npm test
+          npm run build
+      - name: Commit complete MIO trees
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/main.js
+          git commit -m 'ui: expose complete MIO trait trees'
+          git push origin HEAD:ui-visual-overhaul-1.19.2

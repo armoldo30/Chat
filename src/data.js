@@ -3,11 +3,11 @@ import { PRODUCTION_SOURCE_1192, PRODUCTION_EXECUTABLE_1192 } from './builtin119
 import { COMBAT_EXECUTABLE_1192, COMBAT_ANALYTICAL_1192 } from './builtin1192/combat-formulas-certification-1192.js';
 
 export const MODEL_META = {
-  appVersion: '0.15.0',
+  appVersion: '0.16.0',
   gameVersion: '1.19.2',
   label: 'Vanilla 1.19.2 bundled game-data baseline',
   confidence: 'Authoritative 1.19.2 game-file data with explicitly analytical executable-only behavior',
-  updated: '2026-09-09'
+  updated: '2026-09-11'
 };
 
 export const RESOURCES = ['steel','aluminum','rubber','tungsten','chromium'];

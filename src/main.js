@@ -151,10 +151,18 @@ function applyCurrentDataPack(){
   return dataPackStatus;
 }
 applyCurrentDataPack();
-function save(){const stored={...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};localStorage.setItem(STORAGE,JSON.stringify(stored));}
+let saveFailureShown=false;
+function serializableState(){return {...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};}
+function save(){
+  try{localStorage.setItem(STORAGE,JSON.stringify(serializableState()));saveFailureShown=false;return true;}
+  catch(err){console.error('Unable to save planner state locally.',err);if(!saveFailureShown){saveFailureShown=true;alert('Local save failed. Your current session is still open; export the scenario JSON before leaving this page.');}return false;}
+}
 function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-function readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}
+function readJSON(file,cb){
+  if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}
+  const r=new FileReader();r.onerror=()=>alert('Could not read that JSON file.');r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);
+}
 
 function division(side){ensureDesignerState(side);const data=techData(side),line=gridToCounts(state[side+'Grid'],Object.keys(battalions));return calcDivision(line,data.battalions,[...state[side+'Supports'],...validRegimentalSupports(side)],data.supports);}
 function aggregate(side){return aggregateDivision(division(side),state[side+'Divisions']);}
@@ -687,9 +695,9 @@ function scenario(c){
   ${panel('Implemented systems',`<div class="check-grid"><span>✓ Target-hardness attack mix</span><span>✓ Defense vs breakthrough roles</span><span>✓ Weighted armor & piercing</span><span>✓ Support-company org/HP/manpower</span><span>✓ Partial piercing approximation</span><span>✓ Terrain-specific combat width</span><span>✓ Extra-flank width</span><span>✓ Over-width & stacking penalties</span><span>✓ Entrenchment attack + defense</span><span>✓ Fort + flanking interaction</span><span>✓ River penalties</span><span>✓ Supply effects</span><span>✓ Air-superiority defense/breakthrough penalty</span><span>✓ CAS support input</span><span>✓ Planning & night inputs</span><span>✓ Aggregate reserve depth</span><span>✓ Attack-level Monte Carlo outcomes</span><span>✓ Reproducible simulation seeds</span><span>✓ Monte Carlo confidence intervals</span><span>✓ Battle equipment-loss estimates</span><span>✓ Enemy uncertainty band</span><span>✓ IC/day production</span><span>✓ Efficiency growth curve</span><span>✓ Per-factory resource penalties</span><span>✓ Division Lab → industry demand</span><span>✓ Factory optimizer</span><span>✓ Lab-integrated tech & doctrine profiles</span><span>✓ HOI-style 5×5 division designer</span><span>✓ 1.19 regimental-support baseline</span><span>✓ Template migration/import/export</span><span>✓ Local game-file data packs</span><span>✓ Clausewitz + defines parser</span><span>✓ Equipment inheritance + year snapshots</span><span>✓ Staged 1.19 land doctrine + mastery tracks</span><span>✓ Staged air doctrine + mastery tracks</span><span>✓ Country/equipment MIO assignment</span><span>✓ MIO combat + production modifiers</span><span>✓ Tank variant designer → Division Lab + Industry</span><span>✓ Air Lab aircraft designer + IC exchange</span><span>✓ Airframe MIOs → Air Lab + IC cost</span><span>✓ Equipment/MIO importer baseline</span><span>✓ Zero-dependency static build</span></div>`)}
   ${panel('Known limits',`<p class="muted">${state.dataPack?'<b>Imported structural data is active.</b> ':''}Not yet executable-parity: some combat-tactic/counter resolution, true per-division reinforcement timing and coordination, exact CAS direct damage, commander traits, weather, experience, some executable-only regimental/module compatibility semantics, executable-parity air combat, every national/DLC MIO special case, and broad mod compatibility. The 1.19.2 files are bundled; behavior that only lives in hoi4.exe remains conservative and explicitly analytical.</p>`)} `;
   $('s-country').onchange=()=>{state.country=$('s-country').value;save();}; $('s-operation').onchange=()=>{state.operation=$('s-operation').value;save();shell();}; $('s-objective').onchange=()=>{state.objective=$('s-objective').value;save();};
-  $('saveState').onclick=()=>{save();alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',state);
-  $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{state=deepMerge(defaults,x);state.schema=6;ensureDesignerState('attacker');ensureDesignerState('defender');save();location.reload();});};
-  $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=6;save();location.reload();}};
+  $('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());
+  $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid scenario JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');if(save())location.reload();});};
+  $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
 }
 
 window.addEventListener('hashchange',shell); shell();

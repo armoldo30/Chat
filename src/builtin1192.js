@@ -50,7 +50,10 @@ export const BUILTIN_1192=JSON.parse(text);
 BUILTIN_1192.defines=BUILTIN_1192.defines||{};
 for(const [group,values] of Object.entries(DEFINE_VALUES_1192)){
   const target=BUILTIN_1192.defines[group]||(BUILTIN_1192.defines[group]={});
-  for(const [key,value] of Object.entries(values))if(target[key]===undefined)target[key]=value;
+  // The compact bundle predates the Defines audit and contains stale values for some
+  // planner-consumed keys. The audited overlay is authoritative for this bounded map,
+  // so it must replace—not merely fill missing—bundled values.
+  for(const [key,value] of Object.entries(values))target[key]=value;
 }
 BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'bounded-corroborated-source',plannerConsumedDefineCount:24};
 for(const [id,record] of Object.entries(BUILTIN_1192.combatTactics||{}))BUILTIN_1192.combatTactics[id]=normalizeCombatTacticRecord(id,record?.raw||{});

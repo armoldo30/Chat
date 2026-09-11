@@ -10,6 +10,15 @@ globalThis.location={hash:'#battle',reload(){}};
 globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 globalThis.alert=()=>{};globalThis.confirm=()=>true;
 
+// Route smoke coverage should validate rendering, not spend CI time re-running the
+// high-sample combat certification suite. Production defaults remain untouched.
+store.set('hoi4-war-planner-v7',JSON.stringify({
+  attackerDivisions:1,
+  defenderDivisions:1,
+  battlefield:{runs:50,maxHours:24,seed:1944},
+  intelUncertainty:0
+}));
+
 for(const route of ['dashboard','front','intel','battle','tank','air','production','data','scenario']){
   location.hash='#'+route;elements.clear();document.body=get('body');
   await import(`../src/main.js?smoke=${route}`);

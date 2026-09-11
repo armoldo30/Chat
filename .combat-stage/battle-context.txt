@@ -1,0 +1,35 @@
+export function battleContext(a,d,opts){
+  const t=opts.terrainData[opts.terrain]||{}; const directions=Math.max(0,Math.floor(Number(opts.directions)||0));
+  const available=Math.max(1,(t.width||70)+directions*(t.reinforceWidth||35));
+  const ae=engageSide(a,available,directions),de=engageSide(d,available,directions),air=clamp(Number(opts.air)||0,-1,1);
+  const supplyFactors={
+    attackerAttack:supplyCombatFactor(opts.asupply,COMBAT_CONSTANTS.supplyLackAttackerAttack),
+    attackerDefend:supplyCombatFactor(opts.asupply,COMBAT_CONSTANTS.supplyLackAttackerDefend),
+    defenderAttack:supplyCombatFactor(opts.dsup,COMBAT_CONSTANTS.supplyLackDefenderAttack),
+    defenderDefend:supplyCombatFactor(opts.dsup,COMBAT_CONSTANTS.supplyLackDefenderDefend)
+  };
+  const entrench=1+Math.max(0,Number(opts.entrench)||0)*COMBAT_CONSTANTS.entrenchmentPerPoint;
+  const effectiveFort=Number(opts.fort)>0?Math.max(1,Number(opts.fort)-directions):0;
+  const fortUnitBonus=Number(ae.side.terrainAttack?.fort)||0;
+  const fortFactor=clamp(1-effectiveFort*COMBAT_CONSTANTS.fortPenaltyPerLevel+fortUnitBonus,.10,2);
+  const riverPenalty=clamp(Math.abs(Number(opts.river)||0),0,1),riverUnitBonus=Number(ae.side.terrainAttack?.river)||0;
+  const riverFactor=clamp(1-riverPenalty+riverUnitBonus,.10,2);
+  const planning=1+clamp(Number(opts.planning)||0,0,1);
+  const aNightFactor=nightAttackFactor(opts.night,opts.attackerNightAttackBonus),dNightFactor=nightAttackFactor(opts.night,opts.defenderNightAttackBonus);
+  const groundSupportModifier=Math.max(-1,Number(opts.attackerGroundSupportBonus)||0);
+  const cas=1+COMBAT_CONSTANTS.airSupportBase*clamp(Number(opts.cas)||0,0,1)*Math.max(0,1+groundSupportModifier);
+  const aTerrain=clamp(1+(Number(t.attack)||0)+(Number(ae.side.terrainAttack?.[opts.terrain])||0),.10,2);
+  const dTerrain=clamp(1+(Number(t.def??t.defense)||0)+(Number(de.side.terrainDefense?.[opts.terrain])||0),.10,2);
+  const terrainAirModifier=Number(t.enemyAirSuperiorityFactor)||0;
+  const aAirFactor=airSuperiorityPenaltyFactor(-air,ae.side.airAttack,terrainAirModifier),dAirFactor=airSuperiorityPenaltyFactor(air,de.side.airAttack,terrainAirModifier);
+  const aMix=attackComponents(ae.side,de.side),dMix=attackComponents(de.side,ae.side);
+  const aOffenseFactor=ae.effectiveFactor*aTerrain*supplyFactors.attackerAttack*fortFactor*riverFactor*planning*aNightFactor*cas;
+  const dOffenseFactor=de.effectiveFactor*dTerrain*supplyFactors.defenderAttack*entrench*dNightFactor;
+  const aSoftAttack=aMix.soft*aOffenseFactor,aHardAttack=aMix.hard*aOffenseFactor,dSoftAttack=dMix.soft*dOffenseFactor,dHardAttack=dMix.hard*dOffenseFactor;
+  const aAttack=aSoftAttack+aHardAttack,dAttack=dSoftAttack+dHardAttack;
+  const aBreak=ae.side.breakthrough*ae.effectiveFactor*aTerrain*supplyFactors.attackerDefend*fortFactor*riverFactor*planning*cas*aAirFactor;
+  const dDefense=de.side.def*de.effectiveFactor*dTerrain*supplyFactors.defenderDefend*entrench*dAirFactor;
+  const aHits=expectedCombatHits(aAttack,dDefense),dHits=expectedCombatHits(dAttack,aBreak);
+  return {available,ae,de,aAttack,dAttack,aSoftAttack,aHardAttack,dSoftAttack,dHardAttack,aBreak,dDefense,aHits,dHits,effectiveFort,fortFactor,riverFactor,aTerrain,dTerrain,supplyFactors,air,entrench,planning,aNightFactor,dNightFactor,cas,aAirFactor,dAirFactor,groundSupportModifier};
+}
+

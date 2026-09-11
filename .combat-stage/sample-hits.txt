@@ -1,0 +1,21 @@
+function sampleHypergeometric(population,successes,draws,rng=Math.random){
+  population=Math.max(0,Math.floor(population));successes=clamp(Math.floor(successes),0,population);draws=clamp(Math.floor(draws),0,population);
+  if(!population||!successes||!draws)return 0;if(successes===population)return draws;
+  if(draws<=200){
+    let hit=0,pop=population,good=successes;
+    for(let i=0;i<draws;i++){if(rng()<good/pop){hit++;good--;}pop--;}
+    return hit;
+  }
+  const estimate=sampleBinomial(draws,successes/population,rng);
+  return clamp(estimate,Math.max(0,draws-(population-successes)),Math.min(draws,successes));
+}
+function sampleHitProfile(softAttack,hardAttack,defense,rng=Math.random){
+  const soft=Math.max(0,Number(softAttack)||0),hard=Math.max(0,Number(hardAttack)||0),total=soft+hard;
+  const attackPoints=stochasticRound(total*COMBAT_CONSTANTS.combatPointScale,rng),defensePoints=stochasticRound(Math.max(0,Number(defense)||0)*COMBAT_CONSTANTS.combatPointScale,rng);
+  if(!attackPoints)return {softHits:0,hardHits:0,total:0,attackPoints:0,defensePoints};
+  const softPoints=sampleBinomial(attackPoints,total?soft/total:0,rng),hardPoints=attackPoints-softPoints,blocked=Math.min(attackPoints,defensePoints);
+  const blockedSoft=sampleHypergeometric(attackPoints,softPoints,blocked,rng),blockedHard=blocked-blockedSoft;
+  const softHits=sampleBinomial(blockedSoft,COMBAT_CONSTANTS.defendedHitChance,rng)+sampleBinomial(softPoints-blockedSoft,COMBAT_CONSTANTS.undefendedHitChance,rng);
+  const hardHits=sampleBinomial(blockedHard,COMBAT_CONSTANTS.defendedHitChance,rng)+sampleBinomial(hardPoints-blockedHard,COMBAT_CONSTANTS.undefendedHitChance,rng);
+  return {softHits,hardHits,total:softHits+hardHits,attackPoints,defensePoints};
+}

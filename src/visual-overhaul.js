@@ -20,7 +20,10 @@ function selectorTitle(select,fallback){
 }
 
 function optionLabel(option){return displayLabel(option?.value,option?.textContent);}
-function selectKind(select,base){return visualKind(select.value)||base;}
+function resolvedKind(value,base='generic'){
+  const detected=visualKind(value);
+  return detected==='generic'?(base||'generic'):detected;
+}
 
 function relabelOptions(root=document){
   root.querySelectorAll('select option').forEach(option=>{
@@ -58,7 +61,7 @@ function openPicker(select,baseKind,title){
   modal.querySelector('#visual-picker-help').textContent='Choose visually. The planner keeps the underlying game-data value unchanged.';
   grid.innerHTML='';
   [...select.options].forEach(option=>{
-    const label=optionLabel(option),kind=visualKind(option.value)||baseKind||'generic';
+    const label=optionLabel(option),kind=resolvedKind(option.value,baseKind);
     const card=document.createElement('button');card.type='button';card.className=`visual-option ${option.selected?'selected':''}`;card.disabled=option.disabled;
     card.innerHTML=`<span class="visual-option-icon ${kind}">${iconSvg(kind)}</span><span class="visual-option-copy"><b>${label}</b>${option.value&&label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check">✓</span>':''}`;
     card.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));closeModal();});
@@ -72,7 +75,7 @@ function enhanceSelect(select,baseKind,title){
   select.dataset.visualEnhanced='1';select.classList.add('visual-source-select');
   const button=document.createElement('button');button.type='button';button.className='visual-picker-trigger';
   const refresh=()=>{
-    const option=select.selectedOptions?.[0]||select.options?.[select.selectedIndex],label=optionLabel(option),kind=visualKind(option?.value)||baseKind||'generic';
+    const option=select.selectedOptions?.[0]||select.options?.[select.selectedIndex],label=optionLabel(option),kind=resolvedKind(option?.value,baseKind);
     button.innerHTML=`<span class="visual-trigger-icon ${kind}">${iconSvg(kind)}</span><span><small>${selectorTitle(select,title)}</small><b>${label}</b></span><span class="visual-trigger-chevron">›</span>`;
     button.title=`Choose ${selectorTitle(select,title)}`;
   };
@@ -95,7 +98,7 @@ function enhanceMioTraits(root=document){
   root.querySelectorAll('.mio-trait').forEach(label=>{
     if(label.dataset.visualNode==='1')return;label.dataset.visualNode='1';label.classList.add('visual-mio-node');
     const input=label.querySelector('input'),span=label.querySelector('span');
-    if(span){const kind=visualKind(input?.value)||'industry';span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${iconSvg(kind)}</i>`);}
+    if(span){const kind=resolvedKind(input?.value,'industry');span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${iconSvg(kind)}</i>`);}
   });
 }
 

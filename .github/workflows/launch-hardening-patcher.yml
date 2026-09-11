@@ -20,19 +20,19 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           p=Path('src/main.js');s=p.read_text()
-          old="function save(){const stored={...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};localStorage.setItem(STORAGE,JSON.stringify(stored));}\nfunction route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}\nfunction downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}\nfunction readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}" 
-          new="""let saveFailureShown=false;
-function serializableState(){return {...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};}
-function save(){
-  try{localStorage.setItem(STORAGE,JSON.stringify(serializableState()));saveFailureShown=false;return true;}
-  catch(err){console.error('Unable to save planner state locally.',err);if(!saveFailureShown){saveFailureShown=true;alert('Local save failed. Your current session is still open; export the scenario JSON before leaving this page.');}return false;}
-}
-function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
-function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
-function readJSON(file,cb){
-  if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}
-  const r=new FileReader();r.onerror=()=>alert('Could not read that JSON file.');r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);
-}"""
+          old="function save(){const stored={...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};localStorage.setItem(STORAGE,JSON.stringify(stored));}\nfunction route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}\nfunction downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}\nfunction readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);}"
+          new=("let saveFailureShown=false;\n"
+               "function serializableState(){return {...state,dataPack:state.dataPack?.meta?.bundled?null:state.dataPack};}\n"
+               "function save(){\n"
+               "  try{localStorage.setItem(STORAGE,JSON.stringify(serializableState()));saveFailureShown=false;return true;}\n"
+               "  catch(err){console.error('Unable to save planner state locally.',err);if(!saveFailureShown){saveFailureShown=true;alert('Local save failed. Your current session is still open; export the scenario JSON before leaving this page.');}return false;}\n"
+               "}\n"
+               "function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}\n"
+               "function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}\n"
+               "function readJSON(file,cb){\n"
+               "  if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}\n"
+               "  const r=new FileReader();r.onerror=()=>alert('Could not read that JSON file.');r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);\n"
+               "}")
           if old not in s: raise SystemExit('persistence anchor not found')
           s=s.replace(old,new,1)
           old="$('saveState').onclick=()=>{save();alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',state);"

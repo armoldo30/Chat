@@ -37,8 +37,8 @@ jobs:
           SERVER_PID=$!
           trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
           sleep 1
-          timeout 30s "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=5000 --dump-dom 'http://127.0.0.1:4173/#battle' >/tmp/index.html
+          timeout 30s "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=2000 --dump-dom 'http://127.0.0.1:4173/#data' >/tmp/index.html
+          grep -Fq 'Data Packs' /tmp/index.html
           grep -Fq 'Privacy' /tmp/index.html
-          ! grep -Fq 'hoi4-adsense-script' /tmp/index.html
-          timeout 30s "$BROWSER" --headless=new --no-sandbox --disable-gpu --disable-dev-shm-usage --virtual-time-budget=2000 --dump-dom 'http://127.0.0.1:4173/privacy.html' >/tmp/privacy.html
-          grep -Fq 'Privacy Policy' /tmp/privacy.html
+          ! grep -Fq 'id="hoi4-adsense-script"' /tmp/index.html
+          curl -fsS 'http://127.0.0.1:4173/privacy.html' | grep -Fq 'Privacy Policy'

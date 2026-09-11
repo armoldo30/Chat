@@ -1,0 +1,44 @@
+name: Division Gauntlet CI
+on:
+  push:
+    branches: [gauntlet-1.19.2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Full certified tests
+        run: npm test
+      - name: Full 160k Gauntlet smoke
+        run: node tests/gauntlet-full-smoke.test.mjs
+      - name: Build static site
+        run: npm run build
+      - name: Verify Gauntlet build surface
+        run: |
+          test -f dist/src/gauntlet.js
+          test -f dist/src/gauntlet-ui.js
+          test -f dist/src/gauntlet.css
+          grep -Fq "Division Gauntlet" dist/src/main.js
+          grep -Fq "10,000 opponent designs" dist/src/gauntlet-ui.js
+          grep -Fq "160,000 terrain/role matchups" dist/src/gauntlet-ui.js
+          grep -Fq "planner analytical" dist/src/gauntlet-ui.js
+          grep -Fq "certified bounded 1.19.2 combat engine" dist/src/gauntlet-ui.js
+      - name: Served-site static smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory dist >/tmp/war-planner-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" 2>/dev/null || true' EXIT
+          sleep 1
+          curl -fsS 'http://127.0.0.1:4173/' | grep -Fq './src/main.js'
+          curl -fsS 'http://127.0.0.1:4173/src/gauntlet-ui.js' | grep -Fq 'Full Gauntlet'
+          curl -fsS 'http://127.0.0.1:4173/src/gauntlet.js' | grep -Fq 'GAUNTLET_ARCHETYPES'

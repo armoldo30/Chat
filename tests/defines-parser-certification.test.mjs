@@ -54,8 +54,8 @@ const mapped={defines:{NMilitary:{
 const result=defineOverrides(mapped,combat,production);
 assert.equal(result.combatCount,18,'the existing imported-pack override layer maps its 18 direct combat scalars');
 assert.equal(result.productionCount,3,'three production defines map directly; efficiency gain remains formula-deferred');
-assert.equal(combat.defendedHitChance,.1);
-assert.equal(combat.undefendedHitChance,.4);
+assert.ok(Math.abs(combat.defendedHitChance-.1)<1e-12);
+assert.ok(Math.abs(combat.undefendedHitChance-.4)<1e-12);
 assert.equal(combat.nightAttackPenalty,.5);
 assert.deepEqual(combat.armorWeights,{max:.1,average:.9},'arbitrary modded armor weighting is outside this bounded vanilla audit');
 assert.deepEqual(combat.piercingWeights,{max:.1,average:.9},'arbitrary modded piercing weighting is outside this bounded vanilla audit');

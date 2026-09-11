@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
   pages: write
   id-token: write
 
@@ -14,26 +14,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  apply-defines-audit:
-    if: github.ref == 'refs/heads/audit-1.19.2' && github.event.head_commit.message == 'chore: run defines integration'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: audit-1.19.2
-          fetch-depth: 0
-      - name: Apply Defines audit patch
-        run: python3 scripts/apply-defines-audit.py
-      - name: Restore normal workflow and commit
-        run: |
-          git checkout HEAD^ -- .github/workflows/main.yml
-          git rm .github/workflows/defines-audit-apply.yml scripts/apply-defines-audit.py
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/data.js src/parser.js src/builtin1192.js package.json .github/workflows/main.yml
-          git commit -m "audit: integrate bounded 1.19.2 defines"
-          git push origin HEAD:audit-1.19.2
-
   build:
     runs-on: ubuntu-latest
     steps:

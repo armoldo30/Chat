@@ -11,13 +11,15 @@ assert.equal(visualKind('medium_tank_chassis'),'armor');
 assert.equal(visualKind('fighter_airframe'),'air');
 assert.match(iconSvg('armor'),/<svg/);
 
-const [html,js,css,cleanup,division,industry]=await Promise.all([
+const [html,js,css,cleanup,division,industry,designer,designerCss]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
   readFile(new URL('../src/visual-overhaul.js',import.meta.url),'utf8'),
   readFile(new URL('../src/visual-overhaul.css',import.meta.url),'utf8'),
   readFile(new URL('../src/visible-label-cleanup.js',import.meta.url),'utf8'),
   readFile(new URL('../src/division-visuals.js',import.meta.url),'utf8'),
-  readFile(new URL('../src/industry-visuals.js',import.meta.url),'utf8')
+  readFile(new URL('../src/industry-visuals.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/designer-visuals.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/designer-visuals.css',import.meta.url),'utf8')
 ]);
 
 assert.match(html,/visual-overhaul\.css/,'index should load the visual overhaul stylesheet');
@@ -27,6 +29,8 @@ assert.match(html,/division-visuals\.js/,'index should load division pictograms'
 assert.match(html,/division-visuals\.css/,'index should load division pictogram styling');
 assert.match(html,/industry-visuals\.js/,'index should load industry pictograms');
 assert.match(html,/industry-visuals\.css/,'index should load industry pictogram styling');
+assert.match(html,/designer-visuals\.js/,'index should load designer visual tabs');
+assert.match(html,/designer-visuals\.css/,'index should load designer visual styling');
 for(const selector of ['#land-grand','[data-doctrine-choice]','[data-mio-org]','.tank-module-grid select','.air-module-grid select'])assert.ok(js.includes(selector),`visual picker coverage should include ${selector}`);
 assert.match(js,/dispatchEvent\(new Event\('change'/,'visual choices must drive the existing certified controls');
 assert.doesNotMatch(js,/engine\.js|simulateBattle|calcDivision/,'visual layer must not import or execute simulation mechanics');
@@ -42,6 +46,12 @@ assert.match(industry,/\.advisor-eq \.equipment-badge/,'industry allocation rows
 assert.match(industry,/\.stock-grid label/,'stockpile rows should gain equipment pictograms');
 assert.match(industry,/\.loss-list > span/,'replacement losses should gain equipment pictograms');
 assert.doesNotMatch(industry,/engine\.js|simulateBattle|calcDivision/,'industry pictogram layer must remain UI-only');
+assert.match(designer,/\[data-tank-class\]/,'tank family tabs should gain pictograms');
+assert.match(designer,/\[data-tank-role\]/,'tank role tabs should gain pictograms');
+assert.match(designer,/\.aircraft-role span/,'aircraft role tags should gain pictograms');
+assert.doesNotMatch(designer,/engine\.js|simulateBattle|calcDivision/,'designer visual layer must remain UI-only');
+assert.match(designerCss,/designer-visual-tab/);
+assert.match(designerCss,/air-role-visual/);
 assert.match(css,/visual-picker-grid/);
 assert.match(css,/mastery-pips/);
 assert.match(css,/visual-mio-node/);

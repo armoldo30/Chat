@@ -71,38 +71,79 @@ export function parseClausewitz(text){
   return block(false);
 }
 
-export function parseDefinesLua(text){
-  const out={};
-  // Modern HOI4 defines are primarily nested: NDefines = { NMilitary = { KEY = 1 } }.
-  // Some override files still use NDefines.NMilitary.KEY = 1, so support both forms.
-  const dotted=/(?:NDefines\.)?(N[A-Za-z_][A-Za-z0-9_]*)\.([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|true|false)/g;
-  let m;
-  while((m=dotted.exec(text))){
-    const group=out[m[1]]||(out[m[1]]={});
-    group[m[2]]=m[3]==='true'?true:m[3]==='false'?false:Number(m[3]);
-  }
-  let depth=0,inside=false,group=null;
-  for(const original of String(text||'').split(/\r?\n/)){
-    const line=original.replace(/--.*$/,'').trim();
-    if(!line)continue;
-    if(!inside){
-      if(/^NDefines\s*=\s*\{/.test(line)){inside=true;depth+=(line.match(/\{/g)||[]).length-(line.match(/\}/g)||[]).length;}
-      continue;
-    }
-    if(depth===1){
-      const gm=line.match(/^(N[A-Za-z_][A-Za-z0-9_]*)\s*=\s*\{/);
-      if(gm)group=gm[1];
-    }
-    if(group&&depth===2){
-      const kv=line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*([-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?|true|false)\s*,?/);
-      if(kv){const target=out[group]||(out[group]={});target[kv[1]]=kv[2]==='true'?true:kv[2]==='false'?false:Number(kv[2]);}
-    }
-    depth+=(line.match(/\{/g)||[]).length-(line.match(/\}/g)||[]).length;
-    if(depth<2)group=null;
-    if(depth<=0){inside=false;depth=0;group=null;}
+function stripLuaComments(text){
+  let out='',quote=null,escaped=false;
+  for(let i=0;i<String(text||'').length;i++){
+    const c=text[i],n=text[i+1];
+    if(quote){out+=c;if(escaped)escaped=false;else if(c==='\\')escaped=true;else if(c===quote)quote=null;continue;}
+    if(c==='"'||c==="'"){quote=c;out+=c;continue;}
+    if(c==='-'&&n==='-'){while(i<text.length&&text[i]!=='\n')i++;out+='\n';continue;}
+    out+=c;
   }
   return out;
 }
+
+function parseLuaDefineValue(source,start){
+  let i=start;
+  const ws=()=>{while(i<source.length&&/[\s,;]/.test(source[i]))i++;};
+  const atom=()=>{
+    ws();
+    if(source[i]==='{')return table();
+    if(source[i]==='"'||source[i]==="'"){
+      const quote=source[i++];let value='',escaped=false;
+      while(i<source.length){const c=source[i++];if(escaped){value+=c;escaped=false;continue;}if(c==='\\'){escaped=true;continue;}if(c===quote)break;value+=c;}
+      return value;
+    }
+    const rest=source.slice(i),numMatch=rest.match(/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?/);
+    if(numMatch){i+=numMatch[0].length;return Number(numMatch[0]);}
+    const id=rest.match(/^[A-Za-z_][A-Za-z0-9_]*/);
+    if(id){i+=id[0].length;if(id[0]==='true')return true;if(id[0]==='false')return false;return id[0];}
+    return undefined;
+  };
+  const table=()=>{
+    i++;const keyed={},positional=[];let hasKeys=false;ws();
+    while(i<source.length&&source[i]!=='}'){
+      const checkpoint=i;
+      const keyMatch=source.slice(i).match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=/);
+      if(keyMatch){hasKeys=true;i+=keyMatch[0].length;keyed[keyMatch[1]]=atom();}
+      else{i=checkpoint;const value=atom();if(value!==undefined)positional.push(value);else i++;}
+      ws();
+    }
+    if(source[i]==='}')i++;
+    if(!hasKeys)return positional;
+    if(positional.length)keyed.__items=positional;
+    return keyed;
+  };
+  const value=atom();return {value,end:i};
+}
+
+function parseDefinesLuaDocument(text){
+  const source=stripLuaComments(text),values={},assignments=[];
+  const assign=/\b(NDefines(?:_[A-Za-z0-9_]+)?(?:\.[A-Za-z_][A-Za-z0-9_]*){0,2})\s*=/g;
+  let match,order=0;
+  while((match=assign.exec(source))){
+    const parsed=parseLuaDefineValue(source,assign.lastIndex);if(parsed.value===undefined)continue;
+    const parts=match[1].split('.'),value=parsed.value;assign.lastIndex=parsed.end;
+    if(parts.length===1&&value&&typeof value==='object'&&!Array.isArray(value)){
+      for(const [namespace,namespaceValues] of Object.entries(value)){
+        if(namespace==='__items'||!namespaceValues||typeof namespaceValues!=='object'||Array.isArray(namespaceValues))continue;
+        const target=values[namespace]||(values[namespace]={});
+        for(const [key,item] of Object.entries(namespaceValues)){
+          if(key==='__items')continue;target[key]=item;assignments.push({namespace,key,value:item,order:++order,root:parts[0]});
+        }
+      }
+    }else if(parts.length===2&&value&&typeof value==='object'&&!Array.isArray(value)){
+      const namespace=parts[1],target=values[namespace]||(values[namespace]={});
+      for(const [key,item] of Object.entries(value)){if(key==='__items')continue;target[key]=item;assignments.push({namespace,key,value:item,order:++order,root:parts[0]});}
+    }else if(parts.length===3){
+      const namespace=parts[1],key=parts[2];(values[namespace]||(values[namespace]={}))[key]=value;assignments.push({namespace,key,value,order:++order,root:parts[0]});
+    }
+  }
+  return {values,assignments};
+}
+
+export function parseDefinesLua(text){return parseDefinesLuaDocument(text).values;}
+export function parseDefinesLuaAssignments(text){return parseDefinesLuaDocument(text).assignments;}
 
 function obj(v){return v&&typeof v==='object'&&!Array.isArray(v)?v:{};}
 function num(v){return Number.isFinite(Number(v))?Number(v):undefined;}
@@ -378,14 +419,26 @@ function mergeDefines(target,source){for(const [g,vals] of Object.entries(source
 export async function buildDataPack(files){
   const pack={
     meta:{format:1,createdAt:new Date().toISOString(),sourceFiles:0,unitFiles:0,equipmentFiles:0,defineFiles:0,terrainFiles:0,technologyFiles:0,moduleFiles:0,mioFiles:0,warnings:[]},
-    defines:{},subUnits:{},equipment:{},duplicateArchetypes:{},modules:{},mios:{},terrain:{},technologyFiles:[]
+    defines:{},defineProvenance:{},subUnits:{},equipment:{},duplicateArchetypes:{},modules:{},mios:{},terrain:{},technologyFiles:[]
   };
+  let defineAssignmentOrder=0;
   for(const file of Array.from(files||[])){
     const path=(file.webkitRelativePath||file.name||'').replaceAll('\\','/').toLowerCase();
     if(!/\.(txt|lua)$/i.test(file.name||path))continue;
     const text=await file.text();pack.meta.sourceFiles++;
     try{
-      if(path.includes('/defines/')||path.includes('defines')||/(?:NDefines\.)?N[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*\s*=/.test(text)){mergeDefines(pack.defines,parseDefinesLua(text));pack.meta.defineFiles++;continue;}
+      if(path.includes('/defines/')||path.includes('defines')||/(?:NDefines\.)?N[A-Za-z_][A-Za-z0-9_]*\.[A-Za-z_][A-Za-z0-9_]*\s*=/.test(text)){
+        const parsedDefines=parseDefinesLua(text),sourceFile=file.webkitRelativePath||file.name;
+        for(const [namespace,values] of Object.entries(parsedDefines)){
+          const target=pack.defines[namespace]||(pack.defines[namespace]={});
+          for(const [key,value] of Object.entries(values)){
+            target[key]=value;
+            const id=`${namespace}.${key}`;
+            (pack.defineProvenance[id]||(pack.defineProvenance[id]=[])).push({namespace,key,value:cloneRecord(value),sourceFile,assignmentOrder:++defineAssignmentOrder});
+          }
+        }
+        pack.meta.defineFiles++;continue;
+      }
       if(path.includes('military_industrial_organization/organizations/')||path.startsWith('organizations/')){mergeMap(pack.mios,extractMIOs(parseClausewitz(text)));pack.meta.mioFiles++;continue;}
       if(path.includes('/units/equipment/modules/')||/\bequipment_modules\s*=\s*\{/.test(text)){mergeMap(pack.modules,extractEquipmentModules(parseClausewitz(text)));pack.meta.moduleFiles++;continue;}
       if(path.includes('/units/equipment/')||/\bequipments\s*=\s*\{|\bduplicate_archetypes\s*=\s*\{/.test(text)){const parsed=parseClausewitz(text);mergeMap(pack.equipment,extractEquipment(parsed));mergeMap(pack.duplicateArchetypes,extractDuplicateArchetypes(parsed));pack.meta.equipmentFiles++;continue;}
@@ -394,7 +447,7 @@ export async function buildDataPack(files){
       if(path.includes('/technologies/')||path.includes('technolog')||/\btechnologies\s*=\s*\{/.test(text)){pack.technologyFiles.push(file.webkitRelativePath||file.name);pack.meta.technologyFiles++;}
     }catch(error){pack.meta.warnings.push(`${file.name}: ${error?.message||'parse error'}`);}
   }
-  materializeDuplicateArchetypes(pack.equipment,pack.duplicateArchetypes);pack.mios=resolveMIOs(pack.mios);pack.meta.duplicateArchetypeCount=Object.keys(pack.duplicateArchetypes).length;pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.moduleCount=Object.keys(pack.modules).length;pack.meta.mioCount=Object.keys(pack.mios).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;
+  materializeDuplicateArchetypes(pack.equipment,pack.duplicateArchetypes);pack.mios=resolveMIOs(pack.mios);pack.meta.duplicateArchetypeCount=Object.keys(pack.duplicateArchetypes).length;pack.meta.subUnitCount=Object.keys(pack.subUnits).length;pack.meta.equipmentCount=Object.keys(pack.equipment).length;pack.meta.moduleCount=Object.keys(pack.modules).length;pack.meta.mioCount=Object.keys(pack.mios).length;pack.meta.terrainCount=Object.keys(pack.terrain).length;pack.meta.defineNamespaceCount=Object.keys(pack.defines).length;pack.meta.defineValueCount=Object.values(pack.defines).reduce((n,values)=>n+Object.keys(values||{}).length,0);
   return pack;
 }
 
@@ -423,7 +476,7 @@ export function safeStructuralOverrides(pack,battalions,supports,terrain){
 }
 
 export function defineOverrides(pack,combat,production){
-  const m=pack?.defines?.NMilitary||pack?.defines?.NProduction||{};let combatCount=0,productionCount=0;
+  let combatCount=0,productionCount=0;
   const set=(obj,key,value)=>{if(Number.isFinite(Number(value))){obj[key]=Number(value);return 1;}return 0;};
   const mil=pack?.defines?.NMilitary||{};
   if(Number.isFinite(mil.BASE_CHANCE_TO_AVOID_HIT)){combat.defendedHitChance=1-mil.BASE_CHANCE_TO_AVOID_HIT/100;combatCount++;}
@@ -444,9 +497,11 @@ export function defineOverrides(pack,combat,production){
   combatCount+=set(combat,'strengthDamageModifier',mil.LAND_COMBAT_STR_DAMAGE_MODIFIER);
   combatCount+=set(combat,'combatMinimumHours',mil.COMBAT_MINIMUM_TIME);
   combatCount+=set(combat,'equipmentCombatLossFactor',mil.EQUIPMENT_COMBAT_LOSS_FACTOR);
-  const prod=pack?.defines?.NProduction||pack?.defines?.NMilitary||{};
+  if(Number.isFinite(mil.ARMOR_VS_AVERAGE)){combat.armorWeights={max:mil.ARMOR_VS_AVERAGE,average:1-mil.ARMOR_VS_AVERAGE};combatCount++;}
+  if(Number.isFinite(mil.PEN_VS_AVERAGE)){combat.piercingWeights={max:mil.PEN_VS_AVERAGE,average:1-mil.PEN_VS_AVERAGE};combatCount++;}
+  const prod=pack?.defines?.NProduction||{};
+  if(Number.isFinite(prod.BASE_FACTORY_EFFICIENCY_GAIN)){production.efficiencyBaseGain=prod.BASE_FACTORY_EFFICIENCY_GAIN*.001;productionCount++;}
   if(Number.isFinite(prod.PRODUCTION_RESOURCE_LACK_PENALTY)){production.resourceLackPenaltyPerUnit=Math.abs(prod.PRODUCTION_RESOURCE_LACK_PENALTY);productionCount++;}
-  if(Number.isFinite(prod.MAX_LINE_RESOURCE_PENALTY)){production.maxLineResourcePenalty=Math.abs(prod.MAX_LINE_RESOURCE_PENALTY)>1?Math.abs(prod.MAX_LINE_RESOURCE_PENALTY)/100:Math.abs(prod.MAX_LINE_RESOURCE_PENALTY);productionCount++;}
   productionCount+=set(production,'maxMilitaryFactoriesPerLine',prod.MAX_MIL_FACTORIES_PER_LINE);
   return {combatCount,productionCount};
 }

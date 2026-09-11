@@ -1,4 +1,4 @@
-import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';
+import { DEFINE_VALUES_1192, PLANNER_ANALYTICAL_CONSTANTS_1192 } from './builtin1192/defines-certification-1192.js';
 
 export const MODEL_META = {
   appVersion: '0.15.0',
@@ -38,7 +38,7 @@ export const PRODUCTION_CONSTANTS = {
   // Formula-derived scale; exact use is certified in the Production Formulas audit, not as a literal define.
   efficiencyBaseGain: 0.001,
   resourceLackPenaltyPerUnit: Math.abs(D1192_PROD.PRODUCTION_RESOURCE_LACK_PENALTY),
-  maxLineResourcePenalty: Math.abs(D1192_PROD.MAX_LINE_RESOURCE_PENALTY)/100,
+  maxLineResourcePenalty: PLANNER_ANALYTICAL_CONSTANTS_1192.maxLineResourcePenalty,
   maxMilitaryFactoriesPerLine: D1192_PROD.MAX_MIL_FACTORIES_PER_LINE
 };
 

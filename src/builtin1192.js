@@ -50,12 +50,11 @@ export const BUILTIN_1192=JSON.parse(text);
 BUILTIN_1192.defines=BUILTIN_1192.defines||{};
 for(const [group,values] of Object.entries(DEFINE_VALUES_1192)){
   const target=BUILTIN_1192.defines[group]||(BUILTIN_1192.defines[group]={});
-  // The compact bundle predates the Defines audit and contains stale values for some
-  // planner-consumed keys. The audited overlay is authoritative for this bounded map,
-  // so it must replace—not merely fill missing—bundled values.
+  // Overlay every planner-consumed game-file-exact value from the retained 1.19.2
+  // common/defines source so stale compact values cannot survive.
   for(const [key,value] of Object.entries(values))target[key]=value;
 }
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'bounded-corroborated-source',plannerConsumedDefineCount:24};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'game-file-exact-consumed-defines',plannerConsumedDefineCount:23,plannerAnalyticalDefineCount:1,definesSourceSha256:'405a24ce579815443cafe052cff1361e20c712ca8182e3f10ccbf45330dd4be4'};
 for(const [id,record] of Object.entries(BUILTIN_1192.combatTactics||{}))BUILTIN_1192.combatTactics[id]=normalizeCombatTacticRecord(id,record?.raw||{});
 for(const [id,record] of Object.entries(BUILTIN_1192.modifiers||{}))BUILTIN_1192.modifiers[id]=normalizeModifierDefinitionRecord(id,record?.raw||{});
 const bundledDoctrineMetadata={};

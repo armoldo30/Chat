@@ -4,15 +4,15 @@ export const DEFINE_VALUES_1192={
     CHANCE_TO_AVOID_HIT_AT_NO_DEF:60,
     COMBAT_OVER_WIDTH_PENALTY:-1,
     COMBAT_OVER_WIDTH_PENALTY_MAX:-0.33,
-    COMBAT_STACKING_START:8,
-    COMBAT_STACKING_EXTRA:4,
+    COMBAT_STACKING_START:5,
+    COMBAT_STACKING_EXTRA:3,
     COMBAT_STACKING_PENALTY:-0.02,
     BASE_FORT_PENALTY:-0.15,
     DIG_IN_FACTOR:0.02,
     ENEMY_AIR_SUPERIORITY_IMPACT:-0.35,
     BASE_NIGHT_ATTACK_PENALTY:-0.50,
-    LAND_COMBAT_ORG_DAMAGE_MODIFIER:0.05,
-    LAND_COMBAT_STR_DAMAGE_MODIFIER:0.05,
+    LAND_COMBAT_ORG_DAMAGE_MODIFIER:0.053,
+    LAND_COMBAT_STR_DAMAGE_MODIFIER:0.060,
     LAND_COMBAT_ORG_DICE_SIZE:4,
     LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE:6,
     LAND_COMBAT_STR_DICE_SIZE:2,
@@ -24,37 +24,57 @@ export const DEFINE_VALUES_1192={
   NProduction:{
     BASE_FACTORY_EFFICIENCY_GAIN:1,
     PRODUCTION_RESOURCE_LACK_PENALTY:-0.05,
-    MAX_LINE_RESOURCE_PENALTY:90,
     MAX_MIL_FACTORIES_PER_LINE:150
   }
 };
 
+export const PLANNER_ANALYTICAL_CONSTANTS_1192={
+  maxLineResourcePenalty:0.90
+};
+
+export const DEFINES_SOURCE_1192={
+  gameVersion:'1.19.2',
+  retainedSource:'HOI4-War-Planner-0.15.0-HANDOFF.zip/game-source/common/defines',
+  sourceFiles:[
+    {path:'common/defines/00_defines.lua',bytes:405669,sha256:'405a24ce579815443cafe052cff1361e20c712ca8182e3f10ccbf45330dd4be4',root:'NDefines',namespaceCount:28,directAssignments:3230,recursiveScalarLeaves:3848},
+    {path:'common/defines/00_graphics.lua',bytes:89354,sha256:'dfdab0a5fad7319d7b5ac524d98af49d3a0c1f95772e6b7a76abce54836f3d86',root:'NDefines_Graphics',namespaceCount:9,directAssignments:1252,recursiveScalarLeaves:2128},
+    {path:'common/defines/01_career_profile.lua',bytes:3101,sha256:'49a3c68dde41a092b1af94674db6369a7abcfc0445153bb9da248cdb3f5c8604',root:'NDefines_CareerProfile',namespaceCount:2,directAssignments:21,recursiveScalarLeaves:21}
+  ],
+  totalBytes:498124,
+  namespaceCount:39,
+  directAssignmentCount:4503,
+  recursiveScalarLeafCount:5997,
+  directValueTypes:{number:4124,boolean:42,string:22,table:315},
+  duplicateAssignments:2,
+  duplicateEffectiveValueChanges:0,
+  duplicateDetails:[
+    {namespace:'NMapIcons',key:'DEFAULT_PRIORITY_NAVAL_ACCIDENTS',value:13,occurrences:2},
+    {namespace:'NMapIcons',key:'OPERATIVES_PRIORITY_NAVAL_ACCIDENTS',value:13,occurrences:2}
+  ]
+};
+
 export const DEFINES_CERTIFICATION_1192={
   gameVersion:'1.19.2',
-  classification:'bounded-corroborated-source',
+  classification:'game-file-exact-consumed-defines',
   sourceBoundary:{
-    authoritativeRawGameDefinesRetained:false,
-    plannerConsumedDefineValues:24,
-    note:'The supplied compact audit corpus did not retain common/defines. Values below are limited to planner-consumed defines and are independently corroborated by modern vanilla-reference/mod source plus historical source continuity; they are not presented as a fingerprint of the complete 1.19.2 defines file.'
-  },
-  evidence:{
-    exact1192Corroboration:[
-      'blackwater26/hoi4-warfare-framework@1.19.2: common/defines/ww_air_balance.lua (vanilla over-width and supply-penalty comments)'
-    ],
-    currentVanillaCorroboration:[
-      'MillenniumDawn/Millennium-Dawn: common/defines/MD_defines.lua (vanilla-reference comments for night, fort, air-superiority and other overridden values)',
-      'Kaiserreich/Kaiserreich-HOI4: common/defines/KR_defines.lua (vanilla equipment-combat-loss reference)'
-    ],
-    continuityEvidence:[
-      'cbrzeczysz/hoi4-history: common/defines/00_defines.lua (source-form definitions for long-lived combat/production constants)',
-      'multiple current full-copy/mod defines agree on MAX_MIL_FACTORIES_PER_LINE=150, MAX_LINE_RESOURCE_PENALTY=90 and PRODUCTION_RESOURCE_LACK_PENALTY=-0.05'
-    ]
+    authoritativeRawGameDefinesRetained:true,
+    fullDefinesCorpusCensused:true,
+    plannerConsumedSourceDefineValues:23,
+    plannerAnalyticalConstants:1,
+    note:'The preserved 1.19.2 handoff contains the authoritative common/defines corpus. Planner-consumed game-file values below are exact extractions from that corpus; executable transformations and planner-only constants remain separately classified.'
   },
   corrections:[
-    {runtime:'COMBAT_CONSTANTS.nightAttackPenalty',before:0.75,after:0.50,source:'NMilitary.BASE_NIGHT_ATTACK_PENALTY',reason:'stale planner constant; current vanilla reference is -0.50'}
+    {runtime:'COMBAT_CONSTANTS.nightAttackPenalty',before:0.75,after:0.50,source:'NMilitary.BASE_NIGHT_ATTACK_PENALTY'},
+    {runtime:'COMBAT_CONSTANTS.stackingLimitBase',before:8,after:5,source:'NMilitary.COMBAT_STACKING_START'},
+    {runtime:'COMBAT_CONSTANTS.stackingLimitPerDirection',before:4,after:3,source:'NMilitary.COMBAT_STACKING_EXTRA'},
+    {runtime:'COMBAT_CONSTANTS.orgDamageModifier',before:0.05,after:0.053,source:'NMilitary.LAND_COMBAT_ORG_DAMAGE_MODIFIER'},
+    {runtime:'COMBAT_CONSTANTS.strengthDamageModifier',before:0.05,after:0.060,source:'NMilitary.LAND_COMBAT_STR_DAMAGE_MODIFIER'}
+  ],
+  provenanceCorrections:[
+    {runtime:'PRODUCTION_CONSTANTS.maxLineResourcePenalty',value:0.90,previousClaim:'NProduction.MAX_LINE_RESOURCE_PENALTY = 90',classification:'planner-analytical',reason:'No MAX_LINE_RESOURCE_PENALTY assignment exists anywhere in the retained 1.19.2 common/defines corpus.'}
   ],
   formulaDerived:{
-    'PRODUCTION_CONSTANTS.efficiencyBaseGain':{runtimeValue:0.001,sourceDefine:'NProduction.BASE_FACTORY_EFFICIENCY_GAIN',sourceValue:1,classification:'executable-inferred',deferredTo:'Production formulas',note:'0.001 is a planner formula scale, not the literal define value.'}
+    'PRODUCTION_CONSTANTS.efficiencyBaseGain':{runtimeValue:0.001,sourceDefine:'NProduction.BASE_FACTORY_EFFICIENCY_GAIN',sourceValue:1,classification:'executable-inferred',deferredTo:'Production formulas',note:'0.001 is the planner runtime scale applied to the exact source value; the executable production formula remains deferred.'}
   },
   formulaDeferred:[
     'piercingDamageFactor thresholds and partial-piercing damage factors',

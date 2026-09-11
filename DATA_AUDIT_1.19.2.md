@@ -138,7 +138,7 @@ The following items were deferred from the land-data pass and handled in later d
 | Doctrines | **PASS — 21 files / 121 doctrine nodes** | **PASS — 121/121 raw-record fingerprints** | **PASS for current Land/Air planner surfaces; unsupported formula paths explicitly deferred** | **Certified source layer / bounded runtime** |
 | MIOs | **PASS — 55 files / 552 declarations / 51 source variables; payload boundary explicit** | **PASS for recovered exact payload — 85 trait corrections / 3 removals; 24 equipment groups / 22 policies retained** | **PASS for inheritance/tree/equipment-filter and current equipment/production behavior; policy/global/exact executable semantics deferred** | **Audit complete / bounded source certification** |
 | Terrain/tactics/modifiers | **PASS — 8 recovered land terrain records / 55 tactic raw blocks / 3 custom modifier definitions** | **PASS — recovered payloads fingerprinted; richer source structure preserved on import** | **PASS for current terrain width/inherent attack consumption; unit terrain/tactic execution assigned to combat formulas** | **Audit complete / bounded source/runtime certification** |
-| Defines | Not started | Not started | Not started | Pending |
+| Defines | **PASS — 3 retained files / 39 namespaces / 4,503 direct assignments** | **PASS — 23/23 planner-consumed source values exact; corpus hashes/census retained** | **PASS for current constant binding/import; executable formula ordering deferred** | **Audit complete / game-file-exact consumed layer** |
 | Production formulas | Not started | Not started | Not started | Pending |
 | Combat formulas | Not started | Not started | Not started | Pending |
 
@@ -297,4 +297,17 @@ The three recovered modifier definitions are operation/intelligence display/type
 
 Dedicated certification details are in `TERRAIN_TACTICS_MODIFIERS_AUDIT_1.19.2.md`.
 
-**Next audit phase: Defines.**
+**Next audit phase: Production formulas.**
+
+
+## Defines
+
+Status: **PASS — game-file-exact certification for the retained 1.19.2 Defines corpus and all planner-consumed source-backed values.**
+
+The preserved handoff contains all three `common/defines` files. Their combined census is **498,124 bytes / 39 namespaces / 4,503 direct assignments / 5,997 recursive scalar leaves**. All **23** source-backed constants currently consumed by the planner are exact against that retained corpus. Five stale numeric expectations were corrected, and the historical `maxLineResourcePenalty = 0.90` was reclassified as **planner analytical** because `MAX_LINE_RESOURCE_PENALTY` does not exist in the retained 1.19.2 source.
+
+Parser/runtime coverage now includes nested and dotted Lua define forms, strings/booleans/arrays, override precedence, source provenance, exact corpus fingerprints, armor/piercing weighting, combat constants, and production constant binding. Exact production/combat formula semantics remain deferred rather than overclaimed.
+
+Dedicated details: `DEFINES_AUDIT_1.19.2.md`.
+
+**Next audit phase: Production formulas.**

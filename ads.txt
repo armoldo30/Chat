@@ -1,0 +1,4 @@
+# HOI4 War Planner advertising authorization file.
+# Advertising is not enabled yet.
+# After AdSense supplies the real publisher ID, replace this comment-only file with the exact seller line copied from AdSense, for example:
+# google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0

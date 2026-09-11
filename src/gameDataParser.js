@@ -142,24 +142,72 @@ export function normalizeTechnologyGraph(technologies){
   return out;
 }
 
-export function extractCombatTactics(parsed){
+export function normalizeCombatTacticRecord(id,raw0,sourceFile=''){
+  const raw=isObj(last(raw0))?last(raw0):{},baseBlock=isObj(last(raw.base))?last(raw.base):{};
+  const baseFactor=num(baseBlock.factor??raw.base);
+  return {
+    id,sourceFile:String(sourceFile||''),days:num(raw.days),isAttacker:last(raw.is_attacker),active:raw.active===undefined?null:clean(raw.active),
+    phase:last(raw.phase),displayPhase:last(raw.display_phase),picture:last(raw.picture),base:baseFactor,baseFactor,baseBlock:clean(baseBlock),
+    counteredBy:items(raw.countered_by),attacker:num(raw.attacker),defender:num(raw.defender),
+    attackerMovementSpeed:num(raw.attacker_movement_speed),defenderMovementSpeed:num(raw.defender_movement_speed),
+    attackerOrgDamageModifier:num(raw.attacker_org_damage_modifier),defenderOrgDamageModifier:num(raw.defender_org_damage_modifier),combatWidth:num(raw.combat_width),
+    trigger:raw.trigger===undefined?null:clean(raw.trigger),onlyShowFor:raw.only_show_for===undefined?null:clean(raw.only_show_for),
+    prerequisites:prerequisiteTokens(raw),raw:clean(raw)
+  };
+}
+
+export function extractCombatTactics(parsed,sourceFile=''){
   const roots=['combat_tactic','combat_tactics','tactics'];const out={};
-  for(const root of roots)for(const [id,raw0] of entries(parsed,root)){
-    const raw=isObj(last(raw0))?last(raw0):{};
-    out[id]={id,days:num(raw.days),base:num(raw.base),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
-  }
+  for(const root of roots)for(const [id,raw0] of entries(parsed,root))out[id]=normalizeCombatTacticRecord(id,raw0,sourceFile);
   if(!Object.keys(out).length)for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):{};
-    if(raw.trigger||raw.allowed||raw.attacker||raw.defender||raw.countered_by||raw.attacker_movement_speed||raw.defender_movement_speed)out[id]={id,days:num(raw.days),base:num(raw.base),prerequisites:prerequisiteTokens(raw),raw:clean(raw)};
+    if(raw.trigger||raw.allowed||raw.attacker||raw.defender||raw.countered_by||raw.attacker_movement_speed||raw.defender_movement_speed)out[id]=normalizeCombatTacticRecord(id,raw0,sourceFile);
   }
   return out;
 }
 
-export function extractModifierDefinitions(parsed){
+export function normalizeModifierDefinitionRecord(id,raw0,sourceFile=''){
+  const raw=isObj(last(raw0))?last(raw0):{};
+  return {id,sourceFile:String(sourceFile||''),colorType:last(raw.color_type),valueType:last(raw.value_type),precision:num(raw.precision),postfix:last(raw.postfix),category:last(raw.category),categories:items(raw.category),raw:clean(raw)};
+}
+
+export function extractModifierDefinitions(parsed,sourceFile=''){
   const out={};
   for(const [id,raw0] of entries(parsed)){
     const raw=isObj(last(raw0))?last(raw0):null;if(!raw)continue;
-    out[id]={id,raw:clean(raw)};
+    out[id]=normalizeModifierDefinitionRecord(id,raw0,sourceFile);
+  }
+  return out;
+}
+
+export function extractTerrainDetails(parsed,sourceFile=''){
+  const out={},root=isObj(last(parsed?.categories))?last(parsed.categories):{};
+  for(const [id,raw0] of Object.entries(root)){
+    if(id==='__items')continue;
+    const raw=isObj(last(raw0))?last(raw0):{},units=isObj(last(raw.units))?last(raw.units):{};
+    const width=num(raw.combat_width),reinforceWidth=num(raw.combat_support_width??raw.combat_width_addition??raw.reinforce_width);
+    if(width===undefined&&reinforceWidth===undefined)continue;
+    out[id]={
+      id,sourceFile:String(sourceFile||''),width,reinforceWidth,attack:num(units.attack??raw.attack),defense:num(units.defence??units.defense??raw.defence??raw.defense),unitMovement:num(units.movement),
+      movementCost:num(raw.movement_cost),attrition:num(raw.attrition),enemyAirSuperiorityFactor:num(raw.enemy_army_bonus_air_superiority_factor??raw.enemy_air_superiority_factor),
+      supplyFlowPenaltyFactor:num(raw.supply_flow_penalty_factor),truckAttritionFactor:num(raw.truck_attrition_factor),sicknessChance:num(raw.sickness_chance),raw:clean(raw)
+    };
+  }
+  return out;
+}
+
+export function extractSubUnitTerrainDetails(parsed,sourceFile=''){
+  const out={};
+  for(const [id,raw0] of entries(parsed,'sub_units')){
+    const raw=isObj(last(raw0))?last(raw0):{},terrainModifiers={};
+    for(const [scope,block0] of Object.entries(raw)){
+      if(scope==='__items')continue;
+      const block=isObj(last(block0))?last(block0):{};if(!Object.keys(block).length)continue;
+      const attack=num(block.attack),defense=num(block.defence??block.defense),movement=num(block.movement);
+      if(attack===undefined&&defense===undefined&&movement===undefined)continue;
+      terrainModifiers[scope]={...(attack===undefined?{}:{attack}),...(defense===undefined?{}:{defense}),...(movement===undefined?{}:{movement})};
+    }
+    if(Object.keys(terrainModifiers).length)out[id]={id,sourceFile:String(sourceFile||''),terrainModifiers};
   }
   return out;
 }
@@ -221,14 +269,18 @@ export async function buildExtendedDataPack(files){
     const sourceFile=String(file.webkitRelativePath||file.name||'');
     const path=sourceFile.replaceAll('\\','/').toLowerCase();
     if(!/\.(txt|gui|asset)$/i.test(file.name||path))continue;
-    const relevant=path.includes('/technolog')||path.includes('/combat_tactic')||path.includes('/modifier_definition')||path.includes('/special_project')||path.includes('/equipment/upgrades')||path.includes('/doctrine');
+    const unitSource=path.includes('/units/')&&!path.includes('/units/equipment/');
+    const terrainSource=path.includes('/terrain/');
+    const relevant=path.includes('/technolog')||path.includes('/combat_tactic')||path.includes('/modifier_definition')||path.includes('/special_project')||path.includes('/equipment/upgrades')||path.includes('/doctrine')||unitSource||terrainSource;
     if(!relevant)continue;
     let parsed;try{parsed=parseClausewitz(await file.text());}catch{continue;}
     if(path.includes('/technolog'))merge(pack.technologies,extractTechnologies(parsed,sourceFile));
-    if(path.includes('/combat_tactic'))merge(pack.combatTactics,extractCombatTactics(parsed));
-    if(path.includes('/modifier_definition'))merge(pack.modifiers,extractModifierDefinitions(parsed));
+    if(path.includes('/combat_tactic'))merge(pack.combatTactics,extractCombatTactics(parsed,sourceFile));
+    if(path.includes('/modifier_definition'))merge(pack.modifiers,extractModifierDefinitions(parsed,sourceFile));
     if(path.includes('/special_project'))merge(pack.specialProjects,extractSpecialProjects(parsed));
     if(path.includes('/equipment/upgrades'))merge(pack.equipmentUpgrades,extractEquipmentUpgrades(parsed));
+    if(terrainSource)for(const [id,details] of Object.entries(extractTerrainDetails(parsed,sourceFile)))pack.terrain[id]={...(pack.terrain[id]||{}),...details};
+    if(unitSource)for(const [id,details] of Object.entries(extractSubUnitTerrainDetails(parsed,sourceFile)))if(pack.subUnits?.[id])pack.subUnits[id]={...pack.subUnits[id],...details};
     if(path.includes('/doctrines/grand_doctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'grand',sourceFile));
     else if(path.includes('/doctrines/tracks/'))merge(pack.doctrines,extractDoctrines(parsed,'track',sourceFile));
     else if(path.includes('/doctrines/subdoctrines/'))merge(pack.doctrines,extractDoctrines(parsed,'subdoctrine',sourceFile));
@@ -236,6 +288,6 @@ export async function buildExtendedDataPack(files){
   }
   normalizeTechnologyGraph(pack.technologies);
   const technologyRecords=Object.values(pack.technologies);
-  pack.meta={...(pack.meta||{}),technologyCount:technologyRecords.length,technologyDirectEffectCount:technologyRecords.filter(tech=>Object.keys(tech.directEffects||{}).length).length,technologyScriptedEffectCount:technologyRecords.filter(tech=>tech.scriptedEffects?.onResearchComplete!==null||tech.scriptedEffects?.limit!==null).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,doctrineMetadataCount:Object.keys(pack.doctrineMetadata).length,parserVersion:'0.15.0'};
+  pack.meta={...(pack.meta||{}),technologyCount:technologyRecords.length,technologyDirectEffectCount:technologyRecords.filter(tech=>Object.keys(tech.directEffects||{}).length).length,technologyScriptedEffectCount:technologyRecords.filter(tech=>tech.scriptedEffects?.onResearchComplete!==null||tech.scriptedEffects?.limit!==null).length,tacticCount:Object.keys(pack.combatTactics).length,modifierCount:Object.keys(pack.modifiers).length,specialProjectCount:Object.keys(pack.specialProjects).length,equipmentUpgradeCount:Object.keys(pack.equipmentUpgrades).length,doctrineCount:Object.keys(pack.doctrines).length,doctrineMetadataCount:Object.keys(pack.doctrineMetadata).length,terrainDetailParser:true,subUnitTerrainDetailParser:true,parserVersion:'0.15.0'};
   return pack;
 }

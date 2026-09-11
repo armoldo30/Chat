@@ -1,0 +1,40 @@
+name: Feature request
+description: Suggest a focused improvement after launch
+title: "[Feature] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The current release is intentionally locked to HOI4 1.19.2. Please describe the player problem first, then the feature you think would solve it.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Player problem
+      description: What are you trying to decide, compare, understand, or do faster?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed improvement
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Area
+      options:
+        - Division Lab
+        - Division Gauntlet
+        - Tank Designer
+        - Air Lab
+        - Industry
+        - Command / Front Planner / Intel
+        - Data / accuracy
+        - UI / mobile
+        - Other
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Optional HOI4 example or evidence
+      description: If the request is about game accuracy, include the 1.19.2 mechanic/source/example that motivates it when possible.

@@ -8,6 +8,7 @@ const NAV_GROUPS=[
   ]],
   ['Design',[
     ['battle','DIV','Division Lab'],
+    ['gauntlet','GNT','Division Gauntlet'],
     ['tank','TNK','Tank Designer'],
     ['air','AIR','Air Lab']
   ]],

@@ -10,7 +10,7 @@ const [html,js,css]=await Promise.all([
 assert.match(html,/visual-quick-controls\.js/);
 assert.match(html,/quick-controls\.css/);
 for(const selector of ['#b-terrain','#f-terrain','#b-river','#role','#air-mission'])assert.ok(js.includes(selector),`quick visual control should cover ${selector}`);
-for(const terrain of ['forest','mountain','hills','desert','jungle','marsh','urban'])assert.ok(js.includes(terrain),`terrain pictograms should distinguish ${terrain}`);
+for(const terrain of ['forest','mountain','hill','desert','jungle','marsh','urban'])assert.ok(js.includes(terrain),`terrain pictograms should distinguish ${terrain}`);
 assert.match(js,/dispatchEvent\(new Event\('change'/,'visual strips must drive existing controls');
 assert.doesNotMatch(js,/engine\.js|simulateBattle|calcDivision/,'quick visual controls must remain UI-only');
 assert.match(css,/quick-visual-choice/);

@@ -26,7 +26,7 @@ assert.match(js,/dispatchEvent\(new Event\('change'/,'visual choices must drive 
 assert.doesNotMatch(js,/engine\.js|simulateBattle|calcDivision/,'visual layer must not import or execute simulation mechanics');
 assert.match(cleanup,/looksLikeIdentifier/,'visible label cleanup should only rewrite identifier-like labels');
 assert.match(cleanup,/Game ID:/,'raw game IDs should remain inspectable as tooltips');
-assert.match(cleanup,/\.(?:txt\|lua\|yml/,'source filenames should be excluded from display rewriting');
+assert.match(cleanup,/txt\|lua\|yml/,'source filenames should be excluded from display rewriting');
 assert.doesNotMatch(cleanup,/engine\.js|simulateBattle|calcDivision/,'label cleanup must remain UI-only');
 assert.match(css,/visual-picker-grid/);
 assert.match(css,/mastery-pips/);

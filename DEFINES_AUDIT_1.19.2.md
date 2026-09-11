@@ -16,7 +16,7 @@ Corpus census: **3 files / 498,124 bytes / 39 namespaces / 4,503 direct namespac
 
 ## Planner-consumed exact mapping
 
-The planner consumes **23 game-file-exact Defines values**: 20 from `NMilitary` and 3 from `NProduction`. The exact 1.19.2 source establishes, among other values:
+The planner now consumes **36 game-file-exact Defines values**: 33 from `NMilitary` and 3 from `NProduction`. The original Defines phase certified 23 values; the downstream Combat audit added 13 exact `NMilitary` values from the same retained 1.19.2 source corpus. The exact 1.19.2 source establishes, among other values:
 
 - `COMBAT_STACKING_START = 5` and `COMBAT_STACKING_EXTRA = 3`
 - `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0.053`
@@ -44,15 +44,15 @@ Imported `ARMOR_VS_AVERAGE` and `PEN_VS_AVERAGE` now update the planner's armor/
 
 ## Classification boundary
 
-**Game-file exact:** the retained three-file corpus fingerprints/census and the 23 planner-consumed source values.
+**Game-file exact:** the retained three-file corpus fingerprints/census and the 36 planner-consumed source values now bound by the completed Defines, Production, and Combat audits.
 
 **Executable inferred:** transformations such as sign normalization, hit chance derived from chance-to-avoid-hit, and `BASE_FACTORY_EFFICIENCY_GAIN × 0.001`. Exact executable formula ordering is not claimed here.
 
-**Planner analytical:** `maxLineResourcePenalty = 0.90`, because no corresponding 1.19.2 source define exists. Other formula-only behaviors such as partial-piercing damage thresholds, supply interpolation, planning/CAS details, and the simulation safety horizon remain deferred.
+**Planner analytical:** no active Defines-stage analytical constant remains. The historical `maxLineResourcePenalty = 0.90` placeholder is superseded by the Production audit. Partial piercing, supply interpolation, planning/CAS behavior, and the simulation safety horizon were resolved or explicitly bounded by the Combat audit; exact `hoi4.exe` modifier ordering remains outside game-file-exact claims.
 
 ## Closure criteria
 
-Defines may be closed only when the final `audit-1.19.2` head passes the repository's full `npm test` and static build, with Pages configuration/artifact upload and deploy skipped on the audit branch. The next audit phase is **Production formulas**, followed by **Combat formulas**.
+Defines is closed at the retained-source boundary. Downstream Production and Combat audits are complete and preserve the same classification rule: source values are exact only where the retained 1.19.2 files prove them, while executable-only behavior is separately bounded.
 
 ## Downstream Production-formula resolution
 

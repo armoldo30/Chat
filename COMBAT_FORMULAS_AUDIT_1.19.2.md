@@ -1,6 +1,6 @@
 # HOI4 1.19.2 Combat Formulas Audit
 
-Status: **PASS candidate — bounded source certification; final clean CI required**
+Status: **PASS — bounded source/runtime certification**
 
 This phase audits the planner's land-combat formula layer against the authoritative HOI4 1.19.2 `common/` corpus retained in the project handoff. Game-file constants are labeled exact only where the retained files prove them. Behavior that lives in `hoi4.exe` is labeled executable-inferred, and planner-only abstractions remain analytical.
 

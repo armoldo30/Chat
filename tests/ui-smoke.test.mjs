@@ -10,7 +10,7 @@ globalThis.location={hash:'#battle',reload(){}};
 globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
 globalThis.alert=()=>{};globalThis.confirm=()=>true;
 
-for(const route of ['battle','tank','air','production','data','scenario']){
+for(const route of ['dashboard','front','intel','battle','tank','air','production','data','scenario']){
   location.hash='#'+route;elements.clear();document.body=get('body');
   await import(`../src/main.js?smoke=${route}`);
   assert.ok(document.title.includes('HOI4 War Planner'),`title should render for ${route}`);

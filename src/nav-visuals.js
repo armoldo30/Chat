@@ -1,7 +1,7 @@
 import { iconSvg } from './ui-labels.js';
 
-const ROUTE_KIND={dashboard:'doctrine',front:'doctrine',intel:'generic',battle:'infantry',tank:'armor',air:'air',production:'industry',data:'support',scenario:'generic'};
-const ROUTE_MARK={dashboard:'HQ',front:'OPS',intel:'?',battle:'',tank:'',air:'',production:'',data:'',scenario:''};
+const ROUTE_KIND={dashboard:'doctrine',front:'doctrine',intel:'generic',battle:'infantry',gauntlet:'doctrine',tank:'armor',air:'air',production:'industry',data:'support',scenario:'generic'};
+const ROUTE_MARK={dashboard:'HQ',front:'OPS',intel:'?',battle:'',gauntlet:'G',tank:'',air:'',production:'',data:'',scenario:''};
 
 function enhance(){
   document.querySelectorAll('.sidebar nav a').forEach(link=>{

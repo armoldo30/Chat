@@ -2,6 +2,7 @@ import { AD_CONFIG, adsReady, validAdSenseSlot } from './ad-config.js';
 
 const SCRIPT_ID='hoi4-adsense-script';
 const OWNED='data-hoi4-ad-owned';
+let lastSignature='';
 
 function ensureAccountMeta(){
   if(!adsReady())return;
@@ -25,20 +26,23 @@ function adNode(key){
   return wrap;
 }
 
-function requestAd(node){
-  if(!node)return;queueMicrotask(()=>{try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch{}});
+function requestAd(node){if(node)queueMicrotask(()=>{try{(window.adsbygoogle=window.adsbygoogle||[]).push({});}catch{}});}
+function clearOwned(){document.querySelectorAll(`[${OWNED}]`).forEach(node=>node.remove());}
+function signature(){
+  const report=document.querySelector('#battleResult .report:last-of-type');
+  const marker=report?.querySelector('.report-title')?.textContent||document.querySelector('#view h1,#view h2')?.textContent||'';
+  return `${location.hash}|${marker.trim().slice(0,160)}|${adsReady()}`;
 }
 
-function clearOwned(){document.querySelectorAll(`[${OWNED}]`).forEach(node=>node.remove());}
-
 function mount(){
+  const next=signature();if(next===lastSignature)return;lastSignature=next;
   clearOwned();
   document.documentElement.classList.toggle('ads-enabled',adsReady());
   if(!adsReady())return;
   ensureAccountMeta();ensureScript();
 
   const report=document.querySelector('#battleResult .report:last-of-type');
-  if(report){const node=adNode('result');if(node){report.insertAdjacentElement('afterend',node);requestAd(node);}}
+  if(report){const node=adNode('result');if(node){report.insertAdjacentElement('afterend',node);requestAd(node);return;}}
 
   const view=document.querySelector('#view');
   if(view){const node=adNode('footer');if(node){view.append(node);requestAd(node);}}
@@ -55,4 +59,4 @@ function wirePrivacyChoices(){
 
 let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount();wirePrivacyChoices();});}
 const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+window.addEventListener('hashchange',()=>{lastSignature='';schedule();});window.addEventListener('pageshow',()=>{lastSignature='';schedule();});schedule();

@@ -23,7 +23,7 @@ const defaults={
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],attackerSupports:['engineer','support_artillery','support_aa'],attackerDivisions:3,attackerName:'Assault Division',
   defender:[{type:'infantry',count:10}],defenderSupports:['engineer','support_artillery'],defenderDivisions:3,defenderName:'Defensive Division',
   attackerRegimentalSupports:[null,null,null,null,null],defenderRegimentalSupports:[null,null,null,null,null],
-  battlefield:{terrain:'plains',directions:0,entrench:20,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:.30,night:0,runs:500,seed:1944},
+  battlefield:{terrain:'plains',directions:0,entrench:20,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:COMBAT_CONSTANTS.basePlanningMax,night:0,runs:500,seed:1944},
   intelUncertainty:.20,role:'assault',lastBattle:null,dataPack:null,dataSnapshotYear:1940,
   includeLabDemand:true,labDemandCount:24,armyDemand:[],
   production:{days:180,factories:30,efficiency:10,efficiencyGain:100,maxEfficiency:50,outputBonus:0,energySatisfaction:100,resources:{steel:60,aluminum:20,rubber:20,tungsten:15,chromium:5}},
@@ -157,7 +157,7 @@ function readJSON(file,cb){const r=new FileReader();r.onload=()=>{try{cb(JSON.pa
 
 function division(side){ensureDesignerState(side);const data=techData(side),line=gridToCounts(state[side+'Grid'],Object.keys(battalions));return calcDivision(line,data.battalions,[...state[side+'Supports'],...validRegimentalSupports(side)],data.supports);}
 function aggregate(side){return aggregateDivision(division(side),state[side+'Divisions']);}
-function battleOpts(){const ag=techData('attacker').doctrineGlobal||{},dg=techData('defender').doctrineGlobal||{};return {...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(dg.entrenchment||0)),attackerNightAttackBonus:ag.nightAttack||0,defenderNightAttackBonus:dg.nightAttack||0,terrainData:terrain};}
+function battleOpts(){const ag=techData('attacker').doctrineGlobal||{},dg=techData('defender').doctrineGlobal||{},airDoctrine=airDoctrineEffects(ensureTechState('attacker').airDoctrine,null,state.dataPack);return {...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(dg.entrenchment||0)),attackerNightAttackBonus:ag.nightAttack||0,defenderNightAttackBonus:dg.nightAttack||0,attackerGroundSupportBonus:airDoctrine.groundSupport||0,terrainData:terrain};}
 function replacementIC(losses,side='attacker'){const eq=equipmentForSide(side);return Object.entries(losses||{}).reduce((sum,[k,q])=>sum+(eq[k]?.cost||0)*(+q||0),0);}
 function equipmentLossList(losses,side='attacker'){const eq=equipmentForSide(side),rows=Object.entries(losses||{}).filter(([,q])=>q>0.05).sort((a,b)=>b[1]-a[1]);return rows.length?rows.map(([k,q])=>`<span><b>${eq[k]?.name||k}</b> ${fmt(q,0)}</span>`).join(''):'<span>No material loss estimate available.</span>';}
 function applyLastBattleReplacement(){if(!state.lastBattle||state.lastBattle.applied)return;for(const [type,q] of Object.entries(state.lastBattle.attackerEquipmentLosses||{})){if(q<=0)continue;let g=state.productionGoals.find(x=>x.type===type);if(!g){g={type,stock:0,target:0,factories:0,priority:3};state.productionGoals.push(g);}g.target=Math.max(+g.target||0,+g.stock||0)+Math.ceil(q);}state.lastBattle.applied=true;save();shell();}
@@ -408,7 +408,7 @@ function battle(c){
       <label>Directions<input id="b-directions" type="number" min="0" max="5" value="${state.battlefield.directions}"></label>
       <label>Entrench<input id="b-entrench" type="number" min="0" max="100" value="${state.battlefield.entrench}"></label>
       <label>Fort<input id="b-fort" type="number" min="0" max="10" value="${state.battlefield.fort}"></label>
-      <label>River<select id="b-river"><option value="0" ${+state.battlefield.river===0?'selected':''}>None</option><option value="0.3" ${+state.battlefield.river===.3?'selected':''}>Small</option><option value="0.6" ${+state.battlefield.river===.6?'selected':''}>Large</option></select></label>
+      <label>River<select id="b-river"><option value="0" ${+state.battlefield.river===0?'selected':''}>None</option><option value="${COMBAT_CONSTANTS.riverCrossingPenalty}" ${+state.battlefield.river===COMBAT_CONSTANTS.riverCrossingPenalty?'selected':''}>Small</option><option value="${COMBAT_CONSTANTS.riverCrossingPenaltyLarge}" ${+state.battlefield.river===COMBAT_CONSTANTS.riverCrossingPenaltyLarge?'selected':''}>Large</option></select></label>
       <label>A Supply<input id="b-asupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.asupply}"></label>
       <label>D Supply<input id="b-dsupply" type="number" min="0" max="1" step=".05" value="${state.battlefield.dsupply}"></label>
       <label>Air<input id="b-air" type="number" min="-1" max="1" step=".05" value="${state.battlefield.air}"></label>

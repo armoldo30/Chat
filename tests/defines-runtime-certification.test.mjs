@@ -34,7 +34,8 @@ for(const [group,values] of Object.entries(DEFINE_VALUES_1192))for(const [key,va
   assert.equal(BUILTIN_1192.defines?.[group]?.[key],value,`built-in define ${group}.${key} must match the exact retained 1.19.2 source map`);
 }
 assert.equal(BUILTIN_1192.meta.definesCertification,'game-file-exact-consumed-defines');
-assert.equal(BUILTIN_1192.meta.plannerConsumedDefineCount,23);
+assert.equal(BUILTIN_1192.meta.plannerConsumedDefineCount,36);
+assert.equal(BUILTIN_1192.meta.plannerAnalyticalDefineCount,0);
 
 const a=aggregateDivision(calcDivision([{type:'infantry',count:10}],battalions,[],supports),1);
 const d=aggregateDivision(calcDivision([{type:'infantry',count:10}],battalions,[],supports),1);

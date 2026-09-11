@@ -139,8 +139,8 @@ The following items were deferred from the land-data pass and handled in later d
 | MIOs | **PASS — 55 files / 552 declarations / 51 source variables; payload boundary explicit** | **PASS for recovered exact payload — 85 trait corrections / 3 removals; 24 equipment groups / 22 policies retained** | **PASS for inheritance/tree/equipment-filter and current equipment/production behavior; policy/global/exact executable semantics deferred** | **Audit complete / bounded source certification** |
 | Terrain/tactics/modifiers | **PASS — 8 recovered land terrain records / 55 tactic raw blocks / 3 custom modifier definitions** | **PASS — recovered payloads fingerprinted; richer source structure preserved on import** | **PASS for current terrain width/inherent attack consumption; unit terrain/tactic execution assigned to combat formulas** | **Audit complete / bounded source/runtime certification** |
 | Defines | **PASS — 3 retained files / 39 namespaces / 4,503 direct assignments** | **PASS — 23/23 planner-consumed source values exact; corpus hashes/census retained** | **PASS for current constant binding/import; executable formula ordering deferred** | **Audit complete / game-file-exact consumed layer** |
-| Production formulas | Not started | Not started | Not started | Pending |
-| Combat formulas | Not started | Not started | Not started | Pending |
+| Production formulas | **PASS — retained source boundary** | **PASS — source constants + bounded executable formula** | **PASS for current Production Lab model** | **Certified bounded runtime** |
+| Combat formulas | **PASS — retained Defines + 72-unit terrain corpus** | **PASS for consumed source values** | **PASS for audited aggregate land-combat model; executable-only systems bounded** | **Certified bounded runtime** |
 
 ## Phase 3 — Air Designer
 
@@ -322,3 +322,8 @@ The current production path now uses exact 1.19.2 MIC source endpoints (3.5 unpo
 
 The Defines-stage provisional analytical 90% resource-shortage cap is superseded here. Automatic national coal/energy derivation, dynamic factory-slot histories, line-switch retention, licensing/conversion, and exact MIO production ordering under partial energy remain explicitly bounded rather than guessed.
 
+
+
+## Combat formulas audit — 1.19.2
+
+Status: **PASS candidate — final clean CI required.** See `COMBAT_FORMULAS_AUDIT_1.19.2.md` for the exact source boundary, runtime corrections, permanent regression coverage, and explicitly analytical systems.

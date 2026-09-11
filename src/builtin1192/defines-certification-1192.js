@@ -19,7 +19,20 @@ export const DEFINE_VALUES_1192={
     COMBAT_MINIMUM_TIME:4,
     EQUIPMENT_COMBAT_LOSS_FACTOR:0.70,
     ARMOR_VS_AVERAGE:0.40,
-    PEN_VS_AVERAGE:0.40
+    PEN_VS_AVERAGE:0.40,
+    PIERCING_THRESHOLDS:[1.00,0.75,0.50,0.00],
+    PIERCING_THRESHOLD_DAMAGE_VALUES:[1.00,0.80,0.65,0.50],
+    LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE:2,
+    ENEMY_AIR_SUPERIORITY_DEFENSE:0.75,
+    ENEMY_AIR_SUPERIORITY_DEFENSE_STEEPNESS:625,
+    AIR_SUPPORT_BASE:0.25,
+    PLANNING_MAX:0.3,
+    COMBAT_SUPPLY_LACK_ATTACKER_ATTACK:-0.25,
+    COMBAT_SUPPLY_LACK_ATTACKER_DEFEND:-0.65,
+    COMBAT_SUPPLY_LACK_DEFENDER_ATTACK:-0.35,
+    COMBAT_SUPPLY_LACK_DEFENDER_DEFEND:-0.15,
+    RIVER_CROSSING_PENALTY:-0.3,
+    RIVER_CROSSING_PENALTY_LARGE:-0.6
   },
   NProduction:{
     BASE_FACTORY_EFFICIENCY_GAIN:1,
@@ -64,7 +77,7 @@ export const DEFINES_CERTIFICATION_1192={
   sourceBoundary:{
     authoritativeRawGameDefinesRetained:true,
     fullDefinesCorpusCensused:true,
-    plannerConsumedSourceDefineValues:23,
+    plannerConsumedSourceDefineValues:36,
     plannerAnalyticalConstants:0,
     supersededPlannerAnalyticalConstants:1,
     note:'The preserved 1.19.2 handoff contains the authoritative common/defines corpus. Planner-consumed game-file values below are exact extractions from that corpus; executable transformations remain separately classified. The one provisional Production analytical placeholder created during the Defines phase has been retired by the downstream Production formulas audit.'
@@ -83,13 +96,9 @@ export const DEFINES_CERTIFICATION_1192={
     'PRODUCTION_CONSTANTS.efficiencyBaseGain':{runtimeValue:0.001,sourceDefine:'NProduction.BASE_FACTORY_EFFICIENCY_GAIN',sourceValue:1,classification:'executable-inferred',resolvedBy:'Production formulas audit',note:'The downstream Production formulas audit certifies the 0.001 runtime scale as part of the bounded nonlinear efficiency-growth formula.'}
   },
   formulaDeferred:[
-    'piercingDamageFactor thresholds and partial-piercing damage factors',
-    'supplyModifier interpolation',
-    'planning multiplier/cap',
-    'CAS land-combat multiplier',
-    '168-hour simulation safety horizon',
     'exact define interaction/order inside combat formulas'
-  ]
+  ],
+  combatResolvedBy:'Combat formulas audit'
 };
 
 export default DEFINES_CERTIFICATION_1192;

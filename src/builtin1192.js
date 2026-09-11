@@ -32,6 +32,7 @@ import technologySource1192 from './builtin1192/technology-source-manifest-1192.
 import doctrineSource1192 from './builtin1192/doctrine-source-manifest-1192.js';
 import doctrineSourceSupplement1192 from './builtin1192/doctrine-source-supplement-1192.js';
 import terrainTacticsModifiersCertification1192 from './builtin1192/terrain-tactics-modifiers-certification-1192.js';
+import { SUBUNIT_TERRAIN_1192, SUBUNIT_TERRAIN_SOURCE_1192 } from './builtin1192/subunit-terrain-1192.js';
 import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';
 import technologyGraphIndustry1192 from './builtin1192/technology-graph-industry-1192.js';
 import technologyGraphSupport1192 from './builtin1192/technology-graph-support-1192.js';
@@ -47,6 +48,7 @@ import { extractTechnologies, normalizeTechnologyGraph, normalizeCombatTacticRec
 const text=[r01,r02,r03,r04,r05,r06,r07,r08,r09,r10,r11,r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22].join('');
 export const BUILTIN_1192_LOADER_MODE='plain-json-modules';
 export const BUILTIN_1192=JSON.parse(text);
+for(const [id,mods] of Object.entries(SUBUNIT_TERRAIN_1192))if(BUILTIN_1192.subUnits?.[id])BUILTIN_1192.subUnits[id].terrainModifiers=JSON.parse(JSON.stringify(mods));
 BUILTIN_1192.defines=BUILTIN_1192.defines||{};
 for(const [group,values] of Object.entries(DEFINE_VALUES_1192)){
   const target=BUILTIN_1192.defines[group]||(BUILTIN_1192.defines[group]={});
@@ -54,7 +56,7 @@ for(const [group,values] of Object.entries(DEFINE_VALUES_1192)){
   // common/defines source so stale compact values cannot survive.
   for(const [key,value] of Object.entries(values))target[key]=value;
 }
-BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'game-file-exact-consumed-defines',plannerConsumedDefineCount:23,plannerAnalyticalDefineCount:1,definesSourceSha256:'405a24ce579815443cafe052cff1361e20c712ca8182e3f10ccbf45330dd4be4'};
+BUILTIN_1192.meta={...(BUILTIN_1192.meta||{}),definesCertification:'game-file-exact-consumed-defines',plannerConsumedDefineCount:36,plannerAnalyticalDefineCount:0,definesSourceSha256:'405a24ce579815443cafe052cff1361e20c712ca8182e3f10ccbf45330dd4be4',subUnitTerrainCertification:'game-file-exact',subUnitTerrainRecordCount:SUBUNIT_TERRAIN_SOURCE_1192.recordCount,subUnitTerrainBlockCount:SUBUNIT_TERRAIN_SOURCE_1192.terrainBlockCount,subUnitTerrainSha256:SUBUNIT_TERRAIN_SOURCE_1192.canonicalSha256};
 for(const [id,record] of Object.entries(BUILTIN_1192.combatTactics||{}))BUILTIN_1192.combatTactics[id]=normalizeCombatTacticRecord(id,record?.raw||{});
 for(const [id,record] of Object.entries(BUILTIN_1192.modifiers||{}))BUILTIN_1192.modifiers[id]=normalizeModifierDefinitionRecord(id,record?.raw||{});
 const bundledDoctrineMetadata={};

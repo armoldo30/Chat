@@ -225,10 +225,25 @@ function weightedMaxAverage(values,maxWeight=.4){
   return max*maxWeight+avg*(1-maxWeight);
 }
 
+function unitTerrainMaps(unit){
+  const attack={},defense={},source=unit?.terrainModifiers&&typeof unit.terrainModifiers==='object'?unit.terrainModifiers:null;
+  if(source&&Object.keys(source).length){
+    for(const [scope,block] of Object.entries(source)){
+      if(!block||typeof block!=='object')continue;
+      const a=Number(block.attack),d=Number(block.defense??block.defence);
+      if(Number.isFinite(a))attack[scope]=a;
+      if(Number.isFinite(d))defense[scope]=d;
+    }
+  }else{
+    for(const [scope,value] of Object.entries(unit?.terrain||{})){const a=Number(value);if(Number.isFinite(a))attack[scope]=a;}
+  }
+  return {attack,defense};
+}
+
 export function calcDivision(side,battalions,supportKeys,supports){
-  const r={width:0,manpower:0,org:0,hp:0,supply:0,soft:0,hard:0,def:0,breakthrough:0,hardness:0,armor:0,piercing:0,airAttack:0,initiative:0,need:{},battalions:0,supportCount:0,terrainAttack:{}};
+  const r={width:0,manpower:0,org:0,hp:0,supply:0,soft:0,hard:0,def:0,breakthrough:0,hardness:0,armor:0,piercing:0,airAttack:0,initiative:0,need:{},battalions:0,supportCount:0,terrainAttack:{},terrainDefense:{}};
   let orgSum=0,hardnessSum=0,lineCount=0;
-  const armorVals=[],piercingVals=[],supportTerrain={};
+  const armorVals=[],piercingVals=[],lineTerrainAttack={},lineTerrainDefense={},supportTerrainAttack={},supportTerrainDefense={};
   for(const x of side||[]){
     const u=battalions[x.type],n=Math.max(0,Math.floor(Number(x.count)||0)); if(!u||!n) continue;
     lineCount+=n; r.battalions+=n; r.width+=u.width*n; r.manpower+=u.manpower*n; r.hp+=u.hp*n; r.supply+=u.supply*n;
@@ -236,7 +251,9 @@ export function calcDivision(side,battalions,supportKeys,supports){
     orgSum+=u.org*n; hardnessSum+=u.hardness*n;
     for(let i=0;i<n;i++){armorVals.push(u.armor||0);piercingVals.push(u.piercing||0);}
     for(const [k,v] of Object.entries(u.need||{})) r.need[k]=(r.need[k]||0)+v*n;
-    for(const [k,v] of Object.entries(u.terrain||{})) r.terrainAttack[k]=(r.terrainAttack[k]||0)+v*n;
+    const tm=unitTerrainMaps(u);
+    for(const [k,v] of Object.entries(tm.attack))lineTerrainAttack[k]=(lineTerrainAttack[k]||0)+v*n;
+    for(const [k,v] of Object.entries(tm.defense))lineTerrainDefense[k]=(lineTerrainDefense[k]||0)+v*n;
   }
   for(const key of supportKeys||[]){
     const u=supports[key]; if(!u) continue; r.supportCount++;
@@ -244,12 +261,16 @@ export function calcDivision(side,battalions,supportKeys,supports){
     r.supply+=u.supply||0; r.soft+=u.soft||0; r.hard+=u.hard||0; r.def+=u.def||0; r.breakthrough+=u.breakthrough||0; r.airAttack+=u.airAttack||0; r.initiative+=u.initiative||0;
     armorVals.push(u.armor||0); piercingVals.push(u.piercing||0);
     for(const [q,v] of Object.entries(u.need||{})) r.need[q]=(r.need[q]||0)+v;
-    for(const [k,v] of Object.entries(u.terrain||{})) supportTerrain[k]=(supportTerrain[k]||0)+v;
+    const tm=unitTerrainMaps(u);
+    for(const [k,v] of Object.entries(tm.attack))supportTerrainAttack[k]=(supportTerrainAttack[k]||0)+v;
+    for(const [k,v] of Object.entries(tm.defense))supportTerrainDefense[k]=(supportTerrainDefense[k]||0)+v;
   }
   const orgSlots=lineCount+r.supportCount;
   r.org=orgSlots?orgSum/orgSlots:0; r.hardness=lineCount?hardnessSum/lineCount:0;
-  for(const k of Object.keys(r.terrainAttack)) r.terrainAttack[k]/=Math.max(1,lineCount);
-  for(const [k,v] of Object.entries(supportTerrain)) r.terrainAttack[k]=(r.terrainAttack[k]||0)+v;
+  for(const [k,v] of Object.entries(lineTerrainAttack))r.terrainAttack[k]=v/Math.max(1,lineCount);
+  for(const [k,v] of Object.entries(lineTerrainDefense))r.terrainDefense[k]=v/Math.max(1,lineCount);
+  for(const [k,v] of Object.entries(supportTerrainAttack))r.terrainAttack[k]=(r.terrainAttack[k]||0)+v;
+  for(const [k,v] of Object.entries(supportTerrainDefense))r.terrainDefense[k]=(r.terrainDefense[k]||0)+v;
   r.armor=weightedMaxAverage(armorVals,COMBAT_CONSTANTS.armorWeights.max);
   r.piercing=weightedMaxAverage(piercingVals,COMBAT_CONSTANTS.piercingWeights.max);
   return r;
@@ -278,21 +299,50 @@ function engageSide(side,available,directions){
   return {side:s,engaged,reserve:count-engaged,widthPenalty,stackPenalty,effectiveFactor:(1-widthPenalty)*(1-stackPenalty)};
 }
 
-function effectiveAttack(attacker,target){ return attacker.soft*(1-clamp(target.hardness||0,0,1))+attacker.hard*clamp(target.hardness||0,0,1); }
-function expectedHits(attack,defense){
-  const a=Math.max(0,attack),d=Math.max(0,defense),blocked=Math.min(a,d),unblocked=Math.max(0,a-d);
+function attackComponents(attacker,target){
+  const hardness=clamp(target.hardness||0,0,1);
+  return {soft:Math.max(0,attacker.soft||0)*(1-hardness),hard:Math.max(0,attacker.hard||0)*hardness};
+}
+function effectiveAttack(attacker,target){const x=attackComponents(attacker,target);return x.soft+x.hard;}
+export function expectedCombatHits(attack,defense){
+  const a=Math.max(0,Number(attack)||0)*COMBAT_CONSTANTS.combatPointScale,d=Math.max(0,Number(defense)||0)*COMBAT_CONSTANTS.combatPointScale;
+  const blocked=Math.min(a,d),unblocked=Math.max(0,a-d);
   return blocked*COMBAT_CONSTANTS.defendedHitChance+unblocked*COMBAT_CONSTANTS.undefendedHitChance;
 }
 export function piercingDamageFactor(piercing,armor){
-  if(armor<=0||piercing>=armor) return 1;
-  const ratio=clamp(piercing/armor,0,1);
-  if(ratio>=.75) return .80;
-  if(ratio>=.50) return .65;
-  return .50;
+  if(armor<=0)return 1;
+  const ratio=clamp((Number(piercing)||0)/armor,0,1),thresholds=COMBAT_CONSTANTS.piercingThresholds,damage=COMBAT_CONSTANTS.piercingDamageValues;
+  for(let i=0;i<thresholds.length;i++)if(ratio>=thresholds[i])return damage[i];
+  return damage.at(-1);
 }
-function armorOffenseDice(attackerArmor,defenderPiercing){ return attackerArmor>defenderPiercing?COMBAT_CONSTANTS.armoredOrgDice:COMBAT_CONSTANTS.orgDice; }
-function supplyModifier(v){ return .25+.75*clamp(Number(v??1),0,1); }
-function airPenalty(airForSide){ return 1-COMBAT_CONSTANTS.maxAirSuperiorityPenalty*clamp(airForSide,0,1); }
+export function damageDiceProfile(attackerArmor,defenderPiercing){
+  const armored=Number(attackerArmor)>Number(defenderPiercing);
+  return {
+    softOrgDice:armored?COMBAT_CONSTANTS.armoredOrgDice:COMBAT_CONSTANTS.orgDice,
+    hardOrgDice:COMBAT_CONSTANTS.orgDice,
+    softStrengthDice:armored?COMBAT_CONSTANTS.armoredStrengthDice:COMBAT_CONSTANTS.strengthDice,
+    hardStrengthDice:COMBAT_CONSTANTS.strengthDice
+  };
+}
+function supplyCombatFactor(satisfaction,fullPenalty){
+  const s=clamp(Number(satisfaction??1),0,1);
+  return Math.max(0,1+(Number(fullPenalty)||0)*(1-s));
+}
+function nightAttackFactor(nightShare,nightAttackBonus){
+  const share=clamp(Number(nightShare)||0,0,1),bonus=Math.max(0,Number(nightAttackBonus)||0);
+  const remainingPenalty=Math.max(0,COMBAT_CONSTANTS.nightAttackPenalty-bonus);
+  return 1-share*remainingPenalty;
+}
+function airSuperiorityPenaltyFactor(airForSide,antiAir,terrainAirModifier=0){
+  const superiority=clamp(Number(airForSide)||0,0,1); if(!superiority)return 1;
+  const aa=Math.max(0,Number(antiAir)||0),xp=Math.pow(aa,1.5);
+  const aaMitigation=xp>0?COMBAT_CONSTANTS.airSuperiorityAaMaxMitigation*(xp/(xp+COMBAT_CONSTANTS.airSuperiorityAaSteepness)):0;
+  const terrainExposure=clamp(1+(Number(terrainAirModifier)||0),0,2);
+  return Math.max(0,1-COMBAT_CONSTANTS.maxAirSuperiorityPenalty*superiority*terrainExposure*(1-aaMitigation));
+}
+export function combatStrengthFactor(current,initial){
+  const base=Number(initial)||0; return base>0?clamp((Number(current)||0)/base,0,1):0;
+}
 
 function hashSeed(value){
   const text=String(value??''); let h=2166136261>>>0;
@@ -310,9 +360,26 @@ function sampleBinomial(n,p,rng=Math.random){
   if(n<=80){let x=0;for(let i=0;i<n;i++)if(rng()<p)x++;return x;}
   const mean=n*p,sd=Math.sqrt(n*p*(1-p));return clamp(Math.round(mean+randNormal(rng)*sd),0,n);
 }
-function sampleHits(attack,defense,rng=Math.random){
-  const a=stochasticRound(attack,rng),d=Math.max(0,Number(defense)||0),blocked=Math.min(a,stochasticRound(d,rng)),unblocked=Math.max(0,a-blocked);
-  return sampleBinomial(blocked,COMBAT_CONSTANTS.defendedHitChance,rng)+sampleBinomial(unblocked,COMBAT_CONSTANTS.undefendedHitChance,rng);
+function sampleHypergeometric(population,successes,draws,rng=Math.random){
+  population=Math.max(0,Math.floor(population));successes=clamp(Math.floor(successes),0,population);draws=clamp(Math.floor(draws),0,population);
+  if(!population||!successes||!draws)return 0;if(successes===population)return draws;
+  if(draws<=200){
+    let hit=0,pop=population,good=successes;
+    for(let i=0;i<draws;i++){if(rng()<good/pop){hit++;good--;}pop--;}
+    return hit;
+  }
+  const estimate=sampleBinomial(draws,successes/population,rng);
+  return clamp(estimate,Math.max(0,draws-(population-successes)),Math.min(draws,successes));
+}
+function sampleHitProfile(softAttack,hardAttack,defense,rng=Math.random){
+  const soft=Math.max(0,Number(softAttack)||0),hard=Math.max(0,Number(hardAttack)||0),total=soft+hard;
+  const attackPoints=stochasticRound(total*COMBAT_CONSTANTS.combatPointScale,rng),defensePoints=stochasticRound(Math.max(0,Number(defense)||0)*COMBAT_CONSTANTS.combatPointScale,rng);
+  if(!attackPoints)return {softHits:0,hardHits:0,total:0,attackPoints:0,defensePoints};
+  const softPoints=sampleBinomial(attackPoints,total?soft/total:0,rng),hardPoints=attackPoints-softPoints,blocked=Math.min(attackPoints,defensePoints);
+  const blockedSoft=sampleHypergeometric(attackPoints,softPoints,blocked,rng),blockedHard=blocked-blockedSoft;
+  const softHits=sampleBinomial(blockedSoft,COMBAT_CONSTANTS.defendedHitChance,rng)+sampleBinomial(softPoints-blockedSoft,COMBAT_CONSTANTS.undefendedHitChance,rng);
+  const hardHits=sampleBinomial(blockedHard,COMBAT_CONSTANTS.defendedHitChance,rng)+sampleBinomial(hardPoints-blockedHard,COMBAT_CONSTANTS.undefendedHitChance,rng);
+  return {softHits,hardHits,total:softHits+hardHits,attackPoints,defensePoints};
 }
 function rollDamage(hits,diceSize,modifier,rng=Math.random){
   hits=Math.max(0,Math.floor(hits)); if(!hits)return 0; diceSize=Math.max(1,Math.floor(diceSize));
@@ -330,52 +397,65 @@ function addMap(target,src){for(const [k,v] of Object.entries(src||{}))target[k]
 export function battleContext(a,d,opts){
   const t=opts.terrainData[opts.terrain]||{}; const directions=Math.max(0,Math.floor(Number(opts.directions)||0));
   const available=Math.max(1,(t.width||70)+directions*(t.reinforceWidth||35));
-  const ae=engageSide(a,available,directions),de=engageSide(d,available,directions);
-  const as=supplyModifier(opts.asupply),ds=supplyModifier(opts.dsup),air=clamp(Number(opts.air)||0,-1,1);
+  const ae=engageSide(a,available,directions),de=engageSide(d,available,directions),air=clamp(Number(opts.air)||0,-1,1);
+  const defenderSupply=opts.dsupply??opts.dsup;
+  const supplyFactors={
+    attackerAttack:supplyCombatFactor(opts.asupply,COMBAT_CONSTANTS.supplyLackAttackerAttack),
+    attackerDefend:supplyCombatFactor(opts.asupply,COMBAT_CONSTANTS.supplyLackAttackerDefend),
+    defenderAttack:supplyCombatFactor(defenderSupply,COMBAT_CONSTANTS.supplyLackDefenderAttack),
+    defenderDefend:supplyCombatFactor(defenderSupply,COMBAT_CONSTANTS.supplyLackDefenderDefend)
+  };
   const entrench=1+Math.max(0,Number(opts.entrench)||0)*COMBAT_CONSTANTS.entrenchmentPerPoint;
   const effectiveFort=Number(opts.fort)>0?Math.max(1,Number(opts.fort)-directions):0;
-  const fortFactor=clamp(1-effectiveFort*COMBAT_CONSTANTS.fortPenaltyPerLevel,.10,1);
-  const riverFactor=clamp(1-Math.max(0,Number(opts.river)||0),.2,1);
+  const fortUnitBonus=Number(ae.side.terrainAttack?.fort)||0;
+  const fortFactor=clamp(1-effectiveFort*COMBAT_CONSTANTS.fortPenaltyPerLevel+fortUnitBonus,.10,2);
+  const riverPenalty=clamp(Math.abs(Number(opts.river)||0),0,1),riverUnitBonus=Number(ae.side.terrainAttack?.river)||0;
+  const riverFactor=clamp(1-riverPenalty+riverUnitBonus,.10,2);
   const planning=1+clamp(Number(opts.planning)||0,0,1);
-  const nightShare=clamp(Number(opts.night)||0,0,1);
-  const aNightFactor=1-COMBAT_CONSTANTS.nightAttackPenalty*Math.max(0,nightShare*(1-clamp(Number(opts.attackerNightAttackBonus)||0,0,1)));
-  const dNightFactor=1-COMBAT_CONSTANTS.nightAttackPenalty*Math.max(0,nightShare*(1-clamp(Number(opts.defenderNightAttackBonus)||0,0,1)));
-  const cas=1+.35*clamp(Number(opts.cas)||0,0,1);
-  const aTerrain=clamp(1+(t.attack||0)+(a.terrainAttack?.[opts.terrain]||0),.1,1.5);
-  const dTerrain=clamp(1+(d.terrainAttack?.[opts.terrain]||0),.1,1.5);
-
-  let aAttack=effectiveAttack(ae.side,de.side)*ae.effectiveFactor*aTerrain*as*fortFactor*riverFactor*planning*aNightFactor*cas;
-  let dAttack=effectiveAttack(de.side,ae.side)*de.effectiveFactor*dTerrain*ds*entrench*dNightFactor;
-  let aBreak=ae.side.breakthrough*ae.effectiveFactor*as*fortFactor*riverFactor*airPenalty(-air);
-  let dDefense=de.side.def*de.effectiveFactor*ds*entrench*airPenalty(air);
-  const aHits=expectedHits(aAttack,dDefense),dHits=expectedHits(dAttack,aBreak);
-  return {available,ae,de,aAttack,dAttack,aBreak,dDefense,aHits,dHits,effectiveFort,fortFactor,riverFactor,aTerrain,dTerrain,as,ds,air,entrench,planning,aNightFactor,dNightFactor,cas};
+  const aNightFactor=nightAttackFactor(opts.night,opts.attackerNightAttackBonus),dNightFactor=nightAttackFactor(opts.night,opts.defenderNightAttackBonus);
+  const groundSupportModifier=Math.max(-1,Number(opts.attackerGroundSupportBonus)||0);
+  const cas=1+COMBAT_CONSTANTS.airSupportBase*clamp(Number(opts.cas)||0,0,1)*Math.max(0,1+groundSupportModifier);
+  const aTerrain=clamp(1+(Number(t.attack)||0)+(Number(ae.side.terrainAttack?.[opts.terrain])||0),.10,2);
+  const dTerrain=clamp(1+(Number(t.def??t.defense)||0)+(Number(de.side.terrainDefense?.[opts.terrain])||0),.10,2);
+  const terrainAirModifier=Number(t.enemyAirSuperiorityFactor)||0;
+  const aAirFactor=airSuperiorityPenaltyFactor(-air,ae.side.airAttack,terrainAirModifier),dAirFactor=airSuperiorityPenaltyFactor(air,de.side.airAttack,terrainAirModifier);
+  const aMix=attackComponents(ae.side,de.side),dMix=attackComponents(de.side,ae.side);
+  const aOffenseFactor=ae.effectiveFactor*aTerrain*supplyFactors.attackerAttack*fortFactor*riverFactor*planning*aNightFactor*cas;
+  const dOffenseFactor=de.effectiveFactor*dTerrain*supplyFactors.defenderAttack*entrench*dNightFactor;
+  const aSoftAttack=aMix.soft*aOffenseFactor,aHardAttack=aMix.hard*aOffenseFactor,dSoftAttack=dMix.soft*dOffenseFactor,dHardAttack=dMix.hard*dOffenseFactor;
+  const aAttack=aSoftAttack+aHardAttack,dAttack=dSoftAttack+dHardAttack;
+  const aBreak=ae.side.breakthrough*ae.effectiveFactor*aTerrain*supplyFactors.attackerDefend*fortFactor*riverFactor*planning*cas*aAirFactor;
+  const dDefense=de.side.def*de.effectiveFactor*dTerrain*supplyFactors.defenderDefend*entrench*dAirFactor;
+  const aHits=expectedCombatHits(aAttack,dDefense),dHits=expectedCombatHits(dAttack,aBreak);
+  return {available,ae,de,aAttack,dAttack,aSoftAttack,aHardAttack,dSoftAttack,dHardAttack,aBreak,dDefense,aHits,dHits,effectiveFort,fortFactor,riverFactor,aTerrain,dTerrain,supplyFactors,air,entrench,planning,aNightFactor,dNightFactor,cas,aAirFactor,dAirFactor,groundSupportModifier};
 }
 
 export function simulateOnce(a,d,opts,rngOverride){
   const c=battleContext(a,d,opts),rng=rngOverride||opts?.rng||Math.random;
-  // Attack/defense come from the divisions that fit on the line, while organization/HP use the full committed pool.
-  // This is a deliberate aggregate approximation of reserve rotation until per-division reinforce timing is implemented.
+  // Engaged firepower is width/stacking constrained, while organization/HP still use the full
+  // committed pool. Reserve rotation and target selection remain an explicit aggregate approximation.
   let ao=Math.max(1,a.org),do_=Math.max(1,d.org),ahp=Math.max(1,a.hp),dhp=Math.max(1,d.hp);
   const aOrg0=ao,dOrg0=do_,aHp0=ahp,dHp0=dhp; let hours=0,aHitsTotal=0,dHitsTotal=0;
+  const maxHours=clamp(Math.floor(Number(opts?.maxHours)||COMBAT_CONSTANTS.simulationSafetyHours),COMBAT_CONSTANTS.combatMinimumHours,24*90);
   const timeline=opts?.trace?[{hour:0,aOrg:100,dOrg:100,aStrength:100,dStrength:100}]:null;
   const aDamageTaken=piercingDamageFactor(c.de.side.piercing,c.ae.side.armor),dDamageTaken=piercingDamageFactor(c.ae.side.piercing,c.de.side.armor);
-  const aOrgDice=armorOffenseDice(c.ae.side.armor,c.de.side.piercing),dOrgDice=armorOffenseDice(c.de.side.armor,c.ae.side.piercing);
-  while(ao>0&&do_>0&&ahp>0&&dhp>0&&hours<168){
-    const aStrength=clamp(ahp/aHp0,.1,1),dStrength=clamp(dhp/dHp0,.1,1);
-    const aHits=sampleHits(c.aAttack*aStrength,c.dDefense*dStrength,rng),dHits=sampleHits(c.dAttack*dStrength,c.aBreak*aStrength,rng);
-    aHitsTotal+=aHits; dHitsTotal+=dHits;
-    do_-=rollDamage(aHits,aOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)*dDamageTaken;
-    ao-=rollDamage(dHits,dOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)*aDamageTaken;
-    dhp-=rollDamage(aHits,COMBAT_CONSTANTS.strengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)*dDamageTaken;
-    ahp-=rollDamage(dHits,COMBAT_CONSTANTS.strengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)*aDamageTaken;
+  const aDice=damageDiceProfile(c.ae.side.armor,c.de.side.piercing),dDice=damageDiceProfile(c.de.side.armor,c.ae.side.piercing);
+  while(ao>0&&do_>0&&ahp>0&&dhp>0&&hours<maxHours){
+    const aStrength=combatStrengthFactor(ahp,aHp0),dStrength=combatStrengthFactor(dhp,dHp0);
+    const aProfile=sampleHitProfile(c.aSoftAttack*aStrength,c.aHardAttack*aStrength,c.dDefense*dStrength,rng);
+    const dProfile=sampleHitProfile(c.dSoftAttack*dStrength,c.dHardAttack*dStrength,c.aBreak*aStrength,rng);
+    aHitsTotal+=aProfile.total; dHitsTotal+=dProfile.total;
+    do_-=(rollDamage(aProfile.softHits,aDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*dDamageTaken;
+    ao-=(rollDamage(dProfile.softHits,dDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*aDamageTaken;
+    dhp-=(rollDamage(aProfile.softHits,aDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*dDamageTaken;
+    ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*aDamageTaken;
     hours++;
-    if(timeline&&(hours%6===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===168))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});
+    if(timeline&&(hours%6===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===maxHours))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});
   }
   hours=Math.max(hours,COMBAT_CONSTANTS.combatMinimumHours);
   const attackerWin=do_<=0&&ao>0,defenderWin=ao<=0&&do_>0,draw=!attackerWin&&!defenderWin;
   const aCas=clamp((aHp0-Math.max(0,ahp))/aHp0,0,1),dCas=clamp((dHp0-Math.max(0,dhp))/dHp0,0,1);
-  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower,defenderManpowerLoss:dCas*d.manpower,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline};
+  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower,defenderManpowerLoss:dCas*d.manpower,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline,maxHours};
 }
 
 function wilsonInterval(successes,n,z=1.96){

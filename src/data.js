@@ -1,5 +1,6 @@
 import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';
 import { PRODUCTION_SOURCE_1192, PRODUCTION_EXECUTABLE_1192 } from './builtin1192/production-formulas-certification-1192.js';
+import { COMBAT_EXECUTABLE_1192, COMBAT_ANALYTICAL_1192 } from './builtin1192/combat-formulas-certification-1192.js';
 
 export const MODEL_META = {
   appVersion: '0.15.0',
@@ -32,7 +33,22 @@ export const COMBAT_CONSTANTS = {
   combatMinimumHours: D1192_MIL.COMBAT_MINIMUM_TIME,
   equipmentCombatLossFactor: D1192_MIL.EQUIPMENT_COMBAT_LOSS_FACTOR,
   armorWeights: { max: D1192_MIL.ARMOR_VS_AVERAGE, average: 1-D1192_MIL.ARMOR_VS_AVERAGE },
-  piercingWeights: { max: D1192_MIL.PEN_VS_AVERAGE, average: 1-D1192_MIL.PEN_VS_AVERAGE }
+  piercingWeights: { max: D1192_MIL.PEN_VS_AVERAGE, average: 1-D1192_MIL.PEN_VS_AVERAGE },
+  piercingThresholds: D1192_MIL.PIERCING_THRESHOLDS,
+  piercingDamageValues: D1192_MIL.PIERCING_THRESHOLD_DAMAGE_VALUES,
+  armoredStrengthDice: D1192_MIL.LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE,
+  airSuperiorityAaMaxMitigation: D1192_MIL.ENEMY_AIR_SUPERIORITY_DEFENSE,
+  airSuperiorityAaSteepness: D1192_MIL.ENEMY_AIR_SUPERIORITY_DEFENSE_STEEPNESS,
+  airSupportBase: D1192_MIL.AIR_SUPPORT_BASE,
+  basePlanningMax: D1192_MIL.PLANNING_MAX,
+  supplyLackAttackerAttack: D1192_MIL.COMBAT_SUPPLY_LACK_ATTACKER_ATTACK,
+  supplyLackAttackerDefend: D1192_MIL.COMBAT_SUPPLY_LACK_ATTACKER_DEFEND,
+  supplyLackDefenderAttack: D1192_MIL.COMBAT_SUPPLY_LACK_DEFENDER_ATTACK,
+  supplyLackDefenderDefend: D1192_MIL.COMBAT_SUPPLY_LACK_DEFENDER_DEFEND,
+  riverCrossingPenalty: Math.abs(D1192_MIL.RIVER_CROSSING_PENALTY),
+  riverCrossingPenaltyLarge: Math.abs(D1192_MIL.RIVER_CROSSING_PENALTY_LARGE),
+  combatPointScale: COMBAT_EXECUTABLE_1192.combatPointScale,
+  simulationSafetyHours: COMBAT_ANALYTICAL_1192.simulationSafetyHours
 };
 
 const P1192=PRODUCTION_SOURCE_1192.defines;

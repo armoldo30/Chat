@@ -15,12 +15,15 @@ for(const [id,source] of Object.entries(certification.terrain.records)){
   assert.equal(terrain[id].source,'game-pack');
 }
 
-// Source-backed units must not silently inherit the hand-written packless terrain guesses.
+// Exact 1.19.2 sub-unit terrain blocks are retained; hand-written legacy terrain guesses remain disabled.
 assert.deepEqual(battalions.motorized.terrain,{});
-assert.equal(battalions.motorized.terrainSource,'source-terrain-not-retained');
-assert.equal(battalions.motorized.terrainRuntimeClassification,'formula-deferred');
+assert.equal(battalions.motorized.terrainSource,'game-pack-source');
+assert.equal(battalions.motorized.terrainRuntimeClassification,'combat-formulas-audited');
+assert.equal(battalions.motorized.terrainModifiers.forest.attack,-.1);
 assert.deepEqual(supports.engineer.terrain,{});
-assert.equal(supports.engineer.terrainSource,'source-terrain-not-retained');
+assert.equal(supports.engineer.terrainSource,'game-pack-source');
+assert.equal(supports.engineer.terrainRuntimeClassification,'combat-formulas-audited');
+assert.ok(Object.keys(supports.engineer.terrainModifiers).length>0);
 
 const side=terrainAttack=>({divisionCount:1,singleWidth:20,width:20,manpower:1000,hp:100,org:100,supply:1,soft:100,hard:0,def:100,breakthrough:100,hardness:0,armor:0,piercing:0,need:{},terrainAttack});
 const opts={terrainData:terrain,terrain:'forest',directions:0,asupply:1,dsup:1,air:0,entrench:0,fort:0,river:0,planning:0,night:0,cas:0};
@@ -38,4 +41,4 @@ const mountainMultiDirection=battleContext(side({}),side({}),{...opts,terrain:'m
 assert.equal(mountainMultiDirection.available,75,'mountain width should be 50 + one 25 support-width direction');
 assert.ok(Math.abs(mountainMultiDirection.aTerrain-.50)<1e-12);
 
-console.log('Terrain runtime certification passed: exact recovered widths/inherent penalties consumed; unit-terrain aggregation remains formula-deferred.');
+console.log('Terrain runtime certification passed: exact widths, inherent penalties, and retained unit-terrain blocks are consumed by the Combat-audited aggregation.');

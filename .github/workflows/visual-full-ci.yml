@@ -23,6 +23,8 @@ jobs:
         run: node tests/display-label-coverage.test.mjs
       - name: Visual board tests
         run: node tests/visual-boards.test.mjs
+      - name: Primary system UI tests
+        run: node tests/system-primary-ui.test.mjs
       - name: Picture-first control tests
         run: node tests/quick-controls.test.mjs
       - name: Navigation visual tests

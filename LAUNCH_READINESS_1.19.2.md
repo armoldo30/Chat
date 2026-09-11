@@ -20,7 +20,7 @@ This candidate consolidates the completed HOI4 1.19.2 audit foundation, visual/U
 - Scenario export no longer embeds the redundant bundled 1.19.2 data pack.
 - Local-storage write failures and malformed/oversized JSON imports fail visibly without crashing the planner.
 - The SPA renders into `#app`, preserving the privacy/footer shell and enhancement modules across route changes.
-- Keyboard focus and reduced-motion behavior are under regression coverage.
+- Keyboard focus, a skip-to-content link and reduced-motion behavior are under regression coverage.
 - A browser-side runtime recovery layer handles failed startup/runtime exceptions, offers reload/local-state reset, and adds no telemetry.
 - A `<noscript>` fallback prevents disabled JavaScript from presenting a blank page.
 - The public footer exposes a structured GitHub issue-reporting path, with dedicated bug and feature-request templates.

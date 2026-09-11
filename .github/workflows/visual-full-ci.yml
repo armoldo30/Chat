@@ -1,0 +1,27 @@
+name: Visual Full CI
+on:
+  push:
+    branches: [ui-visual-overhaul-1.19.2]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Full certified tests
+        run: npm test
+      - name: Visual board tests
+        run: node tests/visual-boards.test.mjs
+      - name: Picture-first control tests
+        run: node tests/quick-controls.test.mjs
+      - name: Navigation visual tests
+        run: node tests/nav-visuals.test.mjs
+      - name: Build static site
+        run: npm run build

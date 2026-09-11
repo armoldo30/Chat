@@ -136,8 +136,8 @@ async function stochasticCheck(candidate,records,baseOpts,runs,onProgress){
   return {runs,samples:checked.length,meanScreen:mean(checked.map(x=>x.score)),meanStochastic:mean(checked.map(x=>x.stochasticScore)),meanDelta:mean(checked.map(x=>Math.abs(x.delta))),records:checked};
 }
 
-export async function runGauntlet({candidate,data,equipment,baseOpts,count=500,terrainKeys=GAUNTLET_TERRAINS,stochasticRuns=50,onProgress=null}){
-  const pool=generateOpponentPool(count,{battalions:data.battalions,supports:data.supports,equipment}),terrains=terrainKeys.filter(k=>baseOpts.terrainData?.[k]);
+export async function runGauntlet({candidate,data,equipment,opponentData=null,opponentEquipment=null,candidateEquipment=null,baseOpts,count=500,terrainKeys=GAUNTLET_TERRAINS,stochasticRuns=50,onProgress=null}){
+  const od=opponentData||data,oe=opponentEquipment||equipment,ce=candidateEquipment||equipment,pool=generateOpponentPool(count,{battalions:od.battalions,supports:od.supports,equipment:oe}),terrains=terrainKeys.filter(k=>baseOpts.terrainData?.[k]);
   const terrainAcc={},familyAcc={},categoryAcc={},offense=[],defense=[],all=[],opponentScores=[],costs=[],supplies=[],best=[],worst=[];
   let outperformed=0;
   for(let i=0;i<pool.length;i++){
@@ -151,7 +151,7 @@ export async function runGauntlet({candidate,data,equipment,baseOpts,count=500,t
     if(onProgress&&(i%Math.max(10,Math.floor(pool.length/100))===0||i===pool.length-1))onProgress({phase:'screening',done:i+1,total:pool.length,percent:95*(i+1)/pool.length});
     if(i%100===99)await yieldControl();
   }
-  const raw=mean(all),terrainScores=avgMap(terrainAcc),familyScores=avgMap(familyAcc),categoryScores=avgMap(categoryAcc),terrainValues=Object.values(terrainScores),candidateCost=divisionEquipmentIC(candidate.need||{},equipment||{}),medianCost=Math.max(1,median(costs)),medianSupply=Math.max(.01,median(supplies));
+  const raw=mean(all),terrainScores=avgMap(terrainAcc),familyScores=avgMap(familyAcc),categoryScores=avgMap(categoryAcc),terrainValues=Object.values(terrainScores),candidateCost=divisionEquipmentIC(candidate.need||{},ce||{}),medianCost=Math.max(1,median(costs)),medianSupply=Math.max(.01,median(supplies));
   const icEfficiency=clamp(raw*Math.sqrt(medianCost/Math.max(1,candidateCost)),0,100),supplyEfficiency=clamp(raw*Math.sqrt(medianSupply/Math.max(.01,candidate.supply||.01)),0,100),terrainVersatility=clamp(mean(terrainValues)-std(terrainValues)*.70,0,100),consistency=clamp(100-std(all)*2,0,100),counterResilience=clamp(quantile(all,.10),0,100);
   const practical=clamp(raw*.50+icEfficiency*.18+terrainVersatility*.12+supplyEfficiency*.08+consistency*.07+counterResilience*.05,0,100),critical=[...worst.slice(0,8),...best.slice(0,4)],validation=await stochasticCheck(candidate,critical,baseOpts,stochasticRuns,onProgress),stress=buildStressTests(candidate,pool,baseOpts);
   const sortedFamilies=Object.entries(familyScores).map(([name,score])=>({name,score,grade:gauntletGrade(score)})).sort((a,b)=>b.score-a.score);

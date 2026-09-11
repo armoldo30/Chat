@@ -46,8 +46,8 @@ export function renderGauntlet(container,api){
   run.onclick=async()=>{
     if(running)return;running=true;lastMode=mode;run.disabled=true;run.textContent='Gauntlet running…';const progress=container.querySelector('#gauntletProgress'),bar=container.querySelector('#gauntletProgressBar'),text=container.querySelector('#gauntletProgressText');progress.hidden=false;
     try{
-      const side=selectedSide,count=mode==='full'?10000:500,data=api.data(side),equipment=api.equipment(side),candidate=api.stats(side),baseOpts=api.battleOpts();
-      const result=await runGauntlet({candidate,data,equipment,baseOpts,count,stochasticRuns:mode==='full'?60:40,onProgress:p=>{if(!bar||!text)return;bar.style.width=`${Math.min(100,p.percent||0)}%`;text.textContent=p.phase==='validation'?`Validating extreme matchups · ${p.done}/${p.total}`:`Screening ${fmt(p.done,0)} / ${fmt(p.total,0)} opponent designs`;}});
+      const side=selectedSide,count=mode==='full'?10000:500,opponentSide=side==='attacker'?'defender':'attacker',data=api.data(opponentSide),opponentEquipment=api.equipment(opponentSide),candidateEquipment=api.equipment(side),candidate=api.stats(side),baseOpts=api.battleOpts();
+      const result=await runGauntlet({candidate,opponentData:data,opponentEquipment,candidateEquipment,data,equipment:opponentEquipment,baseOpts,count,stochasticRuns:mode==='full'?60:40,onProgress:p=>{if(!bar||!text)return;bar.style.width=`${Math.min(100,p.percent||0)}%`;text.textContent=p.phase==='validation'?`Validating extreme matchups · ${p.done}/${p.total}`:`Screening ${fmt(p.done,0)} / ${fmt(p.total,0)} opponent designs`;}});
       lastResult=result;lastSide=side;
     }catch(err){console.error(err);alert(`Gauntlet failed: ${err?.message||err}`);}
     finally{running=false;renderGauntlet(container,api);}

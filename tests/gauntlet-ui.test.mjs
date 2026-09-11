@@ -1,15 +1,17 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-const [main,ui,css,core]=await Promise.all([
+const [main,ui,css,core,polish]=await Promise.all([
   readFile(new URL('../src/main.js',import.meta.url),'utf8'),
   readFile(new URL('../src/gauntlet-ui.js',import.meta.url),'utf8'),
   readFile(new URL('../src/gauntlet.css',import.meta.url),'utf8'),
-  readFile(new URL('../src/gauntlet.js',import.meta.url),'utf8')
+  readFile(new URL('../src/gauntlet.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/ui-polish.js',import.meta.url),'utf8')
 ]);
 
 assert.match(main,/renderGauntlet/,'main app must import Gauntlet UI');
-assert.match(main,/\['gauntlet','GNT','Division Gauntlet'\]/,'sidebar must expose Division Gauntlet');
+assert.match(main,/\['gauntlet','GNT','Division Gauntlet'\]/,'base sidebar must expose Division Gauntlet');
+assert.match(polish,/\['gauntlet','GNT','Division Gauntlet'\]/,'polished navigation must preserve Division Gauntlet');
 assert.match(main,/dashboard,battle,gauntlet,tank/,'route renderer must include Gauntlet');
 assert.match(main,/\['dashboard','battle','gauntlet'/,'route whitelist must include Gauntlet');
 assert.match(ui,/Quick Gauntlet/);assert.match(ui,/500 opponent designs/);assert.match(ui,/Full Gauntlet/);assert.match(ui,/10,000 opponent designs/);assert.match(ui,/160,000 terrain\/role matchups/);

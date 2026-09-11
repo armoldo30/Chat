@@ -1,0 +1,99 @@
+name: Release Candidate Validation
+on:
+  push:
+    branches: ['launch-candidate-*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-candidate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Full certified regression suite
+        run: npm test
+      - name: Confirm full 160k Gauntlet matrix
+        run: node tests/gauntlet-full-smoke.test.mjs
+      - name: Build static site
+        run: npm run build
+      - name: Verify release surface
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/privacy.html
+          test -f dist/ads.txt
+          test -f dist/robots.txt
+          test -f dist/src/gauntlet.js
+          test -f dist/src/gauntlet-ui.js
+          test -f dist/src/gauntlet.css
+          grep -q "appVersion: '0.16.0'" dist/src/data.js
+          grep -q "enabled:false" dist/src/ad-config.js
+          grep -q "Division Gauntlet" dist/src/main.js
+          test ! -e .mio-stage
+          test ! -e .github/workflows/launch-hardening-patcher.yml
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Refs(HTMLParser):
+              def __init__(self): super().__init__(); self.refs=[]
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  for key in ('href','src'):
+                      v=a.get(key,'')
+                      if v.startswith('./'): self.refs.append(v[2:].split('?',1)[0].split('#',1)[0])
+          p=Refs();p.feed(Path('dist/index.html').read_text())
+          missing=[r for r in p.refs if r and not Path('dist',r).exists()]
+          if missing: raise SystemExit(f'missing built references: {missing}')
+          print('Built local references:',len(p.refs))
+          PY
+          git diff --exit-code
+      - name: Served browser smoke
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 --directory dist >/tmp/hoi4-server.log 2>&1 &
+          server=$!
+          trap 'kill $server 2>/dev/null || true' EXIT
+          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep .2; done
+          curl -fsS http://127.0.0.1:4173/privacy.html >/dev/null
+          curl -fsS http://127.0.0.1:4173/robots.txt | grep -q 'Allow: /'
+          curl -fsS http://127.0.0.1:4173/src/gauntlet.css >/dev/null
+          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
+          test -n "$browser"
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1440,1000 --virtual-time-budget=8000 --dump-dom 'http://127.0.0.1:4173/#gauntlet' >/tmp/gauntlet-dom.html 2>/tmp/chrome-gauntlet.log
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          class Audit(HTMLParser):
+              def __init__(self): super().__init__(); self.footer=False;self.privacy=None;self.hrefs=[];self.text=[]
+              def handle_starttag(self,tag,attrs):
+                  a=dict(attrs)
+                  if tag=='footer' and 'site-legal-footer' in a.get('class','').split(): self.footer=True
+                  if tag=='button' and 'data-privacy-choices' in a: self.privacy=('hidden' not in a)
+                  if 'href' in a:self.hrefs.append(a['href'])
+              def handle_data(self,data): self.text.append(data)
+          p=Audit();p.feed(Path('/tmp/gauntlet-dom.html').read_text())
+          text=' '.join(p.text)
+          assert p.footer,'legal footer disappeared after SPA render'
+          assert p.privacy is True,'privacy choices control was not wired after render'
+          assert '#gauntlet' in p.hrefs,'Gauntlet navigation link missing'
+          assert 'Put one division through the entire war.' in text,'Gauntlet route did not render'
+          print('Desktop Gauntlet DOM smoke passed')
+          PY
+          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=390,844 --virtual-time-budget=8000 --dump-dom 'http://127.0.0.1:4173/#scenario' >/tmp/mobile-dom.html 2>/tmp/chrome-mobile.log
+          grep -q 'SCENARIO CONTROL' /tmp/mobile-dom.html
+          grep -q 'site-legal-footer' /tmp/mobile-dom.html
+          ! grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)' /tmp/chrome-gauntlet.log
+          ! grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)' /tmp/chrome-mobile.log
+          echo 'Served desktop/mobile browser smoke passed'

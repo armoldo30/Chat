@@ -53,3 +53,8 @@ Imported `ARMOR_VS_AVERAGE` and `PEN_VS_AVERAGE` now update the planner's armor/
 ## Closure criteria
 
 Defines may be closed only when the final `audit-1.19.2` head passes the repository's full `npm test` and static build, with Pages configuration/artifact upload and deploy skipped on the audit branch. The next audit phase is **Production formulas**, followed by **Combat formulas**.
+
+## Downstream Production-formula resolution
+
+The subsequent Production Formulas audit resolved the two production items intentionally left provisional here. `BASE_FACTORY_EFFICIENCY_GAIN = 1` now feeds the bounded nonlinear efficiency curve through the executable-inferred `×0.001` scale. The provisional planner-analytical `maxLineResourcePenalty = 0.90` is **superseded**: modern 1.19.2 resource shortage is certified to reach a full 100% penalty / zero output for sufficiently starved factories. See `PRODUCTION_FORMULAS_AUDIT_1.19.2.md`.
+

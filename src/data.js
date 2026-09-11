@@ -1,4 +1,5 @@
-import { DEFINE_VALUES_1192, PLANNER_ANALYTICAL_CONSTANTS_1192 } from './builtin1192/defines-certification-1192.js';
+import { DEFINE_VALUES_1192 } from './builtin1192/defines-certification-1192.js';
+import { PRODUCTION_SOURCE_1192, PRODUCTION_EXECUTABLE_1192 } from './builtin1192/production-formulas-certification-1192.js';
 
 export const MODEL_META = {
   appVersion: '0.15.0',
@@ -34,11 +35,15 @@ export const COMBAT_CONSTANTS = {
   piercingWeights: { max: D1192_MIL.PEN_VS_AVERAGE, average: 1-D1192_MIL.PEN_VS_AVERAGE }
 };
 
+const P1192=PRODUCTION_SOURCE_1192.defines;
 export const PRODUCTION_CONSTANTS = {
-  // Formula-derived scale; exact use is certified in the Production Formulas audit, not as a literal define.
-  efficiencyBaseGain: 0.001,
+  baseFactoryOutput: P1192.BASE_FACTORY_SPEED_MIL,
+  poweredFactoryOutput: P1192.POWERED_FACTORY_SPEED_MIL,
+  baseStartEfficiency: P1192.BASE_FACTORY_START_EFFICIENCY_FACTOR,
+  baseMaxEfficiency: P1192.BASE_FACTORY_MAX_EFFICIENCY_FACTOR,
+  efficiencyBaseGain: P1192.BASE_FACTORY_EFFICIENCY_GAIN*PRODUCTION_EXECUTABLE_1192.efficiencyGainScale,
   resourceLackPenaltyPerUnit: Math.abs(D1192_PROD.PRODUCTION_RESOURCE_LACK_PENALTY),
-  maxLineResourcePenalty: PLANNER_ANALYTICAL_CONSTANTS_1192.maxLineResourcePenalty,
+  maxLineResourcePenalty: PRODUCTION_EXECUTABLE_1192.resourceShortagePenaltyCap,
   maxMilitaryFactoriesPerLine: D1192_PROD.MAX_MIL_FACTORIES_PER_LINE
 };
 

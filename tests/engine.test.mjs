@@ -52,7 +52,7 @@ const priorityProd=evaluateProduction([
 assert.equal(priorityProd.lines[0].resourceFactor,1,'higher-priority production line should receive scarce resources first');
 assert.ok(priorityProd.lines[1].resourceFactor<priorityProd.lines[0].resourceFactor,'lower-priority line should absorb the shortage');
 const starved=evaluateProduction([{type:'infantry_equipment',stock:0,target:1000,factories:12,priority:1}],{days:30,efficiency:100,efficiencyGain:0,maxEfficiency:100,outputBonus:0,baseFactoryOutput:4.5,resources:{steel:0}},equipment);
-assert.ok(Math.abs(starved.lines[0].resourceFactoryFactors.at(-1)-.10)<1e-9,'per-factory resource penalty must cap at 90%');
+assert.equal(starved.lines[0].resourceFactoryFactors.at(-1),0,'1.19.2 resource shortage can reduce an individual factory to zero output');
 
 
 const forceNeed={infantry_equipment:900,artillery:36,support_equipment:30};

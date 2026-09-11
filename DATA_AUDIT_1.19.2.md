@@ -311,3 +311,14 @@ Parser/runtime coverage now includes nested and dotted Lua define forms, strings
 Dedicated details: `DEFINES_AUDIT_1.19.2.md`.
 
 **Next audit phase: Production formulas.**
+
+## Phase — Production formulas
+
+Status: **PASS — bounded 1.19.2 military-equipment production formula certification**
+
+Audit document: `PRODUCTION_FORMULAS_AUDIT_1.19.2.md`.
+
+The current production path now uses exact 1.19.2 MIC source endpoints (3.5 unpowered / 4.5 fully powered), exact 10% base start efficiency, exact 50% base cap, the source `-0.05` resource-lack coefficient, and the 150-MIC line cap. Executable-inferred behavior is separately classified: nonlinear efficiency growth (`0.001 × gain × cap²/current`), linear energy interpolation, positive Factory Output modifier scaling by energy satisfaction, and resource starvation down to 0 output.
+
+The Defines-stage provisional analytical 90% resource-shortage cap is superseded here. Automatic national coal/energy derivation, dynamic factory-slot histories, line-switch retention, licensing/conversion, and exact MIO production ordering under partial energy remain explicitly bounded rather than guessed.
+

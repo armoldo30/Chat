@@ -3,24 +3,45 @@ import { COMBAT_CONSTANTS, PRODUCTION_CONSTANTS } from './data.js';
 export function clamp(n,a,b){ return Math.max(a,Math.min(b,n)); }
 export function fmt(n,d=1){ return Number.isFinite(n)?Number(n).toLocaleString(undefined,{maximumFractionDigits:d}):'—'; }
 
-export function efficiencyProjection(start,growthModifier,days,max=100){
-  let current=clamp((Number(start)||0)/100,0,1);
-  const cap=clamp((Number(max)||100)/100,Math.max(.01,current),2);
-  const mult=Math.max(0,(Number(growthModifier)||0)/100);
+function finiteOr(value,fallback){const n=Number(value);return value!==null&&value!==undefined&&value!==''&&Number.isFinite(n)?n:fallback;}
+
+export function efficiencyProjection(start,growthModifier,days,max){
+  const startPct=finiteOr(start,PRODUCTION_CONSTANTS.baseStartEfficiency);
+  let current=clamp(startPct/100,0,2);
+  const cap=clamp(finiteOr(max,PRODUCTION_CONSTANTS.baseMaxEfficiency)/100,0,2);
+  const mult=Math.max(0,finiteOr(growthModifier,100)/100);
   const n=Math.max(0,Math.floor(Number(days)||0));
   let sum=0;
   for(let day=0;day<n;day++){
     sum+=current;
-    if(current<cap){
-      const gain=PRODUCTION_CONSTANTS.efficiencyBaseGain*mult*(cap*cap/Math.max(.01,current));
+    if(current>0&&current<cap){
+      const gain=PRODUCTION_CONSTANTS.efficiencyBaseGain*mult*(cap*cap/current);
       current=Math.min(cap,current+gain);
     }
   }
-  return {start:clamp((Number(start)||0)/100,0,1),end:current,average:n?sum/n:current,cap};
+  return {start:clamp(startPct/100,0,2),end:current,average:n?sum/n:current,cap};
 }
 
-export function averageEfficiency(start,growthModifier,days,max=100){
+export function averageEfficiency(start,growthModifier,days,max){
   return efficiencyProjection(start,growthModifier,days,max).average;
+}
+
+export function militaryFactoryOutputProfile(energySatisfaction=100,outputBonus=0){
+  const energy=clamp(finiteOr(energySatisfaction,100)/100,0,1);
+  const base=PRODUCTION_CONSTANTS.baseFactoryOutput,powered=PRODUCTION_CONSTANTS.poweredFactoryOutput;
+  const sourceOutput=base+(powered-base)*energy;
+  const rawModifier=finiteOr(outputBonus,0)/100;
+  const energyScaledModifier=rawModifier>0?rawModifier*energy:rawModifier;
+  const outputModifierFactor=Math.max(0,1+energyScaledModifier);
+  return {energySatisfaction:energy,baseOutput:base,poweredOutput:powered,sourceOutput,rawModifier,energyScaledModifier,outputModifierFactor,factoryICPerDay:sourceOutput*outputModifierFactor};
+}
+
+function productionEnergySatisfaction(scenario){
+  const raw=scenario?.energySatisfaction;
+  if(raw!==null&&raw!==undefined&&raw!==''&&Number.isFinite(Number(raw)))return clamp(Number(raw),0,100);
+  const legacy=scenario?.baseFactoryOutput,legacyNumber=Number(legacy),span=PRODUCTION_CONSTANTS.poweredFactoryOutput-PRODUCTION_CONSTANTS.baseFactoryOutput;
+  if(legacy!==null&&legacy!==undefined&&legacy!==''&&Number.isFinite(legacyNumber)&&span>0)return clamp((legacyNumber-PRODUCTION_CONSTANTS.baseFactoryOutput)/span*100,0,100);
+  return 100;
 }
 
 
@@ -71,19 +92,20 @@ export function evaluateProduction(lines,scenario,equipment){
   const {allocations,remaining}=allocateResources(effectiveLines,scenario,equipment);
   const effProjection=efficiencyProjection(scenario.efficiency,scenario.efficiencyGain,scenario.days,scenario.maxEfficiency);
   const eff=effProjection.average;
-  const outputBonus=1+(Number(scenario.outputBonus)||0)/100;
-  const baseIC=Number(scenario.baseFactoryOutput)||4.5;
+  const energySatisfaction=productionEnergySatisfaction(scenario);
+  const factoryOutput=militaryFactoryOutputProfile(energySatisfaction,scenario.outputBonus);
   const projected=lines.map((line,i)=>{
     const eq=equipment[line.type],effectiveFactories=capacity.active[i],requestedFactories=capacity.requested[i];
     const alloc=allocations.get(i)||{factor:0,required:{},used:{}};
     const need=Math.max(0,(Number(line.target)||0)-(Number(line.stock)||0));
     const mio=eq?.mioProduction||{};
-    const lineEffProjection=efficiencyProjection(scenario.efficiency,(Number(scenario.efficiencyGain)||0)*(Number(mio.efficiencyGainFactor)||1),scenario.days,(Number(scenario.maxEfficiency)||100)*(Number(mio.efficiencyCapFactor)||1));
+    const baseGain=finiteOr(scenario.efficiencyGain,100),baseCap=finiteOr(scenario.maxEfficiency,PRODUCTION_CONSTANTS.baseMaxEfficiency);
+    const lineEffProjection=efficiencyProjection(scenario.efficiency,baseGain*(Number(mio.efficiencyGainFactor)||1),scenario.days,baseCap*(Number(mio.efficiencyCapFactor)||1));
     const lineEff=lineEffProjection.average;
-    const icPerDay=effectiveFactories*baseIC*lineEff*outputBonus*(Number(mio.outputFactor)||1)*alloc.factor;
+    const icPerDay=effectiveFactories*factoryOutput.factoryICPerDay*lineEff*(Number(mio.outputFactor)||1)*alloc.factor;
     const daily=eq?.cost>0?icPerDay/eq.cost:0;
     const produced=daily*Math.max(0,Number(scenario.days)||0);
-    return {...line,requestedFactories,effectiveFactories,daily,produced,need,ending:(Number(line.stock)||0)+produced,shortage:Math.max(0,need-produced),resourceFactor:alloc.factor,resourceFactoryFactors:alloc.factoryFactors||[],resourceRequired:alloc.required,resourceUsed:alloc.used,lineEfficiency:lineEffProjection};
+    return {...line,requestedFactories,effectiveFactories,daily,produced,need,ending:(Number(line.stock)||0)+produced,shortage:Math.max(0,need-produced),resourceFactor:alloc.factor,resourceFactoryFactors:alloc.factoryFactors||[],resourceRequired:alloc.required,resourceUsed:alloc.used,lineEfficiency:lineEffProjection,factoryOutput};
   });
   const shortage=projected.reduce((a,x)=>a+x.shortage*(Number(x.priority)||1),0);
   const required={},used={};
@@ -91,7 +113,7 @@ export function evaluateProduction(lines,scenario,equipment){
     for(const [r,q] of Object.entries(p.resourceRequired||{})) required[r]=(required[r]||0)+q;
     for(const [r,q] of Object.entries(p.resourceUsed||{})) used[r]=(used[r]||0)+q;
   }
-  return {lines:projected,shortage,usedFactories:capacity.active.reduce((a,b)=>a+b,0),requestedFactories:capacity.requested.reduce((a,b)=>a+b,0),queuedFactories:capacity.requested.reduce((a,b)=>a+b,0)-capacity.active.reduce((a,b)=>a+b,0),unusedFactories:capacity.unused,efficiency:effProjection,resources:{required,used,remaining}};
+  return {lines:projected,shortage,usedFactories:capacity.active.reduce((a,b)=>a+b,0),requestedFactories:capacity.requested.reduce((a,b)=>a+b,0),queuedFactories:capacity.requested.reduce((a,b)=>a+b,0)-capacity.active.reduce((a,b)=>a+b,0),unusedFactories:capacity.unused,efficiency:effProjection,factoryOutput,resources:{required,used,remaining}};
 }
 
 export function optimizeProduction(lines,scenario,equipment){

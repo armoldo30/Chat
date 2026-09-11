@@ -20,6 +20,7 @@ const humanize=id=>String(id||'').replace(/^unit_/,'').replaceAll('_',' ').repla
 const n=v=>Number.isFinite(Number(v))?Number(v):undefined;
 const words=u=>[u?.id,u?.group,...(u?.types||[]),...(u?.categories||[])].filter(Boolean).join(' ').toLowerCase();
 const indexedRequirements=(pack,kind,id)=>[...new Set(pack?.requirements?.[kind]?.[id]||[])];
+const clone=value=>value&&typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value||{}));
 
 export function equipmentAlias(id){return EQUIPMENT_ALIAS[id]||id;}
 export function classifySubUnit(u){
@@ -133,14 +134,19 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
   status.equipment=addEquipmentAliases(pack,equipment,year);
   for(const raw of Object.values(pack.subUnits||{})){
     const id=appIdForSubUnit(raw),kind=classifySubUnit(raw),computed=resolveSubUnitFromPack(raw,pack,{year,profile});
-    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null};
+    const terrainModifiers=clone(raw.terrainModifiers||{});
+    // The old compact 1.19.2 sub-unit bundle did not retain source terrain blocks. Never allow hand-written fallback terrain guesses to leak into a source-backed hydrated unit. Exact imported terrain blocks are preserved separately until the aggregation/formula audit certifies how they combine.
+    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null,terrain:{},terrainModifiers,terrainSource:Object.keys(terrainModifiers).length?'game-pack-source':'source-terrain-not-retained',terrainRuntimeClassification:'formula-deferred'};
     if(kind.support){supports[id]=record;status.supports++;if(kind.regimental)status.regimentalSupports++;}
     else {battalions[id]=record;status.battalions++;}
   }
   for(const [id,src] of Object.entries(pack.terrain||{})){
     const dst=terrain[id]||(terrain[id]={name:humanize(id),attack:0,def:0});
     if(n(src.width)!==undefined)dst.width=n(src.width);if(n(src.reinforceWidth)!==undefined)dst.reinforceWidth=n(src.reinforceWidth);
-    if(n(src.attack)!==undefined)dst.attack=n(src.attack);if(n(src.defense)!==undefined)dst.def=n(src.defense);dst.source='game-pack';status.terrain++;
+    if(n(src.attack)!==undefined)dst.attack=n(src.attack);if(n(src.defense)!==undefined)dst.def=n(src.defense);
+    for(const key of ['movementCost','attrition','unitMovement','enemyAirSuperiorityFactor','supplyFlowPenaltyFactor','truckAttritionFactor','sicknessChance'])if(n(src[key])!==undefined)dst[key]=n(src[key]);
+    if(src.raw)dst.raw=clone(src.raw);if(src.sourceFile)dst.sourceFile=src.sourceFile;
+    dst.source='game-pack';status.terrain++;
   }
   return status;
 }

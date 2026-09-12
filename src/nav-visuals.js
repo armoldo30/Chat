@@ -1,4 +1,5 @@
 import { iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const ROUTE_KIND={dashboard:'doctrine',front:'doctrine',intel:'generic',battle:'infantry',gauntlet:'doctrine',tank:'armor',air:'air',production:'industry',data:'support',scenario:'generic'};
 const ROUTE_MARK={dashboard:'HQ',front:'OPS',intel:'?',battle:'',gauntlet:'G',tank:'',air:'',production:'',data:'',scenario:''};
@@ -10,5 +11,4 @@ function enhance(){
     code.classList.add('nav-visual-icon',kind);code.innerHTML=`${iconSvg(kind)}${mark?`<i>${mark}</i>`:''}`;
   });
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;enhance();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(enhance);

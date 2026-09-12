@@ -1,6 +1,7 @@
 import BUILTIN_1192 from './builtin1192.js';
 import { mioCatalog } from './mio.js';
 import { displayLabel } from './ui-labels.js';
+import { registerUiEnhancer, scheduleUiEnhancers } from './ui-enhancer-runtime.js';
 
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
 function currentPack(){
@@ -69,5 +70,5 @@ function enhance(root){
   requestAnimationFrame(()=>drawConnections(root,org,buttons,visible));
 }
 function run(){document.querySelectorAll('.mio-board-traits').forEach(enhance);}
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('resize',()=>document.querySelectorAll('.mio-board-traits.mio-tree-layout').forEach(root=>{root.dataset.mioTreeVisual='';enhance(root);}));window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+window.addEventListener('resize',()=>{document.querySelectorAll('.mio-board-traits.mio-tree-layout').forEach(root=>{root.dataset.mioTreeVisual='';});scheduleUiEnhancers();});
+registerUiEnhancer(run);

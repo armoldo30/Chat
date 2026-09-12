@@ -1,6 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { AD_CONFIG, validAdSenseClient } from '../src/ad-config.js';
+import { applyPerformancePatch } from './performance-patch.mjs';
 
 const root=resolve(import.meta.dirname,'..');
 const dist=resolve(root,'dist');
@@ -14,6 +15,9 @@ for(const file of ['CNAME','robots.txt']){
   try{await cp(resolve(root,file),resolve(dist,file));}
   catch(err){if(err?.code!=='ENOENT')throw err;}
 }
+
+const mainPath=resolve(dist,'src','main.js');
+await writeFile(mainPath,applyPerformancePatch(await readFile(mainPath,'utf8')));
 
 const indexPath=resolve(dist,'index.html');
 let html=await readFile(indexPath,'utf8');

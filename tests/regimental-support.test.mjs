@@ -42,8 +42,8 @@ assert.equal(supports.field_guns.regimentalCompatibilitySource,'planner-analytic
 assert.equal(supports.field_guns.name,'Infantry Guns');
 assert.equal(supports.fire_support.name,'Heavy Weapons Company');
 assert.equal(supports.mot_fire_support.name,'Motorized Heavy Weapons Company');
-assert.equal(supports.support_artillery?.regimentalSupport,false,'ordinary divisional support artillery must not become regimental');
-assert.equal(supports.engineer?.regimentalSupport,false,'engineers must remain divisional support only');
+assert.equal(supports.support_artillery?.regimentalSupport??false,false,'ordinary divisional support artillery must not become regimental');
+assert.equal(supports.engineer?.regimentalSupport??false,false,'engineers must remain divisional support only');
 
 const [main,parser,gameData]=await Promise.all([
   readFile(new URL('../src/main.js',import.meta.url),'utf8'),

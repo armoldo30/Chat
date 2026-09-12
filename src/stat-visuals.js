@@ -1,4 +1,5 @@
 import { iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function kindFor(label='',container){
   const s=String(label).toLowerCase();
@@ -23,5 +24,4 @@ function enhanceCard(card){
 function run(){
   for(const selector of ['.statgrid .stat','.tank-stat-grid > div','.air-stat-grid > div','.hq-stat-pair > div','.dossier-stats > div','.air-report-metrics > article','.industry-summary > article'])document.querySelectorAll(selector).forEach(enhanceCard);
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

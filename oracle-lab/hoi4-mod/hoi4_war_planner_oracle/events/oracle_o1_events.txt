@@ -1,0 +1,32 @@
+add_namespace = oracle_o1
+
+# Hidden self-scheduling hourly sampler. The event is only armed by d_oracle_o1_arm.
+country_event = {
+    id = oracle_o1.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o1_running }
+
+            add_to_variable = { oracle_o1_hour = 1 }
+            oracle_o1_capture_sample = yes
+
+            if = {
+                limit = {
+                    check_variable = {
+                        var = oracle_o1_hour
+                        value = 96
+                        compare = less_than
+                    }
+                }
+                country_event = { id = oracle_o1.1 hours = 1 }
+            }
+            else = {
+                clr_country_flag = oracle_o1_running
+                log = "[WPO1] END hour=[?oracle_o1_hour] reason=horizon"
+            }
+        }
+    }
+}

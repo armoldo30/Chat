@@ -57,6 +57,7 @@ function placeByLevel(buttons,levels){
     });
   }
 }
+function placeLegacy(buttons,levels){for(const button of buttons){const level=levels.get(traitId(button))||0;button.style.gridRow=String(level+1);button.dataset.treeLevel=String(level);}}
 function drawConnections(root,org,buttons,visible){
   root.querySelector('.mio-tree-links')?.remove();
   const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.classList.add('mio-tree-links');svg.setAttribute('aria-hidden','true');
@@ -77,7 +78,8 @@ function drawConnections(root,org,buttons,visible){
 function enhance(root){
   if(!root||root.dataset.mioTreeVisual==='1')return;
   const id=orgIdFor(root),org=currentCatalog()?.[id],buttons=[...root.querySelectorAll('.mio-board-trait')];if(!org||!buttons.length)return;
-  const visible=new Set(buttons.map(traitId).filter(Boolean)),levels=levelsFor(org,visible);root.dataset.mioTreeVisual='1';root.classList.add('mio-tree-layout');placeByLevel(buttons,levels);
+  const visible=new Set(buttons.map(traitId).filter(Boolean)),levels=levelsFor(org,visible);root.dataset.mioTreeVisual='1';root.classList.add('mio-tree-layout');
+  root.closest('#mio-board-modal')?placeByLevel(buttons,levels):placeLegacy(buttons,levels);
   for(const button of buttons){const note=dependencyNote(org.traits?.[traitId(button)]||{},visible);if(note){button.dataset.dependencyNote=note;if(!button.title)button.title=note;}}
   requestAnimationFrame(()=>drawConnections(root,org,buttons,visible));
 }

@@ -1,10 +1,11 @@
-import { iconSvgFor, semanticIconKey, visualKind } from './ui-labels.js';
+import { visualKind } from './ui-labels.js';
+import { itemIconKey, itemIconSvg } from './item-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(value,base='infantry'){const kind=visualKind(value);return kind==='generic'?base:kind;}
 function iconMarkup(id,label='',base='infantry'){
-  const broad=resolvedKind(`${id} ${label}`,base),specific=semanticIconKey(id,label);
-  return `<span class="division-unit-icon ${broad} semantic-${specific}">${iconSvgFor(id,label,broad)}</span>`;
+  const broad=resolvedKind(`${id} ${label}`,base),specific=itemIconKey(id,label,base);
+  return `<span class="division-unit-icon ${broad} semantic-${specific}">${itemIconSvg(id,label,base,broad)}</span>`;
 }
 
 function enhancePickerChoice(button){
@@ -13,8 +14,8 @@ function enhancePickerChoice(button){
   if(code){code.classList.add('unit-code-hidden');code.insertAdjacentHTML('afterend',iconMarkup(id,label));}
 }
 function decorateSlot(button,marker,base='support'){
-  if(button.dataset[marker]==='1')return;button.dataset[marker]='1';const symbol=button.querySelector('.unit-symbol,:scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,base),specific=semanticIconKey(raw,label);
-  if(symbol){symbol.classList.add('picture-unit-symbol',broad,`semantic-${specific}`);symbol.innerHTML=iconSvgFor(raw,label,broad);}
+  if(button.dataset[marker]==='1')return;button.dataset[marker]='1';const symbol=button.querySelector('.unit-symbol,:scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,base),specific=itemIconKey(raw,label,base);
+  if(symbol){symbol.classList.add('picture-unit-symbol',broad,`semantic-${specific}`);symbol.innerHTML=itemIconSvg(raw,label,base,broad);}
 }
 function enhanceBattalionSlot(button){decorateSlot(button,'pictureSlot','infantry');}
 function enhanceRegimentalSupport(button){decorateSlot(button,'pictureSupport','support');}

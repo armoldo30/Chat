@@ -1,4 +1,5 @@
 import { AD_CONFIG, adsReady, validAdSenseSlot } from './ad-config.js';
+import { registerUiEnhancer, scheduleUiEnhancers } from './ui-enhancer-runtime.js';
 
 const SCRIPT_ID='hoi4-adsense-script';
 const OWNED='data-hoi4-ad-owned';
@@ -57,6 +58,7 @@ function wirePrivacyChoices(){
   };
 }
 
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;mount();wirePrivacyChoices();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',()=>{lastSignature='';schedule();});window.addEventListener('pageshow',()=>{lastSignature='';schedule();});schedule();
+function enhanceAds(){mount();wirePrivacyChoices();}
+window.addEventListener('hashchange',()=>{lastSignature='';scheduleUiEnhancers();});
+window.addEventListener('pageshow',()=>{lastSignature='';scheduleUiEnhancers();});
+registerUiEnhancer(enhanceAds);

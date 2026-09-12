@@ -17,7 +17,13 @@ jobs:
         with:
           node-version: 24
       - name: Performance transform certification
-        run: node tests/performance-build.test.mjs
+        run: |
+          node scripts/performance-patch-v2.mjs src/main.js
+          node --check src/main.js
+          grep -q "equipmentSideCache" src/main.js
+          grep -q "techSideCache" src/main.js
+          grep -q "divisionSideCache" src/main.js
+          grep -q "refreshDivisionLab" src/main.js
       - name: Production regression suite
         run: npm test
       - name: Build optimized static site

@@ -9,7 +9,7 @@ normalizeBattalionRegimentGroups(battalions);
 
 function prettifyRegimentGroupLabels(){
   document.querySelectorAll('.regiment-title span,.hoi-picker .muted').forEach(node=>{
-    const text=node.textContent||'',next=text.replaceAll('COMBAT_SUPPORT','COMBAT SUPPORT').replaceAll('MOBILE_COMBAT_SUPPORT','MOBILE COMBAT SUPPORT');
+    const text=node.textContent||'',next=text.replaceAll('MOBILE_COMBAT_SUPPORT','MOBILE COMBAT SUPPORT').replaceAll('COMBAT_SUPPORT','COMBAT SUPPORT');
     if(next!==text)node.textContent=next;
   });
 }

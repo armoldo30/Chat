@@ -1,4 +1,5 @@
 import { iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function metricKind(label=''){
   const s=label.toLowerCase();
@@ -28,5 +29,4 @@ function enhanceSaved(saved){
   const meter=document.createElement('div');meter.className='saved-battle-meter';meter.style.setProperty('--win',`${Math.max(0,Math.min(100,win))}%`);meter.innerHTML=`<span><b>${win.toFixed(0)}%</b><small>WIN</small></span>`;saved.insertBefore(meter,saved.firstChild);
 }
 function run(){document.querySelectorAll('#battleResult .report').forEach(enhanceReport);document.querySelectorAll('#battleResult .saved-battle').forEach(enhanceSaved);}
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

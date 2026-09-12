@@ -1,4 +1,5 @@
 import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(value,base='industry'){
   const kind=visualKind(value);return kind==='generic'?base:kind;
@@ -39,5 +40,5 @@ function injectLauncher(){
   const button=document.createElement('button');button.type='button';button.className='btn visual-board-launch';button.dataset.openMioBoard='1';button.innerHTML=`<span class="board-button-icon">${iconSvg('industry')}</span><span><small>FULL VIEW</small><b>MIO Board</b></span>`;button.onclick=()=>openBoard();bar.append(button);
 }
 
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;injectLauncher();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('mio-board-modal'))closeBoard();});schedule();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('mio-board-modal'))closeBoard();});
+registerUiEnhancer(injectLauncher);

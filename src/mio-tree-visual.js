@@ -45,14 +45,25 @@ function dependencyNote(trait,visible){
   if(exclusive.length)parts.push(`Exclusive with: ${exclusive.join(' / ')}`);
   return parts.join(' · ');
 }
-function placeByLevel(buttons,levels){
+function rowsFor(buttons,levels){
   const rows=new Map();
   for(const button of buttons){const level=levels.get(traitId(button))||0;if(!rows.has(level))rows.set(level,[]);rows.get(level).push(button);}
-  const columns=18;
+  return rows;
+}
+function placeByLevel(root,buttons,levels){
+  const rows=rowsFor(buttons,levels),maxCount=Math.max(1,...[...rows.values()].map(row=>row.length));
+  // The previous fixed 18-column canvas could physically fit only nine 2-column
+  // nodes on one level. Larger MIO tiers therefore landed on top of each other,
+  // especially on phones. Grow the logical canvas with the widest tier so every
+  // trait always owns at least three columns and a readable card width.
+  const columns=Math.max(18,maxCount*3),cellWidth=64,minWidth=Math.max(980,columns*cellWidth);
+  root.style.setProperty('--mio-tree-columns',String(columns));
+  root.style.setProperty('--mio-tree-min-width',`${minWidth}px`);
+  root.dataset.treeColumns=String(columns);
   for(const [level,row] of [...rows.entries()].sort((a,b)=>a[0]-b[0])){
-    const count=row.length,span=Math.max(2,Math.floor(columns/Math.max(1,count))),used=Math.min(columns,span*count),offset=Math.max(1,Math.floor((columns-used)/2)+1);
+    const count=row.length,span=Math.max(3,Math.floor(columns/Math.max(1,count))),used=span*count,offset=Math.max(1,Math.floor((columns-used)/2)+1);
     row.forEach((button,index)=>{
-      const start=Math.min(columns-span+1,offset+index*span);
+      const start=offset+index*span;
       button.style.gridRow=String(level+1);button.style.gridColumn=`${start} / span ${span}`;button.dataset.treeLevel=String(level);
     });
   }
@@ -75,13 +86,20 @@ function drawConnections(root,org,buttons,visible){
   }
   root.prepend(svg);
 }
+function focusCurrentBranch(root,buttons){
+  if(!globalThis.matchMedia?.('(max-width:720px)')?.matches)return;
+  const scroller=root.closest('.mio-full-tree');if(!scroller)return;
+  const focus=buttons.find(button=>button.classList.contains('available'))||[...buttons].reverse().find(button=>button.classList.contains('selected'))||buttons[0];
+  if(!focus)return;
+  scroller.scrollLeft=Math.max(0,focus.offsetLeft-(scroller.clientWidth-focus.offsetWidth)/2);
+}
 function enhance(root){
   if(!root||root.dataset.mioTreeVisual==='1')return;
   const id=orgIdFor(root),org=currentCatalog()?.[id],buttons=[...root.querySelectorAll('.mio-board-trait')];if(!org||!buttons.length)return;
   const visible=new Set(buttons.map(traitId).filter(Boolean)),levels=levelsFor(org,visible);root.dataset.mioTreeVisual='1';root.classList.add('mio-tree-layout');
-  root.closest('#mio-board-modal')?placeByLevel(buttons,levels):placeLegacy(buttons,levels);
+  root.closest('#mio-board-modal')?placeByLevel(root,buttons,levels):placeLegacy(buttons,levels);
   for(const button of buttons){const note=dependencyNote(org.traits?.[traitId(button)]||{},visible);if(note){button.dataset.dependencyNote=note;if(!button.title)button.title=note;}}
-  requestAnimationFrame(()=>drawConnections(root,org,buttons,visible));
+  requestAnimationFrame(()=>{drawConnections(root,org,buttons,visible);focusCurrentBranch(root,buttons);});
 }
 function run(){document.querySelectorAll('.mio-board-traits').forEach(enhance);}
 window.addEventListener('resize',()=>{document.querySelectorAll('.mio-board-traits.mio-tree-layout').forEach(root=>{root.dataset.mioTreeVisual='';});scheduleUiEnhancers();});

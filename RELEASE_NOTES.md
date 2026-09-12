@@ -29,9 +29,9 @@ The planner does **not** claim bit-for-bit `hoi4.exe` parity. Remaining executab
 
 Research, DLC and Special Project requirements remain informational for otherwise valid game content. Structural compatibility rules still apply where an object cannot actually fit a slot/category/regiment.
 
-## Verification target
+## Production validation completed
 
-The 0.16.0 release must pass from a clean checkout:
+The deployed 0.16.0 production tree passed:
 
 - complete `npm test`
 - full 10,000-opponent / 160,000-matchup Gauntlet smoke
@@ -41,6 +41,7 @@ The 0.16.0 release must pass from a clean checkout:
 - runtime-recovery and public-feedback regression checks
 - AdSense disabled/configuration sanity check
 - no historical staging payloads or temporary write-enabled workflows
+- GitHub Pages artifact upload and production deployment
 
 ## Intentionally separate from 0.16.0 launch completion
 

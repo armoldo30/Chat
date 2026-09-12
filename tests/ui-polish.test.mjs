@@ -18,8 +18,11 @@ for(const route of ['dashboard','front','intel','battle','tank','air','productio
 }
 assert.doesNotMatch(js,/from ['"]\.\/engine\.js/,'cosmetic navigation layer must not import combat engine logic');
 assert.doesNotMatch(js,/localStorage|simulateBattle|calcDivision/,'cosmetic navigation layer must not mutate planner state or run simulations');
+assert.match(js,/ui-enhancer-runtime\.js/,'polish layer should use the shared UI enhancement scheduler');
 
-// Parse the browser enhancement source without executing DOM APIs.
-new Function(js);
+// Parse the module body without executing DOM APIs. Imports are valid module
+// syntax but new Function parses script syntax, so remove import declarations
+// before this lightweight syntax check.
+new Function(js.replace(/^import[^\n]*\n/gm,''));
 
 console.log('UI polish regression checks passed.');

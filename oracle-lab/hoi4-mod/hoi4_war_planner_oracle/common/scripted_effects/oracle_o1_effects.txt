@@ -1,0 +1,109 @@
+# HOI4 War Planner Oracle O1 instrumentation.
+# Target reference: 1.19.2.0.a729 checksum d245.
+# Non-destructive: this file only measures/logs division state and schedules hidden sampler events.
+
+oracle_o1_measure_division = {
+    set_temp_variable = { oracle_org_low = 0 }
+    set_temp_variable = { oracle_org_high = 1 }
+
+    # unit_organization is exposed as a comparison trigger rather than a numeric getter.
+    # Fourteen bisections bound it to an interval 1/16384 wide.
+    for_loop_effect = {
+        start = 0
+        end = 14
+        value = oracle_bisect_i
+
+        set_temp_variable = { oracle_mid = oracle_org_low }
+        add_to_temp_variable = { oracle_mid = oracle_org_high }
+        divide_temp_variable = { oracle_mid = 2 }
+
+        if = {
+            limit = { unit_organization > var:oracle_mid }
+            set_temp_variable = { oracle_org_low = oracle_mid }
+            else = {
+                set_temp_variable = { oracle_org_high = oracle_mid }
+            }
+        }
+    }
+
+    set_temp_variable = { oracle_strength_low = 0 }
+    set_temp_variable = { oracle_strength_high = 1 }
+
+    # The same bounded measurement is used for division strength.
+    for_loop_effect = {
+        start = 0
+        end = 14
+        value = oracle_bisect_i
+
+        set_temp_variable = { oracle_mid = oracle_strength_low }
+        add_to_temp_variable = { oracle_mid = oracle_strength_high }
+        divide_temp_variable = { oracle_mid = 2 }
+
+        if = {
+            limit = { unit_strength > var:oracle_mid }
+            set_temp_variable = { oracle_strength_low = oracle_mid }
+            else = {
+                set_temp_variable = { oracle_strength_high = oracle_mid }
+            }
+        }
+    }
+}
+
+oracle_o1_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "[WPO1] ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o1_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "[WPO1] DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+# Must be called in GER country scope. POL is the fixed opposing reference tag.
+oracle_o1_capture_sample = {
+    log = "[WPO1] SAMPLE hour=[?oracle_o1_hour]"
+    oracle_o1_log_attacker_divisions = yes
+    POL = {
+        oracle_o1_log_defender_divisions = yes
+    }
+}
+
+# Custom debug-console command. Non-destructive one-shot instrumentation check.
+d_oracle_o1_probe = {
+    GER = {
+        set_variable = { oracle_o1_hour = 0 }
+        log = "[WPO1] BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        oracle_o1_capture_sample = yes
+        log = "[WPO1] END hour=[?oracle_o1_hour] reason=probe"
+    }
+}
+
+# Custom debug-console command. Begins an hourly capture and samples immediately at hour 0.
+d_oracle_o1_arm = {
+    GER = {
+        clr_country_flag = oracle_o1_running
+        set_country_flag = oracle_o1_running
+        set_variable = { oracle_o1_hour = 0 }
+        log = "[WPO1] BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        oracle_o1_capture_sample = yes
+        country_event = { id = oracle_o1.1 hours = 1 }
+    }
+}
+
+# Custom debug-console command. Stops the sampler at the last completed hourly sample.
+d_oracle_o1_stop = {
+    GER = {
+        if = {
+            limit = { has_country_flag = oracle_o1_running }
+            clr_country_flag = oracle_o1_running
+            log = "[WPO1] END hour=[?oracle_o1_hour] reason=manual"
+        }
+        else = {
+            log = "[WPO1] STATUS state=not-running"
+        }
+    }
+}

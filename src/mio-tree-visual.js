@@ -36,17 +36,26 @@ function levelsFor(org,visible){
   };
   for(const id of visible)level(id);return memo;
 }
-function addDependencyNotes(button,trait,visible){
-  if(button.querySelector('.mio-dependency-note'))return;
-  const g=dependencyGroups(trait),parts=[];
-  const names=ids=>ids.filter(x=>visible.has(x)).map(id=>displayLabel(id));
+function dependencyNote(trait,visible){
+  const g=dependencyGroups(trait),parts=[],names=ids=>ids.filter(x=>visible.has(x)).map(id=>displayLabel(id));
   const any=names(g.any),all=names(g.all),counted=names(g.counted),exclusive=names(g.exclusive);
   if(any.length)parts.push(`Requires one: ${any.join(' / ')}`);
   if(all.length)parts.push(`Requires all: ${all.join(' + ')}`);
   if(counted.length)parts.push(`Requires ${Math.min(g.count,counted.length)} of: ${counted.join(' / ')}`);
   if(exclusive.length)parts.push(`Exclusive with: ${exclusive.join(' / ')}`);
-  if(!parts.length)return;
-  const note=document.createElement('small');note.className='mio-dependency-note';note.textContent=parts.join(' · ');button.append(note);
+  return parts.join(' · ');
+}
+function placeByLevel(buttons,levels){
+  const rows=new Map();
+  for(const button of buttons){const level=levels.get(traitId(button))||0;if(!rows.has(level))rows.set(level,[]);rows.get(level).push(button);}
+  const columns=18;
+  for(const [level,row] of [...rows.entries()].sort((a,b)=>a[0]-b[0])){
+    const count=row.length,span=Math.max(2,Math.floor(columns/Math.max(1,count))),used=Math.min(columns,span*count),offset=Math.max(1,Math.floor((columns-used)/2)+1);
+    row.forEach((button,index)=>{
+      const start=Math.min(columns-span+1,offset+index*span);
+      button.style.gridRow=String(level+1);button.style.gridColumn=`${start} / span ${span}`;button.dataset.treeLevel=String(level);
+    });
+  }
 }
 function drawConnections(root,org,buttons,visible){
   root.querySelector('.mio-tree-links')?.remove();
@@ -58,7 +67,9 @@ function drawConnections(root,org,buttons,visible){
     for(const [mode,parents] of [['any',groups.any],['all',groups.all],['counted',groups.counted]])for(const parentId of parents){
       if(!visible.has(parentId))continue;const parent=byId.get(parentId);if(!parent)continue;
       const x1=parent.offsetLeft+parent.offsetWidth/2,y1=parent.offsetTop+parent.offsetHeight,x2=child.offsetLeft+child.offsetWidth/2,y2=child.offsetTop,mid=y1+(y2-y1)/2;
-      const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',`M ${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`);path.classList.add(`dependency-${mode}`);svg.append(path);
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',`M ${x1} ${y1} C ${x1} ${mid}, ${x2} ${mid}, ${x2} ${y2}`);path.classList.add(`dependency-${mode}`);
+      if(child.classList.contains('selected'))path.classList.add('active-link');else if(child.classList.contains('available'))path.classList.add('available-link');
+      svg.append(path);
     }
   }
   root.prepend(svg);
@@ -66,8 +77,8 @@ function drawConnections(root,org,buttons,visible){
 function enhance(root){
   if(!root||root.dataset.mioTreeVisual==='1')return;
   const id=orgIdFor(root),org=currentCatalog()?.[id],buttons=[...root.querySelectorAll('.mio-board-trait')];if(!org||!buttons.length)return;
-  const visible=new Set(buttons.map(traitId).filter(Boolean)),levels=levelsFor(org,visible);root.dataset.mioTreeVisual='1';root.classList.add('mio-tree-layout');
-  for(const button of buttons){const id=traitId(button),level=levels.get(id)||0;button.style.gridRow=String(level+1);button.dataset.treeLevel=String(level);addDependencyNotes(button,org.traits?.[id]||{},visible);}
+  const visible=new Set(buttons.map(traitId).filter(Boolean)),levels=levelsFor(org,visible);root.dataset.mioTreeVisual='1';root.classList.add('mio-tree-layout');placeByLevel(buttons,levels);
+  for(const button of buttons){const note=dependencyNote(org.traits?.[traitId(button)]||{},visible);if(note){button.dataset.dependencyNote=note;if(!button.title)button.title=note;}}
   requestAnimationFrame(()=>drawConnections(root,org,buttons,visible));
 }
 function run(){document.querySelectorAll('.mio-board-traits').forEach(enhance);}

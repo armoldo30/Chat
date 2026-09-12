@@ -1,4 +1,4 @@
-import { displayLabel, iconSvg } from './ui-labels.js';
+import { displayLabel, iconSvgFor, semanticIconKey } from './ui-labels.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const ROLE_KIND={armor:'armor',tank_destroyer:'antitank',td:'antitank',spg:'artillery',artillery:'artillery',spaa:'antiair',anti_air:'antiair',flame:'support',support:'support',recon:'support'};
@@ -7,25 +7,26 @@ function classBadge(id=''){const s=String(id).toLowerCase();if(s.includes('super
 
 function enhanceTankClass(button){
   if(button.dataset.designerVisual==='1')return;button.dataset.designerVisual='1';
-  const id=button.dataset.tankClass||'',original=button.innerHTML;
+  const id=button.dataset.tankClass||'',original=button.innerHTML,specific=semanticIconKey(`${id}_tank_chassis`);
   button.classList.add('designer-visual-tab','tank-family-visual-tab');
-  button.innerHTML=`<span class="designer-tab-icon armor"><i>${classBadge(id)}</i>${iconSvg('armor')}</span><span class="designer-tab-copy">${original}</span>`;
+  button.innerHTML=`<span class="designer-tab-icon armor semantic-${specific}"><i>${classBadge(id)}</i>${iconSvgFor(`${id}_tank_chassis`,id,'armor')}</span><span class="designer-tab-copy">${original}</span>`;
 }
 function enhanceTankRole(button){
   if(button.dataset.designerVisual==='1')return;button.dataset.designerVisual='1';
-  const id=button.dataset.tankRole||'',kind=roleKind(id),original=button.innerHTML;
+  const id=button.dataset.tankRole||'',kind=roleKind(id),original=button.innerHTML,specific=semanticIconKey(id);
   button.classList.add('designer-visual-tab','tank-role-visual-tab');
-  button.innerHTML=`<span class="designer-tab-icon ${kind}">${iconSvg(kind)}</span><span class="designer-tab-copy">${original}</span>`;
+  button.innerHTML=`<span class="designer-tab-icon ${kind} semantic-${specific}">${iconSvgFor(id,id,kind)}</span><span class="designer-tab-copy">${original}</span>`;
 }
 function enhanceTankSilhouette(node){
   if(!node||node.dataset.designerVisual==='1')return;node.dataset.designerVisual='1';
-  const span=node.querySelector(':scope > span');if(span){span.className='tank-silhouette-icon';span.innerHTML=iconSvg('armor');}
+  const family=document.querySelector('[data-tank-class].active')?.dataset.tankClass||'medium',role=document.querySelector('[data-tank-role].active')?.dataset.tankRole||'armor',span=node.querySelector(':scope > span');
+  if(span){const specific=semanticIconKey(`${family}_${role}_tank`);span.className=`tank-silhouette-icon semantic-${specific}`;span.innerHTML=iconSvgFor(`${family}_${role}_tank`,`${family} ${role}`,'armor');}
 }
 function enhanceAirRoles(){
   document.querySelectorAll('.aircraft-role span').forEach(span=>{
     if(span.dataset.designerVisual==='1')return;span.dataset.designerVisual='1';
-    const text=span.textContent.trim(),kind=/CAS|CLOSE AIR|GROUND/i.test(text)?'artillery':/NAVAL/i.test(text)?'antiair':'air';
-    span.classList.add('air-role-visual');span.innerHTML=`<i>${iconSvg(kind)}</i><b>${displayLabel(text.toLowerCase().replaceAll(' ','_'),text)}</b>`;
+    const text=span.textContent.trim(),id=text.toLowerCase().replaceAll(' ','_'),specific=semanticIconKey(id,text);
+    span.classList.add('air-role-visual',`semantic-${specific}`);span.innerHTML=`<i>${iconSvgFor(id,text,'air')}</i><b>${displayLabel(id,text)}</b>`;
   });
 }
 function enhance(){

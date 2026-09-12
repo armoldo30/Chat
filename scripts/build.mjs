@@ -19,9 +19,16 @@ for(const file of ['CNAME','robots.txt']){
 const mainPath=resolve(dist,'src','main.js');
 await writeFile(mainPath,applyPerformancePatch(await readFile(mainPath,'utf8')));
 
+const configuredClient=validAdSenseClient(AD_CONFIG.client)?AD_CONFIG.client:'';
+if(configuredClient){
+  const publisher=configuredClient.replace(/^ca-/, '');
+  await writeFile(resolve(dist,'ads.txt'),`google.com, ${publisher}, DIRECT, f08c47fec0942fa0\n`);
+}
+
 const indexPath=resolve(dist,'index.html');
 let html=await readFile(indexPath,'utf8');
-const accountMeta=validAdSenseClient(AD_CONFIG.client)?`<meta name="google-adsense-account" content="${AD_CONFIG.client}">`:'';
-html=html.replace('<!-- ADSENSE_ACCOUNT_META -->',accountMeta);
+const accountMeta=configuredClient?`<meta name="google-adsense-account" content="${configuredClient}">`:'';
+const verificationScript=configuredClient?`<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${configuredClient}" crossorigin="anonymous"></script>`:'';
+html=html.replace('<!-- ADSENSE_ACCOUNT_META -->',[accountMeta,verificationScript].filter(Boolean).join('\n  '));
 await writeFile(indexPath,html);
 console.log('Built static site in dist/');

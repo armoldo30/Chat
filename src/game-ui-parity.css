@@ -1,0 +1,277 @@
+/*
+ * HOI4-inspired structural presentation for MIOs and Doctrines.
+ * Planner-owned CSS only: no Paradox art or copied game assets.
+ * The goal is to mirror the game's information hierarchy: one company -> one
+ * branching trait tree, and doctrine tracks presented as vertical framed strips.
+ */
+
+/* Shared mechanical frame language. */
+#mio-board-modal .system-board,
+#doctrine-board-modal .system-board,
+#air-doctrine-board-modal .system-board{
+  background:linear-gradient(180deg,#353b32 0,#252b24 54px,#1c211c 100%);
+  border:1px solid #85816a;
+  box-shadow:0 28px 85px rgba(0,0,0,.76),inset 0 0 0 2px #151914,inset 0 0 0 3px #4c5142;
+}
+#mio-board-modal .system-board>header,
+#doctrine-board-modal .system-board>header,
+#air-doctrine-board-modal .system-board>header{
+  position:relative;
+  background:linear-gradient(180deg,#515748,#3a4036);
+  border-bottom:1px solid #777660;
+  box-shadow:inset 0 -1px #20251f;
+}
+#mio-board-modal .system-board>header::before,
+#doctrine-board-modal .system-board>header::before,
+#air-doctrine-board-modal .system-board>header::before{
+  content:'';position:absolute;inset:5px;pointer-events:none;
+  background:
+    radial-gradient(circle at 0 0,#9a967f 0 2px,transparent 2.5px),
+    radial-gradient(circle at 100% 0,#9a967f 0 2px,transparent 2.5px),
+    radial-gradient(circle at 0 100%,#6e705e 0 2px,transparent 2.5px),
+    radial-gradient(circle at 100% 100%,#6e705e 0 2px,transparent 2.5px);
+}
+
+/* ------------------------------- MIO -------------------------------- */
+#mio-board-modal .mio-system-board.guided{width:min(1260px,98vw)}
+#mio-board-modal .mio-board-content.guided{display:grid;grid-template-columns:1fr;gap:8px;padding:9px}
+#mio-board-modal .mio-family-rail.compact{
+  display:flex;flex-direction:row;align-items:stretch;gap:5px;max-height:none;overflow-x:auto;overflow-y:hidden;
+  padding:7px;border:1px solid #565c4a;background:linear-gradient(180deg,#282e27,#20251f);scrollbar-width:thin;
+}
+#mio-board-modal .mio-family-rail.compact>.eyebrow{flex:0 0 auto;display:flex;align-items:center;padding:0 6px}
+#mio-board-modal .mio-family-rail.compact .mio-family-card{
+  flex:0 0 166px;min-height:54px;grid-template-columns:34px 1fr;border-color:#505646;background:linear-gradient(180deg,#33392f,#272d26);
+}
+#mio-board-modal .mio-family-rail.compact .mio-family-card.selected{
+  border-color:#b7a36a;background:linear-gradient(180deg,#474d3d,#343a31);box-shadow:inset 0 -3px #d0b56d;
+}
+#mio-board-modal .mio-board-main.guided{display:grid;align-content:start;gap:8px;min-width:0}
+
+/* Once a company is selected, the tree is the screen. */
+#mio-board-modal .mio-stepper{display:none}
+#mio-board-modal .mio-next-step,
+#mio-board-modal .mio-path-summary{display:none!important}
+#mio-board-modal .mio-selected-org{
+  position:relative;grid-template-columns:68px minmax(0,1fr) auto;min-height:82px;padding:11px 14px;
+  background:linear-gradient(90deg,#3e4538,#30362d 72%,#262c25);border:1px solid #8e835d;box-shadow:inset 4px 0 #c6ad67,inset 0 0 22px rgba(0,0,0,.18)
+}
+#mio-board-modal .mio-selected-org::after{content:'';position:absolute;inset:5px;pointer-events:none;border:1px solid rgba(205,194,151,.08)}
+#mio-board-modal .mio-selected-org-icon{width:62px;height:62px;background:#1d221d;border:1px solid #696b57;box-shadow:inset 0 0 0 2px #2d332a}
+#mio-board-modal .mio-selected-org-icon svg{width:46px;height:46px}
+#mio-board-modal .mio-selected-org h3{font-size:1.08rem;letter-spacing:.01em}
+#mio-board-modal .mio-selected-org p{font-size:.58rem}
+#mio-board-modal .mio-base-bonuses{margin:0;background:linear-gradient(180deg,#282e27,#222820);border-color:#515746}
+
+#mio-board-modal .mio-full-tree{
+  position:relative;overflow:hidden;margin:0;padding:0;border:1px solid #666955;
+  background:
+    radial-gradient(ellipse at 50% 15%,rgba(118,119,86,.16),transparent 48%),
+    linear-gradient(180deg,#2b3129,#22271f 55%,#1c211c);
+  box-shadow:inset 0 0 36px rgba(0,0,0,.25)
+}
+#mio-board-modal .mio-full-tree>.mio-section-title{
+  align-items:center;padding:9px 11px;margin:0;background:linear-gradient(180deg,#3b4236,#2f352d);border-bottom:1px solid #5c614e
+}
+#mio-board-modal .mio-full-tree>.mio-section-title .eyebrow{color:#c5b577}
+#mio-board-modal .mio-full-tree>.mio-section-title h3{margin:0;font-size:.86rem}
+#mio-board-modal .mio-full-tree>.mio-section-title p{max-width:760px;font-size:.54rem}
+#mio-board-modal .mio-full-tree>.mio-section-title::after{
+  content:'ACTIVE  ●   AVAILABLE  ◆   LOCKED  ◇';margin-left:auto;white-space:nowrap;color:#aaa68e;font-size:.46rem;letter-spacing:.08em
+}
+#mio-board-modal .mio-board-traits.mio-tree-layout{
+  min-width:900px;min-height:430px;margin:0!important;padding:36px 28px 30px!important;
+  grid-template-columns:repeat(18,minmax(0,1fr))!important;grid-auto-rows:minmax(96px,auto)!important;
+  gap:34px 8px!important;background:
+    linear-gradient(rgba(190,188,151,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(190,188,151,.02) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+#mio-board-modal .mio-full-tree{overflow:auto}
+#mio-board-modal .mio-board-trait{
+  position:relative;z-index:2;min-height:82px;display:grid;grid-template-columns:38px 1fr;align-items:center;gap:8px;
+  padding:8px;background:linear-gradient(180deg,#343b31,#282e27);border:1px solid #666b57;color:#ddd6bf;
+  box-shadow:0 5px 13px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.025)
+}
+#mio-board-modal .mio-board-trait::before{
+  content:'';position:absolute;inset:3px;pointer-events:none;border:1px solid rgba(219,211,176,.05)
+}
+#mio-board-modal .mio-board-trait.available{
+  opacity:1!important;border-color:#c3a85f;background:linear-gradient(180deg,#494f3d,#353b30);box-shadow:0 0 0 1px rgba(215,190,106,.16),0 7px 18px rgba(0,0,0,.28),inset 0 -3px #b89f5e
+}
+#mio-board-modal .mio-board-trait.available:hover{border-color:#e0c477;transform:translateY(-1px)}
+#mio-board-modal .mio-board-trait.selected{
+  border-color:#d5bb70;background:linear-gradient(180deg,#55563d,#3d402f);box-shadow:0 0 0 1px rgba(226,203,126,.22),0 0 18px rgba(193,166,91,.12),inset 0 -4px #d0b56d
+}
+#mio-board-modal .mio-board-trait.locked{opacity:.28!important;filter:saturate(.35) brightness(.9)}
+#mio-board-modal .mio-board-trait:disabled{cursor:default}
+#mio-board-modal .mio-board-trait b{font-size:.61rem;line-height:1.15}
+#mio-board-modal .mio-board-trait small{font-size:.45rem;line-height:1.2}
+#mio-board-modal .mio-board-trait>span:last-child>em{font-size:.42rem}
+#mio-board-modal .mio-tree-links path{stroke:#77755f;stroke-width:2;opacity:.7}
+#mio-board-modal .mio-tree-links .dependency-all{stroke:#b9a263;stroke-width:2.3}
+#mio-board-modal .mio-tree-links .dependency-counted{stroke:#9baaaa;stroke-dasharray:5 4}
+#mio-board-modal .mio-tree-links .active-link{stroke:#d0b56d;opacity:1;filter:drop-shadow(0 0 2px rgba(208,181,109,.25))}
+#mio-board-modal .mio-tree-links .available-link{stroke:#aaa069;opacity:.95}
+#mio-board-modal .mio-dependency-note{display:none!important}
+#mio-board-modal .mio-tree-layout .mio-board-trait[data-tree-level="0"]::after{
+  content:'INITIAL PATH';position:absolute;top:-21px;left:50%;transform:translateX(-50%);white-space:nowrap;padding:2px 6px;
+  border:1px solid #626651;background:#252b23;color:#9ea18c;font-size:.39rem;letter-spacing:.09em
+}
+
+/* Organization selection remains a compact pre-tree step. */
+#mio-board-modal .mio-org-stage{background:linear-gradient(180deg,#2b3129,#232820)}
+#mio-board-modal .mio-org-cards.guided{grid-template-columns:repeat(auto-fill,minmax(190px,1fr))}
+#mio-board-modal .mio-org-card{border-color:#555a49;background:linear-gradient(180deg,#353b31,#282e27)}
+#mio-board-modal .mio-org-card:hover,#mio-board-modal .mio-org-card.selected{border-color:#b7a165;background:linear-gradient(180deg,#454b3b,#32382e)}
+
+/* ---------------------------- DOCTRINES ----------------------------- */
+#doctrine-board-modal .doctrine-system-board{
+  background:
+    radial-gradient(ellipse at 50% 40%,rgba(82,104,67,.18),transparent 55%),
+    linear-gradient(180deg,#343d31,#20281f 72%,#171d18)
+}
+#air-doctrine-board-modal .air-doctrine-system-board{
+  background:
+    radial-gradient(ellipse at 50% 38%,rgba(74,100,115,.18),transparent 55%),
+    linear-gradient(180deg,#303b3e,#20292d 72%,#171d20)
+}
+#doctrine-board-modal .doctrine-board-content,
+#air-doctrine-board-modal .air-doctrine-board-content{padding:9px;overflow:auto}
+
+/* Grand doctrine selector resembles the broad top selector in the game rather than a dashboard card grid. */
+#doctrine-board-modal .doctrine-board-grand,
+#air-doctrine-board-modal .doctrine-board-grand{
+  padding:8px;border:1px solid #626654;background:linear-gradient(180deg,#31372e,#292f27);box-shadow:inset 0 0 0 1px #1b201a
+}
+#doctrine-board-modal .doctrine-grand-cards,
+#air-doctrine-board-modal .doctrine-grand-cards{
+  display:flex;gap:5px;overflow-x:auto;margin-top:6px;padding-bottom:2px;scrollbar-width:thin
+}
+#doctrine-board-modal .doctrine-choice-card,
+#air-doctrine-board-modal .doctrine-choice-card{
+  flex:1 0 190px;min-height:62px;grid-template-columns:38px 1fr;padding:7px 9px;
+  background:linear-gradient(180deg,#3b4236,#2c322a);border:1px solid #606652;box-shadow:inset 0 0 0 1px #20251f
+}
+#air-doctrine-board-modal .doctrine-choice-card{background:linear-gradient(180deg,#364249,#283238);border-color:#586872}
+#doctrine-board-modal .doctrine-choice-card.selected,
+#air-doctrine-board-modal .doctrine-choice-card.selected{border-color:#c4aa64;box-shadow:inset 0 -3px #d0b56d,0 0 12px rgba(199,171,96,.10)}
+#doctrine-board-modal .doctrine-choice-card b,
+#air-doctrine-board-modal .doctrine-choice-card b{font-size:.69rem}
+
+/* The game's reworked doctrines read as tall vertical tracks with framed backgrounds. */
+#doctrine-board-modal .doctrine-board-tracks,
+#air-doctrine-board-modal .air-doctrine-board-tracks{
+  display:grid!important;grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:minmax(218px,1fr);
+  gap:8px;margin-top:8px;padding:1px 0 5px;overflow-x:auto;align-items:stretch;scrollbar-width:thin
+}
+#doctrine-board-modal .doctrine-board-track,
+#air-doctrine-board-modal .doctrine-board-track{
+  position:relative;min-width:218px;min-height:560px;display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid #686b57;background:
+    linear-gradient(180deg,rgba(64,77,57,.80),rgba(32,41,31,.95)),
+    radial-gradient(ellipse at 50% 22%,rgba(136,144,105,.16),transparent 48%);
+  box-shadow:inset 0 0 0 2px #222820,0 5px 18px rgba(0,0,0,.20)
+}
+#air-doctrine-board-modal .doctrine-board-track{
+  border-color:#5d6d74;background:
+    linear-gradient(180deg,rgba(52,69,76,.86),rgba(29,40,44,.96)),
+    radial-gradient(ellipse at 50% 22%,rgba(129,160,173,.14),transparent 48%)
+}
+#doctrine-board-modal .doctrine-board-track::before,
+#air-doctrine-board-modal .doctrine-board-track::before{
+  content:'';position:absolute;inset:5px;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 0 0,#96927b 0 2px,transparent 2.5px),
+    radial-gradient(circle at 100% 0,#96927b 0 2px,transparent 2.5px),
+    radial-gradient(circle at 0 100%,#686b59 0 2px,transparent 2.5px),
+    radial-gradient(circle at 100% 100%,#686b59 0 2px,transparent 2.5px)
+}
+#doctrine-board-modal .doctrine-board-track>*,
+#air-doctrine-board-modal .doctrine-board-track>*{position:relative;z-index:1}
+#doctrine-board-modal .doctrine-board-track>header,
+#air-doctrine-board-modal .doctrine-board-track>header{
+  min-height:48px;align-items:center;padding:8px 9px;background:linear-gradient(180deg,rgba(67,75,61,.96),rgba(49,56,47,.96));border-bottom:1px solid #666a56
+}
+#air-doctrine-board-modal .doctrine-board-track>header{background:linear-gradient(180deg,rgba(62,77,83,.96),rgba(43,55,61,.96));border-color:#60717a}
+#doctrine-board-modal .doctrine-board-track>header span,
+#air-doctrine-board-modal .doctrine-board-track>header span{font-size:.69rem}
+#doctrine-board-modal .doctrine-board-track>header b,
+#air-doctrine-board-modal .doctrine-board-track>header b{
+  padding:3px 5px;border:1px solid #756d49;background:#242a22;color:#ccb66e;font-size:.42rem;line-height:1.15;text-align:center
+}
+
+#doctrine-board-modal .doctrine-node-list,
+#air-doctrine-board-modal .doctrine-node-list{
+  max-height:none!important;overflow:visible;padding:10px 10px 7px;display:grid;gap:6px
+}
+#doctrine-board-modal .doctrine-node,
+#air-doctrine-board-modal .doctrine-node{
+  min-height:56px;grid-template-columns:36px 1fr;padding:7px 8px;background:linear-gradient(180deg,rgba(48,56,45,.96),rgba(37,44,36,.96));border:1px solid #565d4a;box-shadow:0 4px 9px rgba(0,0,0,.18)
+}
+#air-doctrine-board-modal .doctrine-node{background:linear-gradient(180deg,rgba(46,59,65,.96),rgba(34,45,50,.96));border-color:#53656e}
+#doctrine-board-modal .doctrine-node.selected,
+#air-doctrine-board-modal .doctrine-node.selected{
+  border-color:#c6aa63;background:linear-gradient(180deg,#4b513d,#363d30);box-shadow:inset 4px 0 #d0b56d,0 0 12px rgba(205,178,100,.12)
+}
+#air-doctrine-board-modal .doctrine-node.selected{background:linear-gradient(180deg,#46555a,#333f44)}
+#doctrine-board-modal .node-emblem,
+#air-doctrine-board-modal .node-emblem{width:34px;height:34px}
+
+/* Mastery becomes a vertical progression rail, with the completed-track plaque at the bottom. */
+#doctrine-board-modal .board-mastery,
+#air-doctrine-board-modal .board-mastery{
+  position:relative;width:58px;margin:auto auto 12px;padding:12px 7px;display:grid!important;grid-template-columns:1fr!important;gap:5px;background:rgba(25,31,25,.52);border:1px solid rgba(114,119,94,.45)
+}
+#air-doctrine-board-modal .board-mastery{background:rgba(25,33,37,.52);border-color:rgba(96,117,126,.48)}
+#doctrine-board-modal .board-mastery::before,
+#air-doctrine-board-modal .board-mastery::before{content:'';position:absolute;left:50%;top:22px;bottom:22px;width:2px;transform:translateX(-50%);background:#555a49;z-index:0}
+#air-doctrine-board-modal .board-mastery::before{background:#53656d}
+#doctrine-board-modal .mastery-pip,
+#air-doctrine-board-modal .mastery-pip{
+  position:relative;z-index:1;min-width:42px;min-height:36px;padding:3px;display:grid;place-items:center;background:#262c24;border:1px solid #5a5f4d;color:#777c6b
+}
+#air-doctrine-board-modal .mastery-pip{background:#273137;border-color:#53636b;color:#768a92}
+#doctrine-board-modal .mastery-pip.filled,
+#air-doctrine-board-modal .mastery-pip.filled{border-color:#8f8053;color:#d2bd78;background:#34392d}
+#air-doctrine-board-modal .mastery-pip.filled{background:#334147}
+#doctrine-board-modal .mastery-pip.current,
+#air-doctrine-board-modal .mastery-pip.current{border-color:#d0b56d;box-shadow:0 0 0 1px rgba(208,181,109,.18),0 0 10px rgba(208,181,109,.10)}
+#doctrine-board-modal .mastery-pip small,
+#air-doctrine-board-modal .mastery-pip small{font-size:.42rem}
+
+#doctrine-board-modal .visual-board-footer,
+#air-doctrine-board-modal .visual-board-footer{
+  position:sticky;bottom:0;z-index:5;margin:8px 0 0;padding:8px;background:linear-gradient(180deg,rgba(31,37,31,.88),#20251f);border-top:1px solid #565b49
+}
+#air-doctrine-board-modal .visual-board-footer{background:linear-gradient(180deg,rgba(30,39,43,.88),#20282c);border-color:#53636c}
+
+/* Preserve the vertical/tree structures on phones; scroll rather than collapse them into unrelated cards. */
+@media(max-width:720px){
+  #mio-board-modal .mio-family-rail.compact{display:flex!important;max-height:none!important;overflow-x:auto}
+  #mio-board-modal .mio-family-rail.compact>.eyebrow{grid-column:auto}
+  #mio-board-modal .mio-family-rail.compact .mio-family-card{flex-basis:148px}
+  #mio-board-modal .mio-selected-org{grid-template-columns:52px 1fr;padding:9px}
+  #mio-board-modal .mio-selected-org-icon{width:48px;height:48px}
+  #mio-board-modal .mio-selected-org-actions{grid-column:1/-1;justify-content:flex-start}
+  #mio-board-modal .mio-full-tree>.mio-section-title{display:block}
+  #mio-board-modal .mio-full-tree>.mio-section-title::after{display:block;margin:6px 0 0}
+  #mio-board-modal .mio-board-traits.mio-tree-layout{min-width:820px!important;grid-template-columns:repeat(18,minmax(0,1fr))!important;gap:30px 6px!important;padding:34px 20px 26px!important}
+  #mio-board-modal .mio-tree-links{display:block!important;opacity:.72}
+
+  #doctrine-board-modal .doctrine-grand-cards,
+  #air-doctrine-board-modal .doctrine-grand-cards{display:flex!important;grid-template-columns:none!important}
+  #doctrine-board-modal .doctrine-choice-card,
+  #air-doctrine-board-modal .doctrine-choice-card{flex-basis:172px;min-height:58px}
+  #doctrine-board-modal .doctrine-board-tracks,
+  #air-doctrine-board-modal .air-doctrine-board-tracks{display:grid!important;grid-template-columns:none!important;grid-auto-flow:column!important;grid-auto-columns:210px!important;overflow-x:auto!important}
+  #doctrine-board-modal .doctrine-board-track,
+  #air-doctrine-board-modal .doctrine-board-track{min-width:210px;min-height:520px}
+}
+
+@media(max-width:430px){
+  #mio-board-modal .mio-family-rail.compact .mio-family-card{flex-basis:136px}
+  #mio-board-modal .mio-board-traits.mio-tree-layout{min-width:760px!important}
+  #doctrine-board-modal .doctrine-choice-card,
+  #air-doctrine-board-modal .doctrine-choice-card{flex-basis:160px}
+}

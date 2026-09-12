@@ -12,17 +12,17 @@ function enhancePickerChoice(button){
   button.dataset.pictureChoice='1';button.classList.add('picture-picker-choice');const code=button.querySelector(':scope > b'),label=button.querySelector('small')?.textContent||button.title||'';
   if(code){code.classList.add('unit-code-hidden');code.insertAdjacentHTML('afterend',iconMarkup(id,label));}
 }
-function enhanceBattalionSlot(button){
-  if(button.dataset.pictureSlot==='1')return;button.dataset.pictureSlot='1';const symbol=button.querySelector('.unit-symbol'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`),specific=semanticIconKey(raw,label);
+function decorateSlot(button,marker,base='support'){
+  if(button.dataset[marker]==='1')return;button.dataset[marker]='1';const symbol=button.querySelector('.unit-symbol,:scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,base),specific=semanticIconKey(raw,label);
   if(symbol){symbol.classList.add('picture-unit-symbol',broad,`semantic-${specific}`);symbol.innerHTML=iconSvgFor(raw,label,broad);}
 }
-function enhanceRegimentalSupport(button){
-  if(button.dataset.pictureSupport==='1')return;button.dataset.pictureSupport='1';const symbol=button.querySelector(':scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,'support'),specific=semanticIconKey(raw,label);
-  if(symbol){symbol.classList.add('picture-unit-symbol',broad,`semantic-${specific}`);symbol.innerHTML=iconSvgFor(raw,label,broad);}
-}
+function enhanceBattalionSlot(button){decorateSlot(button,'pictureSlot','infantry');}
+function enhanceRegimentalSupport(button){decorateSlot(button,'pictureSupport','support');}
+function enhanceDivisionalSupport(button){decorateSlot(button,'pictureDivisionSupport','support');}
 function run(){
   document.querySelectorAll('.picker-choice[data-choice]').forEach(enhancePickerChoice);
   document.querySelectorAll('.hoi-battalion-slot.filled').forEach(enhanceBattalionSlot);
   document.querySelectorAll('.regimental-support.filled').forEach(enhanceRegimentalSupport);
+  document.querySelectorAll('.hoi-support-slot.filled').forEach(enhanceDivisionalSupport);
 }
 registerUiEnhancer(run);

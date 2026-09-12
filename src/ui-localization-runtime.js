@@ -1,5 +1,6 @@
 import { setDisplayLocalization } from './ui-labels.js';
 import { parseEnglishLocalizationFiles, mergeLocalization } from './ui-localization.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const STORAGE='hoi4-war-planner-localization-english-v1';
 
@@ -30,10 +31,4 @@ function injectImporter(){
   };
 }
 
-let scheduled=false;
-function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;injectImporter();});}
-const observer=new MutationObserver(schedule);
-observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',schedule);
-window.addEventListener('pageshow',schedule);
-schedule();
+registerUiEnhancer(injectImporter);

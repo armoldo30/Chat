@@ -1,4 +1,5 @@
 import { displayLabel, looksLikeIdentifier, visualKind, iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const PICKER_TARGETS=[
   ['#land-grand','doctrine','Grand Doctrine'],
@@ -109,10 +110,4 @@ function enhanceVisualControls(root=document){
   enhanceMioTraits(root);
 }
 
-let scheduled=false;
-function schedule(){
-  if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;enhanceVisualControls(document);});
-}
-
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(()=>enhanceVisualControls(document));

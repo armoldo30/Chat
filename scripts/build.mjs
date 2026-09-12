@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { AD_CONFIG, validAdSenseClient } from '../src/ad-config.js';
-import { applyPerformancePatch } from './performance-patch.mjs';
+import { applyPerformancePatch } from './performance-patch-v2.mjs';
 
 const root=resolve(import.meta.dirname,'..');
 const dist=resolve(root,'dist');

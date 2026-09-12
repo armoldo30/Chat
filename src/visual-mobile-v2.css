@@ -1,0 +1,176 @@
+/* 0.16.2 visual/mobile clarity pass. UI-only overrides. */
+
+/* Distinct semantic icon accents while preserving the existing muted HOI-inspired palette. */
+.semantic-armor_light{color:#a7b9b5!important}
+.semantic-armor_medium{color:#91a9aa!important}
+.semantic-armor_heavy,.semantic-armor_superheavy{color:#7f999d!important}
+.semantic-armor_modern{color:#b4c2bb!important}
+.semantic-tank_destroyer{color:#c39172!important}
+.semantic-spg{color:#c99a76!important}
+.semantic-spaa{color:#9db2c7!important}
+.semantic-motorized{color:#b6a47a!important}
+.semantic-mechanized{color:#a79a73!important}
+.semantic-cavalry{color:#b9a77d!important}
+.semantic-mountaineer{color:#9cad96!important}
+.semantic-marine{color:#8faab0!important}
+.semantic-paratrooper{color:#aaa6c0!important}
+.semantic-engineer,.semantic-logistics,.semantic-signal,.semantic-hospital,.semantic-recon{color:#b4b49d!important}
+.semantic-fighter,.semantic-airframe_small{color:#9ebac9!important}
+.semantic-cas{color:#c39b7a!important}
+.semantic-tactical_bomber,.semantic-airframe_medium{color:#a7b3c0!important}
+.semantic-strategic_bomber,.semantic-airframe_large{color:#929faa!important}
+.semantic-naval_air{color:#80a5b0!important}
+.semantic-scout_air{color:#b0bdc4!important}
+.semantic-air_engine{color:#b6aa8b!important}
+.semantic-air_gun{color:#c19a83!important}
+.semantic-bomb{color:#b39474!important}
+.semantic-torpedo{color:#89a4ad!important}
+.semantic-radar{color:#9fb7b0!important}
+.semantic-fuel{color:#b6aa75!important}
+.semantic-turret,.semantic-suspension,.semantic-armor_plate{color:#9dadad!important}
+
+/* Semantic SVGs need the same sizing rules as the broad icon families. */
+.visual-trigger-icon svg,.visual-option-icon svg,.designer-tab-icon svg,.tank-silhouette-icon svg,.air-role-visual svg{fill:none;stroke:currentColor;stroke-linecap:round;stroke-linejoin:round}
+
+/* Division designer: labels should live inside the slot instead of forcing the slot wider. */
+.hoi-battalion-slot>small,.hoi-support-slot>small,.regimental-support small{
+  white-space:normal!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  display:-webkit-box!important;
+  -webkit-box-orient:vertical!important;
+  -webkit-line-clamp:2!important;
+  line-clamp:2!important;
+  overflow-wrap:anywhere!important;
+}
+.picture-unit-symbol{flex:0 0 auto!important}
+
+/* Air/tank selectors: keep icon, title and chevron inside narrow module cells. */
+.tank-module-grid .visual-picker-trigger,.air-module-grid .visual-picker-trigger{
+  min-width:0!important;
+  grid-template-columns:34px minmax(0,1fr) 14px!important;
+  gap:6px!important;
+  padding:5px 6px!important;
+}
+.tank-module-grid .visual-picker-trigger>span:nth-child(2),.air-module-grid .visual-picker-trigger>span:nth-child(2){min-width:0!important;overflow:hidden!important}
+.tank-module-grid .visual-picker-trigger b,.air-module-grid .visual-picker-trigger b{
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+  font-size:.62rem!important;
+}
+.tank-module-grid .visual-picker-trigger small,.air-module-grid .visual-picker-trigger small{font-size:.43rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.tank-module-grid .visual-trigger-icon,.air-module-grid .visual-trigger-icon{width:32px!important;height:32px!important}
+.tank-module-grid .visual-trigger-chevron,.air-module-grid .visual-trigger-chevron{font-size:1rem!important}
+
+@media(max-width:720px){
+  /* Mobile Division Lab: fit all five regiments within the viewport instead of enforcing a 450px board. */
+  .regiment-board{padding:5px 4px!important;overflow-x:hidden!important}
+  .regiment-grid{
+    width:100%!important;
+    min-width:0!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:2px!important;
+  }
+  .hoi-regiment{min-width:0!important;gap:2px!important}
+  .regiment-slots{gap:2px!important}
+  .regiment-title{min-width:0!important;padding:2px 2px!important;font-size:.38rem!important;letter-spacing:.015em!important;line-height:1.05!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .regiment-title span{min-width:0!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .regiment-title b{font-size:.38rem!important;flex:0 0 auto!important}
+  .hoi-battalion-slot{
+    min-width:0!important;
+    min-height:54px!important;
+    padding:2px 1px!important;
+    gap:1px!important;
+  }
+  .picture-unit-symbol{width:24px!important;height:24px!important;margin:0 auto 1px!important}
+  .picture-unit-symbol svg{width:22px!important;height:22px!important;stroke-width:2!important}
+  .hoi-battalion-slot>small{font-size:.38rem!important;line-height:1.02!important;padding:0 1px!important}
+  .regimental-support{height:38px!important;padding:2px 1px!important}
+  .regimental-support .picture-unit-symbol{width:20px!important;height:20px!important}
+  .regimental-support small{font-size:.35rem!important;line-height:1!important}
+  .designer-main-stats{grid-template-columns:repeat(5,minmax(0,1fr))!important}
+  .designer-main-stats span{min-width:0!important;padding:2px!important;display:grid!important;justify-items:center!important;gap:1px!important}
+  .designer-main-stats small{font-size:.36rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;max-width:100%!important}
+  .designer-main-stats b{font-size:.58rem!important}
+  .board-label{display:block!important;text-align:center!important}
+  .board-label>span{font-size:.5rem!important}
+  .board-label small{display:none!important}
+  .regimental-label small{display:none!important}
+  .support-rail{grid-template-columns:repeat(5,minmax(0,1fr))!important;overflow:hidden!important;gap:2px!important;padding:5px 4px!important}
+  .hoi-support-slot{min-width:0!important;min-height:52px!important;padding:2px!important}
+  .hoi-support-slot .picture-unit-symbol,.hoi-support-slot>span{max-width:24px!important;max-height:24px!important}
+  .hoi-support-slot>small{font-size:.37rem!important;line-height:1!important}
+
+  /* Air Lab must be genuinely single-column on phones. This prevents the two aircraft boards from squeezing side-by-side. */
+  .air-lab-grid{display:block!important;width:100%!important;min-width:0!important}
+  .aircraft-designer{width:100%!important;min-width:0!important;margin-bottom:8px!important;overflow:hidden!important}
+  .air-versus{display:flex!important;flex-direction:row!important;justify-content:center!important;min-height:48px!important;margin:5px 0!important}
+  .air-versus>span{width:34px!important;height:34px!important;flex:0 0 34px!important}
+  .air-module-grid{grid-template-columns:1fr!important;gap:4px!important;width:100%!important}
+  .air-module-grid .wide{grid-column:1!important}
+  .air-module-grid label{min-width:0!important;padding:4px!important}
+  .air-module-grid .visual-picker-trigger{
+    grid-template-columns:30px minmax(0,1fr) 12px!important;
+    min-height:42px!important;
+    padding:4px 5px!important;
+    gap:5px!important;
+  }
+  .air-module-grid .visual-trigger-icon{width:28px!important;height:28px!important}
+  .air-module-grid .visual-picker-trigger b{font-size:.58rem!important}
+  .air-module-grid .visual-picker-trigger small{font-size:.4rem!important}
+  .aircraft-head{gap:6px!important;align-items:center!important}
+  .aircraft-head>div:first-child{min-width:0!important;flex:1 1 auto!important}
+  .aircraft-head input{width:100%!important;min-width:0!important;font-size:.78rem!important}
+  .aircraft-role{max-width:42%!important;justify-content:flex-end!important}
+  .air-role-visual{padding:2px 3px!important;gap:2px!important}
+  .air-role-visual i{width:20px!important;height:20px!important}
+  .air-role-visual svg{width:18px!important;height:18px!important}
+  .air-role-visual b{font-size:.38rem!important}
+  .air-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .air-stat-grid>div{min-width:0!important}
+  .air-stat-grid span{font-size:.4rem!important}
+  .air-stat-grid b{font-size:.58rem!important}
+
+  /* Tank designer uses the same compact module language, but can retain a two-column module board on larger phones. */
+  .tank-designer-shell{display:block!important;width:100%!important;min-width:0!important}
+  .tank-blueprint,.tank-performance{width:100%!important;min-width:0!important}
+  .tank-module-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:3px!important}
+  .tank-module-grid label{min-width:0!important;padding:4px!important}
+  .tank-module-grid .visual-picker-trigger{grid-template-columns:28px minmax(0,1fr) 12px!important;min-height:42px!important;padding:4px!important;gap:4px!important}
+  .tank-module-grid .visual-trigger-icon{width:27px!important;height:27px!important}
+  .tank-class-tabs{gap:2px!important}
+  .tank-class-tabs button{min-width:0!important;padding:4px!important}
+  .designer-tab-icon{width:30px!important;height:30px!important}
+  .designer-tab-icon svg{width:24px!important;height:24px!important}
+  .tank-role-tabs .designer-tab-copy small{display:none!important}
+}
+
+@media(max-width:480px){
+  .view{padding-left:5px!important;padding-right:5px!important}
+  .hoi-designer{border-width:1px!important}
+  .designer-topbar{padding:5px!important}
+  .division-ident{min-width:0!important;flex:1 1 auto!important}
+  .division-ident>div{min-width:0!important}
+  .template-name{width:100%!important;min-width:0!important;font-size:.78rem!important}
+  .compact-label{font-size:.42rem!important;max-width:78px!important}
+  .compact-label input{width:58px!important}
+  .regiment-title{font-size:.34rem!important}
+  .hoi-battalion-slot{min-height:50px!important}
+  .picture-unit-symbol{width:21px!important;height:21px!important}
+  .picture-unit-symbol svg{width:20px!important;height:20px!important}
+  .hoi-battalion-slot>small{font-size:.34rem!important}
+  .support-rail{padding-left:3px!important;padding-right:3px!important}
+
+  .tank-module-grid{grid-template-columns:1fr!important}
+  .tank-module-grid .wide{grid-column:1!important}
+  .tank-nameplate{align-items:center!important}
+  .tank-silhouette{width:60px!important;min-width:60px!important;height:48px!important}
+  .tank-silhouette-icon svg{width:30px!important;height:30px!important}
+
+  .visual-picker-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .visual-option{min-width:0!important;min-height:88px!important;padding:6px!important}
+  .visual-option-icon{width:40px!important;height:40px!important}
+  .visual-option-copy b{font-size:.6rem!important}
+  .visual-option-copy small{font-size:.42rem!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+}

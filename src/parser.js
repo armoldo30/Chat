@@ -249,6 +249,9 @@ export function extractSubUnits(parsed){
     if(id==='__items')continue;const raw=obj(last(raw0));
     out[id]={
       id,group:last(raw.group),types:items(raw.type),categories:items(raw.categories),
+      allowedBattalionGroups:items(raw.allowed_battalion_groups),
+      divisional:raw.divisional===undefined?undefined:last(raw.divisional),regimental:raw.regimental===undefined?undefined:last(raw.regimental),
+      sameSupportType:items(raw.same_support_type),battalionMult:raw.battalion_mult===undefined?[]:(Array.isArray(raw.battalion_mult)?raw.battalion_mult:[raw.battalion_mult]).map(plainMap),
       width:num(last(raw.combat_width)),hp:num(last(raw.max_strength)),org:num(last(raw.max_organisation)),manpower:num(last(raw.manpower)),
       supply:num(last(raw.supply_consumption)),hardness:num(last(raw.hardness)),armor:num(last(raw.armor_value)),piercing:num(last(raw.ap_attack)),
       soft:num(last(raw.soft_attack)),hard:num(last(raw.hard_attack)),def:num(last(raw.defense)),breakthrough:num(last(raw.breakthrough)),airAttack:num(last(raw.air_attack)),

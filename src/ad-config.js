@@ -1,9 +1,9 @@
 // Launch monetization configuration.
-// Keep enabled=false until the custom domain is live and AdSense has supplied the real IDs.
+// The publisher account is configured for site verification, while ad serving stays disabled until AdSense approves the site and ad unit slot IDs are available.
 export const AD_CONFIG=Object.freeze({
   enabled:false,
   provider:'adsense',
-  client:'', // ca-pub-################
+  client:'ca-pub-8914411579655885',
   slots:Object.freeze({
     result:'', // responsive unit shown after a completed battle report
     footer:''  // responsive unit shown at the bottom of a planner view

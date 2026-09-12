@@ -1,4 +1,5 @@
 import { displayLabel } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const TARGETS=[
   ['#b-terrain','terrain'],['#f-terrain','terrain'],['#b-river','river'],['#role','role'],['#air-mission','air']
@@ -47,5 +48,4 @@ function enhance(select,kind){
   select.insertAdjacentElement('afterend',strip);
 }
 function run(){for(const [selector,kind] of TARGETS)document.querySelectorAll(selector).forEach(select=>enhance(select,kind));}
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

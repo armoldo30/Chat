@@ -1,4 +1,5 @@
 import { displayLabel, iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function selectedText(select){const option=select?.selectedOptions?.[0];return displayLabel(option?.value,option?.textContent||option?.value||'—');}
 function clickLauncher(selector){document.querySelector(selector)?.click();}
@@ -25,5 +26,4 @@ function enhance(panel){
 }
 
 function run(){document.querySelectorAll('.tech-doctrine-panel').forEach(enhance);}
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

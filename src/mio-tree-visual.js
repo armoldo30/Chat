@@ -12,10 +12,11 @@ function currentPack(){
 }
 function currentCatalog(){try{return mioCatalog(currentPack());}catch{return {};}}
 function orgIdFor(root){
+  if(root?.dataset?.mioOrgId)return root.dataset.mioOrgId;
   const selected=root.closest('.mio-board-content')?.querySelector('.mio-org-card.selected');
-  return selected?.dataset.mioOrgBoard??selected?.dataset.inlineMioOrgBoard??'';
+  return selected?.dataset.mioOrgBoard??selected?.dataset.inlineMioOrgBoard??selected?.dataset.workflowOrg??selected?.dataset.inlineOrg??'';
 }
-function traitId(button){return button.dataset.mioTraitBoard??button.dataset.inlineMioTraitBoard??'';}
+function traitId(button){return button.dataset.workflowTrait??button.dataset.inlineTrait??button.dataset.mioTraitBoard??button.dataset.inlineMioTraitBoard??'';}
 function dependencyGroups(trait={}){
   return {
     any:[...(trait.parents||[])],

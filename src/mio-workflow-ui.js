@@ -79,7 +79,8 @@ export function traitModel(org,inputs=[]){
   const selected=inputs.filter(x=>x.checked).map(x=>x.value),selectedSet=new Set(selected),byId=new Map(inputs.map(x=>[x.value,x]));
   const rows=inputs.map(input=>{
     const id=input.value,trait=org?.traits?.[id]||{id,name:id},active=selectedSet.has(id),available=!active&&traitSelectable(org,id,selected),dependents=selectedDependents(org,id,selected),canRemove=active&&!dependents.length;
-    return {id,input,trait,name:displayLabel(id,trait.name||id),active,available,locked:!active&&!available,canRemove,dependents,reason:active&&!canRemove?`Used by ${dependents.map(displayLabel).join(', ')}`:dependencyText(trait,selected)};
+    const dependentNames=dependents.map(dep=>displayLabel(dep,org?.traits?.[dep]?.name||dep));
+    return {id,input,trait,name:displayLabel(id,trait.name||id),active,available,locked:!active&&!available,canRemove,dependents,reason:active&&!canRemove?`Used by ${dependentNames.join(', ')}`:dependencyText(trait,selected)};
   });
   return {selected,rows,active:rows.filter(x=>x.active),available:rows.filter(x=>x.available),locked:rows.filter(x=>x.locked),byId};
 }

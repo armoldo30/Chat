@@ -1,4 +1,5 @@
 /* Cosmetic/UX enhancement layer. Keeps src/main.js simulation behavior untouched. */
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const NAV_GROUPS=[
   ['Command',[
@@ -53,8 +54,4 @@ function enhanceChrome(){
   if(topbar)topbar.setAttribute('role','banner');
 }
 
-const observer=new MutationObserver(()=>queueMicrotask(enhanceChrome));
-observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',()=>requestAnimationFrame(enhanceChrome));
-window.addEventListener('pageshow',enhanceChrome);
-enhanceChrome();
+registerUiEnhancer(enhanceChrome);

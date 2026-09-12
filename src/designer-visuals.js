@@ -1,4 +1,5 @@
 import { displayLabel, iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const ROLE_KIND={armor:'armor',tank_destroyer:'antitank',td:'antitank',spg:'artillery',artillery:'artillery',spaa:'antiair',anti_air:'antiair',flame:'support',support:'support',recon:'support'};
 function roleKind(value=''){const id=String(value).toLowerCase();for(const [needle,kind] of Object.entries(ROLE_KIND))if(id.includes(needle))return kind;return 'armor';}
@@ -33,5 +34,4 @@ function enhance(){
   document.querySelectorAll('.tank-silhouette').forEach(enhanceTankSilhouette);
   enhanceAirRoles();
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;enhance();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(enhance);

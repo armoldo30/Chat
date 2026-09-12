@@ -1,0 +1,42 @@
+name: Oracle Laboratory Validation
+
+on:
+  push:
+    branches: ['oracle-lab-1.19.2']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: oracle-lab-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Production regression suite
+        run: npm test
+      - name: Oracle O1 log parser certification
+        run: node tests/oracle-log-to-capture.test.mjs
+      - name: Oracle O1 mod package static certification
+        run: node tests/oracle-mod-package.test.mjs
+      - name: Static production build
+        run: npm run build
+      - name: Verify laboratory files and clean build
+        run: |
+          set -euo pipefail
+          test -f oracle-lab/reference/1.19.2-d245.json
+          test -f oracle-lab/hoi4-mod/hoi4_war_planner_oracle.mod
+          test -f oracle-lab/hoi4-mod/hoi4_war_planner_oracle/descriptor.mod
+          test -f oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o1_effects.txt
+          test -f oracle-lab/hoi4-mod/hoi4_war_planner_oracle/events/oracle_o1_events.txt
+          grep -q 'checksum=d245' oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o1_effects.txt
+          grep -q 'supported_version="1.19.2.\*"' oracle-lab/hoi4-mod/hoi4_war_planner_oracle.mod
+          git diff --exit-code

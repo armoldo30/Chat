@@ -1,0 +1,30 @@
+name: Performance 0.16.1 Validation
+on:
+  push:
+    branches: [performance-0.16.1]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Performance transform certification
+        run: node tests/performance-build.test.mjs
+      - name: Production regression suite
+        run: npm test
+      - name: Build optimized static site
+        run: npm run build
+      - name: Verify optimized bundle markers
+        run: |
+          grep -q "equipmentSideCache" dist/src/main.js
+          grep -q "techSideCache" dist/src/main.js
+          grep -q "divisionSideCache" dist/src/main.js
+          grep -q "refreshDivisionLab" dist/src/main.js

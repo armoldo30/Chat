@@ -8,7 +8,7 @@ permissions:
 
 concurrency:
   group: regimental-support-source-patcher
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   patch:

@@ -1,4 +1,5 @@
 import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(value,base='industry'){const kind=visualKind(value);return kind==='generic'?base:kind;}
 function optionLabel(option){return displayLabel(option?.value,option?.textContent);}
@@ -40,5 +41,5 @@ function injectDrawer(drawer){
 }
 
 function inject(){document.querySelectorAll('.mio-drawer').forEach(injectDrawer);}
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;inject();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('inline-mio-board-modal'))closeBoard();});schedule();
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('inline-mio-board-modal'))closeBoard();});
+registerUiEnhancer(inject);

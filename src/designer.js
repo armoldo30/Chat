@@ -1,11 +1,12 @@
 import { battalions as runtimeBattalions } from './data.js';
+import { regimentGroupForUnit } from './regiment-groups.js';
 
 export const DESIGNER_COLS=5;
 export const DESIGNER_ROWS=5;
 export const blankGrid=()=>Array.from({length:DESIGNER_COLS},()=>Array(DESIGNER_ROWS).fill(null));
 
 const validSet=validTypes=>validTypes instanceof Set?validTypes:new Set(validTypes||[]);
-const groupOf=(type,battalionMap=runtimeBattalions)=>String(battalionMap?.[type]?.group||type||'').toLowerCase();
+const groupOf=(type,battalionMap=runtimeBattalions)=>regimentGroupForUnit(type,battalionMap?.[type]);
 const firstEmptyRow=column=>Array.isArray(column)?column.findIndex(x=>!x):-1;
 
 export function regimentGroup(grid,column,battalionMap=runtimeBattalions,ignoreRow=null){

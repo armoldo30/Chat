@@ -24,7 +24,9 @@ jobs:
         with:
           node-version: 24
       - name: Apply source correction
-        run: node scripts/regimental-support-source-patch.mjs
+        run: |
+          node scripts/regimental-support-source-patch.mjs
+          node scripts/regimental-support-performance-marker-patch.mjs
       - name: Full regression suite
         run: npm test
       - name: Build static site
@@ -34,7 +36,7 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add src/main.js src/parser.js src/gameData.js
+          git add src/main.js src/parser.js src/gameData.js scripts/performance-patch-v2.mjs
           if git diff --cached --quiet; then
             echo "No source changes to commit"
             exit 0

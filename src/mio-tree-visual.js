@@ -39,7 +39,7 @@ function levelsFor(org,visible){
 function addDependencyNotes(button,trait,visible){
   if(button.querySelector('.mio-dependency-note'))return;
   const g=dependencyGroups(trait),parts=[];
-  const names=ids=>ids.filter(x=>visible.has(x)).map(displayLabel);
+  const names=ids=>ids.filter(x=>visible.has(x)).map(id=>displayLabel(id));
   const any=names(g.any),all=names(g.all),counted=names(g.counted),exclusive=names(g.exclusive);
   if(any.length)parts.push(`Requires one: ${any.join(' / ')}`);
   if(all.length)parts.push(`Requires all: ${all.join(' + ')}`);

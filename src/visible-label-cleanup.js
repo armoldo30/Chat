@@ -1,4 +1,5 @@
 import { displayLabel, looksLikeIdentifier } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const TARGETS='option,td,th,span,b,strong,h3,small';
 const blockedTags=new Set(['CODE','PRE','SCRIPT','STYLE','TEXTAREA']);
@@ -18,5 +19,4 @@ function run(root=document){
   const scope=root.querySelector?.('#app')||root;if(!scope?.querySelectorAll)return;
   scope.querySelectorAll(TARGETS).forEach(cleanElement);
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run(document);});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(()=>run(document));

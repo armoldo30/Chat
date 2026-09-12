@@ -1,4 +1,5 @@
 import { iconSvg, visualKind } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(value,base='infantry'){const kind=visualKind(value);return kind==='generic'?base:kind;}
 function iconMarkup(kind){return `<span class="division-unit-icon ${kind}">${iconSvg(kind)}</span>`;}
@@ -21,5 +22,4 @@ function run(){
   document.querySelectorAll('.hoi-battalion-slot.filled').forEach(enhanceBattalionSlot);
   document.querySelectorAll('.regimental-support.filled').forEach(enhanceRegimentalSupport);
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

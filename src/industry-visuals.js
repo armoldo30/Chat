@@ -1,4 +1,5 @@
 import { iconSvg, visualKind } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(text){const kind=visualKind(text);return kind==='generic'?'industry':kind;}
 function decorateBadge(badge){
@@ -19,5 +20,4 @@ function run(){
   document.querySelectorAll('.stock-grid label').forEach(decorateStock);
   document.querySelectorAll('.loss-list > span').forEach(decorateLoss);
 }
-let scheduled=false;function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;run();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(run);

@@ -63,7 +63,7 @@ export function dependencyIds(trait={}){const g=dependencyGroups(trait);return [
 
 export function dependencyText(trait={},selected=[]){
   const set=new Set(selected),g=dependencyGroups(trait),parts=[];
-  const names=ids=>ids.map(displayLabel);
+  const names=ids=>ids.map(id=>displayLabel(id));
   if(g.any.length&&!g.any.some(x=>set.has(x)))parts.push(`One of: ${names(g.any).join(' / ')}`);
   const missingAll=g.all.filter(x=>!set.has(x));if(missingAll.length)parts.push(`Requires: ${names(missingAll).join(' + ')}`);
   if(g.counted.length){const have=g.counted.filter(x=>set.has(x)).length;if(have<g.count)parts.push(`Requires ${g.count-have} more from: ${names(g.counted.filter(x=>!set.has(x))).join(' / ')}`);}

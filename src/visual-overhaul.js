@@ -1,4 +1,4 @@
-import { displayLabel, looksLikeIdentifier, visualKind, iconSvg } from './ui-labels.js';
+import { displayLabel, looksLikeIdentifier, visualKind, iconSvg, iconSvgFor, semanticIconKey } from './ui-labels.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const PICKER_TARGETS=[
@@ -56,15 +56,20 @@ function closeModal(){
   lastTrigger?.focus?.();lastTrigger=null;
 }
 
+function semanticIcon(option,baseKind){
+  const label=optionLabel(option),kind=resolvedKind(`${option?.value||''} ${label}`,baseKind),specific=semanticIconKey(option?.value,label);
+  return {label,kind,specific,svg:iconSvgFor(option?.value,label,kind)};
+}
+
 function openPicker(select,baseKind,title){
   const modal=ensureModal(),grid=modal.querySelector('#visual-picker-grid');lastTrigger=select.nextElementSibling;
   modal.querySelector('#visual-picker-title').textContent=title;
   modal.querySelector('#visual-picker-help').textContent='Choose visually. The planner keeps the underlying game-data value unchanged.';
   grid.innerHTML='';
   [...select.options].forEach(option=>{
-    const label=optionLabel(option),kind=resolvedKind(option.value,baseKind);
+    const visual=semanticIcon(option,baseKind);
     const card=document.createElement('button');card.type='button';card.className=`visual-option ${option.selected?'selected':''}`;card.disabled=option.disabled;
-    card.innerHTML=`<span class="visual-option-icon ${kind}">${iconSvg(kind)}</span><span class="visual-option-copy"><b>${label}</b>${option.value&&label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check">✓</span>':''}`;
+    card.innerHTML=`<span class="visual-option-icon ${visual.kind} semantic-${visual.specific}">${visual.svg}</span><span class="visual-option-copy"><b>${visual.label}</b>${option.value&&visual.label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check">✓</span>':''}`;
     card.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));closeModal();});
     grid.append(card);
   });
@@ -76,11 +81,11 @@ function enhanceSelect(select,baseKind,title){
   select.dataset.visualEnhanced='1';select.classList.add('visual-source-select');
   const button=document.createElement('button');button.type='button';button.className='visual-picker-trigger';
   const refresh=()=>{
-    const option=select.selectedOptions?.[0]||select.options?.[select.selectedIndex],label=optionLabel(option),kind=resolvedKind(option?.value,baseKind);
-    button.innerHTML=`<span class="visual-trigger-icon ${kind}">${iconSvg(kind)}</span><span><small>${selectorTitle(select,title)}</small><b>${label}</b></span><span class="visual-trigger-chevron">›</span>`;
+    const option=select.selectedOptions?.[0]||select.options?.[select.selectedIndex],visual=semanticIcon(option,baseKind);
+    button.innerHTML=`<span class="visual-trigger-icon ${visual.kind} semantic-${visual.specific}">${visual.svg}</span><span><small>${selectorTitle(select,title)}</small><b>${visual.label}</b></span><span class="visual-trigger-chevron">›</span>`;
     button.title=`Choose ${selectorTitle(select,title)}`;
   };
-  refresh();button.addEventListener('click',()=>openPicker(select,baseKind,selectorTitle(select,title)));select.insertAdjacentElement('afterend',button);
+  refresh();button.addEventListener('click',()=>openPicker(select,baseKind,selectorTitle(select,title)));select.addEventListener('change',refresh);select.insertAdjacentElement('afterend',button);
 }
 
 function enhanceMastery(range){

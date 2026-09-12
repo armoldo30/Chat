@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import BUILTIN_1192 from '../src/builtin1192.js';
 import { regimentGroupForUnit, normalizeBattalionRegimentGroups, regimentGroupLabel } from '../src/regiment-groups.js';
+
+const sourceArtillery=BUILTIN_1192.subUnits.artillery_brigade;
+const sourceAT=BUILTIN_1192.subUnits.anti_tank_brigade;
+const sourceAA=BUILTIN_1192.subUnits.anti_air_brigade;
+assert.equal(sourceArtillery.group,'combat_support','bundled 1.19.2 line artillery source group should be combat_support');
+assert.equal(sourceAT.group,'combat_support','bundled 1.19.2 line AT source group should be combat_support');
+assert.equal(sourceAA.group,'combat_support','bundled 1.19.2 line AA source group should be combat_support');
+assert.ok(sourceArtillery.categories.includes('category_line_artillery'));
 
 assert.equal(regimentGroupForUnit('infantry',{group:'infantry',gameId:'infantry'}),'infantry');
 assert.equal(regimentGroupForUnit('artillery',{group:'infantry',gameId:'artillery_brigade',categories:['category_line_artillery'],types:['infantry','artillery']}),'combat_support','line artillery must not collapse into infantry');

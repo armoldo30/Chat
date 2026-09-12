@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "game": "Hearts of Iron IV",
+  "buildLabel": "Operation Postern",
+  "gameVersion": "1.19.2.0.a729",
+  "checksum": "d245",
+  "referencePatch": "1.19.2",
+  "debugModeConfirmed": true,
+  "debugConfirmation": "NUDGE! control visible after launching with -debug",
+  "baselineSave": "Oracle_Baseline_1936.hoi4",
+  "baselineStart": "1936 single-player",
+  "verifiedDate": "2026-09-11",
+  "evidenceClass": "provenance",
+  "notes": "Reference-environment metadata only. This file does not classify combat behavior as oracle-validated."
+}

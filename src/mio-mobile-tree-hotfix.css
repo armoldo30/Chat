@@ -1,0 +1,78 @@
+/* Mobile MIO tree readability hotfix.
+ * Keep the game-like branching tree, but give every tier enough horizontal
+ * canvas so nodes never collide. This layer intentionally loads after
+ * game-ui-parity.css.
+ */
+#mio-board-modal .mio-board-traits.mio-tree-layout{
+  min-width:var(--mio-tree-min-width,980px)!important;
+  grid-template-columns:repeat(var(--mio-tree-columns,18),minmax(0,1fr))!important;
+}
+
+@media(max-width:720px){
+  #mio-board-modal .mio-full-tree{
+    overflow:auto!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-inline:contain;
+    touch-action:pan-x pan-y;
+  }
+  #mio-board-modal .mio-full-tree>.mio-section-title::before{
+    content:'SWIPE LEFT / RIGHT TO EXPLORE BRANCHES';
+    display:block;
+    margin:0 0 6px;
+    color:#d0b56d;
+    font-size:.46rem;
+    font-weight:800;
+    letter-spacing:.09em;
+  }
+  #mio-board-modal .mio-board-traits.mio-tree-layout{
+    width:var(--mio-tree-min-width,1100px)!important;
+    min-width:var(--mio-tree-min-width,1100px)!important;
+    grid-template-columns:repeat(var(--mio-tree-columns,18),minmax(0,1fr))!important;
+    grid-auto-rows:minmax(92px,auto)!important;
+    gap:34px 8px!important;
+    padding:36px 24px 30px!important;
+  }
+  #mio-board-modal .mio-board-trait{
+    min-width:0!important;
+    min-height:86px;
+    overflow:hidden;
+    grid-template-columns:34px minmax(0,1fr);
+    gap:7px;
+  }
+  #mio-board-modal .mio-board-trait>span:last-child{min-width:0;overflow:hidden}
+  #mio-board-modal .mio-board-trait b{
+    display:block;
+    font-size:.59rem;
+    line-height:1.15;
+    overflow-wrap:anywhere;
+  }
+  #mio-board-modal .mio-board-trait small{
+    display:block;
+    margin-top:3px;
+    font-size:.44rem;
+    line-height:1.15;
+    white-space:normal;
+  }
+  /* Long effect summaries and prerequisite prose are useful on desktop but
+     were the main source of the unreadable text pile-up in the phone view. */
+  #mio-board-modal .mio-board-trait>span:last-child>em{display:none!important}
+  #mio-board-modal .mio-board-trait.locked small{display:none!important}
+  #mio-board-modal .mio-board-trait.locked>span:last-child::after{
+    content:'LOCKED';
+    display:block;
+    margin-top:4px;
+    color:#8f9183;
+    font-size:.43rem;
+    letter-spacing:.08em;
+  }
+  #mio-board-modal .mio-tree-links{display:block!important;opacity:.76}
+}
+
+@media(max-width:430px){
+  #mio-board-modal .mio-board-traits.mio-tree-layout{
+    width:var(--mio-tree-min-width,1100px)!important;
+    min-width:var(--mio-tree-min-width,1100px)!important;
+  }
+  #mio-board-modal .mio-board-trait{padding:7px;grid-template-columns:30px minmax(0,1fr)}
+  #mio-board-modal .mio-board-trait .node-emblem{width:30px;height:30px}
+}

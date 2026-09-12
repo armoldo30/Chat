@@ -22,7 +22,7 @@ assert.doesNotMatch(patched,/data-rslot[^\n]+designerPick[^\n]+shell\(\)/,'openi
 const enhancerModules=[
   'ui-polish.js','nav-visuals.js','ui-localization-runtime.js','visual-overhaul.js','visible-label-cleanup.js','visual-quick-controls.js',
   'division-visuals.js','industry-visuals.js','battlefield-visuals.js','battle-report-visuals.js','designer-visuals.js','stat-visuals.js',
-  'doctrine-board.js','air-doctrine-board.js','air-doctrine-primary.js','mio-board.js','inline-mio-board.js','mio-tree-visual.js','tech-system-summary.js'
+  'doctrine-board.js','air-doctrine-board.js','air-doctrine-primary.js','mio-board.js','inline-mio-board.js','mio-tree-visual.js','tech-system-summary.js','ads.js'
 ];
 const enhancerRuntime=await readFile(resolve(root,'src/ui-enhancer-runtime.js'),'utf8');
 assert.match(enhancerRuntime,/new MutationObserver/,'shared enhancer runtime should own the single DOM observer');

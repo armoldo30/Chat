@@ -1,4 +1,5 @@
 import { iconSvg } from './ui-labels.js';
+import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const RANGE_CONTROLS={
   'b-asupply':{label:'Attacker Supply',kind:'support',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
@@ -52,7 +53,4 @@ function enhance(){
   for(const [id,meta] of Object.entries(PIP_CONTROLS))enhancePips(document.getElementById(id),meta);
 }
 
-let scheduled=false;
-function schedule(){if(scheduled)return;scheduled=true;queueMicrotask(()=>{scheduled=false;enhance();});}
-const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{childList:true,subtree:true});
-window.addEventListener('hashchange',schedule);window.addEventListener('pageshow',schedule);schedule();
+registerUiEnhancer(enhance);

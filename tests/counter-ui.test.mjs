@@ -39,6 +39,8 @@ assert.match(search,/runCounterSearchResponsive/,'live Counter Analysis must exp
 assert.match(search,/SAFE_DEFAULTS=\{runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8\}/,'default live search must remain browser-bounded');
 assert.match(search,/yieldControl/,'responsive search must yield control between candidate simulations');
 assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive search rather than the blocking search');
+assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
+assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\)\);\}/,'Counter settings refresh must contain snapshot/render failures locally');
 assert.match(searchView,/ANALYZING \$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress');
 assert.match(searchView,/DIVISION \+ EQUIPMENT TWO-STEP SEARCH/);
 assert.match(searchView,/fixed context/);

@@ -3,7 +3,7 @@ import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 import { currentMioCatalog, organizationChoices, familyTitleFor, traitModel, traitIcon, traitKind, effectSummary, toggleTheorycraft } from './mio-workflow-ui.js';
 
 const PICK_ORG=new Set();
-const esc=s=>String(s??'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const source=id=>document.getElementById(id)?.closest('.mio-drawer')||null;
 const close=()=>{document.getElementById('inline-mio-guided-modal')?.remove();document.documentElement.classList.remove('picker-open');};
 function title(select){return familyTitleFor(select,'Equipment');}

@@ -3,8 +3,8 @@ import { access, readFile } from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow]=await Promise.all([
-  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml')
+const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,browserSmoke,domAudit]=await Promise.all([
+  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml'),read('scripts/served-browser-smoke.sh'),read('scripts/audit-rendered-dom.py')
 ]);
 const pkg=JSON.parse(pkgText);
 
@@ -29,8 +29,17 @@ assert.match(polish,/:focus-visible/,'keyboard focus must remain visible');
 assert.match(polish,/prefers-reduced-motion:reduce/,'reduced-motion preference must be honored');
 assert.match(ads,/enabled:false/,'AdSense must remain disabled in the launch candidate');
 assert.match(build,/\['CNAME','robots\.txt'\]/,'build must carry optional custom-domain and crawler files when present');
+assert.match(pkg.scripts.test,/static-site-integrity\.test\.mjs/,'static public-site integrity audit must run in the normal regression suite');
 assert.match(mainWorkflow,/if: github\.ref == 'refs\/heads\/main'/,'Pages deployment must remain explicitly main-only even for manual workflow dispatch');
+assert.match(mainWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'production deployment must be gated by the served-browser route audit');
 assert.match(releaseWorkflow,/permissions:\n  contents: read/,'release-candidate validation must remain read-only');
+assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR validation must use the same served-browser audit as production');
+assert.match(browserSmoke,/battle gauntlet tank air production data scenario/,'browser smoke must crawl every current planner route');
+assert.match(browserSmoke,/390,844/,'browser smoke must include a phone-sized viewport');
+assert.match(browserSmoke,/audit-rendered-dom\.py/,'browser smoke must run the structural accessibility audit');
+assert.match(domAudit,/duplicate id/,'rendered DOM audit must reject duplicate element IDs');
+assert.match(domAudit,/without accessible name/,'rendered DOM audit must reject unnamed interactive controls');
+assert.match(domAudit,/without label/,'rendered DOM audit must reject unlabeled form controls');
 
 for(const path of [
   '.mio-stage',

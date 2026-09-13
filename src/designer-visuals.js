@@ -40,6 +40,11 @@ function enhanceAirRoles(){
     const text=span.textContent.trim(),id=text.toLowerCase().replaceAll(' ','_'),specific=itemIconKey(id,text,'air');
     span.classList.add('air-role-visual',`semantic-${specific}`);span.innerHTML=`<i>${itemIconSvg(id,text,'air','air')}</i><b>${displayLabel(id,text)}</b>`;
   });
+  document.querySelectorAll('.aircraft-head input[id$="-name"]').forEach(input=>{
+    if(input.getAttribute('aria-label')||input.getAttribute('aria-labelledby'))return;
+    const side=input.closest('.aircraft-head')?.querySelector('.eyebrow')?.textContent?.trim()||'Aircraft';
+    input.setAttribute('aria-label',`${side} name`);
+  });
 }
 function enhance(){
   document.querySelectorAll('[data-tank-class]').forEach(enhanceTankClass);

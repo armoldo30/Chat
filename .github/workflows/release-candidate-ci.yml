@@ -59,41 +59,5 @@ jobs:
           print('Built local references:',len(p.refs))
           PY
           git diff --exit-code
-      - name: Served browser smoke
-        run: |
-          set -euo pipefail
-          python3 -m http.server 4173 --directory dist >/tmp/hoi4-server.log 2>&1 &
-          server=$!
-          trap 'kill $server 2>/dev/null || true' EXIT
-          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:4173/ >/dev/null && break; sleep .2; done
-          curl -fsS http://127.0.0.1:4173/privacy.html >/dev/null
-          curl -fsS http://127.0.0.1:4173/robots.txt | grep -q 'Allow: /'
-          curl -fsS http://127.0.0.1:4173/src/gauntlet.css >/dev/null
-          browser="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || true)"
-          test -n "$browser"
-          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=1440,1000 --virtual-time-budget=8000 --dump-dom 'http://127.0.0.1:4173/#gauntlet' >/tmp/gauntlet-dom.html 2>/tmp/chrome-gauntlet.log
-          python3 - <<'PY'
-          from html.parser import HTMLParser
-          from pathlib import Path
-          class Audit(HTMLParser):
-              def __init__(self): super().__init__(); self.footer=False;self.privacy=None;self.hrefs=[];self.text=[]
-              def handle_starttag(self,tag,attrs):
-                  a=dict(attrs)
-                  if tag=='footer' and 'site-legal-footer' in a.get('class','').split(): self.footer=True
-                  if tag=='button' and 'data-privacy-choices' in a: self.privacy=('hidden' not in a)
-                  if 'href' in a:self.hrefs.append(a['href'])
-              def handle_data(self,data): self.text.append(data)
-          p=Audit();p.feed(Path('/tmp/gauntlet-dom.html').read_text())
-          text=' '.join(p.text)
-          assert p.footer,'legal footer disappeared after SPA render'
-          assert p.privacy is True,'privacy choices control was not wired after render'
-          assert '#gauntlet' in p.hrefs,'Gauntlet navigation link missing'
-          assert 'Put one division through the entire war.' in text,'Gauntlet route did not render'
-          print('Desktop Gauntlet DOM smoke passed')
-          PY
-          "$browser" --headless=new --no-sandbox --disable-gpu --window-size=390,844 --virtual-time-budget=8000 --dump-dom 'http://127.0.0.1:4173/#scenario' >/tmp/mobile-dom.html 2>/tmp/chrome-mobile.log
-          grep -q 'SCENARIO CONTROL' /tmp/mobile-dom.html
-          grep -q 'site-legal-footer' /tmp/mobile-dom.html
-          ! grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)' /tmp/chrome-gauntlet.log
-          ! grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)' /tmp/chrome-mobile.log
-          echo 'Served desktop/mobile browser smoke passed'
+      - name: Served browser route and accessibility smoke
+        run: bash scripts/served-browser-smoke.sh dist

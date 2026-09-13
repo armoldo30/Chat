@@ -1,30 +1,22 @@
 import { effectiveAttack } from './counter-diagnosis.js';
-
 const n=value=>Number.isFinite(Number(value))?Number(value):0;
 const pct=(next,base)=>base?((next-base)/Math.abs(base))*100:0;
 const signed=(value,digits=1)=>`${value>=0?'+':''}${Number(value).toFixed(digits)}`;
-
 function forceDesignContext(item,target,reasons,tradeoffs){
-  if(item.designChange){
-    const {variant,component,before,after}=item.designChange,piercing=n(after.piercing)-n(before.piercing),soft=n(after.softAttack)-n(before.softAttack),hard=n(after.hardAttack)-n(before.hardAttack),armor=n(after.armor)-n(before.armor),breakthrough=n(after.breakthrough)-n(before.breakthrough),cost=n(after.buildCost)-n(before.buildCost),reliability=(n(after.reliability)-n(before.reliability))*100,fuel=n(after.fuelConsumption)-n(before.fuelConsumption);
-    const effects=[];
-    if(Math.abs(piercing)>=2)effects.push(`${signed(piercing)} piercing`);
-    if(target.hardness>=.5&&Math.abs(hard)>=3)effects.push(`${signed(hard)} hard attack`);
-    if(target.hardness<.5&&Math.abs(soft)>=3)effects.push(`${signed(soft)} soft attack`);
-    if(Math.abs(armor)>=3)effects.push(`${signed(armor)} armor`);
-    if(Math.abs(breakthrough)>=3)effects.push(`${signed(breakthrough)} breakthrough`);
-    reasons.unshift(`${variant} ${component} retune${effects.length?` changes the underlying variant by ${effects.slice(0,3).join(', ')}`:''}; the division matchup is recalculated from that new equipment design.`);
-    if(cost>0.05)tradeoffs.unshift(`${variant} build cost rises by ${cost.toFixed(1)} IC per vehicle.`);
-    else if(cost<-0.05)tradeoffs.unshift(`${variant} build cost falls by ${Math.abs(cost).toFixed(1)} IC per vehicle.`);
-    if(reliability<=-1)tradeoffs.push(`${variant} reliability falls by ${Math.abs(reliability).toFixed(1)} percentage points.`);
-    if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
-  }
-  if(item.techChange){
-    reasons.unshift(`${item.techChange.label} moves from tier ${item.techChange.before} to ${item.techChange.after}; all affected battalion/support stats are recalculated before the matchup is simulated.`);
-    tradeoffs.unshift('Research time, line conversion, production-efficiency loss, and replacement-equipment transition cost are not priced in this comparison.');
-  }
+  if(!item.designChange)return;
+  const {variant,component,before,after}=item.designChange,piercing=n(after.piercing)-n(before.piercing),soft=n(after.softAttack)-n(before.softAttack),hard=n(after.hardAttack)-n(before.hardAttack),armor=n(after.armor)-n(before.armor),breakthrough=n(after.breakthrough)-n(before.breakthrough),cost=n(after.buildCost)-n(before.buildCost),reliability=(n(after.reliability)-n(before.reliability))*100,fuel=n(after.fuelConsumption)-n(before.fuelConsumption);
+  const effects=[];
+  if(Math.abs(piercing)>=2)effects.push(`${signed(piercing)} piercing`);
+  if(target.hardness>=.5&&Math.abs(hard)>=3)effects.push(`${signed(hard)} hard attack`);
+  if(target.hardness<.5&&Math.abs(soft)>=3)effects.push(`${signed(soft)} soft attack`);
+  if(Math.abs(armor)>=3)effects.push(`${signed(armor)} armor`);
+  if(Math.abs(breakthrough)>=3)effects.push(`${signed(breakthrough)} breakthrough`);
+  reasons.unshift(`${variant} ${component} retune${effects.length?` changes the underlying variant by ${effects.slice(0,3).join(', ')}`:''}; the division matchup is recalculated from that new equipment design.`);
+  if(cost>0.05)tradeoffs.unshift(`${variant} build cost rises by ${cost.toFixed(1)} IC per vehicle.`);
+  else if(cost<-0.05)tradeoffs.unshift(`${variant} build cost falls by ${Math.abs(cost).toFixed(1)} IC per vehicle.`);
+  if(reliability<=-1)tradeoffs.push(`${variant} reliability falls by ${Math.abs(reliability).toFixed(1)} percentage points.`);
+  if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
 }
-
 export function explainCounter(item,snapshot){
   if(!item?.stats)return {reasons:[],tradeoffs:[],summary:'No modeled explanation available.'};
   const base=snapshot.attacker,target=snapshot.defender,next=item.stats,reasons=[],tradeoffs=[];

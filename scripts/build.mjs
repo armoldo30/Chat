@@ -11,10 +11,12 @@ for(const file of ['index.html','guides.html','methodology.html','about.html','p
   await cp(resolve(root,file),resolve(dist,file));
 }
 await cp(resolve(root,'src'),resolve(dist,'src'),{recursive:true});
-for(const file of ['CNAME','robots.txt','sitemap.xml']){
+for(const file of ['CNAME','robots.txt']){
   try{await cp(resolve(root,file),resolve(dist,file));}
   catch(err){if(err?.code!=='ENOENT')throw err;}
 }
+try{await cp(resolve(root,'sitemap.xml'),resolve(dist,'sitemap.xml'));}
+catch(err){if(err?.code!=='ENOENT')throw err;}
 
 const mainPath=resolve(dist,'src','main.js');
 await writeFile(mainPath,applyPerformancePatch(await readFile(mainPath,'utf8')));

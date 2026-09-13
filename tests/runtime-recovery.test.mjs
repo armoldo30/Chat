@@ -17,9 +17,12 @@ assert.match(index,/strict-origin-when-cross-origin/,'launch page should use a c
 
 assert.match(guard,/window\.addEventListener\('error'/,'runtime errors must be caught');
 assert.match(guard,/window\.addEventListener\('unhandledrejection'/,'unhandled promise failures must be caught');
-assert.match(guard,/criticalRuntimeError/,'runtime recovery must distinguish real JS failures from ordinary resource-load errors');
-assert.match(guard,/CRITICAL_SCRIPT_RE/,'core planner scripts must still count as critical resource failures');
-assert.match(guard,/non-critical resource load error/,'non-critical asset failures must be logged without showing planner recovery');
+assert.match(guard,/criticalRuntimeError/,'runtime recovery must distinguish critical JS failures from ordinary enhancer/resource failures');
+assert.match(guard,/CRITICAL_SCRIPT_RE/,'core planner and Counter scripts must still count as critical failures');
+assert.match(guard,/product-direction-runtime/,'product-direction failures must remain visible because they can leave the obsolete shell exposed');
+assert.match(guard,/non-critical runtime\/resource error/,'non-critical enhancer or asset failures must be logged without showing planner recovery');
+assert.match(guard,/Technical details/,'mobile recovery must expose an in-page diagnostic without requiring developer tools');
+assert.match(guard,/errorDetail/,'runtime recovery must include source and line diagnostics when available');
 assert.match(guard,/12000/,'stalled app startup must have a recovery path');
 assert.match(guard,/hoi4-war-planner-v7/,'reset must target current local planner storage');
 assert.match(guard,/issues\/new\/choose/,'runtime recovery must expose bug reporting');

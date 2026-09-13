@@ -24,15 +24,19 @@ assert.match(forceCandidates,/tankVariantTargets/,'force-design search must only
 assert.match(forceCandidates,/equipment-tech/,'force-design search must include relevant equipment-tier changes');
 assert.match(forceCandidates,/counterForceKey/,'force-design candidates must use state-aware deduplication');
 assert.match(search,/buildForceDesignCandidates/,'counter search must combine force-design and template candidates');
+assert.match(search,/costUnpriced/,'counter search must track equipment-tier transitions whose production cost is not yet modeled');
 assert.match(search,/simulateBattle/,'counter candidates must be evaluated through the combat model');
 assert.match(search,/beamWidth/,'counter search must bound second-step expansion with a beam');
 assert.match(search,/secondStepLimit/,'counter search must cap second-step simulation work');
 assert.match(searchView,/FORCE-DESIGN TWO-STEP SEARCH/,'Counter Analysis must expose the expanded search scope');
 assert.match(searchView,/equipment-tier upgrades/,'Counter Analysis must explain that equipment changes can be mixed into the search');
+assert.match(searchView,/tech transition cost not priced/,'Counter Analysis must not present technology transitions as free production changes');
+assert.match(searchView,/excluded from Best Value/,'unpriced transitions must be visibly excluded from cost-based recommendations');
 assert.match(searchView,/Why it works/,'recommendation cards must explain why a counter improves the matchup');
 assert.match(searchView,/Tradeoffs/,'recommendation cards must expose counter tradeoffs');
 assert.match(explanations,/Crosses the target armor threshold/,'explanations must identify threshold crossings');
 assert.match(explanations,/underlying variant/,'tank-design recommendations must explain equipment-level effects');
+assert.match(explanations,/Research time, line conversion/,'technology recommendations must disclose unpriced transition burden');
 assert.match(explanations,/Effective attack against this exact hardness profile/,'explanations must connect attack mix to target hardness');
 assert.doesNotMatch(index,/enemy uncertainty bands/i,'landing copy must not frame uncertainty as a core workflow');
 

@@ -39,6 +39,14 @@ for route in battle counter tank air scenario gauntlet; do
   run_route "$route" '390,844' "$budget" mobile
 done
 
+# Division building and Counter Analysis must expose direct navigation into the real Combat test.
+grep -q 'data-combat-test-shortcut="1"' "$work/desktop-battle.html"
+grep -q 'TEST THIS DIVISION' "$work/desktop-battle.html"
+grep -q 'data-combat-test-shortcut="1"' "$work/desktop-counter.html"
+grep -q 'COMBAT TEST' "$work/desktop-counter.html"
+grep -q 'data-combat-test-shortcut="1"' "$work/mobile-battle.html"
+grep -q 'data-combat-test-shortcut="1"' "$work/mobile-counter.html"
+
 # Legacy operational-planning hashes must land in the current analysis workflow.
 run_route dashboard '1440,1000' 4500 legacy
 if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-dashboard.html"; then

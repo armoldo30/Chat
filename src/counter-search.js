@@ -10,15 +10,39 @@ const isForceKind=kind=>kind==='tank-design';
 const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-support'].includes(kind);
 const BATTALION_IDS=Object.keys(battalions);
 const SAFE_DEFAULTS={runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8};
+const MIN_MEANINGFUL_GAIN=2;
 const derivedCache=new WeakMap();
 
-function rank(items,baseWin,baseIC){
-  return items.map(item=>{const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1);return {...item,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/(Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2)};}).filter(item=>item.gain>=2).sort((a,b)=>b.gain-a.gain||a.changeCount-b.changeCount||a.deltaIC-b.deltaIC);
+function score(items,baseWin,baseIC){
+  return items.map(item=>{
+    const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1);
+    return {...item,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/(Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2)};
+  });
+}
+function rank(scored){
+  return scored.filter(item=>item.gain>=MIN_MEANINGFUL_GAIN).sort((a,b)=>b.gain-a.gain||a.changeCount-b.changeCount||a.deltaIC-b.deltaIC);
 }
 function pick(ranked){
   if(!ranked.length)return {best:null,value:null,minimal:null};
   const best=ranked[0],value=[...ranked].sort((a,b)=>b.value-a.value||b.gain-a.gain)[0],meaningful=ranked.filter(item=>item.gain>=Math.max(5,best.gain*.35)),minimalSource=meaningful.length?meaningful:ranked;
   return {best,value,minimal:[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain)[0]};
+}
+function recommendationKey(item){return item?.key||`${item?.label||''}|${(item?.changes||[]).join('|')}`;}
+export function buildCounterRecommendationGroups(highlights,ranked,maxCards=3){
+  const roles=[['BEST RAW',highlights?.best],['BEST VALUE',highlights?.value],['SMALLEST CHANGE',highlights?.minimal]],groups=[],byKey=new Map();
+  for(const [role,item] of roles){
+    if(!item)continue;
+    const key=recommendationKey(item),existing=byKey.get(key);
+    if(existing)existing.roles.push(role);
+    else{const group={item,roles:[role],alternative:false};groups.push(group);byKey.set(key,group);}
+  }
+  const used=new Set(groups.map(group=>recommendationKey(group.item)));
+  for(const item of ranked||[]){
+    if(groups.length>=maxCards)break;
+    const key=recommendationKey(item);if(used.has(key))continue;
+    groups.push({item,roles:['DISTINCT ALTERNATIVE'],alternative:true});used.add(key);
+  }
+  return groups.slice(0,Math.max(0,maxCards));
 }
 function candidatePool(snapshot,{state=snapshot.state,grid=state.attackerGrid,supportKeys=state.attackerSupports,priorChanges=[],priorKinds=[],limit=SAFE_DEFAULTS.firstStepLimit}={}){
   const forceBudget=Math.min(5,Math.max(1,Math.round(limit*.2))),force=buildForceDesignCandidates(snapshot,{state,grid,supportKeys,priorChanges,priorKinds,limit:forceBudget}).filter(candidate=>candidate.kind==='tank-design');
@@ -53,9 +77,9 @@ function simulateCandidate(snapshot,target,baseOptions,runs,item){
   return {...item,winRate:result.winRate};
 }
 function finish(snapshot,runs,baseline,firstTested,secondTested){
-  const tested=[...firstTested,...secondTested],ranked=rank(tested,baseline.winRate,snapshot.attackerIC),forceDesignCount=tested.filter(item=>(item.changeKinds||[item.kind]).some(isForceKind)).length;
+  const tested=[...firstTested,...secondTested],scored=score(tested,baseline.winRate,snapshot.attackerIC).sort((a,b)=>b.gain-a.gain||a.changeCount-b.changeCount||a.deltaIC-b.deltaIC),ranked=rank([...scored]),highlights=pick(ranked),forceDesignCount=tested.filter(item=>(item.changeKinds||[item.kind]).some(isForceKind)).length;
   const mixedForceCount=secondTested.filter(item=>{const kinds=item.changeKinds||[];return kinds.some(isForceKind)&&kinds.some(isTemplateKind);}).length;
-  return {fingerprint:snapshot.fingerprint,runs,baseline:{winRate:baseline.winRate,ic:snapshot.attackerIC},ranked,highlights:pick(ranked),testedCount:tested.length,oneChangeCount:firstTested.length,multiChangeCount:secondTested.length,forceDesignCount,mixedForceCount,maxDepth:2};
+  return {fingerprint:snapshot.fingerprint,runs,baseline:{winRate:baseline.winRate,ic:snapshot.attackerIC},ranked,highlights,recommendations:buildCounterRecommendationGroups(highlights,ranked),bestTested:scored[0]||null,bestEfforts:scored.slice(0,5),meaningfulThreshold:MIN_MEANINGFUL_GAIN,testedCount:tested.length,oneChangeCount:firstTested.length,multiChangeCount:secondTested.length,forceDesignCount,mixedForceCount,maxDepth:2};
 }
 function normalizedOptions(options={}){return {...SAFE_DEFAULTS,...options};}
 function yieldControl(){return new Promise(resolve=>setTimeout(resolve,0));}

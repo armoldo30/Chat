@@ -52,7 +52,7 @@ grep -q 'COMBAT TEST' "$work/desktop-counter.html"
 grep -q 'data-combat-test-shortcut="1"' "$work/mobile-battle.html"
 grep -q 'data-combat-test-shortcut="1"' "$work/mobile-counter.html"
 
-# Actually exercise the Counter Analysis button in an isolated copy of the built site.
+# Actually exercise Counter Analysis and the Combat terrain selector in an isolated copy of the built site.
 # The injected missing image deliberately fires a non-critical resource error after the runtime
 # guard is active; that must not produce the global planner-recovery banner.
 interactive_root="$work/interactive-root"
@@ -64,13 +64,41 @@ path=Path(sys.argv[1])
 text=path.read_text()
 hook=r'''<script>
 (()=>{
-  const run=()=>{
+  const runCounter=()=>{
     const button=document.getElementById('runCounterSearch');
-    if(!button){setTimeout(run,50);return;}
+    if(!button){setTimeout(runCounter,50);return;}
     const img=new Image();img.alt='';img.hidden=true;img.src='./__intentional_smoke_missing_resource__.png';document.body.append(img);
     button.click();
   };
-  if(location.hash==='#counter')setTimeout(run,250);
+  const terrainSelectionIsClean=()=>{
+    const select=document.getElementById('b-terrain');
+    const buttons=[...document.querySelectorAll('.terrain-choices .quick-visual-choice')];
+    const selected=buttons.filter(button=>button.classList.contains('selected'));
+    return !!select&&selected.length===1&&selected[0].dataset.value===select.value;
+  };
+  const runTerrain=()=>{
+    const combat=document.querySelector('[data-lab-panel="combat"]');
+    if(!combat){setTimeout(runTerrain,50);return;}
+    combat.click();
+    setTimeout(()=>{
+      const select=document.getElementById('b-terrain');
+      const buttons=[...document.querySelectorAll('.terrain-choices .quick-visual-choice')];
+      if(!select||buttons.length<2){document.body.dataset.terrainSelectionSmoke='fail';return;}
+      const target=buttons.find(button=>button.dataset.value!==select.value);
+      if(!target){document.body.dataset.terrainSelectionSmoke='fail';return;}
+      target.click();
+      const immediate=terrainSelectionIsClean();
+      document.querySelector('[data-lab-panel="template"]')?.click();
+      setTimeout(()=>{
+        document.querySelector('[data-lab-panel="combat"]')?.click();
+        setTimeout(()=>{
+          document.body.dataset.terrainSelectionSmoke=immediate&&terrainSelectionIsClean()?'pass':'fail';
+        },120);
+      },120);
+    },120);
+  };
+  if(location.hash==='#counter')setTimeout(runCounter,250);
+  if(location.hash==='#battle')setTimeout(runTerrain,250);
 })();
 </script>'''
 path.write_text(text.replace('</body>',hook+'\n</body>'))
@@ -104,6 +132,20 @@ run_counter_interaction(){
 run_counter_interaction '1440,1000' desktop
 run_counter_interaction '390,844' mobile
 
+run_terrain_interaction(){
+  local size="$1" label="$2"
+  local dom="$work/${label}-terrain-interaction.html" log="$work/${label}-terrain-interaction.log"
+  "$browser" --headless=new --no-sandbox --disable-gpu --window-size="$size" --virtual-time-budget=6000 --dump-dom "http://127.0.0.1:$interactive_port/#battle" >"$dom" 2>"$log"
+  grep -q 'data-terrain-selection-smoke="pass"' "$dom"
+  if grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)|Unhandled Promise Rejection' "$log"; then
+    cat "$log" >&2
+    echo "Browser console/runtime error detected during $label terrain interaction." >&2
+    return 1
+  fi
+}
+run_terrain_interaction '1440,1000' desktop
+run_terrain_interaction '390,844' mobile
+
 # Legacy operational-planning hashes must land in the current analysis workflow.
 run_route dashboard '1440,1000' 4500 legacy
 if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-dashboard.html"; then
@@ -115,4 +157,4 @@ if grep -Eq 'GENERAL STAFF · THEATRE COMMAND|OPERATION READINESS|Operation orde
   exit 1
 fi
 
-echo 'Served desktop/mobile route and Counter interaction crawl passed.'
+echo 'Served desktop/mobile route, Counter interaction, and terrain selection crawl passed.'

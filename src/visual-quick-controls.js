@@ -36,15 +36,30 @@ function cleanOption(option){
   const raw=String(option.textContent||'').trim(),parts=raw.split('·').map(x=>x.trim());
   return {name:displayLabel(option.value,parts[0]||raw),detail:parts.slice(1).join(' · ')};
 }
+function syncSelection(select,strip){
+  const value=String(select.value);
+  strip.querySelectorAll('.quick-visual-choice').forEach(button=>{
+    const selected=String(button.dataset.value)===value;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',selected?'true':'false');
+  });
+}
 function enhance(select,kind){
   if(!select||select.dataset.quickVisual==='1'||select.dataset.visualEnhanced==='1')return;
   select.dataset.quickVisual='1';select.classList.add('visual-source-select');
   const strip=document.createElement('div');strip.className=`quick-visual-choices ${kind}-choices`;
   [...select.options].forEach(option=>{
-    const text=cleanOption(option),button=document.createElement('button');button.type='button';button.className=`quick-visual-choice ${option.selected?'selected':''}`;button.disabled=option.disabled;button.dataset.value=option.value;
+    const text=cleanOption(option),button=document.createElement('button');button.type='button';button.className='quick-visual-choice';button.disabled=option.disabled;button.dataset.value=option.value;
     button.innerHTML=`<span class="quick-choice-icon">${pictogram(option.value,kind)}</span><span class="quick-choice-copy"><b>${text.name}</b>${text.detail?`<small>${text.detail}</small>`:''}</span>`;
-    button.onclick=()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));};strip.append(button);
+    button.onclick=()=>{
+      select.value=option.value;
+      syncSelection(select,strip);
+      select.dispatchEvent(new Event('change',{bubbles:true}));
+    };
+    strip.append(button);
   });
+  select.addEventListener('change',()=>syncSelection(select,strip));
+  syncSelection(select,strip);
   select.insertAdjacentElement('afterend',strip);
 }
 function run(){for(const [selector,kind] of TARGETS)document.querySelectorAll(selector).forEach(select=>enhance(select,kind));}

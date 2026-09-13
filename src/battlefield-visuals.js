@@ -38,13 +38,28 @@ function enhanceRange(source,meta){
   source.insertAdjacentElement('afterend',wrap);
 }
 
+function syncPips(source,wrap,meta){
+  const value=Number(source.value)||0;
+  const readout=wrap.querySelector('[data-battlefield-pip-readout]');
+  if(readout)readout.textContent=meta.unit(value);
+  wrap.querySelectorAll('[data-battlefield-pip]').forEach(button=>{
+    const selected=Number(button.dataset.battlefieldPip)===value;
+    button.classList.toggle('selected',selected);
+    button.setAttribute('aria-pressed',selected?'true':'false');
+  });
+}
 function enhancePips(source,meta){
   if(!source||source.dataset.battlefieldVisual==='1')return;
   source.dataset.battlefieldVisual='1';source.classList.add('battlefield-source-input');
   const current=Number(source.value)||0,marks=meta.marks||Array.from({length:meta.max-meta.min+1},(_,i)=>i+meta.min);
   const wrap=document.createElement('div');wrap.className=`battlefield-pip-control ${meta.kind}`;
-  wrap.innerHTML=`<div class="battlefield-gauge-head"><span class="battlefield-gauge-icon ${meta.kind}">${iconSvg(meta.kind)}</span><span><small>${meta.label}</small><b>${meta.unit(current)}</b></span></div><div class="battlefield-pips">${marks.map(mark=>`<button type="button" data-battlefield-pip="${mark}" class="${mark===current?'selected':''}" aria-label="${meta.label} ${meta.unit(mark)}"><span></span><small>${mark}</small></button>`).join('')}</div>`;
-  wrap.querySelectorAll('[data-battlefield-pip]').forEach(button=>button.onclick=()=>syncSource(source,Number(button.dataset.battlefieldPip)));
+  wrap.innerHTML=`<div class="battlefield-gauge-head"><span class="battlefield-gauge-icon ${meta.kind}">${iconSvg(meta.kind)}</span><span><small>${meta.label}</small><b data-battlefield-pip-readout>${meta.unit(current)}</b></span></div><div class="battlefield-pips">${marks.map(mark=>`<button type="button" data-battlefield-pip="${mark}" aria-label="${meta.label} ${meta.unit(mark)}"><span></span><small>${mark}</small></button>`).join('')}</div>`;
+  wrap.querySelectorAll('[data-battlefield-pip]').forEach(button=>button.onclick=()=>{
+    syncPips(source,wrap,meta);
+    syncSource(source,Number(button.dataset.battlefieldPip));
+  });
+  source.addEventListener('change',()=>syncPips(source,wrap,meta));
+  syncPips(source,wrap,meta);
   source.insertAdjacentElement('afterend',wrap);
 }
 

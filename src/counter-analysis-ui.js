@@ -27,7 +27,10 @@ function renderCounterMode(){
       host.className='counter-analysis-workspace';
       workspace.after(host);
     }
-    host.dispatchEvent(new CustomEvent('counterrender',{bubbles:true}));
+    if(!host.dataset.counterReady){
+      host.dataset.counterReady='1';
+      host.dispatchEvent(new CustomEvent('counterrender',{bubbles:true}));
+    }
   }else{
     workspace.hidden=false;
     if(host)host.remove();

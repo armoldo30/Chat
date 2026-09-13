@@ -53,8 +53,9 @@ function designMutationCandidates(snapshot,state,grid,supportKeys,priorChanges,p
     const before=buildTankDesign(raw),options=tankDesignOptions(raw),name=variantLabel(family,role),mutations=[];
     const push=(nextRaw,description,component)=>{
       const normalized=normalizeTankDesign(nextRaw,family,role);if(JSON.stringify(normalized)===JSON.stringify(raw))return;
-      const after=buildTankDesign(normalized),nextState=withTankVariant(state,family,role,normalized),preview=previewScore(snapshot,nextState,grid,supportKeys);
-      mutations.push({state:nextState,grid,supportKeys,changes:[...priorChanges,description],changeKinds:[...priorKinds,'tank-design'],label:changeLabel([...priorChanges,description]),kind:'tank-design',changeCount:priorChanges.length+1,designChange:{family,role,variant:name,component,before,after},previewScore:preview.score,key:counterForceKey(grid,supportKeys,nextState)});
+      const forcedGunChange=component==='turret'&&normalized.gun!==raw.gun,finalDescription=forcedGunChange?`${description}; gun ${moduleName(TANK_GUNS,raw.gun)} → ${moduleName(TANK_GUNS,normalized.gun)}`:description,finalComponent=forcedGunChange?'turret/gun package':component;
+      const after=buildTankDesign(normalized),nextState=withTankVariant(state,family,role,normalized),preview=previewScore(snapshot,nextState,grid,supportKeys),changes=[...priorChanges,finalDescription];
+      mutations.push({state:nextState,grid,supportKeys,changes,changeKinds:[...priorKinds,'tank-design'],label:changeLabel(changes),kind:'tank-design',changeCount:priorChanges.length+1,designChange:{family,role,variant:name,component:finalComponent,before,after,forcedGunChange},previewScore:preview.score,key:counterForceKey(grid,supportKeys,nextState)});
     };
     for(const id of options.guns||[])if(id!==raw.gun)push({...raw,gun:id},`${name}: gun ${moduleName(TANK_GUNS,raw.gun)} → ${moduleName(TANK_GUNS,id)}`,'gun');
     for(const id of options.turrets||[])if(id!==raw.turret)push({...raw,turret:id},`${name}: turret ${moduleName(TANK_TURRETS,raw.turret)} → ${moduleName(TANK_TURRETS,id)}`,'turret');

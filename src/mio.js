@@ -1,6 +1,8 @@
 import { resolveMIOs } from './parser.js';
 import mioSourceCorrections1192, { mergeMioSourceRecord1192 } from './builtin1192/mio-source-corrections-1192.js';
 import MIO_EQUIPMENT_GROUPS_1192 from './builtin1192/mio-equipment-groups-1192.js';
+import './ui-localization-bootstrap.js';
+import { sourceDisplayLabel } from './source-display-label.js';
 const clone=x=>structuredClone(x);
 const arr=v=>Array.isArray(v)?v:v==null?[]:[v];
 
@@ -34,6 +36,15 @@ function applySourceRemovalsAfterInheritance(resolved){
   }
   return resolved;
 }
+function localizedMioCatalog(catalog){
+  const out={};
+  for(const [id,org] of Object.entries(catalog||{})){
+    const localized={...org,id:org?.id||id,name:sourceDisplayLabel(id,org?.name||'',org?.name||id),traits:{}};
+    for(const [traitId,trait] of Object.entries(org?.traits||{}))localized.traits[traitId]={...trait,id:trait?.id||traitId,name:sourceDisplayLabel(traitId,trait?.name||'',trait?.name||traitId)};
+    out[id]=localized;
+  }
+  return out;
+}
 
 const MIO_PACK_CACHE=new WeakMap();
 export function mioCatalog(pack){
@@ -42,7 +53,7 @@ export function mioCatalog(pack){
     if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,applySourceRemovalsAfterInheritance(resolveMIOs(applyBundled1192SourceCorrections(imported))));
     imported=MIO_PACK_CACHE.get(pack);
   }
-  return {...BUILTIN_MIOS,...imported};
+  return localizedMioCatalog({...BUILTIN_MIOS,...imported});
 }
 
 function normalizedEquipmentId(value){

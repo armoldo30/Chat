@@ -1,0 +1,22 @@
+/* Make item-identity marks readable at phone sizes. */
+.visual-trigger-icon .icon-signature,
+.visual-option-icon .icon-signature,
+.designer-tab-icon .icon-signature,
+.tank-silhouette-icon .icon-signature,
+.air-role-visual .icon-signature,
+.division-unit-icon .icon-signature,
+.picture-unit-symbol .icon-signature{
+  stroke-width:3.25!important;
+  opacity:1!important;
+  stroke-linecap:round!important;
+}
+
+@media(max-width:720px){
+  .visual-trigger-icon .icon-signature,
+  .visual-option-icon .icon-signature,
+  .designer-tab-icon .icon-signature,
+  .tank-silhouette-icon .icon-signature,
+  .air-role-visual .icon-signature{
+    stroke-width:3.6!important;
+  }
+}

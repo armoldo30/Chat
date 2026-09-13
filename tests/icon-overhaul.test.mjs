@@ -1,29 +1,51 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
+import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
+import { sourceIconHint } from '../src/source-icon-hints.js';
 
-const [html,icons]=await Promise.all([
+const [html,visual,designer,clarity]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
-  readFile(new URL('../src/icon-overhaul.js',import.meta.url),'utf8')
+  readFile(new URL('../src/visual-overhaul.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/designer-visuals.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/item-icon-clarity.css',import.meta.url),'utf8')
 ]);
 
-assert.match(html,/\.\/src\/icon-overhaul\.js/,'index should load the item-specific icon overhaul');
-for(const key of [
-  'light_tank','medium_tank','heavy_tank','superheavy_tank','modern_tank','tank_destroyer','spg','spaa',
-  'fighter','heavy_fighter','cas','tactical_bomber','strategic_bomber','naval_bomber','scout_plane',
-  'piston_engine','jet_engine','rocket_engine','light_mg','heavy_mg','cannon','bomb_lock','bomb_bay_small','bomb_bay_medium','bomb_bay_large','torpedo','rocket_rail','radar','radio_nav','self_sealing','drop_tank','fuel_tank','camera',
-  'tank_turret_1','tank_turret_2','tank_turret_3','fixed_superstructure','autocannon','close_support_gun','high_velocity_gun','howitzer','tank_cannon_small','tank_cannon_medium','tank_cannon_heavy','tank_cannon_super','tank_aa_gun','flamethrower','gasoline_engine','diesel_engine','electric_engine','bogie','christie','torsion','interleaved','riveted_armor','welded_armor','cast_armor','sloped_armor','tank_radio','stabilizer','wet_ammo','squeeze_bore','smoke','extra_ammo','easy_maintenance','additional_mg','amphibious',
-  'infantry','motorized','mechanized','cavalry','mountaineer','marine','paratrooper','engineer','maintenance','military_police','recon','logistics','signal','hospital','support_artillery','support_at','support_aa'
-])assert.ok(icons.includes(`${key}:`),`icon library should include ${key}`);
+assert.doesNotMatch(html,/src\/icon-overhaul\.js/,'legacy icon runtime must not override the current item-icon system');
+assert.match(html,/src\/item-icon-clarity\.css/,'item identity marks should be visible at runtime');
+assert.match(visual,/sourceIconHint/,'visual pickers should use source-aware module hints');
+assert.match(visual,/itemIconSvg/,'visual pickers should render the shared item-icon system');
+assert.match(designer,/familyIconValue/,'tank family tabs should keep family-specific silhouettes');
+assert.match(clarity,/icon-signature/,'variant marks should be emphasized for phone-size icons');
 
-assert.match(icons,/function variantMark\(/,'distinct items should receive deterministic visual variants');
-assert.match(icons,/hash32\(/,'variant marks should be stable from item identity');
-assert.match(icons,/\.air-module-grid label/,'air module controls should be item-specific');
-assert.match(icons,/\.tank-module-grid label/,'tank module controls should be item-specific');
-assert.match(icons,/\[data-tank-class\]/,'tank chassis tabs should be differentiated');
-assert.match(icons,/\.hoi-battalion-slot\.filled/,'division battalions should be differentiated');
-assert.doesNotMatch(icons,/engine\.js|simulateBattle|calcDivision/,'icon overhaul must remain presentation-only');
+const tankIds=[
+  'tank_auto_cannon_2','tank_anti_air_cannon_3','tank_high_velocity_cannon_3','tank_medium_howitzer_2',
+  'tank_bogie_suspension','tank_interleaved_suspension','tank_cast_armor','tank_gas_turbine_engine',
+  'tank_radio_3','dozer_blade','auto_loader','expanded_fuel_tank','extra_ammo_storage','squeezebore_adaptor'
+];
+for(const id of tankIds){
+  const hint=sourceIconHint(id,id,'armor','Tank Module'),key=itemIconKey(id,hint,'armor');
+  assert.notEqual(key,'armor',`${id} must not collapse to the generic tank icon`);
+  assert.notEqual(key,'generic',`${id} must resolve to a meaningful item icon`);
+}
 
-// Parse browser source without executing DOM APIs.
-new Function(icons.replace(/^import .*$/gm,''));
+const airIds=[
+  'engine_2_1x','heavy_mg_2x','aircraft_cannon_1_1x','bomb_locks','medium_bomb_bay','torpedo_mounting',
+  'rocket_rails','hmg_defense_turret','radio_navigation_1','air_ground_radar_1','recon_camera',
+  'drop_tanks','self_sealing_fuel_tanks_small','armor_plate_small','fuel_tanks_small','non_strategic_materials_small'
+];
+for(const id of airIds){
+  const hint=sourceIconHint(id,id,'air','Aircraft Module'),key=itemIconKey(id,hint,'air');
+  assert.notEqual(key,'air',`${id} must not collapse to the generic aircraft icon`);
+  assert.notEqual(key,'generic',`${id} must resolve to a meaningful item icon`);
+}
 
-console.log('Item-specific icon overhaul regression checks passed.');
+const tankFamilies=['light_tank','medium_tank','heavy_tank'].map(id=>itemIconSvg(id,id,'armor','armor'));
+assert.equal(new Set(tankFamilies).size,3,'light, medium and heavy tank tabs need visibly different SVGs');
+
+const airEngineVariants=['engine_1_1x','engine_2_1x','engine_3_1x','engine_4_1x'].map(id=>itemIconSvg(id,sourceIconHint(id,id,'air','Engine'),'air','air'));
+assert.equal(new Set(airEngineVariants).size,4,'air engine generations must not reuse identical SVG markup');
+
+const cannonVariants=['tank_small_cannon','tank_small_cannon_2','tank_medium_cannon','tank_medium_cannon_2','tank_heavy_cannon','tank_heavy_cannon_2'].map(id=>itemIconSvg(id,sourceIconHint(id,id,'armor','Main Armament'),'armor','armor'));
+assert.equal(new Set(cannonVariants).size,cannonVariants.length,'source tank weapons must remain item-distinct even inside one weapon family');
+
+console.log('Live item-specific icon regression checks passed.');

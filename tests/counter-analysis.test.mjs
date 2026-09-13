@@ -42,8 +42,9 @@ assert.ok(second.some(item=>item.label.includes(' + ')),'multi-change labels mus
 assert.ok(second.every(item=>item.changeKinds?.length===2),'multi-step template candidates must preserve change categories');
 
 const baseSnapshot=counterSnapshot();
-const equipmentCandidates=buildForceDesignCandidates(baseSnapshot,{limit:18});
-assert.ok(equipmentCandidates.some(item=>item.kind==='equipment-tech'),'default infantry/artillery force must expose relevant equipment-tier counter candidates');
+const fixedContextCandidates=buildForceDesignCandidates(baseSnapshot,{limit:18});
+assert.equal(fixedContextCandidates.length,0,'an infantry/artillery force must not invent technology-upgrade counter candidates');
+assert.ok(!fixedContextCandidates.some(item=>item.kind==='equipment-tech'),'technology tiers must remain fixed matchup context rather than counter recommendations');
 
 const tankGrid=blankGrid();tankGrid[0][0]='medium_armor';
 const tankState={...baseSnapshot.state,attackerGrid:tankGrid,attackerSupports:[]};

@@ -39,4 +39,13 @@ for route in battle counter tank air scenario gauntlet; do
   run_route "$route" '390,844' "$budget" mobile
 done
 
+# Legacy operational-planning hashes must land in the current analysis workflow.
+run_route dashboard '1440,1000' 4500 legacy
+grep -q 'Division Lab' "$work/legacy-dashboard.html"
+grep -q 'HOI4 WAR PLANNER' "$work/legacy-dashboard.html"
+if grep -q 'GENERAL STAFF · THEATRE COMMAND' "$work/legacy-dashboard.html"; then
+  echo 'Retired Command dashboard rendered from legacy #dashboard hash.' >&2
+  exit 1
+fi
+
 echo 'Served desktop/mobile route crawl passed.'

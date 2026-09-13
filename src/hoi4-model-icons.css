@@ -1,0 +1,38 @@
+/* Planner-owned equipment pictograms styled after HOI4's dark stamped designer plates. */
+.hoi-model-icon{display:block;width:100%;height:100%;overflow:visible}
+.hoi-model-icon .hoi-model-plate{fill:#171b17;stroke:#6f715c;stroke-width:1.2}
+.hoi-model-icon .hoi-model-bevel{fill:none;stroke:#3e4438;stroke-width:.8;opacity:.95}
+.hoi-model-icon .hoi-fill,.hoi-model-icon .hoi-hull{fill:#aeb29b;stroke:#e0d9bd;stroke-width:.7;stroke-linejoin:round}
+.hoi-model-icon .hoi-track{fill:#4f554a;stroke:#b7b59b;stroke-width:.8}
+.hoi-model-icon .hoi-wheel{fill:#222722;stroke:#c6c2a7;stroke-width:.75}
+.hoi-model-icon .hoi-detail{fill:none;stroke:#efe5c7;stroke-width:1.15;stroke-linecap:round;stroke-linejoin:round}
+.hoi-model-icon .hoi-detail-fill{fill:#efe5c7;stroke:none}
+.hoi-model-icon .hoi-barrel,.hoi-model-icon .hoi-weapon{fill:none;stroke:#e5ddbf;stroke-width:2.15;stroke-linecap:round;stroke-linejoin:round}
+.hoi-model-icon .hoi-cut{fill:#171b17;stroke:#d6ceb0;stroke-width:.8}
+.hoi-model-icon .hoi-water{fill:none;stroke:#91a8ae;stroke-width:1.2;stroke-linecap:round}
+.hoi-model-icon .hoi-flame{fill:none;stroke:#d6ae70;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.hoi-model-icon .hoi-lens{fill:#222c2f;stroke:#a8c4c9;stroke-width:1}
+.hoi-model-icon .hoi-id-rivet{fill:#d0b56d;stroke:#181c18;stroke-width:.45}
+.hoi-model-icon .hoi-stage{fill:#d8c58b;font:700 7px/1 sans-serif;letter-spacing:-.4px}
+.hoi-model-icon .hoi-fallback{color:#b7b9a2}
+.hoi-model-icon .hoi-fallback>path,.hoi-model-icon .hoi-fallback>circle,.hoi-model-icon .hoi-fallback>rect{stroke:#d9d5bb}
+
+.visual-trigger-icon,.visual-option-icon,.designer-tab-icon,.division-unit-icon,.picture-unit-symbol,.tank-silhouette-icon,.air-role-visual i{overflow:hidden}
+.visual-trigger-icon .hoi-model-icon,.visual-option-icon .hoi-model-icon,.designer-tab-icon .hoi-model-icon,.division-unit-icon .hoi-model-icon,.picture-unit-symbol .hoi-model-icon,.tank-silhouette-icon .hoi-model-icon,.air-role-visual .hoi-model-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.55))}
+.visual-option.selected .hoi-model-icon .hoi-model-plate,.visual-picker-trigger:hover .hoi-model-icon .hoi-model-plate,.designer-visual-tab.active .hoi-model-icon .hoi-model-plate{stroke:#c7ad68;fill:#20251e}
+.visual-option.selected .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-hull{fill:#c8c4a6}
+
+/* Larger designer controls can carry more silhouette detail than the old line icons. */
+.visual-trigger-icon,.visual-option-icon{width:42px!important;height:42px!important}
+.visual-trigger-icon svg,.visual-option-icon svg{width:40px!important;height:40px!important}
+.designer-tab-icon svg{width:34px!important;height:34px!important}
+.tank-silhouette-icon svg{width:58px!important;height:38px!important}
+
+@media(max-width:720px){
+  .visual-trigger-icon,.visual-option-icon{width:38px!important;height:38px!important}
+  .visual-trigger-icon svg,.visual-option-icon svg{width:36px!important;height:36px!important}
+  .designer-tab-icon svg{width:29px!important;height:29px!important}
+  .hoi-model-icon .hoi-detail{stroke-width:1.3}
+  .hoi-model-icon .hoi-barrel,.hoi-model-icon .hoi-weapon{stroke-width:2.35}
+  .hoi-model-icon .hoi-stage{font-size:7.5px}
+}

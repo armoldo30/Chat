@@ -3,7 +3,9 @@ import BUILTIN_1192 from '../src/builtin1192.js';
 import { displayLabel } from '../src/ui-labels.js';
 
 const ids=new Set();
-for(const key of ['subUnits','equipment','modules','mios','doctrines','combatTactics','terrain'])for(const id of Object.keys(BUILTIN_1192?.[key]||{}))ids.add(id);
+for(const key of ['subUnits','equipment','modules','mios','technologies','doctrines','doctrineMetadata','combatTactics','terrain','modifiers','specialProjects','duplicateArchetypes']){
+  for(const id of Object.keys(BUILTIN_1192?.[key]||{}))ids.add(id);
+}
 for(const org of Object.values(BUILTIN_1192?.mios||{}))for(const id of Object.keys(org?.traits||{}))ids.add(id);
 
 const failures=[];

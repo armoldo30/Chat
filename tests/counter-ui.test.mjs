@@ -2,14 +2,18 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [index,direction,mode,model,candidates,forceCandidates,search,searchView,explanations]=await Promise.all([
-  read('index.html'),read('src/product-direction-runtime.js'),read('src/counter-analysis-ui.js'),read('src/counter-state-model.js'),read('src/counter-candidates.js'),read('src/counter-force-candidates.js'),read('src/counter-search.js'),read('src/counter-search-view.js'),read('src/counter-explanations.js')
+const [index,direction,runtimeGuard,mode,model,candidates,forceCandidates,search,searchView,explanations]=await Promise.all([
+  read('index.html'),read('src/product-direction-runtime.js'),read('src/runtime-guard.js'),read('src/counter-analysis-ui.js'),read('src/counter-state-model.js'),read('src/counter-candidates.js'),read('src/counter-force-candidates.js'),read('src/counter-search.js'),read('src/counter-search-view.js'),read('src/counter-explanations.js')
 ]);
 assert.match(index,/Counter Analysis/);
 assert.match(index,/counter-analysis\.css/);
 assert.match(index,/counter-results-ui\.js/);
 assert.match(index,/counter-analysis-ui\.js/);
-assert.match(direction,/\['front','intel','production'\]/);
+assert.match(direction,/\['dashboard','front','intel','production'\]/,'Command and the prior operational-planning routes must remain retired');
+assert.match(direction,/HOI4 WAR PLANNER/,'persistent shell must use the current analysis product identity');
+assert.match(direction,/Build · Compare · Improve · Stress-test/,'top-level shell must communicate the current product workflow');
+assert.match(runtimeGuard,/RETIRED_PUBLIC_ROUTES=new Set\(\['dashboard','front','intel','production'\]\)/,'retired hashes must be normalized before the main SPA renders');
+assert.match(runtimeGuard,/history\.replaceState\(null,'',`\$\{location\.pathname\}\$\{location\.search\}#battle`\)/,'legacy Command links must land directly in Division Lab without rendering the retired dashboard first');
 assert.match(mode,/COUNTER ANALYSIS/);
 assert.match(model,/buildTechAdjustedData/);
 assert.match(model,/applyMioEquipmentBonus/);

@@ -37,6 +37,8 @@ assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR v
 assert.match(browserSmoke,/battle counter gauntlet tank air data scenario/,'browser smoke must crawl every current desktop planner route including Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air scenario gauntlet/,'browser smoke must render Counter Analysis at phone size too');
 assert.doesNotMatch(browserSmoke,/battle gauntlet tank air production data scenario/,'retired Industry must not remain a supported planner route');
+assert.match(browserSmoke,/run_route dashboard/,'browser smoke must exercise the retired Command hash');
+assert.match(browserSmoke,/Retired Command dashboard rendered/,'browser smoke must fail if the legacy Command screen reappears');
 assert.match(browserSmoke,/390,844/,'browser smoke must include a phone-sized viewport');
 assert.match(browserSmoke,/audit-rendered-dom\.py/,'browser smoke must run the structural accessibility audit');
 assert.match(domAudit,/duplicate id/,'rendered DOM audit must reject duplicate element IDs');

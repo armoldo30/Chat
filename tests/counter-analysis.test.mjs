@@ -4,6 +4,7 @@ import { diagnoseMatchup } from '../src/counter-diagnosis.js';
 import { explainCounter } from '../src/counter-explanations.js';
 import { buildCounterCandidates } from '../src/counter-candidates.js';
 import { buildForceDesignCandidates } from '../src/counter-force-candidates.js';
+import { buildCounterRecommendationGroups } from '../src/counter-search.js';
 import { counterSnapshot, counterDivision } from '../src/counter-state-model.js';
 import { blankGrid } from '../src/designer.js';
 
@@ -53,5 +54,14 @@ const tankCandidates=buildForceDesignCandidates(tankSnapshot,{state:tankState,gr
 assert.ok(tankCandidates.some(item=>item.kind==='tank-design'),'a division using medium tanks must generate tank-variant counter candidates');
 assert.ok(tankCandidates.filter(item=>item.kind==='tank-design').every(item=>item.designChange.family==='medium'),'tank search must not retune unused light/heavy families');
 assert.ok(tankCandidates.every(item=>item.key),'force-design candidates must receive state-aware deduplication keys');
+
+const dominant={key:'dominant',label:'Dominant pick'},alternateA={key:'alternate-a',label:'Alternate A'},alternateB={key:'alternate-b',label:'Alternate B'};
+const grouped=buildCounterRecommendationGroups({best:dominant,value:dominant,minimal:dominant},[dominant,alternateA,alternateB]);
+assert.equal(grouped.length,3,'duplicate category winners should be collapsed and replaced with distinct alternatives when available');
+assert.deepEqual(grouped[0].roles,['BEST RAW','BEST VALUE','SMALLEST CHANGE']);
+assert.equal(grouped[0].alternative,false);
+assert.equal(grouped[1].item,alternateA);
+assert.equal(grouped[1].alternative,true);
+assert.equal(new Set(grouped.map(group=>group.item.key)).size,grouped.length,'headline recommendation cards must be distinct by candidate');
 
 console.log('Counter Analysis regression checks passed.');

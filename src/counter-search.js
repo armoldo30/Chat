@@ -31,16 +31,16 @@ function simulateCandidate(snapshot,target,options,runs,item){
   return {...item,winRate:result.winRate};
 }
 
-export function runCounterSearch(snapshot,{runs=60,beamWidth=6,secondStepLimit=48}={}){
+export function runCounterSearch(snapshot,{runs=60,firstStepLimit=60,beamWidth=6,secondPerSeedLimit=36,secondStepLimit=42}={}){
   const {state,attacker,defender,attackerIC}=snapshot;
   const options={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v2`},target=aggregateDivision(defender,state.defenderDivisions),equipment=counterEquipment(state,'attacker');
   const baseline=simulateBattle(aggregateDivision(attacker,state.attackerDivisions),target,options,runs);
-  const firstRaw=buildCounterCandidates(snapshot,{limit:80}),firstEnriched=firstRaw.map(candidate=>enrichCandidate(snapshot,equipment,candidate));
+  const firstRaw=buildCounterCandidates(snapshot,{limit:firstStepLimit}),firstEnriched=firstRaw.map(candidate=>enrichCandidate(snapshot,equipment,candidate));
   const firstTested=firstEnriched.map(item=>simulateCandidate(snapshot,target,options,runs,item));
   const beam=[...firstTested].sort((a,b)=>(b.winRate+heuristic(snapshot,b)*.08)-(a.winRate+heuristic(snapshot,a)*.08)||a.ic-b.ic).slice(0,Math.max(1,beamWidth));
   const seen=new Set([counterTemplateKey(state.attackerGrid,state.attackerSupports),...firstRaw.map(item=>item.key)]),secondPool=[];
   for(const seed of beam){
-    for(const candidate of buildCounterCandidates(snapshot,{grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,limit:48})){
+    for(const candidate of buildCounterCandidates(snapshot,{grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,limit:secondPerSeedLimit})){
       if(seen.has(candidate.key))continue;seen.add(candidate.key);secondPool.push(enrichCandidate(snapshot,equipment,candidate));
     }
   }

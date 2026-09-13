@@ -3,12 +3,25 @@ import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function selectedText(select){const option=select?.selectedOptions?.[0];return displayLabel(option?.value,option?.textContent||option?.value||'—');}
 function clickLauncher(selector){document.querySelector(selector)?.click();}
+function ensureAccessibleControlNames(panel){
+  panel.querySelectorAll('.doctrine-track').forEach(track=>{
+    const title=track.querySelector(':scope > div > span')?.textContent?.trim()||'Doctrine track';
+    const select=track.querySelector('[data-doctrine-choice]'),mastery=track.querySelector('[data-doctrine-mastery]');
+    if(select&&!select.getAttribute('aria-label')&&!select.getAttribute('aria-labelledby'))select.setAttribute('aria-label',`${title} doctrine choice`);
+    if(mastery&&!mastery.getAttribute('aria-label')&&!mastery.getAttribute('aria-labelledby'))mastery.setAttribute('aria-label',`${title} mastery`);
+  });
+  panel.querySelectorAll('[data-mio-org]').forEach(select=>{
+    if(select.getAttribute('aria-label')||select.getAttribute('aria-labelledby'))return;
+    const family=select.closest('.mio-assignment')?.querySelector(':scope > div > span')?.textContent?.trim()||'Equipment';
+    select.setAttribute('aria-label',`${family} MIO organization`);
+  });
+}
 
 function enhance(panel){
   if(!panel||panel.dataset.systemSummary==='1')return;
   const grand=panel.querySelector('#land-grand'),tracks=[...panel.querySelectorAll('[data-doctrine-choice]')],mios=[...panel.querySelectorAll('[data-mio-org]')];
   if(!grand||!tracks.length)return;
-  panel.dataset.systemSummary='1';
+  panel.dataset.systemSummary='1';ensureAccessibleControlNames(panel);
   const grandRow=panel.querySelector('.grand-doctrine-row'),trackGrid=panel.querySelector('.doctrine-track-grid'),mioGrid=panel.querySelector('.mio-assignment-grid');
   const landSubhead=grandRow?.previousElementSibling,mioSubhead=mioGrid?.previousElementSibling;
   const mastery=[...panel.querySelectorAll('[data-doctrine-mastery]')].reduce((sum,input)=>sum+(Number(input.value)||0),0);

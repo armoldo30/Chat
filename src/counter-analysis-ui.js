@@ -1,3 +1,24 @@
+function openCombatTest(){
+  if(location.hash!=='#battle')location.hash='battle';
+  setTimeout(()=>document.querySelector('[data-lab-panel="combat"]')?.click(),0);
+}
+
+function syncCombatShortcut(tabs,workspace,counterRoute){
+  let shortcut=document.querySelector('[data-combat-test-shortcut]');
+  const templateActive=!!tabs.querySelector('[data-lab-panel="template"].active');
+  const shouldShow=counterRoute||templateActive;
+  if(!shouldShow){shortcut?.remove();return;}
+  if(!shortcut){
+    shortcut=document.createElement('button');
+    shortcut.type='button';
+    shortcut.className='btn lab-combat-shortcut';
+    shortcut.dataset.combatTestShortcut='1';
+    shortcut.addEventListener('click',openCombatTest);
+    workspace.before(shortcut);
+  }
+  shortcut.textContent=counterRoute?'COMBAT TEST →':'TEST THIS DIVISION →';
+}
+
 function renderCounterMode(){
   const counterRoute=location.hash==='#counter';
   if(location.hash&&location.hash!=='#battle'&&!counterRoute)return;
@@ -35,6 +56,7 @@ function renderCounterMode(){
     workspace.hidden=false;
     if(host)host.remove();
   }
+  syncCombatShortcut(tabs,workspace,counterRoute);
 }
 
 window.addEventListener('hashchange',renderCounterMode);

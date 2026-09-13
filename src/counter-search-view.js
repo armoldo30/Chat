@@ -28,9 +28,10 @@ function renderSearchError(host){
 
 document.addEventListener('countersearch',async event=>{
   const host=event.target.closest?.('.counter-analysis-workspace');if(!host)return;
-  const request=++activeSearch,button=host.querySelector('#runCounterSearch'),snap=counterSnapshot();
+  const request=++activeSearch,button=host.querySelector('#runCounterSearch');
   if(button){button.disabled=true;button.textContent='PREPARING COUNTER SEARCH…';}
   try{
+    const snap=counterSnapshot();
     const result=await runCounterSearchResponsive(snap,{
       cancelled:()=>request!==activeSearch||!host.isConnected,
       onProgress:({completed,total})=>{if(button&&request===activeSearch)button.textContent=`ANALYZING ${completed} / ${total}…`;}
@@ -43,5 +44,9 @@ document.addEventListener('countersearch',async event=>{
     console.error('Counter search failed',error);if(request===activeSearch&&host.isConnected){renderSearchError(host);if(button){button.disabled=false;button.textContent='TRY AGAIN';}}
   }
 });
-document.addEventListener('countersettings',event=>{const host=event.target.closest?.('.counter-analysis-workspace');if(host)renderResults(host,counterSnapshot());});
+document.addEventListener('countersettings',event=>{
+  const host=event.target.closest?.('.counter-analysis-workspace');if(!host)return;
+  try{renderResults(host,counterSnapshot());}
+  catch(error){console.error('Counter settings refresh failed',error);renderSearchError(host);}
+});
 export function renderExistingCounterResults(host,snap){renderResults(host,snap);}

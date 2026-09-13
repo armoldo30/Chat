@@ -17,6 +17,9 @@ assert.match(index,/strict-origin-when-cross-origin/,'launch page should use a c
 
 assert.match(guard,/window\.addEventListener\('error'/,'runtime errors must be caught');
 assert.match(guard,/window\.addEventListener\('unhandledrejection'/,'unhandled promise failures must be caught');
+assert.match(guard,/criticalRuntimeError/,'runtime recovery must distinguish real JS failures from ordinary resource-load errors');
+assert.match(guard,/CRITICAL_SCRIPT_RE/,'core planner scripts must still count as critical resource failures');
+assert.match(guard,/non-critical resource load error/,'non-critical asset failures must be logged without showing planner recovery');
 assert.match(guard,/12000/,'stalled app startup must have a recovery path');
 assert.match(guard,/hoi4-war-planner-v7/,'reset must target current local planner storage');
 assert.match(guard,/issues\/new\/choose/,'runtime recovery must expose bug reporting');

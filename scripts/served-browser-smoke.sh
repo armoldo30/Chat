@@ -4,9 +4,14 @@ set -euo pipefail
 root="${1:-dist}"
 port="${HOI4_SMOKE_PORT:-4173}"
 work="$(mktemp -d)"
+interactive_server=""
 python3 -m http.server "$port" --directory "$root" >"$work/server.log" 2>&1 &
 server=$!
-cleanup(){ kill "$server" 2>/dev/null || true; rm -rf "$work"; }
+cleanup(){
+  kill "$server" 2>/dev/null || true
+  if [[ -n "$interactive_server" ]]; then kill "$interactive_server" 2>/dev/null || true; fi
+  rm -rf "$work"
+}
 trap cleanup EXIT
 for i in $(seq 1 40); do curl -fsS "http://127.0.0.1:$port/" >/dev/null && break; sleep .2; done
 curl -fsS "http://127.0.0.1:$port/privacy.html" >/dev/null
@@ -47,6 +52,58 @@ grep -q 'COMBAT TEST' "$work/desktop-counter.html"
 grep -q 'data-combat-test-shortcut="1"' "$work/mobile-battle.html"
 grep -q 'data-combat-test-shortcut="1"' "$work/mobile-counter.html"
 
+# Actually exercise the Counter Analysis button in an isolated copy of the built site.
+# The injected missing image deliberately fires a non-critical resource error after the runtime
+# guard is active; that must not produce the global planner-recovery banner.
+interactive_root="$work/interactive-root"
+cp -R "$root" "$interactive_root"
+python3 - "$interactive_root/index.html" <<'PY'
+from pathlib import Path
+import sys
+path=Path(sys.argv[1])
+text=path.read_text()
+hook=r'''<script>
+(()=>{
+  const run=()=>{
+    const button=document.getElementById('runCounterSearch');
+    if(!button){setTimeout(run,50);return;}
+    const img=new Image();img.alt='';img.hidden=true;img.src='./__intentional_smoke_missing_resource__.png';document.body.append(img);
+    button.click();
+  };
+  if(location.hash==='#counter')setTimeout(run,250);
+})();
+</script>'''
+path.write_text(text.replace('</body>',hook+'\n</body>'))
+PY
+interactive_port=$((port+1))
+python3 -m http.server "$interactive_port" --directory "$interactive_root" >"$work/interactive-server.log" 2>&1 &
+interactive_server=$!
+for i in $(seq 1 40); do curl -fsS "http://127.0.0.1:$interactive_port/" >/dev/null && break; sleep .2; done
+
+run_counter_interaction(){
+  local size="$1" label="$2"
+  local dom="$work/${label}-counter-interaction.html" log="$work/${label}-counter-interaction.log"
+  "$browser" --headless=new --no-sandbox --disable-gpu --window-size="$size" --virtual-time-budget=15000 --dump-dom "http://127.0.0.1:$interactive_port/#counter" >"$dom" 2>"$log"
+  python3 scripts/audit-rendered-dom.py "$dom" "$label/counter-interaction"
+  grep -q 'RERUN COUNTER SEARCH' "$dom"
+  grep -q 'Recommended counters' "$dom"
+  if grep -q 'data-runtime-error="1"' "$dom"; then
+    echo "Global planner recovery appeared during $label Counter Analysis interaction." >&2
+    return 1
+  fi
+  if grep -q 'Counter Analysis could not complete safely' "$dom"; then
+    echo "Counter Analysis local failure appeared during $label interaction." >&2
+    return 1
+  fi
+  if grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)|Unhandled Promise Rejection' "$log"; then
+    cat "$log" >&2
+    echo "Browser console/runtime error detected during $label Counter Analysis interaction." >&2
+    return 1
+  fi
+}
+run_counter_interaction '1440,1000' desktop
+run_counter_interaction '390,844' mobile
+
 # Legacy operational-planning hashes must land in the current analysis workflow.
 run_route dashboard '1440,1000' 4500 legacy
 if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-dashboard.html"; then
@@ -58,4 +115,4 @@ if grep -Eq 'GENERAL STAFF · THEATRE COMMAND|OPERATION READINESS|Operation orde
   exit 1
 fi
 
-echo 'Served desktop/mobile route crawl passed.'
+echo 'Served desktop/mobile route and Counter interaction crawl passed.'

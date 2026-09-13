@@ -7,11 +7,11 @@ const SUPPORT_TYPES=['engineer','support_artillery','support_at','support_aa','r
 export const counterTemplateKey=(grid,supportKeys)=>JSON.stringify([gridToCounts(grid,Object.keys(battalions)).sort((a,b)=>a.type.localeCompare(b.type)),[...supportKeys].sort()]);
 const changeLabel=changes=>changes.join(' + ');
 
-export function buildCounterCandidates(snapshot,{grid=null,supportKeys=null,priorChanges=[],limit=80}={}){
+export function buildCounterCandidates(snapshot,{grid=null,supportKeys=null,priorChanges=[],priorKinds=[],limit=80}={}){
   const {state}=snapshot,baseGrid=grid||state.attackerGrid,baseSupports=supportKeys||state.attackerSupports,candidates=[],seen=new Set([counterTemplateKey(baseGrid,baseSupports)]);
   const add=(nextGrid,nextSupports,description,kind)=>{
     const key=counterTemplateKey(nextGrid,nextSupports);if(seen.has(key))return;seen.add(key);
-    const changes=[...priorChanges,description];candidates.push({grid:nextGrid,supportKeys:nextSupports,changes,label:changeLabel(changes),kind,changeCount:changes.length,key});
+    const changes=[...priorChanges,description],changeKinds=[...priorKinds,kind];candidates.push({grid:nextGrid,supportKeys:nextSupports,changes,changeKinds,label:changeLabel(changes),kind,changeCount:changes.length,key});
   };
   for(const type of LINE_TYPES.filter(id=>battalions[id]))for(let column=0;column<DESIGNER_COLS;column++){
     const row=baseGrid[column].findIndex(value=>!value);

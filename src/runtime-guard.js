@@ -1,6 +1,7 @@
 // Lightweight launch-safety layer. No telemetry: failures stay in the browser.
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
 const RETIRED_PUBLIC_ROUTES=new Set(['dashboard','front','intel','production']);
+const CRITICAL_SCRIPT_RE=/\/src\/(?:main|counter-results-ui|counter-analysis-ui)\.js(?:$|[?#])/;
 const initialRoute=location.hash.replace('#','');
 if(RETIRED_PUBLIC_ROUTES.has(initialRoute))history.replaceState(null,'',`${location.pathname}${location.search}#battle`);
 let shown=false;
@@ -30,7 +31,21 @@ function runtimeMessage(){
   return app?.querySelector('.app-shell')?'The core planner may still be usable. Reload first; if the problem repeats, report it with the browser/device and what you were doing.':'Reload the page. If it repeats, reset local planner data or report the issue.';
 }
 
+function criticalRuntimeError(event){
+  if(event?.error||String(event?.message||'').trim())return true;
+  const target=event?.target;
+  if(target?.tagName==='SCRIPT'){
+    const src=String(target.src||target.getAttribute?.('src')||'');
+    return CRITICAL_SCRIPT_RE.test(src);
+  }
+  return false;
+}
+
 window.addEventListener('error',event=>{
+  if(!criticalRuntimeError(event)){
+    console.warn('HOI4 War Planner non-critical resource load error',event.target);
+    return;
+  }
   console.error('HOI4 War Planner runtime error',event.error||event.message||event.target);
   queueMicrotask(()=>showRecovery(runtimeMessage()));
 },true);

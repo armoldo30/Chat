@@ -1,14 +1,13 @@
-let active=false;
-
 function renderCounterMode(){
-  if(location.hash&&location.hash!=='#battle')return;
+  const counterRoute=location.hash==='#counter';
+  if(location.hash&&location.hash!=='#battle'&&!counterRoute)return;
   const tabs=document.querySelector('.lab-mode-tabs');
   const workspace=document.querySelector('.lab-workspace');
   if(!tabs||!workspace)return;
   tabs.querySelectorAll('[data-lab-panel]').forEach(button=>{
     if(button.dataset.counterBound)return;
     button.dataset.counterBound='1';
-    button.addEventListener('click',()=>{active=false;});
+    button.addEventListener('click',()=>{if(location.hash==='#counter')location.hash='battle';});
   });
   let button=tabs.querySelector('[data-counter-analysis-tab]');
   if(!button){
@@ -16,11 +15,11 @@ function renderCounterMode(){
     button.type='button';
     button.dataset.counterAnalysisTab='1';
     button.textContent='COUNTER ANALYSIS';
-    button.addEventListener('click',()=>{active=true;renderCounterMode();});
+    button.addEventListener('click',()=>{if(location.hash!=='#counter')location.hash='counter';else renderCounterMode();});
     tabs.append(button);
   }
   let host=document.querySelector('.counter-analysis-workspace');
-  if(active){
+  if(counterRoute){
     tabs.querySelectorAll('button').forEach(item=>item.classList.toggle('active',item===button));
     workspace.hidden=true;
     if(!host){
@@ -35,6 +34,6 @@ function renderCounterMode(){
   }
 }
 
-window.addEventListener('hashchange',()=>{if(location.hash!=='#battle')active=false;renderCounterMode();});
+window.addEventListener('hashchange',renderCounterMode);
 new MutationObserver(renderCounterMode).observe(document.getElementById('app'),{childList:true,subtree:true});
 renderCounterMode();

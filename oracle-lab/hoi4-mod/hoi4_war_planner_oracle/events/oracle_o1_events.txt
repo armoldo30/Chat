@@ -25,7 +25,7 @@ country_event = {
             }
             else = {
                 clr_country_flag = oracle_o1_running
-                log = "[WPO1] END hour=[?oracle_o1_hour] reason=horizon"
+                log = "WPO1 END hour=[?oracle_o1_hour] reason=horizon"
             }
         }
     }

@@ -9,7 +9,7 @@ import { gridToCounts, filledInRegiment } from './designer.js';
 const isForceKind=kind=>kind==='tank-design';
 const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-support'].includes(kind);
 const BATTALION_IDS=Object.keys(battalions);
-const SAFE_DEFAULTS={runs:50,firstStepLimit:30,beamWidth:4,secondPerSeedLimit:18,secondStepLimit:14};
+const SAFE_DEFAULTS={runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8};
 const derivedCache=new WeakMap();
 
 function rank(items,baseWin,baseIC){
@@ -21,7 +21,7 @@ function pick(ranked){
   return {best,value,minimal:[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain)[0]};
 }
 function candidatePool(snapshot,{state=snapshot.state,grid=state.attackerGrid,supportKeys=state.attackerSupports,priorChanges=[],priorKinds=[],limit=SAFE_DEFAULTS.firstStepLimit}={}){
-  const forceBudget=Math.min(8,Math.max(1,Math.round(limit*.2))),force=buildForceDesignCandidates(snapshot,{state,grid,supportKeys,priorChanges,priorKinds,limit:forceBudget}).filter(candidate=>candidate.kind==='tank-design');
+  const forceBudget=Math.min(5,Math.max(1,Math.round(limit*.2))),force=buildForceDesignCandidates(snapshot,{state,grid,supportKeys,priorChanges,priorKinds,limit:forceBudget}).filter(candidate=>candidate.kind==='tank-design');
   const templateBudget=Math.max(1,limit-force.length),templates=buildCounterCandidates(snapshot,{grid,supportKeys,priorChanges,priorKinds,limit:templateBudget});
   return [...force,...templates].slice(0,Math.max(1,limit));
 }
@@ -86,7 +86,7 @@ export async function runCounterSearchResponsive(snapshot,options={}){
   abortIfNeeded(cancelled);onProgress?.({phase:'baseline',completed:0,total:firstStepLimit+secondStepLimit});
   const baseline=simulateBattle(aggregateDivision(attacker,state.attackerDivisions),target,battleOptions,runs);await yieldControl();abortIfNeeded(cancelled);
   const firstRaw=candidatePool(snapshot,{limit:firstStepLimit}),firstEnriched=[];
-  for(let i=0;i<firstRaw.length;i++){firstEnriched.push(enrichCandidate(snapshot,firstRaw[i],state));if(i%4===3){await yieldControl();abortIfNeeded(cancelled);}}
+  for(let i=0;i<firstRaw.length;i++){firstEnriched.push(enrichCandidate(snapshot,firstRaw[i],state));if(i%3===2){await yieldControl();abortIfNeeded(cancelled);}}
   const firstTested=[];
   for(let i=0;i<firstEnriched.length;i++){
     firstTested.push(simulateCandidate(snapshot,target,battleOptions,runs,firstEnriched[i]));onProgress?.({phase:'first',completed:i+1,total:firstEnriched.length+secondStepLimit});await yieldControl();abortIfNeeded(cancelled);

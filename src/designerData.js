@@ -1,10 +1,18 @@
 import { resolveEquipment } from './parser.js';
+import './ui-localization-bootstrap.js';
+import { sourceDisplayLabel } from './source-display-label.js';
 
 const isObj=v=>v&&typeof v==='object'&&!Array.isArray(v);
 const humanize=id=>String(id||'').replace(/^unit_/,'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const number=(v,d=0)=>Number.isFinite(Number(v))?Number(v):d;
 const text=v=>String(v||'').toLowerCase();
 const mergedRequirements=(pack,kind,id,raw)=>[...new Set([...(pack?.requirements?.[kind]?.[id]||[]),...requirementTokens(raw)])];
+const sourceLocalizationKey=record=>[
+  record?.localizationKey,record?.localisationKey,record?.nameKey,record?.name,
+  record?.raw?.localization_key,record?.raw?.localisation_key,record?.raw?.name,
+  record?.raw?.variant_name,record?.raw?.derived_variant_name
+].find(value=>typeof value==='string'&&value.trim())||'';
+const sourceName=(id,record,fallback)=>sourceDisplayLabel(id,sourceLocalizationKey(record),fallback);
 
 const STAT_MAP={
   soft_attack:'softAttack',hard_attack:'hardAttack',ap_attack:'piercing',armor_value:'armor',defense:'defense',breakthrough:'breakthrough',
@@ -85,9 +93,9 @@ function airSize(id,e){
   if(/large.*(?:plane|airframe)|(?:plane|airframe).*large/.test(s))return 'large';
   return null;
 }
-function moduleRecord(m,pack){return {id:m.id,name:humanize(m.id),category:m.category,guiCategory:m.guiCategory,parent:m.parent,requirements:mergedRequirements(pack,'modules',m.id,m.raw),_module:m,source:'game-pack'};}
-function chassisRecord(id,e,cls,pack){const s=equipmentToState(e);return {id,name:humanize(id),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
-function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:humanize(id),size,carrier:/^cv_/.test(id),year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
+function moduleRecord(m,pack){return {id:m.id,name:sourceName(m.id,m,humanize(m.id)),category:m.category,guiCategory:m.guiCategory,parent:m.parent,requirements:mergedRequirements(pack,'modules',m.id,m.raw),_module:m,source:'game-pack'};}
+function chassisRecord(id,e,cls,pack){const s=equipmentToState(e);return {id,name:sourceName(id,e,humanize(id)),class:cls,year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
+function airframeRecord(id,e,size,pack){const s=equipmentToState(e);return {id,name:sourceName(id,e,humanize(id)),size,carrier:/^cv_/.test(id),year:e.year,source:'game-pack',gameId:id,requirements:mergedRequirements(pack,'equipment',id,e.raw),_equipment:e,...s};}
 
 const TANK_GUN_CATEGORIES=new Set(['tank_main_armament','tank_small_main_armament','tank_medium_main_armament','tank_heavy_main_armament','tank_super_heavy_main_armament','tank_flamethrower']);
 const TANK_TURRET_CATEGORIES=new Set(['tank_turret_type','tank_light_turret_type','tank_medium_turret_type','tank_heavy_turret_type','tank_super_heavy_turret_type','tank_modern_turret_type']);

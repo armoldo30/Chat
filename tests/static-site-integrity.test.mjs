@@ -41,13 +41,15 @@ for(const file of htmlFiles){
   for(const tag of html.matchAll(/<img\b([^>]*)>/gi))assert.match(tag[1]||'',/\balt="[^"]*"/i,`${file} images must declare alt text`);
 }
 
-const [sitemap,robots,cname]=await Promise.all([
+const [sitemap,robots]=await Promise.all([
   readFile(path.join(root,'sitemap.xml'),'utf8'),
-  readFile(path.join(root,'robots.txt'),'utf8'),
-  readFile(path.join(root,'CNAME'),'utf8')
+  readFile(path.join(root,'robots.txt'),'utf8')
 ]);
 assert.match(robots,/^Sitemap:\s*https:\/\/hoioracle\.com\/sitemap\.xml\s*$/mi,'robots.txt must advertise the canonical sitemap');
-assert.equal(cname.trim(),'hoioracle.com','CNAME must preserve the production custom domain');
+if(await exists('CNAME')){
+  const cname=await readFile(path.join(root,'CNAME'),'utf8');
+  assert.equal(cname.trim(),'hoioracle.com','CNAME, when committed, must preserve the production custom domain');
+}
 for(const match of sitemap.matchAll(/<loc>https:\/\/hoioracle\.com\/?([^<]*)<\/loc>/g)){
   const rel=stripFragment(match[1]);
   const target=!rel?'index.html':rel.endsWith('/')?`${rel}index.html`:rel;

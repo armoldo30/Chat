@@ -27,13 +27,13 @@ run_route(){
   fi
 }
 
-for route in battle gauntlet tank air production data scenario; do
+for route in battle counter gauntlet tank air data scenario; do
   budget=4500
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '1440,1000' "$budget" desktop
 done
 
-for route in battle tank air scenario gauntlet; do
+for route in battle counter tank air scenario gauntlet; do
   budget=5000
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '390,844' "$budget" mobile

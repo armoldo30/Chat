@@ -8,10 +8,10 @@
   <meta name="application-name" content="HOI4 War Planner" />
   <meta name="referrer" content="strict-origin-when-cross-origin" />
   <meta name="robots" content="index,follow" />
-  <meta name="description" content="HOI4 War Planner — data-backed division, tank, aircraft, industry and 10,000-design Gauntlet analysis for Hearts of Iron IV 1.19.2." />
+  <meta name="description" content="HOI4 War Planner — data-backed division, counter, tank, aircraft and 10,000-design Gauntlet analysis for Hearts of Iron IV 1.19.2." />
   <link rel="canonical" href="https://hoioracle.com/" />
   <meta property="og:title" content="HOI4 War Planner" />
-  <meta property="og:description" content="Build and test HOI4 divisions, tanks and aircraft against a bundled vanilla 1.19.2 analytical model and Division Gauntlet." />
+  <meta property="og:description" content="Recreate HOI4 divisions, diagnose matchups, test counters, and compare tanks and aircraft against a bundled vanilla 1.19.2 analytical model." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://hoioracle.com/" />
   <meta name="twitter:card" content="summary" />
@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="./src/tech-system-summary.css" />
   <link rel="stylesheet" href="./src/quick-controls.css" />
   <link rel="stylesheet" href="./src/division-visuals.css" />
+  <link rel="stylesheet" href="./src/counter-analysis.css" />
   <link rel="stylesheet" href="./src/industry-visuals.css" />
   <link rel="stylesheet" href="./src/battlefield-visuals.css" />
   <link rel="stylesheet" href="./src/battle-report-visuals.css" />
@@ -51,8 +52,8 @@
     <div class="publisher-intro-inner">
       <div>
         <p class="eyebrow">HOI4 1.19.2 THEORYCRAFTING</p>
-        <h1 id="publisher-intro-title">Plan the division, equipment and production tradeoffs before the campaign commits you to them.</h1>
-        <p>HOI4 War Planner is an independent analytical companion for Hearts of Iron IV. It combines a bundled vanilla 1.19.2 data baseline with Division Lab, Tank Designer, Air Lab, terrain analysis, industry planning and Division Gauntlet. The site separates direct game-file data from inferred behavior and planner-created analysis instead of presenting every result as executable truth.</p>
+        <h1 id="publisher-intro-title">Understand why a division won, test the counter, and improve the next design.</h1>
+        <p>HOI4 War Planner is an independent analytical companion for Hearts of Iron IV. It combines a bundled vanilla 1.19.2 data baseline with Division Lab, Counter Analysis, Tank Designer, Air Lab and Division Gauntlet. The site is built for theorycrafting and post-game review: recreate a matchup, identify the interaction that mattered, test changes, and compare the combat gain against the equipment cost.</p>
         <div class="publisher-intro-actions"><a href="#app">Open planner</a><a href="./guides.html">How to use it</a><a href="./methodology.html">Accuracy & methodology</a></div>
       </div>
       <div class="publisher-facts" aria-label="Planner facts"><div><span>BASELINE</span><b>Vanilla 1.19.2</b></div><div><span>FULL GAUNTLET</span><b>10,000 opponents</b></div><div><span>MATCHUP CHECKS</span><b>160,000</b></div><div><span>ACCOUNT REQUIRED</span><b>No</b></div></div>
@@ -64,17 +65,20 @@
     <div class="publisher-guide-inner">
       <p class="eyebrow">PLAYER GUIDE</p><h2 id="publisher-guide-title">What the planner is designed to answer</h2>
       <div class="publisher-guide-grid">
-        <article><h3>Is the division actually robust?</h3><p>Division Lab and terrain analysis let you compare two complete force assumptions instead of judging a template from one stat. Organization, width, attack, defense or breakthrough, armor, piercing, supply and terrain all matter together.</p></article>
-        <article><h3>Is the equipment worth its cost?</h3><p>Tank Designer and Air Lab connect equipment choices to combat statistics and industrial burden. A design that looks stronger can still be a bad trade if its IC, resources or replacement demand reduce how much of the force you can field.</p></article>
-        <article><h3>What counters the design?</h3><p>Quick Gauntlet samples roughly 500 opponents. Full Gauntlet uses 10,000 deterministic opponent designs across eight terrain types in both attack and defense roles. The goal is to expose weak matchups, not to crown a universal template.</p></article>
-        <article><h3>How certain is the conclusion?</h3><p>Seeded simulations and enemy uncertainty bands are used to show whether an apparent advantage survives stronger or weaker assumptions. The planner does not claim bit-for-bit parity with <code>hoi4.exe</code>.</p></article>
+        <article><h3>Why did this division beat mine?</h3><p>Recreate both templates in Division Lab and compare the interaction directly. Armor and piercing thresholds, hardness, attack profile, defense or breakthrough, organization, width and terrain can be inspected together instead of guessing from one headline stat.</p></article>
+        <article><h3>What is the best counter?</h3><p>Counter Analysis tests focused structural changes against the exact target division and ranks the useful ones by modeled matchup improvement. The goal is to explain what changes the result, not to declare one universal template.</p></article>
+        <article><h3>Is the improvement worth the cost?</h3><p>Counter recommendations include equipment IC per division and an equivalent MIC burden. A stronger answer can still be a poor trade if the added cost reduces how much of the force you can field.</p></article>
+        <article><h3>Is the design broadly good?</h3><p>Division Gauntlet tests a design across large deterministic opponent sets and terrain conditions. Use it when the question is general robustness rather than one specific multiplayer matchup.</p></article>
       </div>
-      <p class="publisher-note"><strong>Evidence policy:</strong> game-file exact values are kept distinct from executable-inferred behavior and planner-analytical scoring. Read the <a href="./methodology.html">methodology</a> for the current certification boundary.</p>
+      <p class="publisher-note"><strong>Evidence policy:</strong> game-file exact values are kept distinct from executable-inferred behavior and planner-analytical scoring. Seeded simulations are reproducible analytical comparisons; the planner does not claim bit-for-bit parity with <code>hoi4.exe</code>. Read the <a href="./methodology.html">methodology</a> for the current certification boundary.</p>
     </div>
   </section>
   <footer class="site-legal-footer" aria-label="Site information"><span>HOI4 War Planner</span><span>Unofficial fan-made tool · Not affiliated with Paradox Interactive</span><a href="./guides.html">Guides</a><a href="./methodology.html">Methodology</a><a href="./about.html">About</a><a href="./privacy.html">Privacy</a><a href="https://github.com/armoldo30/Chat/issues/new/choose" rel="noopener noreferrer">Report issue</a><button type="button" data-privacy-choices hidden>Privacy choices</button></footer>
   <script type="module" src="./src/runtime-guard.js"></script>
   <script type="module" src="./src/main.js"></script>
+  <script type="module" src="./src/product-direction-runtime.js"></script>
+  <script type="module" src="./src/counter-results-ui.js"></script>
+  <script type="module" src="./src/counter-analysis-ui.js"></script>
   <script type="module" src="./src/regiment-group-runtime.js"></script>
   <script type="module" src="./src/ui-polish.js"></script>
   <script type="module" src="./src/nav-visuals.js"></script>

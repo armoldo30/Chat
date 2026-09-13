@@ -34,7 +34,9 @@ assert.match(mainWorkflow,/if: github\.ref == 'refs\/heads\/main'/,'Pages deploy
 assert.match(mainWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'production deployment must be gated by the served-browser route audit');
 assert.match(releaseWorkflow,/permissions:\n  contents: read/,'release-candidate validation must remain read-only');
 assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR validation must use the same served-browser audit as production');
-assert.match(browserSmoke,/battle gauntlet tank air production data scenario/,'browser smoke must crawl every current planner route');
+assert.match(browserSmoke,/battle counter gauntlet tank air data scenario/,'browser smoke must crawl every current desktop planner route including Counter Analysis');
+assert.match(browserSmoke,/battle counter tank air scenario gauntlet/,'browser smoke must render Counter Analysis at phone size too');
+assert.doesNotMatch(browserSmoke,/battle gauntlet tank air production data scenario/,'retired Industry must not remain a supported planner route');
 assert.match(browserSmoke,/390,844/,'browser smoke must include a phone-sized viewport');
 assert.match(browserSmoke,/audit-rendered-dom\.py/,'browser smoke must run the structural accessibility audit');
 assert.match(domAudit,/duplicate id/,'rendered DOM audit must reject duplicate element IDs');

@@ -19,7 +19,10 @@ function forceDesignContext(item,target,reasons,tradeoffs){
     if(reliability<=-1)tradeoffs.push(`${variant} reliability falls by ${Math.abs(reliability).toFixed(1)} percentage points.`);
     if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
   }
-  if(item.techChange)reasons.unshift(`${item.techChange.label} moves from tier ${item.techChange.before} to ${item.techChange.after}; all affected battalion/support stats are recalculated before the matchup is simulated.`);
+  if(item.techChange){
+    reasons.unshift(`${item.techChange.label} moves from tier ${item.techChange.before} to ${item.techChange.after}; all affected battalion/support stats are recalculated before the matchup is simulated.`);
+    tradeoffs.unshift('Research time, line conversion, production-efficiency loss, and replacement-equipment transition cost are not priced in this comparison.');
+  }
 }
 
 export function explainCounter(item,snapshot){

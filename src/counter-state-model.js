@@ -14,7 +14,13 @@ const DEFAULT_FORCE={
   defender:{line:[{type:'infantry',count:10}],supports:['engineer','support_artillery'],divisions:3,name:'Defensive Division'}
 };
 const DEFAULT_BATTLEFIELD={terrain:'plains',directions:0,entrench:20,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:COMBAT_CONSTANTS.basePlanningMax,night:0,runs:500,seed:1944};
+const derivedCache=new WeakMap();
 
+function cacheFor(state){
+  let cache=derivedCache.get(state);
+  if(!cache){cache={tech:{},equipment:{},battle:null};derivedCache.set(state,cache);}
+  return cache;
+}
 function ensureTankState(state){
   if(!state.tankVariants||typeof state.tankVariants!=='object')state.tankVariants={attacker:{},defender:{}};
   if(!state.tankDesigns||typeof state.tankDesigns!=='object')state.tankDesigns={attacker:{},defender:{}};
@@ -74,22 +80,24 @@ export function loadCounterState(){
 }
 
 export function counterTechData(state,side){
+  const cache=cacheFor(state);if(cache.tech[side])return cache.tech[side];
   const data=buildTechAdjustedData(battalions,supports,state[side+'Tech'],{pack:state.dataPack,year:state.dataSnapshotYear});
   for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){
     const target=tankVariantTargets(family,role),raw=tankDesignFor(state,side,family,role);
     for(const unit of target?.units||[]){const map=unit.kind==='support'?data.supports:data.battalions;if(map[unit.id])map[unit.id]=applyTankDesignToBattalion(map[unit.id],raw);}
   }
-  return applyFamilyMioToData(state,data,side);
+  cache.tech[side]=applyFamilyMioToData(state,data,side);return cache.tech[side];
 }
 
 export function counterEquipment(state,side){
+  const cache=cacheFor(state);if(cache.equipment[side])return cache.equipment[side];
   const out=structuredClone(equipment);
   for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(state,side,family));
   for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){
     const target=tankVariantTargets(family,role),raw=tankDesignFor(state,side,family,role),base=buildTankDesign(raw),mio=tankMioFamily(family),effect=mio?mioEffectFor(state,side,mio):null,design=mio?applyMioToVariant(base,effect):base;
     for(const key of [target?.equipmentKey,...(target?.aliases||[])].filter(Boolean))if(out[key]){out[key]=mio?applyMioToEquipmentRecord(tankEquipmentRecord(out[key],raw),effect):tankEquipmentRecord(out[key],raw);out[key].designStats=design;}
   }
-  return out;
+  cache.equipment[side]=out;return out;
 }
 
 export function counterDivision(state,side,grid=state[side+'Grid'],supportKeys=state[side+'Supports']){
@@ -99,8 +107,10 @@ export function counterDivision(state,side,grid=state[side+'Grid'],supportKeys=s
 }
 
 export function counterBattleOptions(state){
+  const cache=cacheFor(state);if(cache.battle)return cache.battle;
   const attackerGlobal=counterTechData(state,'attacker').doctrineGlobal||{},defenderGlobal=counterTechData(state,'defender').doctrineGlobal||{},airDoctrine=airDoctrineEffects(state.attackerTech.airDoctrine,null,state.dataPack);
-  return {...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(defenderGlobal.entrenchment||0)),attackerNightAttackBonus:attackerGlobal.nightAttack||0,defenderNightAttackBonus:defenderGlobal.nightAttack||0,attackerGroundSupportBonus:airDoctrine.groundSupport||0,terrainData:terrain};
+  cache.battle={...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(defenderGlobal.entrenchment||0)),attackerNightAttackBonus:attackerGlobal.nightAttack||0,defenderNightAttackBonus:defenderGlobal.nightAttack||0,attackerGroundSupportBonus:airDoctrine.groundSupport||0,terrainData:terrain};
+  return cache.battle;
 }
 
 export function counterSnapshot(){

@@ -12,8 +12,8 @@ function rank(items,baseWin,baseIC){
 }
 function pick(ranked){
   if(!ranked.length)return {best:null,value:null,minimal:null};
-  const best=ranked[0],priced=ranked.filter(item=>!item.costUnpriced),value=[...(priced.length?priced:ranked)].sort((a,b)=>b.value-a.value||b.gain-a.gain)[0],meaningful=ranked.filter(item=>item.gain>=Math.max(5,best.gain*.35)),pricedMeaningful=meaningful.filter(item=>!item.costUnpriced),minimalSource=pricedMeaningful.length?pricedMeaningful:(meaningful.length?meaningful:(priced.length?priced:ranked));
-  return {best,value,minimal:[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain)[0]};
+  const best=ranked[0],priced=ranked.filter(item=>!item.costUnpriced),value=priced.length?[...priced].sort((a,b)=>b.value-a.value||b.gain-a.gain)[0]:null,meaningful=ranked.filter(item=>item.gain>=Math.max(5,best.gain*.35)),pricedMeaningful=meaningful.filter(item=>!item.costUnpriced),minimalSource=pricedMeaningful.length?pricedMeaningful:priced;
+  return {best,value,minimal:minimalSource.length?[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain)[0]:null};
 }
 function candidatePool(snapshot,{state=snapshot.state,grid=state.attackerGrid,supportKeys=state.attackerSupports,priorChanges=[],priorKinds=[],limit=60}={}){
   const forceBudget=Math.min(18,Math.max(2,Math.round(limit*.3))),force=buildForceDesignCandidates(snapshot,{state,grid,supportKeys,priorChanges,priorKinds,limit:forceBudget});

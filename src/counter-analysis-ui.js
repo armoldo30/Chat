@@ -16,7 +16,8 @@ function syncCombatShortcut(tabs,workspace,counterRoute){
     shortcut.addEventListener('click',openCombatTest);
     workspace.before(shortcut);
   }
-  shortcut.textContent=counterRoute?'COMBAT TEST →':'TEST THIS DIVISION →';
+  const label=counterRoute?'COMBAT TEST →':'TEST THIS DIVISION →';
+  if(shortcut.textContent!==label)shortcut.textContent=label;
 }
 
 function renderCounterMode(){

@@ -11,13 +11,22 @@ assert.ok(htmlFiles.length>=5,'expected the public HTML surface to include index
 const exists=async rel=>{try{await access(path.join(root,rel));return true;}catch{return false;}};
 const stripFragment=value=>String(value||'').split('#',1)[0].split('?',1)[0];
 const isExternal=value=>/^(?:https?:|mailto:|tel:|data:|javascript:)/i.test(value);
+const canonicalFor=file=>file==='index.html'?'https://hoioracle.com/':`https://hoioracle.com/${file}`;
 
 for(const file of htmlFiles){
-  const html=await readFile(path.join(root,file),'utf8');
+  const html=await readFile(path.join(root,file),'utf8'),canonical=canonicalFor(file);
   assert.match(html,/<html[^>]+lang="en"/i,`${file} must declare English document language`);
   assert.match(html,/<meta[^>]+name="viewport"[^>]+content="[^"]+"/i,`${file} must include a responsive viewport`);
+  assert.match(html,/<meta[^>]+name="robots"[^>]+content="index,follow"/i,`${file} must explicitly remain indexable`);
   const title=html.match(/<title>([\s\S]*?)<\/title>/i)?.[1]?.trim();
   assert.ok(title,`${file} must have a non-empty title`);
+  const description=html.match(/<meta[^>]+name="description"[^>]+content="([^"]+)"/i)?.[1]?.trim();
+  assert.ok(description,`${file} must have a non-empty meta description`);
+  assert.match(html,new RegExp(`<link[^>]+rel="canonical"[^>]+href="${canonical.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}"`,`i`),`${file} must declare its production canonical URL`);
+  assert.match(html,/<meta[^>]+property="og:title"[^>]+content="[^"]+"/i,`${file} must include an Open Graph title`);
+  assert.match(html,/<meta[^>]+property="og:description"[^>]+content="[^"]+"/i,`${file} must include an Open Graph description`);
+  assert.match(html,new RegExp(`<meta[^>]+property="og:url"[^>]+content="${canonical.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}"`,`i`),`${file} Open Graph URL must match canonical`);
+  assert.match(html,/<meta[^>]+name="twitter:card"[^>]+content="summary"/i,`${file} must include a Twitter card type`);
 
   const ids=[...html.matchAll(/\sid="([^"]+)"/gi)].map(match=>match[1]);
   const duplicates=ids.filter((id,index)=>ids.indexOf(id)!==index);

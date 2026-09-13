@@ -18,6 +18,7 @@ assert.match(mode,/COUNTER ANALYSIS/);
 assert.match(mode,/TEST THIS DIVISION →/,'Division Lab must expose a prominent one-click combat shortcut');
 assert.match(mode,/COMBAT TEST →/,'Counter Analysis must expose a one-click return to combat testing');
 assert.match(mode,/data-lab-panel="combat"/,'combat shortcut must activate the real Combat sub-tab');
+assert.match(mode,/if\(shortcut\.textContent!==label\)shortcut\.textContent=label/,'combat shortcut updates must be idempotent under the MutationObserver');
 assert.match(model,/buildTechAdjustedData/);
 assert.match(model,/applyMioEquipmentBonus/);
 assert.match(model,/applyTankDesignToBattalion/);

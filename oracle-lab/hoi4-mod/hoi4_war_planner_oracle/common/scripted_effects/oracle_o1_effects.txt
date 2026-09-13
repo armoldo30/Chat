@@ -52,20 +52,20 @@ oracle_o1_measure_division = {
 oracle_o1_log_attacker_divisions = {
     every_country_division = {
         oracle_o1_measure_division = yes
-        log = "[WPO1] ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+        log = "WPO1 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
     }
 }
 
 oracle_o1_log_defender_divisions = {
     every_country_division = {
         oracle_o1_measure_division = yes
-        log = "[WPO1] DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+        log = "WPO1 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
     }
 }
 
 # Must be called in GER country scope. POL is the fixed opposing reference tag.
 oracle_o1_capture_sample = {
-    log = "[WPO1] SAMPLE hour=[?oracle_o1_hour]"
+    log = "WPO1 SAMPLE hour=[?oracle_o1_hour]"
     oracle_o1_log_attacker_divisions = yes
     POL = {
         oracle_o1_log_defender_divisions = yes
@@ -76,9 +76,9 @@ oracle_o1_capture_sample = {
 d_oracle_o1_probe = {
     GER = {
         set_variable = { oracle_o1_hour = 0 }
-        log = "[WPO1] BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
         oracle_o1_capture_sample = yes
-        log = "[WPO1] END hour=[?oracle_o1_hour] reason=probe"
+        log = "WPO1 END hour=[?oracle_o1_hour] reason=probe"
     }
 }
 
@@ -88,7 +88,7 @@ d_oracle_o1_arm = {
         clr_country_flag = oracle_o1_running
         set_country_flag = oracle_o1_running
         set_variable = { oracle_o1_hour = 0 }
-        log = "[WPO1] BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
         oracle_o1_capture_sample = yes
         country_event = { id = oracle_o1.1 hours = 1 }
     }
@@ -100,10 +100,10 @@ d_oracle_o1_stop = {
         if = {
             limit = { has_country_flag = oracle_o1_running }
             clr_country_flag = oracle_o1_running
-            log = "[WPO1] END hour=[?oracle_o1_hour] reason=manual"
+            log = "WPO1 END hour=[?oracle_o1_hour] reason=manual"
         }
         else = {
-            log = "[WPO1] STATUS state=not-running"
+            log = "WPO1 STATUS state=not-running"
         }
     }
 }

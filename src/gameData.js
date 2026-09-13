@@ -1,4 +1,6 @@
 import { equipmentFamilies, resolveEquipment } from './parser.js';
+import './ui-localization-bootstrap.js';
+import { sourceDisplayLabel } from './source-display-label.js';
 
 const LINE_ID_MAP={
   infantry:'infantry',cavalry:'cavalry',motorized:'motorized',mechanized:'mechanized',
@@ -21,6 +23,12 @@ const n=v=>Number.isFinite(Number(v))?Number(v):undefined;
 const words=u=>[u?.id,u?.group,...(u?.types||[]),...(u?.categories||[])].filter(Boolean).join(' ').toLowerCase();
 const indexedRequirements=(pack,kind,id)=>[...new Set(pack?.requirements?.[kind]?.[id]||[])];
 const clone=value=>value&&typeof structuredClone==='function'?structuredClone(value):JSON.parse(JSON.stringify(value||{}));
+const sourceLocalizationKey=record=>[
+  record?.localizationKey,record?.localisationKey,record?.nameKey,record?.name,
+  record?.raw?.localization_key,record?.raw?.localisation_key,record?.raw?.name,
+  record?.raw?.variant_name,record?.raw?.derived_variant_name
+].find(value=>typeof value==='string'&&value.trim())||'';
+const sourceName=(id,record,fallback)=>sourceDisplayLabel(id,sourceLocalizationKey(record),fallback);
 
 export function equipmentAlias(id){return EQUIPMENT_ALIAS[id]||id;}
 export function classifySubUnit(u){
@@ -118,7 +126,7 @@ function addEquipmentAliases(pack,equipment,year){
   for(const [family,items] of Object.entries(families)){
     const item=selectEquipment(pack,family,{year});if(!item)continue;
     const id=equipmentAlias(family),record={
-      name:humanize(item.id||family),cost:Number(item.cost)||0,resources:{...(item.resources||{})},
+      name:sourceName(item.id||family,item,humanize(item.id||family)),cost:Number(item.cost)||0,resources:{...(item.resources||{})},
       source:'game-pack',gameId:item.id,family,year:item.year,reliability:item.reliability,
       soft:item.soft,hard:item.hard,def:item.def,breakthrough:item.breakthrough,hardness:item.hardness,armor:item.armor,piercing:item.piercing,airAttack:item.airAttack
     };
@@ -136,13 +144,15 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
   for(const raw of Object.values(pack.subUnits||{})){
     const id=appIdForSubUnit(raw),kind=classifySubUnit(raw),computed=resolveSubUnitFromPack(raw,pack,{year,profile});
     const terrainModifiers=clone(raw.terrainModifiers||{});
+    const fallbackName=(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id);
     // The old compact 1.19.2 sub-unit bundle did not retain source terrain blocks. Never allow hand-written fallback terrain guesses to leak into a source-backed hydrated unit. Exact imported terrain blocks are preserved separately until the aggregation/formula audit certifies how they combine.
-    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,allowedBattalionGroups:[...(kind.allowedBattalionGroups||[])],divisional:kind.divisional,sameSupportType:[...(kind.sameSupportType||[])],battalionMult:clone(kind.battalionMult||[]),requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null,terrain:{},terrainModifiers,terrainSource:Object.keys(terrainModifiers).length?'game-pack-source':'source-terrain-not-retained',terrainRuntimeClassification:Object.keys(terrainModifiers).length?'combat-formulas-audited':'no-source-terrain-block'};
+    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:sourceName(raw.id,raw,fallbackName),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,allowedBattalionGroups:[...(kind.allowedBattalionGroups||[])],divisional:kind.divisional,sameSupportType:[...(kind.sameSupportType||[])],battalionMult:clone(kind.battalionMult||[]),requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null,terrain:{},terrainModifiers,terrainSource:Object.keys(terrainModifiers).length?'game-pack-source':'source-terrain-not-retained',terrainRuntimeClassification:Object.keys(terrainModifiers).length?'combat-formulas-audited':'no-source-terrain-block'};
     if(kind.support){supports[id]=record;status.supports++;if(kind.regimental)status.regimentalSupports++;}
     else {battalions[id]=record;status.battalions++;}
   }
   for(const [id,src] of Object.entries(pack.terrain||{})){
     const dst=terrain[id]||(terrain[id]={name:humanize(id),attack:0,def:0});
+    dst.name=sourceName(id,src,dst.name||humanize(id));
     if(n(src.width)!==undefined)dst.width=n(src.width);if(n(src.reinforceWidth)!==undefined)dst.reinforceWidth=n(src.reinforceWidth);
     if(n(src.attack)!==undefined)dst.attack=n(src.attack);if(n(src.defense)!==undefined)dst.def=n(src.defense);
     for(const key of ['movementCost','attrition','unitMovement','enemyAirSuperiorityFactor','supplyFlowPenaltyFactor','truckAttritionFactor','sicknessChance'])if(n(src[key])!==undefined)dst[key]=n(src[key]);
@@ -155,13 +165,14 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
 export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>supports[id]?.regimentalSupport);}
 export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>!supports[id]?.regimentalSupport);}
 
+const requirementLabel=value=>sourceDisplayLabel(value,'',String(value??''));
 export function prerequisiteText(record){
-  const indexed=record?.requirements;if(Array.isArray(indexed)&&indexed.length)return indexed.join(' · ');
+  const indexed=record?.requirements;if(Array.isArray(indexed)&&indexed.length)return indexed.map(requirementLabel).join(' · ');
   const p=record?.prerequisite;
   if(!p)return '';
-  if(typeof p==='string')return p;
-  if(Array.isArray(p))return p.join(', ');
-  return Object.entries(p).map(([k,v])=>`${humanize(k)}: ${Array.isArray(v)?v.join(', '):String(v)}`).join(' · ');
+  if(typeof p==='string')return requirementLabel(p);
+  if(Array.isArray(p))return p.map(requirementLabel).join(', ');
+  return Object.entries(p).map(([k,v])=>`${sourceDisplayLabel(k,'',humanize(k))}: ${Array.isArray(v)?v.map(requirementLabel).join(', '):requirementLabel(v)}`).join(' · ');
 }
 
 export function gameDataCoverage(pack){

@@ -1,4 +1,4 @@
-import { battalions, supports, equipment, terrain } from './data.js';
+import { battalions, supports, equipment, terrain, COMBAT_CONSTANTS } from './data.js';
 import { calcDivision, divisionEquipmentIC } from './engine.js';
 import { countsToGrid, normalizeGrid, gridToCounts, filledInRegiment, DESIGNER_COLS } from './designer.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData } from './tech.js';
@@ -9,6 +9,11 @@ import BUILTIN_1192 from './builtin1192.js';
 
 const STORAGE='hoi4-war-planner-v7';
 const MIO_FAMILIES=['infantry_equipment','artillery','anti_tank','anti_air','light_tank','medium_tank','heavy_tank','small_airframe','medium_airframe','large_airframe'];
+const DEFAULT_FORCE={
+  attacker:{line:[{type:'infantry',count:9},{type:'artillery',count:1}],supports:['engineer','support_artillery','support_aa'],divisions:3,name:'Assault Division'},
+  defender:{line:[{type:'infantry',count:10}],supports:['engineer','support_artillery'],divisions:3,name:'Defensive Division'}
+};
+const DEFAULT_BATTLEFIELD={terrain:'plains',directions:0,entrench:20,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:COMBAT_CONSTANTS.basePlanningMax,night:0,runs:500,seed:1944};
 
 function ensureTankState(state){
   if(!state.tankVariants||typeof state.tankVariants!=='object')state.tankVariants={attacker:{},defender:{}};
@@ -56,13 +61,15 @@ export function loadCounterState(){
   const state={...raw};state.dataPack=state.dataPack||BUILTIN_1192;state.dataSnapshotYear=Number(state.dataSnapshotYear)||1940;
   const valid=Object.keys(battalions);
   for(const side of ['attacker','defender']){
-    state[side+'Supports']=Array.isArray(state[side+'Supports'])?state[side+'Supports'].filter(id=>supports[id]).slice(0,5):[];
+    const fallback=DEFAULT_FORCE[side],savedLine=Array.isArray(state[side])?state[side]:fallback.line;
+    state[side+'Name']=String(state[side+'Name']||fallback.name);
+    state[side+'Supports']=Array.isArray(state[side+'Supports'])?state[side+'Supports'].filter(id=>supports[id]).slice(0,5):[...fallback.supports];
     state[side+'RegimentalSupports']=Array.isArray(state[side+'RegimentalSupports'])?Array.from({length:DESIGNER_COLS},(_,i)=>state[side+'RegimentalSupports'][i]||null):Array(DESIGNER_COLS).fill(null);
-    state[side+'Grid']=Array.isArray(state[side+'Grid'])?normalizeGrid(state[side+'Grid'],valid,battalions):countsToGrid(state[side]||[],valid,battalions);
-    state[side+'Divisions']=Math.max(1,Number(state[side+'Divisions'])||1);
+    state[side+'Grid']=Array.isArray(state[side+'Grid'])?normalizeGrid(state[side+'Grid'],valid,battalions):countsToGrid(savedLine,valid,battalions);
+    state[side+'Divisions']=Math.max(1,Number(state[side+'Divisions']??fallback.divisions)||fallback.divisions);
     state[side+'Tech']=normalizeTechProfile(state[side+'Tech']||structuredClone(DEFAULT_TECH_PROFILE));
   }
-  state.battlefield={terrain:'plains',directions:0,entrench:0,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:0,night:0,seed:1944,...(state.battlefield||{})};
+  state.battlefield={...DEFAULT_BATTLEFIELD,...(state.battlefield||{})};
   ensureTankState(state);ensureMioState(state);return state;
 }
 

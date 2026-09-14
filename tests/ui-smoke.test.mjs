@@ -22,8 +22,11 @@ store.set('hoi4-war-planner-v7',JSON.stringify({
 }));
 
 for(const route of ['dashboard','front','intel','battle','tank','air','production','data','scenario']){
+  const started=Date.now();
+  console.log(`UI smoke start: ${route}`);
   location.hash='#'+route;elements.clear();document.body=get('body');
   await import(`../src/main.js?smoke=${route}`);
   assert.ok(document.title.includes('HOI4 War Planner'),`title should render for ${route}`);
+  console.log(`UI smoke done: ${route} in ${Date.now()-started} ms`);
 }
 console.log('UI route smoke tests passed.');

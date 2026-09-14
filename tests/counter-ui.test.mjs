@@ -41,6 +41,9 @@ assert.match(search,/yieldControl/,'responsive search must yield control between
 assert.match(search,/buildCounterRecommendationGroups/,'headline recommendations must collapse duplicate category winners');
 assert.match(search,/bestTested/,'search must preserve the strongest tested attempt for hopeless matchups');
 assert.match(search,/bestEfforts/,'search must retain near-miss diagnostics without expanding the live search');
+assert.match(search,/counterProductionPracticality/,'Counter Analysis must classify new armor-family production commitments');
+assert.match(search,/SEARCH_RETOOLING_PENALTY/,'second-step exploration must account for new armor-family retooling burden');
+assert.match(search,/local=ranked\.filter\(item=>!item\.practicality\?\.majorRetooling\)/,'practical headline categories must prefer local counters when meaningful options exist');
 assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive search rather than the blocking search');
 assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
 assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\)\);\}/,'Counter settings refresh must contain snapshot/render failures locally');
@@ -54,8 +57,11 @@ assert.match(searchView,/No practical local counter found/,'hopeless matchups mu
 assert.match(searchView,/BEST TESTED ATTEMPT · BELOW THRESHOLD/,'hopeless matchups should expose the strongest near-miss without calling it a qualifying counter');
 assert.match(searchView,/DOMINANT PICK/,'one candidate winning several objectives must render once as a dominant pick');
 assert.match(searchView,/DISTINCT ALTERNATIVE/,'duplicate headline winners should make room for distinct qualifying alternatives');
+assert.match(searchView,/MAJOR RETOOLING/,'new armor-family recommendations must be visibly flagged');
+assert.match(searchView,/Fuel, strategic-resource availability, and factory retooling are not fully priced/,'UI must disclose production burdens not fully modeled by Counter Analysis');
 assert.match(explanations,/Crosses the target armor threshold/);
 assert.match(explanations,/underlying variant/);
 assert.match(explanations,/Effective attack against this exact hardness profile/);
+assert.match(explanations,/Major production retooling/,'counter explanations must disclose new armor production-chain commitments');
 assert.doesNotMatch(index,/enemy uncertainty bands/i);
 console.log('Counter Analysis UI regression checks passed.');

@@ -17,6 +17,11 @@ function forceDesignContext(item,target,reasons,tradeoffs){
   if(reliability<=-1)tradeoffs.push(`${variant} reliability falls by ${Math.abs(reliability).toFixed(1)} percentage points.`);
   if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
 }
+function productionContext(item,tradeoffs){
+  const practicality=item.practicality;if(!practicality?.majorRetooling)return;
+  const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
+  tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs in the current data baseline`:''}. Counter Analysis does not fully price factory retooling, strategic-resource availability, or campaign fuel, so treat it as a larger commitment than the IC/div number alone suggests.`);
+}
 export function explainCounter(item,snapshot){
   if(!item?.stats)return {reasons:[],tradeoffs:[],summary:'No modeled explanation available.'};
   const base=snapshot.attacker,target=snapshot.defender,next=item.stats,reasons=[],tradeoffs=[];
@@ -38,8 +43,8 @@ export function explainCounter(item,snapshot){
   if(widthDelta>=2)tradeoffs.push(`Combat width increases by ${widthDelta.toFixed(1)}, which can change packing efficiency in other terrain.`);
   if(widthDelta<=-2)tradeoffs.push(`Combat width drops by ${Math.abs(widthDelta).toFixed(1)}, which may improve packing but changes total line weight.`);
   if(base.armor>target.piercing&&next.armor<=target.piercing)tradeoffs.push('This change gives up the armor advantage against the selected target.');
-  forceDesignContext(item,target,reasons,tradeoffs);
+  forceDesignContext(item,target,reasons,tradeoffs);productionContext(item,tradeoffs);
   if(!reasons.length&&item.gain>=2)reasons.push(`The combined stat changes improve modeled win rate by ${item.gain.toFixed(1)} percentage points even though no single threshold dominates the result.`);
-  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, or armor-threshold tradeoff was detected relative to the current force design.');
+  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, armor-threshold, or production-retooling tradeoff was detected relative to the current force design.');
   return {reasons:reasons.slice(0,5),tradeoffs:tradeoffs.slice(0,5),summary:reasons[0],deltas:{pressure:pressureDelta,piercing:piercingDelta,armor:armorDelta,breakthrough:breakthroughDelta,organization:orgDelta,width:widthDelta,supply:supplyDelta,soft:softDelta,hard:hardDelta,ic:icDelta},changeCount:item.changeCount||1,changeLabel:(item.changes||[]).join(' + '),compact:`${signed(item.gain)} pp win · ${signed(icDelta,0)} IC/div`};
 }

@@ -32,6 +32,11 @@ const designExplanation=explainCounter({gain:8,ic:1180,changeCount:1,changes:['M
 assert.ok(designExplanation.reasons.some(reason=>/underlying variant/i.test(reason)),'tank-design explanations must describe the equipment-level mechanism');
 assert.ok(designExplanation.tradeoffs.some(reason=>/build cost rises/i.test(reason)),'tank-design explanations must report per-vehicle cost tradeoffs');
 
+const retoolExplanation=explainCounter({gain:14,ic:1550,changeCount:1,changes:['Add Heavy Armor'],practicality:{majorRetooling:true,introducedArmorFamilies:['heavy'],resourceKeys:['steel','chromium']},stats:{...yours,armor:76,piercing:72,hard:120,breakthrough:230,supply:1.5}}, {attacker:yours,defender:target,attackerIC:1000});
+assert.ok(retoolExplanation.tradeoffs.some(reason=>/Major production retooling/i.test(reason)),'new armor families must be called out as major production retooling');
+assert.ok(retoolExplanation.tradeoffs.some(reason=>/Chromium/i.test(reason)),'retooling explanation should expose strategic-resource inputs from the current data baseline');
+assert.ok(retoolExplanation.tradeoffs.some(reason=>/campaign fuel/i.test(reason)),'retooling explanation must disclose that campaign fuel is not fully priced');
+
 const grid=blankGrid();grid[0][0]='infantry';grid[0][1]='infantry';grid[0][2]='infantry';
 const snapshot={state:{attackerGrid:grid,attackerSupports:['engineer','recon','logistics','signal','support_artillery']}};
 const first=buildCounterCandidates(snapshot,{limit:80});

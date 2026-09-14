@@ -38,6 +38,7 @@ export const BUILTIN_ENGLISH_LOCALIZATION_1192_META=Object.freeze({
   targetCount:resolvedCount,
   resolvedCount,
   unresolvedCount:0,
+  sourceKeyMode:'identity-object-keys',
   scope:'planner-facing unit, terrain, equipment, tank/air designer, technology and doctrine display labels'
 });
 

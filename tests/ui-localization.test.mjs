@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { parseHoi4Localization, mergeLocalization, localizationValue } from '../src/ui-localization.js';
 import { displayLabel, setDisplayLocalization } from '../src/ui-labels.js';
+import { sourceLocalizedValue } from '../src/source-display-label.js';
 import BUILTIN_ENGLISH_LOCALIZATION_1192, { BUILTIN_ENGLISH_LOCALIZATION_1192_META } from '../src/builtin1192/localization-english-1192.js';
 
 const parsed=parseHoi4Localization('\uFEFF l_english:\n mobile_warfare:0 "Mobile Warfare Exact"\n GER_porsche_tank:0 "Dr. Ing. h.c. F. Porsche KG"\n quote_test:0 "Heavy \\\"Assault\\\" Gun"\n\n l_german:\n mobile_warfare:0 "Bewegungskrieg"\n');
@@ -25,6 +27,11 @@ assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.medium_tank_chassis_1,'Basic Medi
 assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.tank_medium_cannon,'Medium Cannon');
 assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.mobile_warfare,'Mobile Warfare');
 assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.plains,'Plains');
+assert.equal(sourceLocalizedValue('engineer'),'Engineer Company','source label hot path should resolve from the bootstrapped built-in catalog');
+
+const sourceLabelCode=await readFile(new URL('../src/source-display-label.js',import.meta.url),'utf8');
+assert.match(sourceLabelCode,/const SOURCE_LOCALIZATION=getDisplayLocalization\(\)/,'source labels should snapshot the bootstrapped catalog once per page');
+assert.doesNotMatch(sourceLabelCode,/localizationValue\(\s*getDisplayLocalization\(\)/,'source label lookup must not clone the full localization catalog per label');
 
 setDisplayLocalization(BUILTIN_ENGLISH_LOCALIZATION_1192);
 assert.equal(displayLabel('medium_armor'),'Medium Tank','bundled source localization should replace identifier humanization');

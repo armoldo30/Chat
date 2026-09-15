@@ -15,14 +15,14 @@ store.set('hoi4-war-planner-v7',JSON.stringify({attackerDivisions:1,defenderDivi
 
 const data=await import('../src/data.js');mark('after data');
 await import('../src/engine.js');mark('after engine');
-await import('../src/parser.js');mark('after parser');
+const parser=await import('../src/parser.js');mark('after parser');
 await import('../src/gameDataParser.js');mark('after gameDataParser');
 const gameData=await import('../src/gameData.js');mark('after gameData');
 await import('../src/doctrine.js');mark('after doctrine');
-await import('../src/mio.js');mark('after mio');
+const mio=await import('../src/mio.js');mark('after mio');
 await import('../src/designer.js');mark('after designer');
 const regimental=await import('../src/regimental-support-1192.js');mark('after regimental-support-1192');
-await import('../src/tech.js');mark('after tech');
+const tech=await import('../src/tech.js');mark('after tech');
 const tank=await import('../src/tank.js');mark('after tank');
 const air=await import('../src/air.js');mark('after air');
 const builtinModule=await import('../src/builtin1192.js');const pack=builtinModule.default;mark('after builtin1192');
@@ -31,11 +31,25 @@ await import('../src/gauntlet-ui.js');mark('after gauntlet-ui');
 mark('before hydrateGameData');
 const hydration=gameData.hydrateGameData(pack,{battalions:data.battalions,supports:data.supports,equipment:data.equipment,terrain:data.terrain},{year:1940});
 mark(`after hydrateGameData ${JSON.stringify(hydration)}`);
-mark('before configureTankDataPack');
-const tankStatus=tank.configureTankDataPack(pack,1940);mark(`after configureTankDataPack ${JSON.stringify(tankStatus)}`);
-mark('before configureAirDataPack');
-const airStatus=air.configureAirDataPack(pack,1940);mark(`after configureAirDataPack ${JSON.stringify(airStatus)}`);
+mark('before configureTankDataPack');tank.configureTankDataPack(pack,1940);mark('after configureTankDataPack');
+mark('before configureAirDataPack');air.configureAirDataPack(pack,1940);mark('after configureAirDataPack');
 mark('before regimental fallback');regimental.applyRegimentalSupportCompatibilityFallback(data.supports);mark('after regimental fallback');
+
+mark('before tank state expansion');
+let tankCount=0;
+for(const side of ['attacker','defender'])for(const family of tank.TANK_FAMILIES)for(const role of tank.tankRolesForFamily(family)){
+  const raw=tank.defaultTankDesign(family,role);
+  tank.normalizeTankDesign({...raw,class:family,role},family,role);
+  tankCount++;
+}
+mark(`after tank state expansion ${tankCount}`);
+mark('before air normalization');
+air.normalizeAirDesign(air.defaultAirDesign('small'),'small');
+air.normalizeAirDesign({...air.defaultAirDesign('small'),name:'Enemy Fighter'},'small');
+mark('after air normalization');
+mark('before tech normalization');tech.normalizeTechProfile({countryTag:'GER'});tech.normalizeTechProfile({countryTag:'SOV'});mark('after tech normalization');
+mark('before mio normalization');for(let i=0;i<20;i++)mio.normalizeMioSelection(mio.DEFAULT_MIO_SELECTION);mark('after mio normalization');
+mark('before structural overrides');parser.safeStructuralOverrides(pack,data.battalions,data.supports,data.terrain);mark('after structural overrides');
 
 location.hash='#battle';elements.clear();document.body=get('body');
 mark('before main import');

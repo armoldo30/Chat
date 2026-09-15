@@ -47,13 +47,20 @@ function localizedMioCatalog(catalog){
 }
 
 const MIO_PACK_CACHE=new WeakMap();
+const MIO_LOCALIZED_PACK_CACHE=new WeakMap();
+let MIO_LOCALIZED_BUILTIN_CACHE=null;
 export function mioCatalog(pack){
+  const cacheable=!!pack&&typeof pack==='object';
+  if(cacheable&&MIO_LOCALIZED_PACK_CACHE.has(pack))return MIO_LOCALIZED_PACK_CACHE.get(pack);
+  if(!cacheable&&MIO_LOCALIZED_BUILTIN_CACHE)return MIO_LOCALIZED_BUILTIN_CACHE;
   let imported=pack?.mios||{};
-  if(pack?.meta?.mioInheritance==='runtime'&&pack&&typeof pack==='object'){
+  if(pack?.meta?.mioInheritance==='runtime'&&cacheable){
     if(!MIO_PACK_CACHE.has(pack))MIO_PACK_CACHE.set(pack,applySourceRemovalsAfterInheritance(resolveMIOs(applyBundled1192SourceCorrections(imported))));
     imported=MIO_PACK_CACHE.get(pack);
   }
-  return localizedMioCatalog({...BUILTIN_MIOS,...imported});
+  const localized=localizedMioCatalog({...BUILTIN_MIOS,...imported});
+  if(cacheable)MIO_LOCALIZED_PACK_CACHE.set(pack,localized);else MIO_LOCALIZED_BUILTIN_CACHE=localized;
+  return localized;
 }
 
 function normalizedEquipmentId(value){

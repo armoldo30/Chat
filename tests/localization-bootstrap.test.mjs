@@ -43,6 +43,18 @@ assert.equal(sourceLocalizedValue('engineer'),'Engineer Company');
 assert.equal(sourceDisplayLabel('engineer','', 'Old Planner Name'),'Engineer Company','verified bundled localization must beat readable planner fallback text');
 assert.equal(sourceDisplayLabel('missing_source_key','', 'Existing Planner Fallback'),'Existing Planner Fallback','missing localization must preserve the existing readable fallback');
 
+// MIO localization is display-only. This branch currently contains only the
+// authoritative equipment-category labels and organization labels A-M already
+// preserved from the user's HOI4 1.19.2 English corpus.
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.mio_cat_eq_all_medium_plane,'All Medium Planes','preserved MIO equipment-category label must remain source-backed');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1192.GER_porsche_organization,'Porsche','preserved MIO organization label must remain source-backed');
+const localizedMios=mioCatalog({mios:{
+  GER_porsche_organization:{id:'GER_porsche_organization',name:'Planner Porsche Fallback',countries:['GER'],equipmentTypes:['medium_tank'],traits:{}}
+}});
+assert.equal(localizedMios.GER_porsche_organization.name,'Porsche','MIO catalog must consume the bundled exact organization label');
+assert.equal(localizedMios.GER_porsche_organization.id,'GER_porsche_organization','MIO localization must not alter source IDs');
+assert.deepEqual(localizedMios.GER_porsche_organization.equipmentTypes,['medium_tank'],'MIO localization must not alter mechanics');
+
 const mios=mioCatalog(null);
 assert.ok(mios.GER_porsche_tank?.name,'MIO catalog must retain a readable organization name');
 assert.ok(mios.GER_porsche_tank?.traits?.reinforced_suspension?.name,'MIO catalog must retain readable trait names while MIO localization expansion is handled separately');

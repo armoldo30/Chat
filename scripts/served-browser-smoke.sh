@@ -113,8 +113,9 @@ run_counter_interaction(){
   local dom="$work/${label}-counter-interaction.html" log="$work/${label}-counter-interaction.log"
   "$browser" --headless=new --no-sandbox --disable-gpu --window-size="$size" --virtual-time-budget=15000 --dump-dom "http://127.0.0.1:$interactive_port/#counter" >"$dom" 2>"$log"
   python3 scripts/audit-rendered-dom.py "$dom" "$label/counter-interaction"
-  grep -q 'RERUN COUNTER SEARCH' "$dom"
-  grep -q 'Recommended counters' "$dom"
+  grep -q 'IMPROVE ATTACKER' "$dom"
+  grep -q 'IMPROVE DEFENDER' "$dom"
+  grep -q 'Recommended attacker improvements' "$dom"
   if grep -q 'data-runtime-error="1"' "$dom"; then
     echo "Global planner recovery appeared during $label Counter Analysis interaction." >&2
     return 1

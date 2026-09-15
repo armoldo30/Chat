@@ -6,6 +6,7 @@ const started=Date.now();
 const r=runCounterSearch(s);
 const elapsed=Date.now()-started;
 assert.deepEqual(COUNTER_SEARCH_DEFAULTS,{runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8});
+assert.equal(r.side,'attacker');
 assert.equal(r.maxDepth,2);
 assert.ok(r.oneChangeCount>0);
 assert.ok(r.multiChangeCount>0);
@@ -22,10 +23,17 @@ for(const item of r.ranked){
   assert.equal(item.changeKinds?.length,item.changeCount);
   assert.ok(!(item.changeKinds||[]).includes('equipment-tech'));
   assert.ok(item.practicality&&typeof item.practicality.majorRetooling==='boolean','ranked counters must carry production-practicality metadata');
+  assert.ok(item.operationalBurden&&Number.isFinite(item.operationalBurden.supplyPct),'ranked counters must carry explicit supply-use practicality metadata');
 }
 const recommendationKeys=(r.recommendations||[]).map(group=>group.item.key);
 assert.equal(new Set(recommendationKeys).size,recommendationKeys.length,'headline recommendations must never repeat the same candidate');
 assert.ok((r.recommendations||[]).length<=3);
+
+const defenderRun=runCounterSearch(s,{side:'defender',runs:50,firstStepLimit:6,beamWidth:1,secondPerSeedLimit:1,secondStepLimit:0});
+assert.equal(defenderRun.side,'defender','the same search engine must optimize the defending division when requested');
+assert.equal(defenderRun.multiChangeCount,0);
+assert.ok(defenderRun.oneChangeCount>0&&Number.isFinite(defenderRun.baseline.winRate));
+assert.ok(defenderRun.bestTested&&defenderRun.bestTested.side==='defender','defender candidate identity must survive full battle simulation and ranking');
 
 const heavyGrid=structuredClone(s.state.attackerGrid);
 let inserted=false;
@@ -45,4 +53,4 @@ assert.equal(picks.minimal.key,'support','Smallest Change must prefer a meaningf
 const practicalGroups=buildCounterRecommendationGroups(picks,[heavy,at,support]);
 assert.deepEqual(practicalGroups.map(group=>group.item.key),['heavy','at','support'],'headline cards should retain raw strength while filling practical categories with local counters');
 
-console.log(`Counter search runtime smoke passed: ${r.testedCount} candidates in ${elapsed} ms.`);
+console.log(`Counter search runtime smoke passed: ${r.testedCount} attacker candidates + ${defenderRun.testedCount} defender candidates in ${Date.now()-started} ms.`);

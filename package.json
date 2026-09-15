@@ -5,6 +5,6 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build.mjs",
-    "test": "node tests/ui-smoke.test.mjs"
+    "test": "timeout 30s node tests/ui-smoke.test.mjs"
   }
 }

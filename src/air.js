@@ -1,4 +1,5 @@
 import { airCatalogFromPack, equipmentToState, applyModuleEffects, chooseCatalogDefault } from './designerData.js';
+import { AIR_COMBAT_MODEL_1192, airCombatEngagement, airDogfightDamage, airCombatExposure } from './air-combat-model-1192.js';
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
@@ -201,28 +202,23 @@ export function airMissionProfileBuilt(design,mission='air_superiority'){
 }
 export function airMissionProfile(raw,mission='air_superiority'){return airMissionProfileBuilt(buildAirDesign(raw),mission);}
 
-
-function combatModifier(attacker,defender,opts={}){
-  const agilityRatio=attacker.agility/Math.max(1,defender.agility),speedRatio=attacker.maxSpeed/Math.max(1,defender.maxSpeed);
-  const agility=clamp(Math.pow(agilityRatio,.35),.65,1.35),speed=clamp(Math.pow(speedRatio,.20),.80,1.20);
-  const reliability=.75+.25*attacker.reliability,mission=clamp((opts.missionEfficiency??1)*attacker.missionEfficiency,.2,1.25),detection=clamp(opts.detection??1,.1,1);
-  return agility*speed*reliability*mission*detection;
-}
+export { AIR_COMBAT_MODEL_1192 };
 
 export function compareBuiltAirDesigns(a,b,opts={}){
-  const countA=Math.max(1,Number(opts.countA)||100),countB=Math.max(1,Number(opts.countB)||100),sorties=Math.max(1,Number(opts.sorties)||1000);
-  // Air-to-air exchange remains an analytical executable approximation; imported airframes/modules feed the inputs, not a claim of bit-for-bit NAir resolution.
-  const lethality=.018;
-  const attackA=(a.airAttack/Math.max(1,b.airDefense))*combatModifier(a,b,{missionEfficiency:opts.missionEfficiencyA,detection:opts.detectionA});
-  const attackB=(b.airAttack/Math.max(1,a.airDefense))*combatModifier(b,a,{missionEfficiency:opts.missionEfficiencyB,detection:opts.detectionB});
-  const exposureA=Math.min(1,countB/countA),exposureB=Math.min(1,countA/countB);
-  const lossB=Math.min(countB,sorties/1000*countA*lethality*attackA*exposureB);
-  const lossA=Math.min(countA,sorties/1000*countB*lethality*attackB*exposureA);
+  const countA=Math.max(1,Number(opts.countA)||100),countB=Math.max(1,Number(opts.countB)||100),sorties=Math.max(1,Number(opts.sorties)||1000),mission=opts.mission||'air_superiority';
+  // Aircraft/module stats and mission-stat blocks are source-backed. Dogfight
+  // resolution is executable-inferred from the documented post-1.13 equation;
+  // the Sorties-to-exposure scale remains planner analytical until Air Oracle work.
+  const combatA=airMissionProfileBuilt(a,mission),combatB=airMissionProfileBuilt(b,mission);
+  const engagementA=airCombatEngagement(countA,countB,{missionEfficiency:(opts.missionEfficiencyA??1)*(combatA.missionEfficiency??1),detection:opts.detectionA??1});
+  const engagementB=airCombatEngagement(countB,countA,{missionEfficiency:(opts.missionEfficiencyB??1)*(combatB.missionEfficiency??1),detection:opts.detectionB??1});
+  const carrierCombat=!!(combatA.carrier&&combatB.carrier),damageA=airDogfightDamage(combatA,combatB,engagementA.engagedAttackers,{carrierCombat}),damageB=airDogfightDamage(combatB,combatA,engagementB.engagedAttackers,{carrierCombat});
+  const exposure=airCombatExposure(sorties);
+  const lossB=Math.min(countB,damageA.expectedKills*exposure*engagementA.operationalTempo),lossA=Math.min(countA,damageB.expectedKills*exposure*engagementB.operationalTempo);
   const icLostA=lossA*a.buildCost,icLostB=lossB*b.buildCost;
   const exchangeA=icLostA>0?icLostB/icLostA:(icLostB>0?Infinity:1),killRatioA=lossA>0?lossB/lossA:(lossB>0?Infinity:1);
-  const airPowerA=countA*a.airAttack*(.5+.5*a.agility/Math.max(1,a.agility+b.agility));
-  const airPowerB=countB*b.airAttack*(.5+.5*b.agility/Math.max(1,a.agility+b.agility));
-  return {a,b,countA,countB,sorties,lossA,lossB,icLostA,icLostB,exchangeA,killRatioA,airPowerShareA:airPowerA/(airPowerA+airPowerB||1)*100};
+  const potentialA=damageA.expectedKills*engagementA.operationalTempo,potentialB=damageB.expectedKills*engagementB.operationalTempo;
+  return {a,b,combatA,combatB,countA,countB,sorties,lossA,lossB,icLostA,icLostB,exchangeA,killRatioA,airPowerShareA:potentialA/(potentialA+potentialB||1)*100,engagementA,engagementB,damageA,damageB,modelMeta:AIR_COMBAT_MODEL_1192,exposure};
 }
 
 export function compareAirDesigns(rawA,rawB,opts={}){return compareBuiltAirDesigns(buildAirDesign(rawA),buildAirDesign(rawB),opts);}

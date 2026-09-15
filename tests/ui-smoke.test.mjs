@@ -28,28 +28,15 @@ const air=await import('../src/air.js');mark('after air');
 const builtinModule=await import('../src/builtin1192.js');const pack=builtinModule.default;mark('after builtin1192');
 await import('../src/gauntlet-ui.js');mark('after gauntlet-ui');
 
-mark('before hydrateGameData');
-const hydration=gameData.hydrateGameData(pack,{battalions:data.battalions,supports:data.supports,equipment:data.equipment,terrain:data.terrain},{year:1940});
-mark(`after hydrateGameData ${JSON.stringify(hydration)}`);
-mark('before configureTankDataPack');tank.configureTankDataPack(pack,1940);mark('after configureTankDataPack');
-mark('before configureAirDataPack');air.configureAirDataPack(pack,1940);mark('after configureAirDataPack');
-mark('before regimental fallback');regimental.applyRegimentalSupportCompatibilityFallback(data.supports);mark('after regimental fallback');
+gameData.hydrateGameData(pack,{battalions:data.battalions,supports:data.supports,equipment:data.equipment,terrain:data.terrain},{year:1940});mark('after hydrateGameData');
+tank.configureTankDataPack(pack,1940);mark('after configureTankDataPack');
+air.configureAirDataPack(pack,1940);mark('after configureAirDataPack');
+regimental.applyRegimentalSupportCompatibilityFallback(data.supports);mark('after regimental fallback');
 
-mark('before tank state expansion');
-let tankCount=0;
-for(const side of ['attacker','defender'])for(const family of tank.TANK_FAMILIES)for(const role of tank.tankRolesForFamily(family)){
-  const raw=tank.defaultTankDesign(family,role);
-  tank.normalizeTankDesign({...raw,class:family,role},family,role);
-  tankCount++;
-}
-mark(`after tank state expansion ${tankCount}`);
-mark('before air normalization');
-air.normalizeAirDesign(air.defaultAirDesign('small'),'small');
-air.normalizeAirDesign({...air.defaultAirDesign('small'),name:'Enemy Fighter'},'small');
-mark('after air normalization');
-mark('before tech normalization');tech.normalizeTechProfile({countryTag:'GER'});tech.normalizeTechProfile({countryTag:'SOV'});mark('after tech normalization');
-mark('before mio normalization');for(let i=0;i<20;i++)mio.normalizeMioSelection(mio.DEFAULT_MIO_SELECTION);mark('after mio normalization');
-mark('before structural overrides');parser.safeStructuralOverrides(pack,data.battalions,data.supports,data.terrain);mark('after structural overrides');
+mark('before mioCatalog x1');
+const catalog=mio.mioCatalog(pack);mark(`after mioCatalog x1 orgs=${Object.keys(catalog).length}`);
+mark('before mioCatalog x10');for(let i=0;i<10;i++)mio.mioCatalog(pack);mark('after mioCatalog x10');
+mark('before tech adjusted attacker');const profile=tech.normalizeTechProfile({countryTag:'GER'});tech.buildTechAdjustedData(data.battalions,data.supports,profile,{pack,year:1940});mark('after tech adjusted attacker');
 
 location.hash='#battle';elements.clear();document.body=get('body');
 mark('before main import');

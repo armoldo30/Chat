@@ -9,6 +9,8 @@ import researchNS from './localization-english-1192-research-n-s.js';
 import researchTZ from './localization-english-1192-research-t-z.js';
 import doctrinesGM from './localization-english-1192-doctrines-g-m.js';
 import doctrinesNZ from './localization-english-1192-doctrines-n-z.js';
+import mioCategories from './localization-english-1192-mio-categories.js';
+import mioOrganizationsAM from './localization-english-1192-mio-organizations-a-m.js';
 
 /*
  * Source-backed HOI4 1.19.2 English display-name catalog.
@@ -17,10 +19,17 @@ import doctrinesNZ from './localization-english-1192-doctrines-n-z.js';
  * localisation/english upload. They intentionally retain display labels only;
  * descriptions, tooltips, events, and the full localisation corpus are not
  * redistributed by the planner.
+ *
+ * MIO coverage here is intentionally partial: only the authoritative MIO
+ * equipment-category labels and organization labels A-M that were already
+ * preserved on this branch are included. Missing MIO organization/trait labels
+ * continue to use existing readable fallbacks until their authoritative source
+ * extraction is recovered; they are not reconstructed from IDs or memory.
  */
 const chunks=[
   core,equipment,tankModules,airEquipment,airModules,
-  researchAF,researchGM,researchNS,researchTZ,doctrinesGM,doctrinesNZ
+  researchAF,researchGM,researchNS,researchTZ,doctrinesGM,doctrinesNZ,
+  mioCategories,mioOrganizationsAM
 ];
 
 export const BUILTIN_ENGLISH_LOCALIZATION_1192=Object.freeze(Object.assign({},...chunks));
@@ -39,7 +48,7 @@ export const BUILTIN_ENGLISH_LOCALIZATION_1192_META=Object.freeze({
   resolvedCount,
   unresolvedCount:0,
   sourceKeyMode:'identity-object-keys',
-  scope:'planner-facing unit, terrain, equipment, tank/air designer, technology and doctrine display labels'
+  scope:'planner-facing unit, terrain, equipment, tank/air designer, technology, doctrine, and preserved partial MIO display labels'
 });
 
 // Chunk generation retained exact localisation keys as object keys, so a

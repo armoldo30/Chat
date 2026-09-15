@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 
-process.stderr.write('UI_DIAG: module body started\n');
+const mark=s=>process.stderr.write(`UI_DIAG: ${s}\n`);
+mark('module body started');
 const store=new Map();
 const makeEl=id=>({id,innerHTML:'',value:'',checked:false,dataset:{},style:{},files:[],disabled:false,title:'',onclick:null,onchange:null,classList:{add(){},remove(){},toggle(){}},insertAdjacentHTML(){},remove(){},click(){}});
 const elements=new Map();
@@ -12,9 +13,11 @@ globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(
 globalThis.alert=()=>{};globalThis.confirm=()=>true;
 store.set('hoi4-war-planner-v7',JSON.stringify({attackerDivisions:1,defenderDivisions:1,labDemandCount:1,production:{days:1,factories:1},battlefield:{runs:50,maxHours:4,seed:1944},intelUncertainty:0}));
 
+const deps=['data','engine','parser','gameDataParser','gameData','doctrine','mio','designer','regimental-support-1192','tech','tank','air','builtin1192','gauntlet-ui'];
+for(const dep of deps){mark(`before ${dep}`);await import(`../src/${dep}.js`);mark(`after ${dep}`);}
 location.hash='#battle';elements.clear();document.body=get('body');
-process.stderr.write('UI_DIAG: before main import\n');
+mark('before main import');
 await import('../src/main.js?smoke=diag');
-process.stderr.write('UI_DIAG: after main import\n');
+mark('after main import');
 assert.ok(document.title.includes('HOI4 War Planner'),'title should render for battle');
-process.stderr.write('UI_DIAG: assertion passed\n');
+mark('assertion passed');

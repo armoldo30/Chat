@@ -13,8 +13,30 @@ globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(
 globalThis.alert=()=>{};globalThis.confirm=()=>true;
 store.set('hoi4-war-planner-v7',JSON.stringify({attackerDivisions:1,defenderDivisions:1,labDemandCount:1,production:{days:1,factories:1},battlefield:{runs:50,maxHours:4,seed:1944},intelUncertainty:0}));
 
-const deps=['data','engine','parser','gameDataParser','gameData','doctrine','mio','designer','regimental-support-1192','tech','tank','air','builtin1192','gauntlet-ui'];
-for(const dep of deps){mark(`before ${dep}`);await import(`../src/${dep}.js`);mark(`after ${dep}`);}
+const data=await import('../src/data.js');mark('after data');
+await import('../src/engine.js');mark('after engine');
+await import('../src/parser.js');mark('after parser');
+await import('../src/gameDataParser.js');mark('after gameDataParser');
+const gameData=await import('../src/gameData.js');mark('after gameData');
+await import('../src/doctrine.js');mark('after doctrine');
+await import('../src/mio.js');mark('after mio');
+await import('../src/designer.js');mark('after designer');
+const regimental=await import('../src/regimental-support-1192.js');mark('after regimental-support-1192');
+await import('../src/tech.js');mark('after tech');
+const tank=await import('../src/tank.js');mark('after tank');
+const air=await import('../src/air.js');mark('after air');
+const builtinModule=await import('../src/builtin1192.js');const pack=builtinModule.default;mark('after builtin1192');
+await import('../src/gauntlet-ui.js');mark('after gauntlet-ui');
+
+mark('before hydrateGameData');
+const hydration=gameData.hydrateGameData(pack,{battalions:data.battalions,supports:data.supports,equipment:data.equipment,terrain:data.terrain},{year:1940});
+mark(`after hydrateGameData ${JSON.stringify(hydration)}`);
+mark('before configureTankDataPack');
+const tankStatus=tank.configureTankDataPack(pack,1940);mark(`after configureTankDataPack ${JSON.stringify(tankStatus)}`);
+mark('before configureAirDataPack');
+const airStatus=air.configureAirDataPack(pack,1940);mark(`after configureAirDataPack ${JSON.stringify(airStatus)}`);
+mark('before regimental fallback');regimental.applyRegimentalSupportCompatibilityFallback(data.supports);mark('after regimental fallback');
+
 location.hash='#battle';elements.clear();document.body=get('body');
 mark('before main import');
 await import('../src/main.js?smoke=diag');

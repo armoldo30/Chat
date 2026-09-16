@@ -9,6 +9,7 @@ const sampleStdDev=values=>{
   return Math.sqrt(variance);
 };
 const relativeError=(actual,expected)=>{
+  if(!Number.isFinite(actual)||!Number.isFinite(expected))return actual===expected?0:Infinity;
   const denominator=Math.abs(expected);
   if(denominator===0)return Math.abs(actual)===0?0:Infinity;
   return Math.abs(actual-expected)/denominator;
@@ -67,10 +68,11 @@ export function compareAirOracleCapture(capture,plannerComparison,policy={}){
   };
 
   const minTrials=Number.isFinite(Number(policy.minTrials))&&Number(policy.minTrials)>0?Number(policy.minTrials):null;
+  const threshold=value=>value!==undefined&&value!==null&&Number.isFinite(Number(value))&&Number(value)>=0?Number(value):null;
   const thresholds={
-    maxMeanLossAbs:Number.isFinite(Number(policy.maxMeanLossAbs))&&Number(policy.maxMeanLossAbs)>=0?Number(policy.maxMeanLossAbs):null,
-    maxMeanLossRel:Number.isFinite(Number(policy.maxMeanLossRel))&&Number(policy.maxMeanLossRel)>=0?Number(policy.maxMeanLossRel):null,
-    maxExchangeRatioRel:Number.isFinite(Number(policy.maxExchangeRatioRel))&&Number(policy.maxExchangeRatioRel)>=0?Number(policy.maxExchangeRatioRel):null,
+    maxMeanLossAbs:threshold(policy.maxMeanLossAbs),
+    maxMeanLossRel:threshold(policy.maxMeanLossRel),
+    maxExchangeRatioRel:threshold(policy.maxExchangeRatioRel),
   };
   const hasMetricThreshold=Object.values(thresholds).some(value=>value!==null);
   const eligible=minTrials!==null&&hasMetricThreshold&&observed.trialCount>=minTrials;

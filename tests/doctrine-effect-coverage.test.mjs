@@ -6,7 +6,7 @@ const LAND_GLOBAL_FIELDS=new Set(['land_night_attack','supply_consumption_factor
 const LAND_TERRAIN_SCOPES=new Set(['plains','desert','forest','jungle','hills','mountain','marsh','urban','river','fort']);
 const LAND_TERRAIN_FIELDS=new Set(['attack','defence','defense']);
 const AIR_UNIT_FIELDS=new Set(['air_agility','air_attack','air_defence','maximum_speed','air_range','air_ground_attack','naval_strike_attack','reliability']);
-const AIR_GLOBAL_FIELDS=new Set(['air_superiority_efficiency','air_cas_efficiency','air_nav_efficiency','air_mission_efficiency','ground_attack_factor','air_range_factor','air_fuel_consumption_factor','air_strategic_bomber_defence_factor']);
+const AIR_GLOBAL_FIELDS=new Set(['air_superiority_efficiency','air_cas_efficiency','air_nav_efficiency','air_mission_efficiency','ground_attack_factor','air_range_factor','air_fuel_consumption_factor','air_strategic_bomber_defence_factor','air_superiority_detect_factor']);
 const META=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
 const inc=(o,k,n=1)=>{o[k]=(o[k]||0)+n;};
 const summary={land:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,supportedTerrainFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},air:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,supportedTerrainFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},specialForces:{nodes:0},naval:{nodes:0}};
@@ -65,5 +65,8 @@ assert.equal(summary.land.unitFields.supply_consumption>0,true,'source land doct
 assert.ok(summary.land.supportedUnitFields>0&&summary.air.supportedUnitFields>0);
 assert.ok(summary.land.supportedTerrainFields>0,'source-backed doctrine terrain attack/defense fields must be counted as runtime-supported');
 assert.ok(Object.keys(summary.land.deferredUnitFields).some(key=>key.endsWith('.movement')),'terrain movement fields must remain explicitly deferred');
+assert.ok(summary.air.globalFields.air_superiority_detect_factor>0,'source Air doctrine corpus contains Air Superiority detection factors');
+assert.equal(summary.air.deferredGlobalFields.air_superiority_detect_factor,undefined,'Air Superiority detection factor must move out of deferred coverage once consumed by Air Lab');
+assert.ok(summary.air.deferredGlobalFields.air_interception_detect_factor>0,'interception detection remains explicitly deferred and separate');
 console.log('DOCTRINE_EFFECT_COVERAGE',JSON.stringify(summary));
 console.log('Doctrine effect coverage measurement passed.');

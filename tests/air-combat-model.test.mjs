@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import { AIR_COMBAT_MODEL_1192, compareBuiltAirDesigns } from '../src/air.js';
+import builtin1192 from '../src/builtin1192.js';
+import { applyAirDoctrineToVariant } from '../src/doctrine.js';
+import { AIR_COMBAT_MODEL_1192, compareBuiltAirDesigns, configureAirDataPack } from '../src/air.js';
 
 const close=(a,b,msg,eps=1e-12)=>assert.ok(Math.abs(a-b)<=eps,`${msg}: ${a} != ${b}`);
 const base={name:'Fixture Fighter',airAttack:30,airDefense:20,agility:60,maxSpeed:500,reliability:.80,missionEfficiency:1,buildCost:30,carrier:false,source:'fixture',weight:10,thrust:10};
@@ -48,6 +50,25 @@ const limitedDetection=run(base,base,{countA:1000,countB:100,detectionA:.25});
 close(limitedDetection.engagementA.detectedTargets,25,'detection constrains visible targets');
 close(limitedDetection.engagementA.engagedAttackers,75,'detection and 3:1 cap constrain engaged attackers');
 assert.ok(limitedDetection.lossB<outnumber.lossB,'worse detection reduces expected kills');
+
+// Source Air doctrine detection factors modify the explicit Air Lab baseline; they do not construct regional detection.
+configureAirDataPack(builtin1192,1940);
+assert.equal(builtin1192.doctrines.new_battlefield_support.raw.air_superiority_detect_factor,.15,'Battlefield Support source grand doctrine carries +15% Air Superiority detection');
+const doctrineState={grand:'battlefield_support',tracks:{fighter_aircraft:{choice:'tactical_flexibility',mastery:0},strike_aircraft:{choice:'flying_artillery',mastery:0},medium_aircraft:{choice:'bomber_interception',mastery:0},heavy_aircraft:{choice:'flying_fortresses',mastery:0}}};
+const doctrineFighter=applyAirDoctrineToVariant({...base,roles:['fighter'],equipmentTypes:['fighter']},doctrineState,builtin1192);
+const doctrineDetected=run(doctrineFighter,base,{countA:1000,countB:100,detectionA:.25});
+close(doctrineDetected.doctrineDetectionFactorA,.15,'source Air Superiority detection factor is exposed explicitly');
+close(doctrineDetected.engagementA.detectionFraction,.2875,'+15% doctrine factor scales a 25% explicit detection baseline to 28.75%');
+close(doctrineDetected.engagementA.detectedTargets,28.75,'scaled detection changes visible targets before the 3:1 engagement cap');
+const doctrineCas=compareBuiltAirDesigns(doctrineFighter,base,{countA:1000,countB:100,sorties:1000,mission:'cas',missionEfficiencyA:1,missionEfficiencyB:1,detectionA:.25,detectionB:1});
+close(doctrineCas.doctrineDetectionFactorA,0,'Air Superiority detection modifier does not leak into CAS');
+close(doctrineCas.engagementA.detectionFraction,.25,'CAS retains the explicit detection baseline');
+const interceptionOnlyState={...doctrineState,grand:'operational_integrity'};
+const interceptionOnly=applyAirDoctrineToVariant({...base,roles:['fighter'],equipmentTypes:['fighter']},interceptionOnlyState,builtin1192);
+assert.equal(builtin1192.doctrines.new_operational_integrity.raw.air_interception_detect_factor,.2,'Operational Integrity source grand doctrine retains its separate interception detection field');
+const noInterceptionLeak=run(interceptionOnly,base,{countA:1000,countB:100,detectionA:.25});
+close(noInterceptionLeak.doctrineDetectionFactorA,0,'interception detection does not leak into Air Superiority');
+close(noInterceptionLeak.engagementA.detectionFraction,.25,'Air Superiority baseline is unchanged by interception-only detection');
 
 const lowMission=run(base,base,{countA:300,countB:100,missionEfficiencyA:.5});
 close(lowMission.engagementA.availableAttackers,150,'sub-100% mission efficiency reduces participating aircraft');

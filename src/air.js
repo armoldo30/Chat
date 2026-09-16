@@ -1,5 +1,6 @@
 import { airCatalogFromPack, equipmentToState, applyModuleEffects, chooseCatalogDefault } from './designerData.js';
 import { AIR_COMBAT_MODEL_1192, airCombatEngagement, airDogfightDamage, airCombatExposure } from './air-combat-model-1192.js';
+import { configureAirDoctrineDetectionPack, airDoctrineDetectionFactor } from './air-doctrine-detection-1192.js';
 
 const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
 
@@ -112,6 +113,7 @@ function syncLegacyFields(out,frame){
 export function airDesignOptions(raw){const frame=AIRFRAMES[raw?.airframe]||AIRFRAMES[defaultFrame(raw?.size||'small')]||AIRFRAMES[firstKey(AIRFRAMES)];const slots={};for(const slot of Object.keys(frameSlots(frame)))slots[slot]=compatibleSet(frame,slot);return {slots};}
 
 export function configureAirDataPack(pack,year=1940){
+  configureAirDoctrineDetectionPack(pack);
   const cat=airCatalogFromPack(pack);if(!cat.meta.airframes)return {active:false,...cat.meta};
   replaceCatalog(AIRFRAMES,cat.airframes);replaceCatalog(AIR_SLOT_MODULES,cat.slotModules||{});
   if(cat.meta.engines)replaceCatalog(AIR_ENGINES,cat.engines);
@@ -210,15 +212,17 @@ export function compareBuiltAirDesigns(a,b,opts={}){
   // resolution is executable-inferred from the documented post-1.13 equation;
   // the Sorties-to-exposure scale remains planner analytical until Air Oracle work.
   const combatA=airMissionProfileBuilt(a,mission),combatB=airMissionProfileBuilt(b,mission);
-  const engagementA=airCombatEngagement(countA,countB,{missionEfficiency:(opts.missionEfficiencyA??1)*(combatA.missionEfficiency??1),detection:opts.detectionA??1});
-  const engagementB=airCombatEngagement(countB,countA,{missionEfficiency:(opts.missionEfficiencyB??1)*(combatB.missionEfficiency??1),detection:opts.detectionB??1});
+  const doctrineDetectionFactorA=airDoctrineDetectionFactor(a,mission),doctrineDetectionFactorB=airDoctrineDetectionFactor(b,mission);
+  const detectionA=(opts.detectionA??1)*(1+doctrineDetectionFactorA),detectionB=(opts.detectionB??1)*(1+doctrineDetectionFactorB);
+  const engagementA=airCombatEngagement(countA,countB,{missionEfficiency:(opts.missionEfficiencyA??1)*(combatA.missionEfficiency??1),detection:detectionA});
+  const engagementB=airCombatEngagement(countB,countA,{missionEfficiency:(opts.missionEfficiencyB??1)*(combatB.missionEfficiency??1),detection:detectionB});
   const carrierCombat=!!(combatA.carrier&&combatB.carrier),damageA=airDogfightDamage(combatA,combatB,engagementA.engagedAttackers,{carrierCombat}),damageB=airDogfightDamage(combatB,combatA,engagementB.engagedAttackers,{carrierCombat});
   const exposure=airCombatExposure(sorties);
   const lossB=Math.min(countB,damageA.expectedKills*exposure*engagementA.operationalTempo),lossA=Math.min(countA,damageB.expectedKills*exposure*engagementB.operationalTempo);
   const icLostA=lossA*a.buildCost,icLostB=lossB*b.buildCost;
   const exchangeA=icLostA>0?icLostB/icLostA:(icLostB>0?Infinity:1),killRatioA=lossA>0?lossB/lossA:(lossB>0?Infinity:1);
   const potentialA=damageA.expectedKills*engagementA.operationalTempo,potentialB=damageB.expectedKills*engagementB.operationalTempo;
-  return {a,b,combatA,combatB,countA,countB,sorties,lossA,lossB,icLostA,icLostB,exchangeA,killRatioA,airPowerShareA:potentialA/(potentialA+potentialB||1)*100,engagementA,engagementB,damageA,damageB,modelMeta:AIR_COMBAT_MODEL_1192,exposure};
+  return {a,b,combatA,combatB,countA,countB,sorties,lossA,lossB,icLostA,icLostB,exchangeA,killRatioA,airPowerShareA:potentialA/(potentialA+potentialB||1)*100,engagementA,engagementB,damageA,damageB,doctrineDetectionFactorA,doctrineDetectionFactorB,modelMeta:AIR_COMBAT_MODEL_1192,exposure};
 }
 
 export function compareAirDesigns(rawA,rawB,opts={}){return compareBuiltAirDesigns(buildAirDesign(rawA),buildAirDesign(rawB),opts);}

@@ -14,9 +14,9 @@ Remaining work is ranked by:
 4. whether implementation can avoid inventing executable semantics;
 5. expected user impact across Division Lab, Battle Planner, Counter Analysis, Production and Air Lab.
 
-## Tier 1 — source-backed runtime gaps worth implementing now
+## Tier 1 — source-backed runtime gaps already closed
 
-### 1. Technology terrain attack/defense blocks — **implemented**
+### 1. Technology terrain attack/defense blocks — **live**
 
 The technology corpus retains 161 terrain blocks. The battle engine already consumes unit `terrainModifiers` for attack and defense, but the technology application layer previously skipped nested terrain effects.
 
@@ -26,26 +26,41 @@ Golden source case: `mountain_tanks -> light_armor -> mountain -> attack = 0.15`
 
 Evidence boundary: the source values are game-file exact; mapping those source modifiers into the existing planner terrain-combat path remains bounded/executable-inferred in the same sense as other selected technology sub-unit modifiers.
 
-### 2. Doctrine terrain attack/defense blocks — **implemented in this branch**
+### 2. Doctrine terrain attack/defense blocks — **live**
 
-The certified land-doctrine corpus includes nested terrain blocks in active selectable doctrine rewards. These now use the same battle-consumed `terrainModifiers` path as source unit and technology terrain effects.
+The certified land-doctrine corpus includes nested terrain blocks in active selectable doctrine rewards. These use the same battle-consumed `terrainModifiers` path as source unit and technology terrain effects.
 
 Golden source cases:
 
 - `commandos` mastery 3 / `rigorous_training_regimen`: infantry receives `+0.05` attack in desert, jungle and hills. Its accompanying `+0.10` movement remains deliberately deferred.
-- `siege_artillery` mastery 1 / `fortress_busters`: `super_heavy_artillery` receives `+0.25` fort attack, which feeds the battle engine's existing fort-attack modifier path.
+- `siege_artillery` mastery 1 / `fortress_busters`: `super_heavy_artillery` receives `+0.25` fort attack through the existing fort-attack modifier path.
 
 Only nested `attack`, `defence` and `defense` are promoted. Terrain `movement` remains measured as deferred rather than being silently treated as supported.
 
-### 3. Direct support-company / specialist combat fields already represented by the division model — **next audit target**
+### 3. Specialist land-field audit — **completed; no unsupported promotion**
 
-Selected technology/doctrine data retains fields such as entrenchment, recon and initiative. Initiative already exists on support records, while other specialist fields are preserved in source. Each field should only be promoted when its downstream combat meaning is actually modeled. Copying a value into a unit object without a result path does not count as support.
+The remaining selected technology/doctrine specialist fields were checked against actual runtime consumers rather than against object shape alone.
 
-The next pass should inventory these fields against actual consumers and separate:
+- `initiative` is currently aggregated onto division stats, but battle resolution does not consume it.
+- recon-related fields do not have a modeled tactic-selection/countering consumer.
+- entrenchment source modifiers cannot safely be merged into the existing manual battle `entrench` input because max entrenchment, dig-in accumulation and related HOI4 semantics are not yet modeled.
 
-- fields with an existing result path that can be wired safely;
-- fields whose object representation exists but whose HOI4 runtime meaning is not modeled;
-- fields that require Oracle validation before they can influence a result.
+Accordingly, none of these fields were promoted merely to improve coverage numbers. They remain explicit operational-model debt and are better Oracle candidates.
+
+### 4. Air Superiority doctrine detection factor — **implemented in current branch**
+
+The retained 1.19.2 Air Doctrine corpus contains mission-specific detection factors. Air Lab now consumes `air_superiority_detect_factor` as a **relative modifier to the user's explicit Air Superiority detection baseline**.
+
+Golden source case: `new_battlefield_support` carries `air_superiority_detect_factor = 0.15`, so a user-entered `0.25` Air Superiority detection baseline becomes `0.2875` before the existing detection/engagement cap runs.
+
+The boundary is deliberately narrow:
+
+- absolute regional detection remains an explicit input, not a derived game-state result;
+- `air_interception_detect_factor` stays separate and deferred;
+- Air Superiority detection does not leak into CAS or Naval Strike;
+- active grand/base, reward and mastery-5 milestone source values are resolved from the selected game-pack doctrine state.
+
+The source modifier is game-file exact; applying it to the explicit baseline is bounded/executable-inferred pending exact modifier-order / Oracle validation.
 
 ## Tier 2 — high user impact, but formula/runtime semantics remain incomplete
 
@@ -57,14 +72,14 @@ The next pass should inventory these fields against actual consumers and separat
 - reinforcement rate;
 - movement organization loss;
 - no-supply grace and deeper out-of-supply behavior;
-- doctrine air-superiority and CAS mitigation globals.
+- remaining doctrine air-superiority/CAS interaction globals not already consumed by the current battle path.
 
 The repository has relevant source modifiers, but exact executable ordering/interaction is not sufficiently established. These are strong Oracle candidates rather than places to add new planner heuristics casually.
 
 ### Air operational context
 
-- construction of detection rather than a manual detection input;
-- air-superiority/interception detection modifiers;
+- construction of the absolute detection baseline from regional/game state;
+- interception-specific detection application;
 - weather and night penalties;
 - accidents and reliability attrition;
 - sortie efficiency and wing availability;
@@ -72,7 +87,7 @@ The repository has relevant source modifiers, but exact executable ordering/inte
 - ace/experience effects;
 - targeting/wing-selection and combat scheduling.
 
-Aircraft/module/mission data are source-certified and the current dogfight equation is executable-inferred, but these operational systems are not yet executable-validated. They are the main reason exact Air Lab loss counts remain less trustworthy than relative design ranking.
+Aircraft/module/mission data are source-certified and the current dogfight equation is executable-inferred. The new Air Superiority doctrine factor improves a real existing input, but it does not solve the larger regional-detection problem. These operational systems remain the main reason exact Air Lab loss counts are less trustworthy than controlled relative design ranking.
 
 ### Production history / retooling
 
@@ -111,11 +126,12 @@ These may be source-interesting but do not currently justify priority over resul
 
 ## Current recommended order
 
-1. technology terrain attack/defense — implemented;
-2. doctrine terrain attack/defense — this branch;
-3. audit specialist land fields against actual consumers before implementing any of them;
-4. recover authoritative MIO localization / `NAir` source whenever available;
-5. Oracle validation for land operational mechanics and Air operational mechanics;
-6. product/UX work once the remaining accuracy gains require missing source or executable evidence.
+1. technology terrain attack/defense — live;
+2. doctrine terrain attack/defense — live;
+3. specialist land-field consumer audit — completed; no unsafe promotion;
+4. Air Superiority doctrine detection factor — current branch;
+5. recover authoritative MIO localization / `NAir` source whenever available;
+6. Oracle validation for land operational mechanics and Air operational mechanics;
+7. product/UX work once the remaining accuracy gains require missing source or executable evidence.
 
 The governing rule remains unchanged: **a smaller model with explicit evidence boundaries is preferable to a broader model containing guessed HOI4 mechanics.**

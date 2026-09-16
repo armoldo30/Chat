@@ -10,7 +10,7 @@ const dist=resolve(root,'dist');
 const buildToken=String(process.env.GITHUB_SHA||process.env.GITHUB_RUN_ID||'dev').slice(0,16);
 await rm(dist,{recursive:true,force:true});
 await mkdir(resolve(dist,'src'),{recursive:true});
-for(const file of ['index.html','guides.html','methodology.html','about.html','privacy.html','ads.txt']){
+for(const file of ['index.html','division-counter.html','tank-designer.html','air-lab.html','division-gauntlet.html','guides.html','methodology.html','about.html','privacy.html','ads.txt']){
   await cp(resolve(root,file),resolve(dist,file));
 }
 await cp(resolve(root,'src'),resolve(dist,'src'),{recursive:true});

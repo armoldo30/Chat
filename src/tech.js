@@ -66,6 +66,8 @@ const TECHNOLOGY_UNIT_FACTOR_FIELDS={
   ap_attack:'piercing',armor_value:'armor',hardness:'hardness',supply_consumption_factor:'supply'
 };
 const TECHNOLOGY_UNIT_ADDITIVE_FIELDS={combat_width:'width',max_strength:'hp',max_organisation:'org',supply_consumption:'supply'};
+const TECHNOLOGY_TERRAIN_SCOPES=new Set(['plains','desert','forest','jungle','hills','mountain','marsh','urban','river','fort']);
+const TECHNOLOGY_TERRAIN_FIELDS={attack:'attack',defence:'defense',defense:'defense'};
 function technologyTargetMatches(unit,targetId,pack){
   if(!unit||!targetId)return false;
   // Technology effect keys occupy distinct source namespaces. If the key names a real sub-unit, only that source
@@ -76,13 +78,24 @@ function technologyTargetMatches(unit,targetId,pack){
   if(!unit.gameId&&unit.id===targetId)return true;
   return false;
 }
+function accumulateTechnologyTerrain(row,scope,block){
+  if(!TECHNOLOGY_TERRAIN_SCOPES.has(scope)||!block||typeof block!=='object'||Array.isArray(block))return {applied:0,skipped:0};
+  let applied=0,skipped=0;
+  for(const [sourceField,value] of Object.entries(block)){
+    const field=TECHNOLOGY_TERRAIN_FIELDS[sourceField],amount=Number(value);
+    if(!field||!Number.isFinite(amount)){skipped++;continue;}
+    row.terrain=row.terrain||{};row.terrain[scope]=row.terrain[scope]||{};
+    row.terrain[scope][field]=(row.terrain[scope][field]||0)+amount;applied++;
+  }
+  return {applied,skipped};
+}
 
 // Source technology values are exact; the interpretation below is intentionally limited to planner-consumed core land stats
-// and remains classified executable-inferred. Terrain blocks, battalion_mult, country modifiers, specialist support stats,
-// scripted completion effects and equipment/air effects remain preserved in pack.technologies but are not guessed here.
+// plus source terrain attack/defense blocks already consumed by the battle engine. Country modifiers, specialist support stats,
+// movement-only terrain fields, battalion_mult, scripted completion effects and equipment/air effects remain preserved but deferred.
 export function applySelectedTechnologyEffects(battalions,supports,pack,technologyIds=[]){
   const selected=[...new Set((technologyIds||[]).map(x=>String(x||'').trim()).filter(Boolean))],units=[...Object.values(battalions||{}),...Object.values(supports||{})];
-  const accumulated=new Map(),appliedTechnologies=[],unknownTechnologies=[];let skippedEffectFields=0;
+  const accumulated=new Map(),appliedTechnologies=[],unknownTechnologies=[];let skippedEffectFields=0,appliedTerrainModifierCount=0;
   for(const techId of selected){
     const tech=pack?.technologies?.[techId];
     if(!tech){unknownTechnologies.push(techId);continue;}
@@ -92,10 +105,17 @@ export function applySelectedTechnologyEffects(battalions,supports,pack,technolo
       const matched=units.filter(unit=>technologyTargetMatches(unit,targetId,pack));
       if(!matched.length)continue;
       for(const [sourceField,value] of Object.entries(block)){
+        if(TECHNOLOGY_TERRAIN_SCOPES.has(sourceField)&&value&&typeof value==='object'&&!Array.isArray(value)){
+          for(const unit of matched){
+            let row=accumulated.get(unit);if(!row){row={factor:{},additive:{},terrain:{}};accumulated.set(unit,row);}
+            const terrainResult=accumulateTechnologyTerrain(row,sourceField,value);appliedTerrainModifierCount+=terrainResult.applied;skippedEffectFields+=terrainResult.skipped;if(terrainResult.applied)techApplied=true;
+          }
+          continue;
+        }
         const factorField=TECHNOLOGY_UNIT_FACTOR_FIELDS[sourceField],additiveField=TECHNOLOGY_UNIT_ADDITIVE_FIELDS[sourceField],amount=Number(value);
         if((!factorField&&!additiveField)||!Number.isFinite(amount)){skippedEffectFields++;continue;}
         for(const unit of matched){
-          let row=accumulated.get(unit);if(!row){row={factor:{},additive:{}};accumulated.set(unit,row);}
+          let row=accumulated.get(unit);if(!row){row={factor:{},additive:{},terrain:{}};accumulated.set(unit,row);}
           const bucket=factorField?row.factor:row.additive,targetField=factorField||additiveField;
           bucket[targetField]=(bucket[targetField]||0)+amount;techApplied=true;
         }
@@ -112,8 +132,13 @@ export function applySelectedTechnologyEffects(battalions,supports,pack,technolo
     for(const [field,amount] of Object.entries(row.factor||{})){
       unit[field]=Math.max(0,(Number(unit[field])||0)*(1+amount));appliedModifierCount++;
     }
+    for(const [scope,mods] of Object.entries(row.terrain||{})){
+      unit.terrainModifiers=unit.terrainModifiers&&typeof unit.terrainModifiers==='object'?unit.terrainModifiers:{};
+      unit.terrainModifiers[scope]=unit.terrainModifiers[scope]&&typeof unit.terrainModifiers[scope]==='object'?unit.terrainModifiers[scope]:{};
+      for(const [field,amount] of Object.entries(mods||{}))unit.terrainModifiers[scope][field]=(Number(unit.terrainModifiers[scope][field])||0)+amount;
+    }
   }
-  return {selected,appliedTechnologies,unknownTechnologies,appliedModifierCount,skippedEffectFields,classification:'executable-inferred',applicationOrder:'additive-then-factor'};
+  return {selected,appliedTechnologies,unknownTechnologies,appliedModifierCount,appliedTerrainModifierCount,skippedEffectFields,classification:'executable-inferred',applicationOrder:'additive-then-factor-plus-terrain'};
 }
 
 function applyImportedEquipmentTier(target,pack,profile,year){
@@ -146,7 +171,7 @@ export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gam
     for(const key of ['support_aa','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
   }
 
-  const technologyEffects=pack?.technologies?applySelectedTechnologyEffects(b,s,pack,profile.technologies):{selected:[],appliedTechnologies:[],unknownTechnologies:[],appliedModifierCount:0,skippedEffectFields:0,classification:'not-applied'};
+  const technologyEffects=pack?.technologies?applySelectedTechnologyEffects(b,s,pack,profile.technologies):{selected:[],appliedTechnologies:[],unknownTechnologies:[],appliedModifierCount:0,appliedTerrainModifierCount:0,skippedEffectFields:0,classification:'not-applied'};
 
   // Legacy manual doctrine modifiers remain readable for imported old scenarios. They are not research locks.
   for(const u of Object.values(b))doctrineMult(u,profile);

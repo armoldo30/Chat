@@ -2,6 +2,7 @@ export const SCENARIO_SHARE_VERSION=1;
 export const MAX_SHARE_TOKEN_LENGTH=12000;
 
 const BLOCKED_KEYS=new Set(['__proto__','prototype','constructor']);
+const ALLOWED_EXTRA_KEYS=new Set(['attackerGrid','defenderGrid']);
 const SAME=Symbol('same');
 const isObject=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 
@@ -46,7 +47,8 @@ function diffValue(current,baseline){
 function mergeSafe(base,incoming){
   if(incoming===undefined)return cloneSafe(base);
   if(Array.isArray(base))return Array.isArray(incoming)?cloneSafe(incoming):cloneSafe(base);
-  if(isObject(base)&&isObject(incoming)){
+  if(isObject(base)){
+    if(!isObject(incoming))return cloneSafe(base);
     const out=cloneSafe(base);
     for(const [key,value] of Object.entries(incoming)){
       if(BLOCKED_KEYS.has(key))continue;
@@ -54,7 +56,11 @@ function mergeSafe(base,incoming){
     }
     return out;
   }
-  return cloneSafe(incoming);
+  if(base===null)return cloneSafe(incoming);
+  if(typeof base==='number')return typeof incoming==='number'&&Number.isFinite(incoming)?incoming:base;
+  if(typeof base==='string')return typeof incoming==='string'?incoming:base;
+  if(typeof base==='boolean')return typeof incoming==='boolean'?incoming:base;
+  return cloneSafe(base);
 }
 
 function bytesToBase64(bytes){
@@ -117,7 +123,15 @@ export function decodeScenarioShare(token){
 
 export function materializeScenarioShare(defaults,payload){
   if(!payload||!isObject(payload.state))throw new Error('Scenario share payload is invalid.');
-  const next=mergeSafe(defaults||{},payload.state);
+  const allowed={};
+  for(const [key,value] of Object.entries(payload.state)){
+    if(BLOCKED_KEYS.has(key)||key==='dataPack'||key==='lastBattle')continue;
+    if(Object.prototype.hasOwnProperty.call(defaults||{},key)){
+      if(key==='tankVariants'&&value!==null&&!isObject(value))continue;
+      allowed[key]=value;
+    }else if(ALLOWED_EXTRA_KEYS.has(key)&&Array.isArray(value))allowed[key]=value;
+  }
+  const next=mergeSafe(defaults||{},allowed);
   next.dataPack=null;
   next.lastBattle=null;
   if(defaults?.schema!==undefined)next.schema=defaults.schema;

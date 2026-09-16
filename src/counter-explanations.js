@@ -17,12 +17,26 @@ function forceDesignContext(item,target,reasons,tradeoffs,side){
   if(cost>0.05)tradeoffs.unshift(`${variant} build cost rises by ${cost.toFixed(1)} IC per vehicle.`);
   else if(cost<-0.05)tradeoffs.unshift(`${variant} build cost falls by ${Math.abs(cost).toFixed(1)} IC per vehicle.`);
   if(reliability<=-1)tradeoffs.push(`${variant} reliability falls by ${Math.abs(reliability).toFixed(1)} percentage points.`);
-  if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
+  if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle; campaign fuel availability is not inferred.`);
 }
 function productionContext(item,tradeoffs){
-  const practicality=item.practicality;if(!practicality?.majorRetooling)return;
-  const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
-  tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs in the current data baseline`:''}. Counter Analysis does not fully price factory retooling, strategic-resource availability, or campaign fuel, so treat it as a larger commitment than the IC/div number alone suggests.`);
+  const practicality=item.practicality,burden=item.productionBurden;
+  if(practicality?.majorRetooling){
+    const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
+    tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs`:''}. Conversion/retooling efficiency loss is not source-priced here, so this remains an additional commitment beyond the projection below.`);
+  }
+  if(!burden||burden.addedIC<=.5)return;
+  const factoryText=`Production projection: +${burden.addedIC.toFixed(0)} IC across ${burden.divisions} selected division${burden.divisions===1?'':'s'} ≈ ${burden.factoryDays.toFixed(1)} factory-days, or ${burden.factoriesForHorizon.toFixed(1)} average factories over the current ${burden.horizonDays}-day horizon.`;
+  tradeoffs.push(factoryText);
+  if(burden.factoryShortfall>.05)tradeoffs.push(`Current production plan has ${burden.unusedFactories.toFixed(1)} unused military factories; this recommendation needs about ${burden.factoryShortfall.toFixed(1)} more average factories than that spare capacity, so existing lines would need to be displaced or capacity increased.`);
+  const constrained=burden.constrainedResources||[];
+  if(constrained.length){
+    const detail=constrained.slice(0,3).map(key=>`${key} +${n(burden.resourceShortfall?.[key]).toFixed(1)}`).join(', ');
+    tradeoffs.push(`Marginal production would exceed currently unallocated strategic-resource capacity: ${detail}. Trade changes are not automatically assumed.`);
+  }else{
+    const draws=Object.entries(burden.resourceDraw||{}).filter(([,qty])=>n(qty)>.05).sort((a,b)=>n(b[1])-n(a[1])).slice(0,3);
+    if(draws.length)tradeoffs.push(`Estimated marginal resource draw fits the current unallocated baseline: ${draws.map(([key,qty])=>`${key} +${n(qty).toFixed(1)}`).join(', ')} average units across the horizon.`);
+  }
 }
 export function explainCounter(item,snapshot,side='attacker'){
   if(!item?.stats)return {reasons:[],tradeoffs:[],summary:'No modeled explanation available.'};
@@ -49,6 +63,6 @@ export function explainCounter(item,snapshot,side='attacker'){
   if(base.armor>target.piercing&&next.armor<=target.piercing)tradeoffs.push('This change gives up the armor advantage against the selected target.');
   forceDesignContext(item,target,reasons,tradeoffs,side);productionContext(item,tradeoffs);
   if(!reasons.length&&item.gain>=2)reasons.push(`The combined stat changes improve modeled ${side} win rate by ${item.gain.toFixed(1)} percentage points even though no single threshold dominates the result.`);
-  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, armor-threshold, or production-retooling tradeoff was detected relative to the current force design.');
-  return {reasons:reasons.slice(0,5),tradeoffs:tradeoffs.slice(0,5),summary:reasons[0],deltas:{pressure:pressureDelta,piercing:piercingDelta,armor:armorDelta,breakthrough:breakthroughDelta,defense:defenseDelta,organization:orgDelta,width:widthDelta,supply:supplyDelta,soft:softDelta,hard:hardDelta,ic:icDelta},changeCount:item.changeCount||1,changeLabel:(item.changes||[]).join(' + '),compact:`${signed(item.gain)} pp ${side} win · ${signed(icDelta,0)} IC/div`};
+  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, armor-threshold, or production-capacity tradeoff was detected relative to the current force design.');
+  return {reasons:reasons.slice(0,5),tradeoffs:tradeoffs.slice(0,6),summary:reasons[0],deltas:{pressure:pressureDelta,piercing:piercingDelta,armor:armorDelta,breakthrough:breakthroughDelta,defense:defenseDelta,organization:orgDelta,width:widthDelta,supply:supplyDelta,soft:softDelta,hard:hardDelta,ic:icDelta},changeCount:item.changeCount||1,changeLabel:(item.changes||[]).join(' + '),compact:`${signed(item.gain)} pp ${side} win · ${signed(icDelta,0)} IC/div`};
 }

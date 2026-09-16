@@ -3,7 +3,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ORACLE_SCHEMA_VERSION, validateOracleCapture } from '../src/oracle.js';
 
-export const O1_PREFIX='[WPO1]';
+export const O1_PREFIX='WPO1';
+export const O1_LEGACY_PREFIX='[WPO1]';
 export const O1_BISECTIONS=14;
 export const O1_INTERVAL_PCT=100/(2**O1_BISECTIONS);
 export const O1_MIDPOINT_MAX_ERROR_PCT=O1_INTERVAL_PCT/2;
@@ -33,14 +34,23 @@ function measurement(fields,lineNumber){
   return {...values,lineNumber};
 }
 
+function markerPayload(line){
+  const legacy=line.indexOf(O1_LEGACY_PREFIX);
+  const plain=line.indexOf(O1_PREFIX);
+  let marker=-1,prefix='';
+  if(legacy>=0&&(plain<0||legacy<=plain)){marker=legacy;prefix=O1_LEGACY_PREFIX;}
+  else if(plain>=0){marker=plain;prefix=O1_PREFIX;}
+  if(marker<0)return null;
+  return line.slice(marker+prefix.length).trim();
+}
+
 export function parseOracleRuns(text){
   const runs=[];
   let run=null,current=null;
   const lines=String(text??'').split(/\r?\n/);
   for(let i=0;i<lines.length;i++){
-    const marker=lines[i].indexOf(O1_PREFIX);
-    if(marker<0)continue;
-    const payload=lines[i].slice(marker+O1_PREFIX.length).trim();
+    const payload=markerPayload(lines[i]);
+    if(payload===null)continue;
     const firstSpace=payload.indexOf(' ');
     const type=(firstSpace<0?payload:payload.slice(0,firstSpace)).trim();
     const rest=firstSpace<0?'':payload.slice(firstSpace+1);
@@ -107,7 +117,7 @@ export function oracleCaptureFromRun(run){
       measurementIntervalPct:O1_INTERVAL_PCT,
       measurementMidpointMaxErrorPct:O1_MIDPOINT_MAX_ERROR_PCT,
       endReason:run.end.reason||'unknown',
-      source:'HOI4 game.log [WPO1]',
+      source:'HOI4 game.log WPO1',
     },
     samples,
   };
@@ -118,7 +128,7 @@ export function oracleCaptureFromRun(run){
 
 export function parseOracleLog(text){
   const complete=parseOracleRuns(text).filter(run=>run.end);
-  if(!complete.length)throw new Error('No complete [WPO1] run found in log');
+  if(!complete.length)throw new Error('No complete WPO1 run found in log');
   return oracleCaptureFromRun(complete.at(-1));
 }
 

@@ -51,6 +51,25 @@ const regSupport={reg:{id:'reg',gameId:'fixture_reg_support',categories:['catego
 const ma=applyLandDoctrineToData({},regSupport,{grand:'mass_assault',tracks:{infantry:{choice:'mobile_infantry',mastery:5},combat_support:{choice:'fire_concentration',mastery:0},armor:{choice:'armored_spearhead',mastery:0},operations:{choice:'mission_type_tactics',mastery:0}}},builtin1192);
 close(ma.supports.reg.supply,0.28,'Mass Assault infantry milestone supply_consumption = -0.02 applies as a flat supply change');
 
+// Nested source terrain combat blocks map into the same terrainModifiers path consumed by land combat.
+// Commandos mastery 3 (rigorous_training_regimen) gives infantry +5% attack in desert/jungle/hills and +10% movement.
+// The attack values are consumed; movement remains deliberately deferred.
+const commandos=builtin1192.doctrines.commandos;
+assert.equal(Object.keys(commandos.raw.rewards)[2],'rigorous_training_regimen','Commandos mastery 3 must resolve the source terrain reward');
+const terrainInf={inf:{id:'inf',gameId:'infantry',categories:['category_all_infantry'],types:['infantry'],soft:10,hard:0,def:20,breakthrough:2,piercing:0,airAttack:0,org:60,hp:25,width:2,supply:0.1,terrainModifiers:{desert:{attack:-0.1,movement:-0.2},jungle:{attack:-0.2},hills:{attack:-0.1}}}};
+const commandosFx=applyLandDoctrineToData(terrainInf,{}, {grand:'mobile_warfare',tracks:{infantry:{choice:'commandos',mastery:3},combat_support:{choice:'fire_concentration',mastery:0},armor:{choice:'armored_spearhead',mastery:0},operations:{choice:'mission_type_tactics',mastery:0}}},builtin1192);
+close(commandosFx.battalions.inf.terrainModifiers.desert.attack,-0.05,'Commandos source desert attack modifier reaches land terrain combat');
+close(commandosFx.battalions.inf.terrainModifiers.jungle.attack,-0.15,'Commandos source jungle attack modifier reaches land terrain combat');
+close(commandosFx.battalions.inf.terrainModifiers.hills.attack,-0.05,'Commandos source hills attack modifier reaches land terrain combat');
+close(commandosFx.battalions.inf.terrainModifiers.desert.movement,-0.2,'terrain movement remains source-preserved but runtime-deferred');
+
+// Siege Artillery mastery 1 uses the special `fort` terrain scope already consumed by battleContext.
+const siege=builtin1192.doctrines.siege_artillery;
+assert.equal(Object.keys(siege.raw.rewards)[0],'fortress_busters','Siege Artillery mastery 1 must resolve Fortress Busters');
+const siegeUnit={gun:{id:'gun',gameId:'super_heavy_artillery',categories:['category_artillery'],types:['artillery'],soft:30,hard:4,def:12,breakthrough:12,piercing:7,airAttack:0,org:0,hp:0.2,width:0,supply:0.25,terrainModifiers:{fort:{attack:-0.1}}}};
+const siegeFx=applyLandDoctrineToData(siegeUnit,{}, {grand:'mobile_warfare',tracks:{infantry:{choice:'mobile_infantry',mastery:0},combat_support:{choice:'siege_artillery',mastery:1},armor:{choice:'armored_spearhead',mastery:0},operations:{choice:'mission_type_tactics',mastery:0}}},builtin1192);
+close(siegeFx.battalions.gun.terrainModifiers.fort.attack,0.15,'Siege Artillery Fortress Busters adds source +25% fort attack');
+
 // Real Air source path: base Flying Artillery gives CAS +15% air defence; mastery 1 adds +10% CAS mission efficiency.
 const airState={grand:'operational_integrity',tracks:{fighter_aircraft:{choice:'tactical_flexibility',mastery:0},strike_aircraft:{choice:'flying_artillery',mastery:1},medium_aircraft:{choice:'bomber_interception',mastery:0},heavy_aircraft:{choice:'flying_fortresses',mastery:0}}};
 const design={size:'small',roles:['cas'],airDefense:20,agility:50,airAttack:10,maxSpeed:500,range:800,groundAttack:15,navalAttack:0,reliability:0.8};

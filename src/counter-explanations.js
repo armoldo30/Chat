@@ -20,9 +20,30 @@ function forceDesignContext(item,target,reasons,tradeoffs,side){
   if(fuel>=.05)tradeoffs.push(`${variant} fuel consumption rises by ${fuel.toFixed(2)} per vehicle.`);
 }
 function productionContext(item,tradeoffs){
-  const practicality=item.practicality;if(!practicality?.majorRetooling)return;
-  const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
-  tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs in the current data baseline`:''}. Counter Analysis does not fully price factory retooling, strategic-resource availability, or campaign fuel, so treat it as a larger commitment than the IC/div number alone suggests.`);
+  const practicality=item.practicality,plan=item.productionPlan;
+  if(plan?.available){
+    if(plan.targetRegressionIC>0){
+      const affected=(plan.rows||[]).filter(row=>row.targetRegression>1e-9).sort((a,b)=>b.targetRegressionIC-a.targetRegressionIC).map(row=>row.label).slice(0,3).join(' / ');
+      tradeoffs.unshift(`The candidate equipment design makes the existing saved production targets fall about ${Math.round(plan.targetRegressionIC)} equipment IC further behind over the ${Math.round(plan.horizonDays)}-day horizon${affected?` (${affected})`:''}. This compares the candidate line output with the baseline design at the same saved factories/resources.`);
+    }
+    if(plan.incrementalIC>0&&!plan.currentPlanAdequate){
+      const pctCovered=Math.round((plan.coverageRatio||0)*100),missing=(plan.rows||[]).filter(row=>row.incrementalShortfall>1e-9).sort((a,b)=>b.incrementalShortfallIC-a.incrementalShortfallIC),missingLabels=missing.slice(0,3).map(row=>row.label).join(' / ');
+      let detail=`Current saved production plan covers about ${pctCovered}% of the added equipment IC within its ${Math.round(plan.horizonDays)}-day horizon; about ${Math.round(plan.incrementalShortfallIC)} added-equipment IC remains uncovered`;
+      if(missingLabels)detail+=` (${missingLabels})`;
+      if(plan.newProductionLines?.length)detail+=`. ${plan.newProductionLines.length} required equipment type${plan.newProductionLines.length===1?' has':'s have'} no saved production line`;
+      else if(plan.inactiveProductionLines?.length)detail+=`. ${plan.inactiveProductionLines.length} required saved line${plan.inactiveProductionLines.length===1?' receives':'s receive'} no active factories under the current factory cap`;
+      else if(Number.isFinite(plan.additionalDays)&&plan.additionalDays>0)detail+=`; at current modeled line rates the slowest combined shortfall needs roughly ${Math.ceil(plan.additionalDays)} additional days after that horizon`;
+      tradeoffs.unshift(`${detail}. Counter Analysis does not auto-reallocate factories.`);
+    }
+    if(plan.resourceConstrainedTypes?.length){
+      const constrained=(plan.rows||[]).filter(row=>row.resourceConstrained).map(row=>row.label).slice(0,3).join(' / ');
+      tradeoffs.unshift(`Current saved production is resource-constrained for ${constrained||'required equipment'}; the production engine applies that shortage to projected output.`);
+    }
+  }
+  if(practicality?.majorRetooling){
+    const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
+    tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs in the current data baseline`:''}. Saved-plan coverage is checked separately, but factory conversion/retooling efficiency loss, new trade acquisition, and campaign fuel logistics are not automatically modeled.`);
+  }
 }
 export function explainCounter(item,snapshot,side='attacker'){
   if(!item?.stats)return {reasons:[],tradeoffs:[],summary:'No modeled explanation available.'};
@@ -49,6 +70,6 @@ export function explainCounter(item,snapshot,side='attacker'){
   if(base.armor>target.piercing&&next.armor<=target.piercing)tradeoffs.push('This change gives up the armor advantage against the selected target.');
   forceDesignContext(item,target,reasons,tradeoffs,side);productionContext(item,tradeoffs);
   if(!reasons.length&&item.gain>=2)reasons.push(`The combined stat changes improve modeled ${side} win rate by ${item.gain.toFixed(1)} percentage points even though no single threshold dominates the result.`);
-  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, armor-threshold, or production-retooling tradeoff was detected relative to the current force design.');
+  if(!tradeoffs.length)tradeoffs.push('No major modeled cost, supply, organization, width, reliability, fuel, armor-threshold, production-plan, or retooling tradeoff was detected relative to the current force design.');
   return {reasons:reasons.slice(0,5),tradeoffs:tradeoffs.slice(0,5),summary:reasons[0],deltas:{pressure:pressureDelta,piercing:piercingDelta,armor:armorDelta,breakthrough:breakthroughDelta,defense:defenseDelta,organization:orgDelta,width:widthDelta,supply:supplyDelta,soft:softDelta,hard:hardDelta,ic:icDelta},changeCount:item.changeCount||1,changeLabel:(item.changes||[]).join(' + '),compact:`${signed(item.gain)} pp ${side} win · ${signed(icDelta,0)} IC/div`};
 }

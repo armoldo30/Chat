@@ -14,6 +14,13 @@ const DEFAULT_FORCE={
   defender:{line:[{type:'infantry',count:10}],supports:['engineer','support_artillery'],divisions:3,name:'Defensive Division'}
 };
 const DEFAULT_BATTLEFIELD={terrain:'plains',directions:0,entrench:20,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:COMBAT_CONSTANTS.basePlanningMax,night:0,runs:500,seed:1944};
+const DEFAULT_PRODUCTION={days:180,factories:30,efficiency:10,efficiencyGain:100,maxEfficiency:50,outputBonus:0,energySatisfaction:100,resources:{steel:60,aluminum:20,rubber:20,tungsten:15,chromium:5}};
+const DEFAULT_PRODUCTION_GOALS=[
+  {type:'infantry_equipment',stock:5000,target:25000,factories:12,priority:5},
+  {type:'artillery',stock:300,target:2200,factories:6,priority:4},
+  {type:'support_equipment',stock:500,target:2500,factories:4,priority:4},
+  {type:'fighter',stock:100,target:700,factories:8,priority:3}
+];
 const derivedCache=new WeakMap();
 
 function cacheFor(state){
@@ -76,6 +83,9 @@ export function loadCounterState(){
     state[side+'Tech']=normalizeTechProfile(state[side+'Tech']||structuredClone(DEFAULT_TECH_PROFILE));
   }
   state.battlefield={...DEFAULT_BATTLEFIELD,...(state.battlefield||{})};
+  const savedProduction=state.production&&typeof state.production==='object'?state.production:{};
+  state.production={...DEFAULT_PRODUCTION,...savedProduction,resources:{...DEFAULT_PRODUCTION.resources,...(savedProduction.resources||{})}};
+  state.productionGoals=Array.isArray(state.productionGoals)?state.productionGoals.map(goal=>({...goal})):structuredClone(DEFAULT_PRODUCTION_GOALS);
   ensureTankState(state);ensureMioState(state);return state;
 }
 
@@ -116,6 +126,6 @@ export function counterBattleOptions(state){
 export function counterSnapshot(){
   const state=loadCounterState(),attacker=counterDivision(state,'attacker'),defender=counterDivision(state,'defender');
   const attackerIC=divisionEquipmentIC(attacker.need,counterEquipment(state,'attacker')),defenderIC=divisionEquipmentIC(defender.need,counterEquipment(state,'defender'));
-  const fingerprint=JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,at:state.attackerTech,av:state.tankVariants?.attacker,am:state.mioSelections?.attacker,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dt:state.defenderTech,dv:state.tankVariants?.defender,dm:state.mioSelections?.defender,b:state.battlefield,an:state.attackerDivisions,dn:state.defenderDivisions});
+  const fingerprint=JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,at:state.attackerTech,av:state.tankVariants?.attacker,am:state.mioSelections?.attacker,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dt:state.defenderTech,dv:state.tankVariants?.defender,dm:state.mioSelections?.defender,b:state.battlefield,an:state.attackerDivisions,dn:state.defenderDivisions,p:state.production,pg:state.productionGoals});
   return {state,attacker,defender,attackerIC,defenderIC,fingerprint};
 }

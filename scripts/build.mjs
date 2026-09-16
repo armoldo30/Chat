@@ -1,7 +1,9 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { AD_CONFIG, validAdSenseClient } from '../src/ad-config.js';
+import BUILTIN_1192 from '../src/builtin1192.js';
 import { applyPerformancePatch } from './performance-patch-v2.mjs';
+import { materializedRuntimePackModule, rewriteMainForMaterializedPack } from './materialize-runtime-pack.mjs';
 
 const root=resolve(import.meta.dirname,'..');
 const dist=resolve(root,'dist');
@@ -20,7 +22,11 @@ try{await cp(resolve(root,'sitemap.xml'),resolve(dist,'sitemap.xml'));}
 catch(err){if(err?.code!=='ENOENT')throw err;}
 
 const mainPath=resolve(dist,'src','main.js');
-await writeFile(mainPath,applyPerformancePatch(await readFile(mainPath,'utf8')));
+const runtimePackPath=resolve(dist,'src','builtin1192-runtime.js');
+const runtimePackModule=materializedRuntimePackModule(BUILTIN_1192);
+await writeFile(runtimePackPath,runtimePackModule);
+const runtimeMain=rewriteMainForMaterializedPack(await readFile(mainPath,'utf8'));
+await writeFile(mainPath,applyPerformancePatch(runtimeMain));
 
 const configuredClient=validAdSenseClient(AD_CONFIG.client)?AD_CONFIG.client:'';
 if(configuredClient){
@@ -62,6 +68,11 @@ for(const path of await walk(dist)){
 }
 
 const builtIndex=await readFile(indexPath,'utf8');
+const builtMain=await readFile(mainPath,'utf8');
+const builtRuntimePack=await readFile(runtimePackPath,'utf8');
 if(!builtIndex.includes(`./src/main.js?v=${buildToken}`))throw new Error('Build cache-busting did not version main.js');
 if(!builtIndex.includes(`./src/counter-analysis-ui.js?v=${buildToken}`))throw new Error('Build cache-busting did not version Counter Analysis UI');
-console.log(`Built static site in dist/ with asset token ${buildToken}.`);
+if(!builtMain.includes(`./builtin1192-runtime.js?v=${buildToken}`))throw new Error('Build did not route main.js through the materialized 1.19.2 runtime pack');
+if(builtMain.includes("./builtin1192.js"))throw new Error('Build still references the source-time 1.19.2 reconstruction module');
+if(builtRuntimePack.includes('builtin1192raw/')||builtRuntimePack.includes('JSON.parse(text)'))throw new Error('Materialized runtime pack unexpectedly contains the raw reconstruction path');
+console.log(`Built static site in dist/ with asset token ${buildToken}; materialized 1.19.2 runtime pack ${Buffer.byteLength(runtimePackModule)} bytes.`);

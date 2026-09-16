@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="index,follow">
+  <meta name="description" content="Use HOI4 War Planner's Division Lab and Counter Analysis to recreate Hearts of Iron IV 1.19.2 matchups, diagnose armor, piercing, attack, defense, width and cost tradeoffs, and test focused counters.">
+  <link rel="canonical" href="https://hoioracle.com/division-counter.html">
+  <meta property="og:title" content="HOI4 Division Lab & Counter Analysis · HOI4 War Planner">
+  <meta property="og:description" content="Recreate a HOI4 1.19.2 division matchup, identify the interaction that mattered, and test focused counters with equipment-cost context.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://hoioracle.com/division-counter.html">
+  <meta name="twitter:card" content="summary">
+  <title>HOI4 Division Lab & Counter Analysis · HOI4 War Planner</title>
+  <link rel="stylesheet" href="./src/style.css">
+  <link rel="stylesheet" href="./src/publisher-content.css">
+  <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"HOI4 Division Lab & Counter Analysis","url":"https://hoioracle.com/division-counter.html","isPartOf":{"@type":"WebSite","name":"HOI4 War Planner","url":"https://hoioracle.com/"},"about":{"@type":"VideoGame","name":"Hearts of Iron IV"}}</script>
+</head>
+<body>
+<main class="content-page">
+  <nav class="content-nav"><a href="./">Planner</a><a href="./guides.html">Guides</a><a href="./methodology.html">Methodology</a><a href="./about.html">About</a><a href="./privacy.html">Privacy</a></nav>
+  <header>
+    <p class="eyebrow">DIVISION LAB · COUNTER ANALYSIS · HOI4 1.19.2</p>
+    <h1>Recreate the matchup, then test the counter</h1>
+    <p class="lede">Division Lab is built for a specific Hearts of Iron IV matchup: your division against the division you actually expect to fight. Counter Analysis then tests focused structural changes against that exact target instead of recommending one universal template.</p>
+  </header>
+  <section>
+    <h2>What Division Lab compares</h2>
+    <p>Build the attacker and defender, then set the battlefield assumptions you want to examine. The planner puts armor and piercing thresholds, hardness, soft and hard attack, defense or breakthrough, organization, combat width, terrain effects and equipment assumptions in the same comparison so one headline stat does not hide the interaction that drove the result.</p>
+  </section>
+  <section>
+    <h2>What Counter Analysis changes</h2>
+    <p>Counter Analysis searches practical battalion, support-company and tank-design changes against the selected opponent. Recommendations are separated into raw performance, value, smallest change and distinct alternatives where appropriate. A recommendation does not need to cross an arbitrary win-rate threshold; it needs to produce a meaningful modeled improvement against the target.</p>
+  </section>
+  <section>
+    <h2>Combat gain is not the whole answer</h2>
+    <p>The counter view also estimates the incremental equipment IC and production burden of the suggested change. If the recommendation exceeds spare military-factory capacity or creates a strategic-resource shortfall under the current production scenario, the planner surfaces that tradeoff instead of treating combat strength as free.</p>
+  </section>
+  <section>
+    <h2>How to use the result</h2>
+    <p>Start by matching the opponent as closely as your scenario requires. Change one major assumption at a time, compare the result, and use the explanation panel to identify why the matchup moved. Then use Division Gauntlet when you want to know whether the improved design remains robust outside that one target.</p>
+  </section>
+  <section>
+    <h2>Accuracy boundary</h2>
+    <p>HOI4 War Planner separates game-file exact values from executable-inferred behavior and planner-analytical scoring. It is designed for reproducible theorycrafting and comparison; it does not claim bit-for-bit parity with <code>hoi4.exe</code>. The current evidence boundary is documented on the <a href="./methodology.html">methodology page</a>.</p>
+  </section>
+  <div class="content-footer-links"><a href="./#app">Open Division Lab</a><a href="./division-gauntlet.html">Division Gauntlet</a><a href="./guides.html">Planner guide</a></div>
+</main>
+</body>
+</html>

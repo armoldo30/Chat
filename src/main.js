@@ -12,6 +12,7 @@ import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYP
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, AIR_SLOT_MODULES, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus, airDesignOptions, airSlotLabel } from './air.js';
 import BUILTIN_1192 from './builtin1192.js';
 import { renderGauntlet } from './gauntlet-ui.js';
+import { buildScenarioShareUrl, decodeScenarioShare, encodeScenarioShare, materializeScenarioShare } from './scenario-share.js';
 
 const STORAGE='hoi4-war-planner-v7',LEGACY_STORAGE='hoi4-war-planner-v6';
 const $=id=>document.getElementById(id);
@@ -53,7 +54,11 @@ function deepMerge(base,raw){
   }
   return raw===undefined?base:raw;
 }
-function load(){
+let sharedScenarioNotice='',sharedScenarioError='',sharedScenarioAttempted=false;
+function scenarioTokenFromLocation(){
+  try{return new URLSearchParams(globalThis.location?.search||'').get('scenario')||'';}catch{return '';}
+}
+function loadLocalState(){
   try{
     const raw=JSON.parse(localStorage.getItem(STORAGE)||localStorage.getItem(LEGACY_STORAGE)||'null'),next=deepMerge(defaults,raw);
     if(raw?.production?.energySatisfaction===undefined&&raw?.production?.baseFactoryOutput!==undefined){
@@ -62,6 +67,22 @@ function load(){
     }
     delete next.production.baseFactoryOutput;next.schema=7;return next;
   }catch{return structuredClone(defaults);}
+}
+function load(){
+  const token=scenarioTokenFromLocation();
+  if(token){
+    sharedScenarioAttempted=true;
+    try{
+      const payload=decodeScenarioShare(token);
+      if(payload.gameVersion!==MODEL_META.gameVersion)throw new Error(`This matchup targets HOI4 ${payload.gameVersion}, but this planner is locked to ${MODEL_META.gameVersion}.`);
+      sharedScenarioNotice='Shared matchup loaded';
+      return materializeScenarioShare(defaults,payload);
+    }catch(error){
+      sharedScenarioError=error?.message||String(error);
+      console.warn('Ignoring invalid shared scenario.',error);
+    }
+  }
+  return loadLocalState();
 }
 let state=load();
 if(!state.dataPack)state.dataPack=BUILTIN_1192;
@@ -159,6 +180,60 @@ function save(){
   try{localStorage.setItem(STORAGE,JSON.stringify(serializableState()));saveFailureShown=false;return true;}
   catch(err){console.error('Unable to save planner state locally.',err);if(!saveFailureShown){saveFailureShown=true;alert('Local save failed. Your current session is still open; export the scenario JSON before leaving this page.');}return false;}
 }
+function clearScenarioShareParam(){
+  try{
+    if(!globalThis.location?.href||!globalThis.history?.replaceState)return;
+    const url=new URL(globalThis.location.href);
+    if(!url.searchParams.has('scenario'))return;
+    url.searchParams.delete('scenario');
+    globalThis.history.replaceState(null,'',`${url.pathname}${url.search}${url.hash}`);
+  }catch(error){console.warn('Unable to clear scenario share parameter.',error);}
+}
+function scenarioShareBaseline(){
+  const base=structuredClone(defaults);
+  for(const side of ['attacker','defender']){
+    base[side+'Grid']=countsToGrid(base[side],Object.keys(battalions));
+    base[side+'Tech']=normalizeTechProfile(base[side+'Tech']);
+  }
+  base.tankVariants={attacker:{},defender:{}};
+  for(const side of ['attacker','defender']){
+    for(const family of TANK_FAMILIES){
+      base.tankVariants[side][family]={};
+      for(const role of tankRolesForFamily(family)){
+        const legacy=role==='armor'&&['light','medium','heavy'].includes(family)?base.tankDesigns[side][family]:null;
+        const raw=legacy||defaultTankDesign(family,role);
+        base.tankVariants[side][family][role]=normalizeTankDesign({...raw,class:family,role},family,role);
+      }
+      if(['light','medium','heavy'].includes(family))base.tankDesigns[side][family]=structuredClone(base.tankVariants[side][family].armor);
+    }
+  }
+  base.airLab={...base.airLab,a:normalizeAirDesign(base.airLab.a,'small'),b:normalizeAirDesign(base.airLab.b,'small')};
+  for(const side of ['attacker','defender']){
+    base.mioSelections[side]=base.mioSelections[side]||{};
+    for(const family of Object.keys(MIO_FAMILIES))base.mioSelections[side][family]=normalizeMioSelection(base.mioSelections[side][family]||DEFAULT_MIO_SELECTION);
+  }
+  return base;
+}
+function scenarioShareUrl(){
+  if(!state.dataPack?.meta?.bundled)throw new Error('Share links currently support the bundled vanilla 1.19.2 baseline only. Export JSON for custom data-pack scenarios.');
+  const token=encodeScenarioShare(serializableState(),scenarioShareBaseline(),{gameVersion:MODEL_META.gameVersion});
+  const href=globalThis.location?.href||'https://hoioracle.com/#battle';
+  return buildScenarioShareUrl(href,token,'battle');
+}
+async function copyScenarioShareLink(){
+  try{
+    const url=scenarioShareUrl(),clipboard=globalThis.navigator?.clipboard;
+    if(clipboard?.writeText){
+      await clipboard.writeText(url);
+      globalThis.alert?.('Matchup link copied. It includes the current inputs and designs on the bundled 1.19.2 baseline; cached battle results are not shared.');
+    }else if(typeof globalThis.prompt==='function')globalThis.prompt('Copy this matchup link:',url);
+    else globalThis.alert?.(url);
+  }catch(error){globalThis.alert?.(error?.message||String(error));}
+}
+if(sharedScenarioAttempted){
+  if(sharedScenarioNotice)save();
+  clearScenarioShareParam();
+}
 function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function readJSON(file,cb){
@@ -198,7 +273,7 @@ function shell(){
       <nav>${nav.map(([r,code,n])=>`<a href="#${r}" class="${active===r?'active':''}"><span class="nav-code">${code}</span><span>${n}</span></a>`).join('')}</nav>
       <div class="side-meta"><span>${MODEL_META.gameVersion}</span><small>${MODEL_META.appVersion}</small></div>
     </aside>
-    <main><header class="topbar"><div><span class="kicker">${esc(state.country)}</span><b>${esc(state.operation)}</b></div><div class="top-actions">${badge(`Game ${MODEL_META.gameVersion}`,'good')}${badge('Public-data baseline')}</div></header><div id="view" class="view"></div></main>
+    <main><header class="topbar"><div><span class="kicker">${esc(state.country)}</span><b>${esc(state.operation)}</b></div><div class="top-actions">${badge(`Game ${MODEL_META.gameVersion}`,'good')}${badge(state.dataPack?.meta?.bundled?'Public-data baseline':'Custom data pack',state.dataPack?.meta?.bundled?'':'warn')}${sharedScenarioNotice?badge(sharedScenarioNotice,'good'):''}${sharedScenarioError?badge('Share link ignored','warn'):''}</div></header><div id="view" class="view"></div></main>
   </div>`;
   render(active);
 }
@@ -693,11 +768,11 @@ function data(c){
 
 function scenario(c){
   c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">SCENARIO CONTROL</p><h1>Scenario</h1><p>Manage the full planner state and see exactly what is modeled versus approximate.</p></div>${badge(`Schema ${state.schema}`)}</section>
-  <div class="grid two">${panel('Campaign',`<div class="field-grid"><label>Country<input id="s-country" value="${esc(state.country)}"></label><label>Operation<input id="s-operation" value="${esc(state.operation)}"></label></div><label>Objective<textarea id="s-objective" rows="4">${esc(state.objective)}</textarea></label><div class="actions"><button class="primary" id="saveState">Save locally</button><button class="btn" id="exportState">Export JSON</button><label class="btn file">Import JSON<input id="importState" type="file" accept="application/json" hidden></label><button class="btn danger" id="resetState">Reset</button></div>`)}${panel('Version lock',`<div class="version-card"><strong>HOI4 ${MODEL_META.gameVersion}</strong><span>Planner ${MODEL_META.appVersion}</span></div><p>${MODEL_META.label}</p><p class="notice">This release is intentionally locked to the supplied vanilla HOI4 1.19.2 game files. Newer patch data is not mixed into the 0.16.0 model.</p>`)}</div>
+  <div class="grid two">${panel('Campaign',`<div class="field-grid"><label>Country<input id="s-country" value="${esc(state.country)}"></label><label>Operation<input id="s-operation" value="${esc(state.operation)}"></label></div><label>Objective<textarea id="s-objective" rows="4">${esc(state.objective)}</textarea></label><div class="actions"><button class="primary" id="saveState">Save locally</button><button class="btn" id="shareState" ${state.dataPack?.meta?.bundled?'':'disabled'}>Copy matchup link</button><button class="btn" id="exportState">Export JSON</button><label class="btn file">Import JSON<input id="importState" type="file" accept="application/json" hidden></label><button class="btn danger" id="resetState">Reset</button></div><p class="muted">${state.dataPack?.meta?.bundled?'Share links include current scenario inputs, templates, technology, MIO, tank and aircraft designs on the bundled 1.19.2 baseline. Cached battle results are excluded so the recipient reruns the analysis.':'Share links are disabled for custom imported data packs because the pack itself is not embedded. Use Export JSON instead.'}</p>${sharedScenarioError?`<p class="notice warn"><b>Share link ignored:</b> ${esc(sharedScenarioError)}</p>`:''}`)}${panel('Version lock',`<div class="version-card"><strong>HOI4 ${MODEL_META.gameVersion}</strong><span>Planner ${MODEL_META.appVersion}</span></div><p>${MODEL_META.label}</p><p class="notice">This release is intentionally locked to the supplied vanilla HOI4 1.19.2 game files. Newer patch data is not mixed into the 0.16.0 model.</p>`)}</div>
   ${panel('Implemented systems',`<div class="check-grid"><span>✓ Target-hardness attack mix</span><span>✓ Defense vs breakthrough roles</span><span>✓ Weighted armor & piercing</span><span>✓ Support-company org/HP/manpower</span><span>✓ Partial piercing approximation</span><span>✓ Terrain-specific combat width</span><span>✓ Extra-flank width</span><span>✓ Over-width & stacking penalties</span><span>✓ Entrenchment attack + defense</span><span>✓ Fort + flanking interaction</span><span>✓ River penalties</span><span>✓ Supply effects</span><span>✓ Air-superiority defense/breakthrough penalty</span><span>✓ CAS support input</span><span>✓ Planning & night inputs</span><span>✓ Aggregate reserve depth</span><span>✓ Attack-level Monte Carlo outcomes</span><span>✓ Reproducible simulation seeds</span><span>✓ Monte Carlo confidence intervals</span><span>✓ Battle equipment-loss estimates</span><span>✓ Enemy uncertainty band</span><span>✓ IC/day production</span><span>✓ Efficiency growth curve</span><span>✓ Per-factory resource penalties</span><span>✓ Division Lab → industry demand</span><span>✓ Factory optimizer</span><span>✓ Lab-integrated tech & doctrine profiles</span><span>✓ HOI-style 5×5 division designer</span><span>✓ 1.19 regimental-support baseline</span><span>✓ Template migration/import/export</span><span>✓ Local game-file data packs</span><span>✓ Clausewitz + defines parser</span><span>✓ Equipment inheritance + year snapshots</span><span>✓ Staged 1.19 land doctrine + mastery tracks</span><span>✓ Staged air doctrine + mastery tracks</span><span>✓ Country/equipment MIO assignment</span><span>✓ MIO combat + production modifiers</span><span>✓ Tank variant designer → Division Lab + Industry</span><span>✓ Air Lab aircraft designer + IC exchange</span><span>✓ Airframe MIOs → Air Lab + IC cost</span><span>✓ Equipment/MIO importer baseline</span><span>✓ Zero-dependency static build</span></div>`)}
   ${panel('Known limits',`<p class="muted">${state.dataPack?'<b>Imported structural data is active.</b> ':''}Not yet executable-parity: some combat-tactic/counter resolution, true per-division reinforcement timing and coordination, exact CAS direct damage, commander traits, weather, experience, some executable-only regimental/module compatibility semantics, executable-parity air combat, every national/DLC MIO special case, and broad mod compatibility. The 1.19.2 files are bundled; behavior that only lives in hoi4.exe remains conservative and explicitly analytical.</p>`)} `;
   $('s-country').onchange=()=>{state.country=$('s-country').value;save();}; $('s-operation').onchange=()=>{state.operation=$('s-operation').value;save();shell();}; $('s-objective').onchange=()=>{state.objective=$('s-objective').value;save();};
-  $('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());
+  $('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('shareState').onclick=()=>copyScenarioShareLink(); $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());
   $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid scenario JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');if(save())location.reload();});};
   $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
 }

@@ -70,4 +70,19 @@ const safe=materializeScenarioShare(defaults,decodeScenarioShare(malicious));
 assert.equal(safe.country,'Safe');
 assert.equal({}.polluted,undefined,'share decoding must not permit prototype pollution');
 
+const malformed=materializeScenarioShare(defaults,{state:{
+  battlefield:null,
+  attacker:'not-an-array',
+  country:99,
+  tankVariants:'not-an-object',
+  attackerGrid:'not-an-array',
+  randomInjectedKey:{value:true}
+}});
+assert.deepEqual(malformed.battlefield,defaults.battlefield,'object-shaped defaults must reject non-object replacements');
+assert.deepEqual(malformed.attacker,defaults.attacker,'array-shaped defaults must reject non-array replacements');
+assert.equal(malformed.country,defaults.country,'primitive fields must preserve their expected type');
+assert.equal(malformed.tankVariants,null,'tank variant payload must be object-shaped when supplied');
+assert.equal(malformed.attackerGrid,undefined,'runtime grid extras must be arrays');
+assert.equal(malformed.randomInjectedKey,undefined,'unknown top-level keys must not materialize');
+
 console.log('Scenario share codec round-trip and safety tests passed.');

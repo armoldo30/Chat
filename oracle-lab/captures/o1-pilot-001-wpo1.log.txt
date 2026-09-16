@@ -1,0 +1,41 @@
+[15:14:25][1936.01.23.01][effectbase.cpp:1783]: WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14
+[15:14:25][1936.01.23.01][effectbase.cpp:1783]: WPO1 SAMPLE hour=0
+[15:14:25][1936.01.23.01][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:25][1936.01.23.01][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:40][1936.01.23.02][effectbase.cpp:1783]: WPO1 SAMPLE hour=1
+[15:14:40][1936.01.23.02][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:40][1936.01.23.02][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:42][1936.01.23.03][effectbase.cpp:1783]: WPO1 SAMPLE hour=2
+[15:14:42][1936.01.23.03][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:42][1936.01.23.03][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:44][1936.01.23.04][effectbase.cpp:1783]: WPO1 SAMPLE hour=3
+[15:14:44][1936.01.23.04][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+[15:14:44][1936.01.23.04][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99797 orgHigh=0.99804 strengthLow=0.99969 strengthHigh=0.99975
+[15:14:46][1936.01.23.05][effectbase.cpp:1783]: WPO1 SAMPLE hour=4
+[15:14:46][1936.01.23.05][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99621 orgHigh=0.99627 strengthLow=0.99969 strengthHigh=0.99975
+[15:14:46][1936.01.23.05][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99596 orgHigh=0.99602 strengthLow=0.99914 strengthHigh=0.9992
+[15:14:48][1936.01.23.06][effectbase.cpp:1783]: WPO1 SAMPLE hour=5
+[15:14:48][1936.01.23.06][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99621 orgHigh=0.99627 strengthLow=0.99969 strengthHigh=0.99975
+[15:14:48][1936.01.23.06][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99596 orgHigh=0.99602 strengthLow=0.99914 strengthHigh=0.9992
+[15:14:50][1936.01.23.07][effectbase.cpp:1783]: WPO1 SAMPLE hour=6
+[15:14:50][1936.01.23.07][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.99621 orgHigh=0.99627 strengthLow=0.99969 strengthHigh=0.99975
+[15:14:50][1936.01.23.07][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.99236 orgHigh=0.99242 strengthLow=0.99889 strengthHigh=0.99895
+[15:14:52][1936.01.23.08][effectbase.cpp:1783]: WPO1 SAMPLE hour=7
+[15:14:52][1936.01.23.08][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.9868 orgHigh=0.98686 strengthLow=0.99822 strengthHigh=0.99828
+[15:14:52][1936.01.23.08][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.98966 orgHigh=0.98973 strengthLow=0.99865 strengthHigh=0.99871
+[15:14:54][1936.01.23.09][effectbase.cpp:1783]: WPO1 SAMPLE hour=8
+[15:14:54][1936.01.23.09][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.98394 orgHigh=0.984 strengthLow=0.99797 strengthHigh=0.99804
+[15:14:54][1936.01.23.09][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.9879 orgHigh=0.98796 strengthLow=0.9981 strengthHigh=0.99816
+[15:14:56][1936.01.23.10][effectbase.cpp:1783]: WPO1 SAMPLE hour=9
+[15:14:56][1936.01.23.10][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.98394 orgHigh=0.984 strengthLow=0.99797 strengthHigh=0.99804
+[15:14:56][1936.01.23.10][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.98339 orgHigh=0.98345 strengthLow=0.99736 strengthHigh=0.99742
+[15:14:58][1936.01.23.11][effectbase.cpp:1783]: WPO1 SAMPLE hour=10
+[15:14:58][1936.01.23.11][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.98015 orgHigh=0.98021 strengthLow=0.99773 strengthHigh=0.99779
+[15:14:58][1936.01.23.11][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.97978 orgHigh=0.97984 strengthLow=0.99639 strengthHigh=0.99645
+[15:15:00][1936.01.23.12][effectbase.cpp:1783]: WPO1 SAMPLE hour=11
+[15:15:00][1936.01.23.12][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.97643 orgHigh=0.97649 strengthLow=0.99693 strengthHigh=0.99699
+[15:15:00][1936.01.23.12][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.97978 orgHigh=0.97984 strengthLow=0.99639 strengthHigh=0.99645
+[15:15:09][1936.01.23.13][effectbase.cpp:1783]: WPO1 SAMPLE hour=12
+[15:15:09][1936.01.23.13][effectbase.cpp:1783]: WPO1 ATTACKER orgLow=0.97453 orgHigh=0.9746 strengthLow=0.99621 strengthHigh=0.99627
+[15:15:09][1936.01.23.13][effectbase.cpp:1783]: WPO1 DEFENDER orgLow=0.97978 orgHigh=0.97984 strengthLow=0.99639 strengthHigh=0.99645
+[15:15:20][1936.01.23.13][effectbase.cpp:1783]: WPO1 END hour=12 reason=manual

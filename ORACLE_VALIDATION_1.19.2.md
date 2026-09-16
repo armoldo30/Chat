@@ -22,7 +22,9 @@ This phase does **not** replace the completed source audit. Game-file-exact clai
 
 ## Harness foundation
 
-`src/oracle.js` defines schema version 1 and the first differential comparator. An oracle capture must identify:
+### Land trace harness
+
+`src/oracle.js` defines schema version 1 and the first land differential comparator. A land oracle capture must identify:
 
 - exact game version;
 - checksum;
@@ -35,13 +37,25 @@ This phase does **not** replace the completed source audit. Game-file-exact clai
 
 The comparator aligns observations by combat hour, records absolute metric error, reports the first divergence, reports battle-duration error, and returns an explicit evidence classification.
 
-Default initial tolerances are intentionally strict but not claims of hidden executable precision:
+Default initial land tolerances are intentionally strict but not claims of hidden executable precision:
 
 - organization: 0.25 percentage points;
 - strength: 0.10 percentage points;
 - battle duration: 1 hour.
 
 They may be tightened only after we understand the precision and update cadence of the HOI4 observation method.
+
+### Air exchange harness
+
+`src/air-oracle.js` defines a separate Air schema because the current Air model produces expected aircraft losses rather than hourly organization/strength traces.
+
+An Air capture records version/checksum/scenario provenance, controlled mission and starting aircraft counts, and raw per-trial aircraft losses. The harness preserves trial means, sample standard deviations, ranges and exchange ratios.
+
+Air validation intentionally has **no default pass tolerance**. `compareAirOracleCapture(...)` returns `pass: null` until the caller supplies both an explicit minimum-trial requirement and at least one numeric error threshold, and the capture actually meets that sample requirement. Insufficient samples remain `unvalidated`; they are not labeled divergent.
+
+The current Air comparator also returns `distributionComparable: false`. Raw variance is retained, but the planner does not yet generate a stochastic aircraft-loss distribution, so a matching mean cannot be promoted into a claim that RNG shape, timing or target-selection distributions match `hoi4.exe`.
+
+Dedicated details: `AIR_ORACLE_VALIDATION_1.19.2.md`.
 
 ## Black-box boundary
 
@@ -51,8 +65,8 @@ The intended method is controlled experimentation using normal game/mod/debug/lo
 
 ### O0 — Harness and provenance
 
-- capture schema;
-- differential comparator;
+- capture schemas;
+- differential comparators;
 - permanent comparator tests;
 - version/checksum/scenario provenance;
 - immutable raw oracle fixtures once real captures begin.
@@ -124,7 +138,27 @@ Measure:
 - tactic duration/change timing;
 - tactic-specific combat effects.
 
-### O6 — Air interaction
+### O6A — Air-to-air exchange
+
+Begin with symmetric fighter-vs-fighter baselines and change exactly one variable at a time:
+
+- Air Attack;
+- Air Defense;
+- Agility;
+- Speed;
+- aircraft count / numerical ratio;
+- displayed detection;
+- mission efficiency;
+- Air Superiority doctrine detection;
+- carrier-vs-carrier status;
+- wing experience and aces;
+- weather and night;
+- range / coverage;
+- observation-window / sortie scheduling.
+
+The first objective is to validate or falsify the current expected-loss model and identify whether the largest remaining error is dogfight lethality, engagement construction, or the analytical Sorties-to-exposure horizon.
+
+### O6B — Air interaction with land combat
 
 Measure land-combat-facing executable behavior:
 
@@ -137,7 +171,7 @@ Measure land-combat-facing executable behavior:
 
 ### O7 — Statistical parity suite
 
-Every behavior corrected from oracle evidence becomes a permanent regression fixture. The final parity suite should contain both isolated unit tests and integrated battle scenarios across materially different combat states.
+Every behavior corrected from oracle evidence becomes a permanent regression fixture. The final parity suite should contain both isolated unit tests and integrated scenarios across materially different combat states.
 
 ## Acceptance standard
 

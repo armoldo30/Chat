@@ -50,6 +50,14 @@ assert.equal(noChange.currentPlanAdequate,true);
 assert.equal(noChange.incrementalIC,0,'equipment reductions must not be treated as negative production demand');
 assert.equal(noChange.searchPenalty,0);
 
+const expensiveEquipment={...equipment,infantry_equipment:{...equipment.infantry_equipment,cost:10}};
+const retune=counterProductionPlanBurden(snapshot({productionGoals:[{...goal,target:100}]}),{stats:{need:{infantry_equipment:100}}},'attacker',expensiveEquipment,equipment);
+assert.equal(retune.incrementalIC,0,'an equipment retune need not change equipment quantity');
+assert.ok(retune.targetRegressionEquipment.infantry_equipment>0,'a costlier retune must detect when the saved production target falls further behind');
+assert.ok(retune.targetRegressionIC>0&&retune.shortfallIC>0);
+assert.equal(retune.currentPlanAdequate,false,'retunes that worsen an existing saved production target must be production-limited');
+assert.ok(retune.valuePenalty>0&&retune.searchPenalty>0);
+
 const unavailable=counterProductionPlanBurden({state:{attackerDivisions:3},attacker:{need:{infantry_equipment:100}}},{stats:{need:{infantry_equipment:110}}},'attacker',equipment);
 assert.equal(unavailable.available,false,'missing saved production context must remain unknown rather than inventing feasibility');
 assert.equal(unavailable.searchPenalty,0);

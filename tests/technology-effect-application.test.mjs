@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { battalions as baseBattalions, supports as baseSupports, equipment as baseEquipment, terrain as baseTerrain } from '../src/data.js';
 import builtin1192 from '../src/builtin1192.js';
 import { hydrateGameData } from '../src/gameData.js';
+import { calcDivision } from '../src/engine.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData, applySelectedTechnologyEffects } from '../src/tech.js';
 
 const battalions=structuredClone(baseBattalions),supports=structuredClone(baseSupports),equipment=structuredClone(baseEquipment),terrain=structuredClone(baseTerrain);
@@ -18,7 +19,7 @@ close(directB.artillery.soft,lineSoft*1.10,'line artillery source modifier appli
 close(directS.support_artillery.soft,supportSoft*1.05,'support artillery receives its distinct source modifier');
 assert.deepEqual(artilleryMeta.appliedTechnologies,['interwar_artillery']);
 assert.equal(artilleryMeta.classification,'executable-inferred');
-assert.equal(artilleryMeta.applicationOrder,'additive-then-factor');
+assert.equal(artilleryMeta.applicationOrder,'additive-then-factor-plus-terrain');
 
 const stackedB=structuredClone(battalions),stackedS=structuredClone(supports);
 applySelectedTechnologyEffects(stackedB,stackedS,builtin1192,['interwar_artillery','artillery2']);
@@ -65,6 +66,26 @@ const infantryWidth=infantry.width;
 applySelectedTechnologyEffects(widthB,widthS,builtin1192,['revolutionary_mass_assault']);
 close(findUnit(widthB,'infantry').width,Math.max(0,infantryWidth-0.2),'combat_width is a flat sub-unit width change');
 
+// Source-backed terrain technology effects now feed the same per-unit terrain map already consumed by the battle engine.
+const terrainB=structuredClone(battalions),terrainS=structuredClone(supports),lightArmor=findUnit(terrainB,'light_armor');
+assert.ok(lightArmor,'light_armor must be hydrated for technology terrain certification');
+const baseMountainAttack=Number(lightArmor.terrainModifiers?.mountain?.attack)||0;
+const terrainMeta=applySelectedTechnologyEffects(terrainB,terrainS,builtin1192,['mountain_tanks']);
+close(findUnit(terrainB,'light_armor').terrainModifiers.mountain.attack,baseMountainAttack+0.15,'mountain_tanks source terrain attack modifier applies to light armor');
+assert.ok(terrainMeta.appliedTerrainModifierCount>=1,'terrain application is reported separately from scalar unit modifiers');
+assert.deepEqual(terrainMeta.appliedTechnologies,['mountain_tanks']);
+const baselineMountain=calcDivision([{type:'light_armor',count:1}],battalions,[],supports);
+const techMountain=calcDivision([{type:'light_armor',count:1}],terrainB,[],terrainS);
+close(techMountain.terrainAttack.mountain-baselineMountain.terrainAttack.mountain,0.15,'technology terrain modifier reaches division combat aggregation');
+
+// Movement-only terrain technology fields remain explicitly deferred because the current battle model does not consume movement speed by terrain.
+const movementPack={subUnits:{fixture:{}},technologies:{fixture_tech:{directEffects:{fixture:{mountain:{movement:0.20}}}}}};
+const movementB={fixture:{id:'fixture',gameId:'fixture',terrainModifiers:{}}};
+const movementMeta=applySelectedTechnologyEffects(movementB,{},movementPack,['fixture_tech']);
+assert.deepEqual(movementMeta.appliedTechnologies,[],'movement-only terrain technology must not be mislabeled as a combat-applied technology');
+assert.equal(movementMeta.appliedTerrainModifierCount,0);
+assert.equal(movementB.fixture.terrainModifiers.mountain,undefined,'movement-only terrain effect stays deferred');
+
 // `land_cruiser` is outside the current Division Lab hydration set, but its exact source effect is useful to certify
 // the generic flat supply mapping without pretending the excluded unit is selectable in the planner.
 const supplyB={landCruiserFixture:{id:'landCruiserFixture',gameId:'land_cruiser',supply:1}},supplyS={};
@@ -87,5 +108,7 @@ const baseline=buildTechAdjustedData(battalions,supports,profile,{pack:builtin11
 const integrated=buildTechAdjustedData(battalions,supports,{...profile,technologies:['interwar_artillery']},{pack:builtin1192,year:1940});
 assert.deepEqual(integrated.technologyEffects.appliedTechnologies,['interwar_artillery']);
 assert.ok(integrated.battalions.artillery.soft>baseline.battalions.artillery.soft,'technology effect survives the downstream doctrine transformation');
+const terrainIntegrated=buildTechAdjustedData(battalions,supports,{...profile,technologies:['mountain_tanks']},{pack:builtin1192,year:1940});
+assert.ok((findUnit(terrainIntegrated.battalions,'light_armor').terrainModifiers?.mountain?.attack||0)>(findUnit(baseline.battalions,'light_armor').terrainModifiers?.mountain?.attack||0),'technology terrain effect survives downstream doctrine transformation');
 
 console.log('Explicit technology effect application certification passed.');

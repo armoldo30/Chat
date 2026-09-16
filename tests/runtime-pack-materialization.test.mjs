@@ -30,7 +30,9 @@ try{
   await writeFile(temp,generated);
   const roundTrip=await import(`${pathToFileURL(temp).href}?t=${Date.now()}`);
   assert.equal(roundTrip.RUNTIME_PACK_FORMAT,1,'generated module format marker should survive import');
-  assert.equal(JSON.stringify(roundTrip.default),JSON.stringify(BUILTIN_1192),'materialized runtime pack must preserve the complete certified data object exactly');
+  assert.deepStrictEqual(roundTrip.default,BUILTIN_1192,'materialized runtime pack must preserve the complete certified data object, including explicit undefined fields');
+  assert.ok(Object.prototype.hasOwnProperty.call(roundTrip.default?.technologies?.early_ship_hull_light||{},'folder'),'materialized pack must preserve explicit undefined own-properties');
+  assert.equal(roundTrip.default?.technologies?.early_ship_hull_light?.folder,undefined,'explicit undefined technology fields must remain undefined');
   assert.equal(roundTrip.default?.meta?.definesSourceSha256,'405a24ce579815443cafe052cff1361e20c712ca8182e3f10ccbf45330dd4be4','materialized pack must retain the certified 1.19.2 Defines fingerprint');
   assert.equal(roundTrip.default?.meta?.technologySourceInventoryCertified,true,'materialized pack must retain technology source certification');
   assert.equal(roundTrip.default?.meta?.doctrineSourceInventoryCertified,true,'materialized pack must retain doctrine source certification');
@@ -38,4 +40,4 @@ try{
   await rm(temp,{force:true});
 }
 
-console.log('materialized 1.19.2 runtime pack equivalence passed');
+console.log('materialized 1.19.2 runtime pack exact-object equivalence passed');

@@ -23,7 +23,7 @@ function productionContext(item,tradeoffs){
   const practicality=item.practicality,burden=item.productionBurden;
   if(practicality?.majorRetooling){
     const families=(practicality.introducedArmorFamilies||[]).map(family=>`${family[0].toUpperCase()}${family.slice(1)} Armor`),resources=(practicality.resourceKeys||[]).map(key=>key[0].toUpperCase()+key.slice(1));
-    tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs`:''}. Conversion/retooling efficiency loss is not source-priced here, so this remains an additional commitment beyond the projection below.`);
+    tradeoffs.unshift(`Major production retooling: this change introduces ${families.join(' + ')||'a new armored equipment family'}${resources.length?` with ${resources.join(' / ')} inputs`:''}. Conversion/retooling efficiency loss and campaign fuel availability are not source-priced here, so this remains an additional commitment beyond the projection below.`);
   }
   if(!burden||burden.addedIC<=.5)return;
   const factoryText=`Production projection: +${burden.addedIC.toFixed(0)} IC across ${burden.divisions} selected division${burden.divisions===1?'':'s'} ≈ ${burden.factoryDays.toFixed(1)} factory-days, or ${burden.factoriesForHorizon.toFixed(1)} average factories over the current ${burden.horizonDays}-day horizon.`;

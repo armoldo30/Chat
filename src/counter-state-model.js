@@ -116,6 +116,6 @@ export function counterBattleOptions(state){
 export function counterSnapshot(){
   const state=loadCounterState(),attacker=counterDivision(state,'attacker'),defender=counterDivision(state,'defender');
   const attackerIC=divisionEquipmentIC(attacker.need,counterEquipment(state,'attacker')),defenderIC=divisionEquipmentIC(defender.need,counterEquipment(state,'defender'));
-  const fingerprint=JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,at:state.attackerTech,av:state.tankVariants?.attacker,am:state.mioSelections?.attacker,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dt:state.defenderTech,dv:state.tankVariants?.defender,dm:state.mioSelections?.defender,b:state.battlefield,an:state.attackerDivisions,dn:state.defenderDivisions});
+  const fingerprint=JSON.stringify({a:state.attackerGrid,as:state.attackerSupports,ar:state.attackerRegimentalSupports,at:state.attackerTech,av:state.tankVariants?.attacker,am:state.mioSelections?.attacker,d:state.defenderGrid,ds:state.defenderSupports,dr:state.defenderRegimentalSupports,dt:state.defenderTech,dv:state.tankVariants?.defender,dm:state.mioSelections?.defender,b:state.battlefield,an:state.attackerDivisions,dn:state.defenderDivisions,p:state.production,pg:state.productionGoals});
   return {state,attacker,defender,attackerIC,defenderIC,fingerprint};
 }

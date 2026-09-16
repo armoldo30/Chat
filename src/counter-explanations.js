@@ -21,14 +21,18 @@ function forceDesignContext(item,target,reasons,tradeoffs,side){
 }
 function productionContext(item,tradeoffs){
   const practicality=item.practicality,plan=item.productionPlan;
-  if(plan?.available&&plan.incrementalIC>0){
-    if(!plan.currentPlanAdequate){
-      const pctCovered=Math.round((plan.coverageRatio||0)*100),missing=(plan.rows||[]).filter(row=>row.shortfall>1e-9).sort((a,b)=>b.shortfallIC-a.shortfallIC),missingLabels=missing.slice(0,3).map(row=>row.label).join(' / ');
-      let detail=`Current saved production plan covers about ${pctCovered}% of the added equipment IC within its ${Math.round(plan.horizonDays)}-day horizon; about ${Math.round(plan.shortfallIC)} equipment IC remains uncovered`;
+  if(plan?.available){
+    if(plan.targetRegressionIC>0){
+      const affected=(plan.rows||[]).filter(row=>row.targetRegression>1e-9).sort((a,b)=>b.targetRegressionIC-a.targetRegressionIC).map(row=>row.label).slice(0,3).join(' / ');
+      tradeoffs.unshift(`The candidate equipment design makes the existing saved production targets fall about ${Math.round(plan.targetRegressionIC)} equipment IC further behind over the ${Math.round(plan.horizonDays)}-day horizon${affected?` (${affected})`:''}. This compares the candidate line output with the baseline design at the same saved factories/resources.`);
+    }
+    if(plan.incrementalIC>0&&!plan.currentPlanAdequate){
+      const pctCovered=Math.round((plan.coverageRatio||0)*100),missing=(plan.rows||[]).filter(row=>row.incrementalShortfall>1e-9).sort((a,b)=>b.incrementalShortfallIC-a.incrementalShortfallIC),missingLabels=missing.slice(0,3).map(row=>row.label).join(' / ');
+      let detail=`Current saved production plan covers about ${pctCovered}% of the added equipment IC within its ${Math.round(plan.horizonDays)}-day horizon; about ${Math.round(plan.incrementalShortfallIC)} added-equipment IC remains uncovered`;
       if(missingLabels)detail+=` (${missingLabels})`;
       if(plan.newProductionLines?.length)detail+=`. ${plan.newProductionLines.length} required equipment type${plan.newProductionLines.length===1?' has':'s have'} no saved production line`;
       else if(plan.inactiveProductionLines?.length)detail+=`. ${plan.inactiveProductionLines.length} required saved line${plan.inactiveProductionLines.length===1?' receives':'s receive'} no active factories under the current factory cap`;
-      else if(Number.isFinite(plan.additionalDays)&&plan.additionalDays>0)detail+=`; at current modeled line rates the slowest shortfall needs roughly ${Math.ceil(plan.additionalDays)} additional days after that horizon`;
+      else if(Number.isFinite(plan.additionalDays)&&plan.additionalDays>0)detail+=`; at current modeled line rates the slowest combined shortfall needs roughly ${Math.ceil(plan.additionalDays)} additional days after that horizon`;
       tradeoffs.unshift(`${detail}. Counter Analysis does not auto-reallocate factories.`);
     }
     if(plan.resourceConstrainedTypes?.length){

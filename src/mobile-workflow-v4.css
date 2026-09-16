@@ -2,6 +2,7 @@
 
 @media(max-width:720px){
   :root{--mobile-tool-dock-height:62px}
+  body{padding-bottom:calc(var(--mobile-tool-dock-height) + env(safe-area-inset-bottom))!important}
 
   /* Keep primary tools reachable during long Lab / Counter sessions. */
   .app-shell{display:block!important;min-height:100vh!important;padding-bottom:calc(var(--mobile-tool-dock-height) + env(safe-area-inset-bottom))!important}

@@ -1,4 +1,5 @@
 /* 0.16.4 mobile-first cleanup. Presentation only; no simulation behavior. */
+@import url('./mobile-workflow-v4.css');
 
 html,body{max-width:100%;overflow-x:hidden}
 .table-wrap{max-width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch;overscroll-behavior-inline:contain}

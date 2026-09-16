@@ -86,7 +86,7 @@ function divisionFor(state,side,grid,supportKeys){
   return calcDivision(line,data.battalions,[...(supportKeys||[]),...regimental],data.supports);
 }
 function enrichCandidate(snapshot,candidate,side,contextState=snapshot.state){
-  const state=candidate.state||contextState,target=snapshot[otherSide(side)],division=divisionFor(state,side,candidate.grid,candidate.supportKeys),equipmentData=derivedFor(state,side).equipment,ic=divisionEquipmentIC(division.need,equipmentData),changeKinds=candidate.changeKinds||[candidate.kind],practicality=counterProductionPracticality(snapshot,candidate,side),productionPlan=counterProductionPlanBurden(snapshot,{...candidate,stats:division},side,equipmentData);
+  const state=candidate.state||contextState,target=snapshot[otherSide(side)],division=divisionFor(state,side,candidate.grid,candidate.supportKeys),equipmentData=derivedFor(state,side).equipment,baselineEquipmentData=derivedFor(snapshot.state,side).equipment,ic=divisionEquipmentIC(division.need,equipmentData),changeKinds=candidate.changeKinds||[candidate.kind],practicality=counterProductionPracticality(snapshot,candidate,side),productionPlan=counterProductionPlanBurden(snapshot,{...candidate,stats:division},side,equipmentData,baselineEquipmentData);
   return {...candidate,side,state,changeKinds,practicality,productionPlan,key:counterForceKey(candidate.grid,candidate.supportKeys,state,side),stats:division,ic,pierces:division.piercing>=target.armor,holdsArmor:division.armor>target.piercing};
 }
 function heuristic(snapshot,item,side){

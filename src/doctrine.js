@@ -94,7 +94,9 @@ function mergeEffect(target,effect){
 
 const DOCTRINE_META_KEYS=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
 const IMPORTED_LAND_STAT_MAP={soft_attack:['soft','mult'],hard_attack:['hard','mult'],defense:['def','mult'],breakthrough:['breakthrough','mult'],ap_attack:['piercing','mult'],air_attack:['airAttack','mult'],max_organisation:['org','flat'],max_strength:['hp','flat'],combat_width:['width','flat'],supply_consumption:['supply','flat']};
-// Only modifiers with audited planner consumption are mapped. Planning accumulation, maximum entrenchment, movement speed and similar fields remain source-exact metadata until their formula audits.
+const IMPORTED_LAND_TERRAIN_SCOPES=new Set(['plains','desert','forest','jungle','hills','mountain','marsh','urban','river','fort']);
+const IMPORTED_LAND_TERRAIN_FIELDS={attack:'attack',defence:'defense',defense:'defense'};
+// Only modifiers with audited planner consumption are mapped. Terrain attack/defense uses the existing battle-consumed terrainModifiers path. Planning accumulation, maximum entrenchment, terrain movement speed and similar fields remain source-exact metadata until their formula audits.
 const IMPORTED_GLOBAL_MAP={land_night_attack:'nightAttack',supply_consumption_factor:'supply'};
 const importedGrandId=(state,folder,pack)=>{const ids=folder==='air'?[`new_${state.grand}`,state.grand]:[state.grand,`new_${state.grand}`];return ids.find(id=>pack?.doctrines?.[id]?.kind==='grand')||ids.find(id=>pack?.doctrines?.[id])||null;};
 const importedSubDoctrineId=(choice,folder,pack)=>{const ids=folder==='air'?[`air_subdoctrine_${choice}`,choice]:[choice];return ids.find(id=>pack?.doctrines?.[id]?.kind==='subdoctrine')||ids.find(id=>pack?.doctrines?.[id])||null;};
@@ -105,9 +107,16 @@ function importedUnitScopeMatches(scope,id,unit){
 }
 function collectImportedUnitBlock(unit,block,mods){
   if(!unit||!block||typeof block!=='object'||Array.isArray(block))return false;
-  const bucket=mods.get(unit)||{mult:{},flat:{}};let applied=false;
+  const bucket=mods.get(unit)||{mult:{},flat:{},terrain:{}};let applied=false;
   for(const [src,[dst,mode]] of Object.entries(IMPORTED_LAND_STAT_MAP)){
     const value=Number(block[src]);if(!Number.isFinite(value)||value===0)continue;applied=true;bucket[mode][dst]=(bucket[mode][dst]||0)+value;
+  }
+  for(const [scope,terrainBlock] of Object.entries(block)){
+    if(!IMPORTED_LAND_TERRAIN_SCOPES.has(scope)||!terrainBlock||typeof terrainBlock!=='object'||Array.isArray(terrainBlock))continue;
+    for(const [src,dst] of Object.entries(IMPORTED_LAND_TERRAIN_FIELDS)){
+      const value=Number(terrainBlock[src]);if(!Number.isFinite(value)||value===0)continue;
+      bucket.terrain[scope]=bucket.terrain[scope]||{};bucket.terrain[scope][dst]=(bucket.terrain[scope][dst]||0)+value;applied=true;
+    }
   }
   if(applied)mods.set(unit,bucket);return applied;
 }
@@ -121,7 +130,17 @@ function applyImportedLandNode(node,battalions,supports,global,mods){
     for(const [id,unit] of Object.entries(supports))if(importedUnitScopeMatches(key,id,unit))collectImportedUnitBlock(unit,value,mods);
   }
 }
-function applyCollectedImportedUnitMods(mods){for(const [unit,bucket] of mods){for(const [dst,v] of Object.entries(bucket.mult))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+v));for(const [dst,v] of Object.entries(bucket.flat))unit[dst]=Math.max(0,(Number(unit[dst])||0)+v);}}
+function applyCollectedImportedUnitMods(mods){
+  for(const [unit,bucket] of mods){
+    for(const [dst,v] of Object.entries(bucket.mult))unit[dst]=Math.max(0,(Number(unit[dst])||0)*(1+v));
+    for(const [dst,v] of Object.entries(bucket.flat))unit[dst]=Math.max(0,(Number(unit[dst])||0)+v);
+    for(const [scope,terrain] of Object.entries(bucket.terrain||{})){
+      unit.terrainModifiers=unit.terrainModifiers&&typeof unit.terrainModifiers==='object'?unit.terrainModifiers:{};
+      unit.terrainModifiers[scope]=unit.terrainModifiers[scope]&&typeof unit.terrainModifiers[scope]==='object'?unit.terrainModifiers[scope]:{};
+      for(const [field,value] of Object.entries(terrain||{}))unit.terrainModifiers[scope][field]=(Number(unit.terrainModifiers[scope][field])||0)+value;
+    }
+  }
+}
 function importedLandDoctrineApply(battalions,supports,raw,pack){
   const state=normalizeLandDoctrine(raw),b=clone(battalions),s=clone(supports),global={},used=[],mods=new Map();
   const grandId=importedGrandId(state,'land',pack),grand=grandId?pack.doctrines[grandId]:null;

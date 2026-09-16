@@ -16,23 +16,36 @@ Remaining work is ranked by:
 
 ## Tier 1 — source-backed runtime gaps worth implementing now
 
-### 1. Technology terrain attack/defense blocks — **implemented in this branch**
+### 1. Technology terrain attack/defense blocks — **implemented**
 
 The technology corpus retains 161 terrain blocks. The battle engine already consumes unit `terrainModifiers` for attack and defense, but the technology application layer previously skipped nested terrain effects.
 
-This branch applies source terrain `attack`, `defence` and `defense` fields for planner-supported terrain scopes to the matching source sub-unit/category. Movement-only fields remain deferred because the current battle model does not consume terrain movement speed.
+Source terrain `attack`, `defence` and `defense` fields for planner-supported terrain scopes now flow to the matching source sub-unit/category. Movement-only fields remain deferred because the current battle model does not consume terrain movement speed.
 
 Golden source case: `mountain_tanks -> light_armor -> mountain -> attack = 0.15`.
 
 Evidence boundary: the source values are game-file exact; mapping those source modifiers into the existing planner terrain-combat path remains bounded/executable-inferred in the same sense as other selected technology sub-unit modifiers.
 
-### 2. Doctrine terrain attack/defense blocks — **next candidate**
+### 2. Doctrine terrain attack/defense blocks — **implemented in this branch**
 
-Doctrine coverage retains numerous nested terrain blocks while the battle engine already has a compatible per-unit terrain attack/defense path. This is the closest analogue to the technology fix and should be audited next. Only attack/defense fields that map directly into an already-consumed runtime stat should be considered initially; movement and other terrain semantics should remain deferred.
+The certified land-doctrine corpus includes nested terrain blocks in active selectable doctrine rewards. These now use the same battle-consumed `terrainModifiers` path as source unit and technology terrain effects.
 
-### 3. Direct support-company combat fields already represented by the division model
+Golden source cases:
+
+- `commandos` mastery 3 / `rigorous_training_regimen`: infantry receives `+0.05` attack in desert, jungle and hills. Its accompanying `+0.10` movement remains deliberately deferred.
+- `siege_artillery` mastery 1 / `fortress_busters`: `super_heavy_artillery` receives `+0.25` fort attack, which feeds the battle engine's existing fort-attack modifier path.
+
+Only nested `attack`, `defence` and `defense` are promoted. Terrain `movement` remains measured as deferred rather than being silently treated as supported.
+
+### 3. Direct support-company / specialist combat fields already represented by the division model — **next audit target**
 
 Selected technology/doctrine data retains fields such as entrenchment, recon and initiative. Initiative already exists on support records, while other specialist fields are preserved in source. Each field should only be promoted when its downstream combat meaning is actually modeled. Copying a value into a unit object without a result path does not count as support.
+
+The next pass should inventory these fields against actual consumers and separate:
+
+- fields with an existing result path that can be wired safely;
+- fields whose object representation exists but whose HOI4 runtime meaning is not modeled;
+- fields that require Oracle validation before they can influence a result.
 
 ## Tier 2 — high user impact, but formula/runtime semantics remain incomplete
 
@@ -98,8 +111,8 @@ These may be source-interesting but do not currently justify priority over resul
 
 ## Current recommended order
 
-1. technology terrain attack/defense — this branch;
-2. doctrine terrain attack/defense, if the retained doctrine structure maps cleanly into the same runtime path;
+1. technology terrain attack/defense — implemented;
+2. doctrine terrain attack/defense — this branch;
 3. audit specialist land fields against actual consumers before implementing any of them;
 4. recover authoritative MIO localization / `NAir` source whenever available;
 5. Oracle validation for land operational mechanics and Air operational mechanics;

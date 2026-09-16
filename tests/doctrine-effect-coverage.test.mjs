@@ -3,11 +3,13 @@ import builtin1192 from '../src/builtin1192.js';
 
 const LAND_UNIT_FIELDS=new Set(['soft_attack','hard_attack','defense','breakthrough','ap_attack','air_attack','max_organisation','max_strength','combat_width','supply_consumption']);
 const LAND_GLOBAL_FIELDS=new Set(['land_night_attack','supply_consumption_factor']);
+const LAND_TERRAIN_SCOPES=new Set(['plains','desert','forest','jungle','hills','mountain','marsh','urban','river','fort']);
+const LAND_TERRAIN_FIELDS=new Set(['attack','defence','defense']);
 const AIR_UNIT_FIELDS=new Set(['air_agility','air_attack','air_defence','maximum_speed','air_range','air_ground_attack','naval_strike_attack','reliability']);
 const AIR_GLOBAL_FIELDS=new Set(['air_superiority_efficiency','air_cas_efficiency','air_nav_efficiency','air_mission_efficiency','ground_attack_factor','air_range_factor','air_fuel_consumption_factor','air_strategic_bomber_defence_factor']);
 const META=new Set(['folder','name','description','icon','available','visible','ai_will_do','xp_cost','xp_type','track','tracks','mastery','xor','effect','rewards','milestones','enable_tactic']);
 const inc=(o,k,n=1)=>{o[k]=(o[k]||0)+n;};
-const summary={land:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},air:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},specialForces:{nodes:0},naval:{nodes:0}};
+const summary={land:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,supportedTerrainFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},air:{nodes:0,rewardNodes:0,milestoneNodes:0,unitFields:{},supportedUnitFields:0,supportedTerrainFields:0,deferredUnitFields:{},globalFields:{},supportedGlobalFields:0,deferredGlobalFields:{}},specialForces:{nodes:0},naval:{nodes:0}};
 
 function scanNode(node,domain){
   if(!node||typeof node!=='object'||Array.isArray(node))return;
@@ -18,7 +20,15 @@ function scanNode(node,domain){
       const unitTarget=String(target).startsWith('category_')||!!builtin1192.subUnits?.[target]||(domain==='air'&&['tac_bomber','strat_bomber'].includes(target));
       if(!unitTarget){inc(dst.deferredGlobalFields,`object:${target}`);continue;}
       for(const [field,v] of Object.entries(value)){
-        if(v&&typeof v==='object'){inc(dst.deferredUnitFields,`nested:${field}`);continue;}
+        if(v&&typeof v==='object'){
+          if(domain==='land'&&LAND_TERRAIN_SCOPES.has(field)&&!Array.isArray(v)){
+            for(const [nestedField,nestedValue] of Object.entries(v)){
+              if(Number.isFinite(Number(nestedValue))&&LAND_TERRAIN_FIELDS.has(nestedField)){dst.supportedUnitFields++;dst.supportedTerrainFields++;}
+              else inc(dst.deferredUnitFields,`nested:${field}.${nestedField}`);
+            }
+          }else inc(dst.deferredUnitFields,`nested:${field}`);
+          continue;
+        }
         inc(dst.unitFields,field);
         const supported=domain==='land'?LAND_UNIT_FIELDS.has(field):AIR_UNIT_FIELDS.has(field);
         if(supported)dst.supportedUnitFields++;else inc(dst.deferredUnitFields,field);
@@ -53,5 +63,7 @@ for(const doc of Object.values(builtin1192.doctrines||{})){
 assert.ok(summary.land.nodes>0&&summary.air.nodes>0);
 assert.equal(summary.land.unitFields.supply_consumption>0,true,'source land doctrine corpus contains flat supply_consumption effects');
 assert.ok(summary.land.supportedUnitFields>0&&summary.air.supportedUnitFields>0);
+assert.ok(summary.land.supportedTerrainFields>0,'source-backed doctrine terrain attack/defense fields must be counted as runtime-supported');
+assert.ok(Object.keys(summary.land.deferredUnitFields).some(key=>key.endsWith('.movement')),'terrain movement fields must remain explicitly deferred');
 console.log('DOCTRINE_EFFECT_COVERAGE',JSON.stringify(summary));
 console.log('Doctrine effect coverage measurement passed.');

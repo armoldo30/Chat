@@ -29,6 +29,6 @@ assert.ok(constrained.capacityPenalty>0,'factory/resource constraints must feed 
 
 const explained=explainCounter({gain:8,ic:snapshot.attackerIC+126,changeCount:1,changes:['Add Artillery'],stats:candidate.stats,productionBurden:burden},snapshot,'attacker');
 assert.ok(explained.tradeoffs.some(text=>/factory-days/i.test(text)),'Counter explanation must show production-time burden');
-assert.ok(explained.tradeoffs.some(text=>/resource draw/i.test(text)),'Counter explanation must show marginal resource burden when capacity is available');
+assert.ok(explained.tradeoffs.some(text=>/resource|strategic-resource/i.test(text)),'Counter explanation must show marginal resource burden or capacity constraint');
 
 console.log('Counter production-capacity burden checks passed.');

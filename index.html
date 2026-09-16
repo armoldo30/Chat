@@ -14,9 +14,11 @@
   <meta property="og:description" content="Recreate HOI4 divisions, diagnose matchups, test counters, and compare tanks and aircraft against a bundled vanilla 1.19.2 analytical model." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://hoioracle.com/" />
+  <meta property="og:site_name" content="HOI4 War Planner" />
   <meta name="twitter:card" content="summary" />
   <!-- ADSENSE_ACCOUNT_META -->
   <title>HOI4 War Planner</title>
+  <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","name":"HOI4 War Planner","url":"https://hoioracle.com/","description":"Data-backed Hearts of Iron IV 1.19.2 theorycrafting and matchup analysis."},{"@type":"SoftwareApplication","name":"HOI4 War Planner","url":"https://hoioracle.com/","applicationCategory":"GameApplication","applicationSubCategory":"Hearts of Iron IV theorycrafting companion","operatingSystem":"Web browser","isAccessibleForFree":true,"browserRequirements":"Requires JavaScript","description":"Recreate HOI4 divisions, analyze counters, design tanks and aircraft, and stress-test divisions against a bundled vanilla 1.19.2 analytical model.","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}]}</script>
   <link rel="stylesheet" href="./src/runtime-guard.css" />
   <link rel="stylesheet" href="./src/style.css" />
   <link rel="stylesheet" href="./src/ui-polish.css" />
@@ -66,10 +68,10 @@
     <div class="publisher-guide-inner">
       <p class="eyebrow">PLAYER GUIDE</p><h2 id="publisher-guide-title">What the planner is designed to answer</h2>
       <div class="publisher-guide-grid">
-        <article><h3>Why did this division beat mine?</h3><p>Recreate both templates in Division Lab and compare the interaction directly. Armor and piercing thresholds, hardness, attack profile, defense or breakthrough, organization, width and terrain can be inspected together instead of guessing from one headline stat.</p></article>
-        <article><h3>What is the best counter?</h3><p>Counter Analysis tests focused structural changes against the exact target division and ranks the useful ones by modeled matchup improvement. The goal is to explain what changes the result, not to declare one universal template.</p></article>
-        <article><h3>Is the improvement worth the cost?</h3><p>Counter recommendations include equipment IC per division and an equivalent MIC burden. A stronger answer can still be a poor trade if the added cost reduces how much of the force you can field.</p></article>
-        <article><h3>Is the design broadly good?</h3><p>Division Gauntlet tests a design across large deterministic opponent sets and terrain conditions. Use it when the question is general robustness rather than one specific multiplayer matchup.</p></article>
+        <article><h3>Why did this division beat mine?</h3><p>Recreate both templates in Division Lab and compare the interaction directly. Armor and piercing thresholds, hardness, attack profile, defense or breakthrough, organization, width and terrain can be inspected together instead of guessing from one headline stat. <a href="./division-counter.html">Division Lab guide</a>.</p></article>
+        <article><h3>What is the best counter?</h3><p>Counter Analysis tests focused structural changes against the exact target division and ranks the useful ones by modeled matchup improvement. The goal is to explain what changes the result, not to declare one universal template. <a href="./division-counter.html">Counter Analysis guide</a>.</p></article>
+        <article><h3>How should I design the equipment?</h3><p>Use the designers to compare equipment tradeoffs, then test the finished variant in the wider scenario. <a href="./tank-designer.html">Tank Designer</a> and <a href="./air-lab.html">Air Lab</a> keep the equipment question connected to the matchup it is meant to solve.</p></article>
+        <article><h3>Is the design broadly good?</h3><p>Division Gauntlet tests a design across large deterministic opponent sets and terrain conditions. Use it when the question is general robustness rather than one specific multiplayer matchup. <a href="./division-gauntlet.html">Gauntlet guide</a>.</p></article>
       </div>
       <p class="publisher-note"><strong>Evidence policy:</strong> game-file exact values are kept distinct from executable-inferred behavior and planner-analytical scoring. Seeded simulations are reproducible analytical comparisons; the planner does not claim bit-for-bit parity with <code>hoi4.exe</code>. Read the <a href="./methodology.html">methodology</a> for the current certification boundary.</p>
     </div>

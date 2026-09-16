@@ -3,6 +3,7 @@ import { counterEquipment, counterBattleOptions, counterTechData } from './count
 import { buildCounterCandidates } from './counter-candidates.js';
 import { buildForceDesignCandidates, counterForceKey } from './counter-force-candidates.js';
 import { effectiveAttack } from './counter-diagnosis.js';
+import { counterProductionBurden } from './counter-production-burden.js';
 import { battalions, supports, equipment } from './data.js';
 import { gridToCounts, filledInRegiment } from './designer.js';
 
@@ -39,8 +40,9 @@ export const isMeaningfulCounterImprovement=item=>(Number(item?.gain)||0)>=MIN_M
 function score(items,baseWin,baseIC,snapshot,side){
   const base=snapshot[side];
   return items.map(item=>{
-    const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1),practicality=item.practicality||counterProductionPracticality(snapshot,item,side),operationalBurden=counterOperationalBurden(base,item);
-    return {...item,practicality,operationalBurden,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/(Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(practicality.valuePenalty||0)+(operationalBurden.supplyValuePenalty||0))};
+    const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1),practicality=item.practicality||counterProductionPracticality(snapshot,item,side),operationalBurden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
+    const denominator=Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(practicality.valuePenalty||0)+(operationalBurden.supplyValuePenalty||0)+(productionBurden.capacityPenalty||0);
+    return {...item,practicality,operationalBurden,productionBurden,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/Math.max(1,denominator)};
   });
 }
 function rank(scored){
@@ -89,7 +91,7 @@ function enrichCandidate(snapshot,candidate,side,contextState=snapshot.state){
   return {...candidate,side,state,changeKinds,practicality,key:counterForceKey(candidate.grid,candidate.supportKeys,state,side),stats:division,ic,pierces:division.piercing>=target.armor,holdsArmor:division.armor>target.piercing};
 }
 function heuristic(snapshot,item,side){
-  const base=snapshot[side],target=snapshot[otherSide(side)],basePressure=effectiveAttack(base,target),pressureGain=effectiveAttack(item.stats,target)-basePressure,survivalGain=side==='defender'?item.stats.def-base.def:item.stats.breakthrough-base.breakthrough,burden=counterOperationalBurden(base,item);
+  const base=snapshot[side],target=snapshot[otherSide(side)],basePressure=effectiveAttack(base,target),pressureGain=effectiveAttack(item.stats,target)-basePressure,survivalGain=side==='defender'?item.stats.def-base.def:item.stats.breakthrough-base.breakthrough,burden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
   let score=pressureGain*.12+survivalGain*.035+(item.stats.org-base.org)*.08;
   if(base.piercing<target.armor&&item.pierces)score+=120;
   else if(base.piercing<target.armor)score+=(item.stats.piercing-base.piercing)*.8;
@@ -97,6 +99,8 @@ function heuristic(snapshot,item,side){
   if(base.armor>target.piercing&&!item.holdsArmor)score-=75;
   score-=Math.max(0,item.ic-snapshot[side+'IC'])*.003;
   score-=Math.max(0,burden.supplyPct)*.08;
+  score-=Math.max(0,productionBurden.factoryShortfall)*1.5;
+  score-=Math.max(0,productionBurden.constrainedResources?.length||0)*2;
   score-=Math.max(0,(item.changeCount||1)-1)*2;
   score-=item.practicality?.searchPenalty||0;
   return score;
@@ -116,7 +120,7 @@ function yieldControl(){return new Promise(resolve=>setTimeout(resolve,0));}
 function abortIfNeeded(cancelled){if(cancelled?.()){const error=new Error('Counter search cancelled');error.name='AbortError';throw error;}}
 
 export function runCounterSearch(snapshot,options={}){
-  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit}=normalizedOptions(options),{state,attacker,defender}=snapshot,enemy=otherSide(side);
+  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit}=normalizedOptions(options),{state,attacker,defender}=snapshot;
   const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v7:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate,opponent=side==='attacker'?defenderForce:attackerForce;
   const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit}),firstEnriched=firstRaw.map(candidate=>enrichCandidate(snapshot,candidate,side,state));
   const firstTested=firstEnriched.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));

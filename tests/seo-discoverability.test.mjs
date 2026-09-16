@@ -3,7 +3,13 @@ import { readFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 
 const root=resolve(import.meta.dirname,'..');
-const toolPages=['division-counter.html','tank-designer.html','air-lab.html','division-gauntlet.html'];
+const toolRoutes={
+  'division-counter.html':'battle',
+  'tank-designer.html':'tank',
+  'air-lab.html':'air',
+  'division-gauntlet.html':'gauntlet'
+};
+const toolPages=Object.keys(toolRoutes);
 const allPages=['index.html','guides.html','methodology.html','about.html','privacy.html',...toolPages];
 const pages=new Map();
 for(const file of allPages)pages.set(file,await readFile(resolve(root,file),'utf8'));
@@ -19,7 +25,7 @@ const build=await readFile(resolve(root,'scripts/build.mjs'),'utf8');
 const guides=pages.get('guides.html');
 const titles=new Set(),descriptions=new Set();
 for(const file of toolPages){
-  const html=pages.get(file);
+  const html=pages.get(file),route=toolRoutes[file];
   const title=html.match(/<title>([^<]+)<\/title>/i)?.[1]?.trim();
   const description=html.match(/<meta[^>]+name="description"[^>]+content="([^"]+)"/i)?.[1]?.trim();
   assert.ok(title&&description,`${file} must expose title and description metadata`);
@@ -31,6 +37,8 @@ for(const file of toolPages){
   assert.ok(index.includes(`./${file}`)||guides.includes(`./${file}`),`${file} must have an internal crawl path from index or guides`);
   assert.match(html,/<script[^>]+type="application\/ld\+json"/i,`${file} should expose WebPage structured data`);
   assert.match(html,/"@type":"WebPage"/,`${file} structured data should identify a WebPage`);
+  assert.ok(html.includes(`href="./#${route}"`),`${file} primary planner CTA must deep-link to #${route}`);
+  assert.ok(!html.includes('href="./#app"'),`${file} must not use the non-route #app fallback`);
 }
 
 const fullTitles=[];

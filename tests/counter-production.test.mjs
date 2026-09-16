@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { counterProductionPlanBurden } from '../src/counter-production.js';
+import { chooseCounterHighlights } from '../src/counter-search.js';
 
 const equipment={
   infantry_equipment:{name:'Infantry Equipment',cost:1,resources:{steel:1}},
@@ -53,5 +54,13 @@ const unavailable=counterProductionPlanBurden({state:{attackerDivisions:3},attac
 assert.equal(unavailable.available,false,'missing saved production context must remain unknown rather than inventing feasibility');
 assert.equal(unavailable.searchPenalty,0);
 assert.equal(unavailable.valuePenalty,0);
+
+const rawButUnsupported={key:'raw',gain:20,value:.20,changeCount:1,deltaIC:100,practicality:{majorRetooling:false},productionPlan:{available:true,currentPlanAdequate:false}};
+const practical={key:'practical',gain:14,value:.18,changeCount:1,deltaIC:80,practicality:{majorRetooling:false},productionPlan:{available:true,currentPlanAdequate:true}};
+const practicalSmall={key:'small',gain:8,value:.15,changeCount:1,deltaIC:20,practicality:{majorRetooling:false},productionPlan:{available:true,currentPlanAdequate:true}};
+const highlights=chooseCounterHighlights([rawButUnsupported,practical,practicalSmall]);
+assert.equal(highlights.best,rawButUnsupported,'Best Raw must remain the strongest combat result even if the current production plan cannot support it');
+assert.equal(highlights.value,practical,'Best Value must prefer a meaningful counter the current saved plan can supply when one exists');
+assert.equal(highlights.minimal,practicalSmall,'Smallest Change should be selected from production-ready meaningful candidates when available');
 
 console.log('Counter saved-production feasibility checks passed.');

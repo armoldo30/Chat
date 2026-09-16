@@ -8,6 +8,9 @@ globalThis.document={body:get('body'),title:'',getElementById:get,querySelectorA
 globalThis.window={addEventListener(){}};
 globalThis.alert=()=>{};globalThis.confirm=()=>true;globalThis.prompt=()=>{};
 globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};
+let copied='';
+try{Object.defineProperty(globalThis,'navigator',{value:{clipboard:{writeText:async value=>{copied=String(value);}}},configurable:true});}
+catch{globalThis.navigator.clipboard={writeText:async value=>{copied=String(value);}};}
 
 const base64url=text=>{
   const bytes=new TextEncoder().encode(text);let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
@@ -32,5 +35,10 @@ assert.equal(saved.lastBattle,null,'shared cached battle results must be discard
 assert.ok(replaced.includes('utm_source=share-test'),'unrelated query parameters should survive share-token cleanup');
 assert.ok(!replaced.includes('scenario='),'share token should be removed after one-time load');
 assert.ok(get('view').innerHTML.includes('Copy matchup link'),'Scenario UI should expose the share action');
+
+await get('shareState').onclick();
+assert.ok(copied.includes('scenario='),'share action should copy a matchup URL on the bundled baseline');
+assert.ok(copied.endsWith('#battle'),'copied matchups should open directly in Division Lab');
+assert.ok(copied.length<13000,'an initialized near-default planner should stay within the reliable share-link budget');
 
 console.log('Scenario shared-link browser bootstrap test passed.');

@@ -52,4 +52,12 @@ assert.equal(variedSummary.lossA.mean,2);
 assert.equal(variedSummary.lossB.mean,4);
 assert.ok(variedSummary.lossA.sampleStdDev>0&&variedSummary.lossB.sampleStdDev>0,'raw trial variation must remain measurable');
 
+const zeroLoss={...capture,metadata:{...capture.metadata,scenarioId:'zero-loss-edge'},trials:Array.from({length:20},(_,i)=>({trialId:`Z${i+1}`,lossA:0,lossB:4}))};
+const zeroExact=compareAirOracleCapture(zeroLoss,{lossA:0,lossB:4},{minTrials:20,maxMeanLossAbs:.01,maxExchangeRatioRel:.01});
+assert.equal(zeroExact.pass,true,'matching infinite exchange ratios must compare cleanly');
+assert.equal(zeroExact.metrics.exchangeRatio.relativeError,0);
+const zeroMismatch=compareAirOracleCapture(zeroLoss,{lossA:1,lossB:4},{minTrials:20,maxExchangeRatioRel:.01});
+assert.equal(zeroMismatch.pass,false,'finite-vs-infinite exchange must diverge');
+assert.equal(zeroMismatch.metrics.exchangeRatio.relativeError,Infinity);
+
 console.log('Air Oracle differential harness evidence-boundary tests passed.');

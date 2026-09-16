@@ -13,6 +13,7 @@ import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS,
 import BUILTIN_1192 from './builtin1192.js';
 import { renderGauntlet } from './gauntlet-ui.js';
 import { buildScenarioShareUrl, decodeScenarioShare, encodeScenarioShare, materializeScenarioShare } from './scenario-share.js';
+import { MAX_SAVED_MATCHUPS, MAX_SAVED_MATCHUP_NAME, normalizeSavedMatchups, removeSavedMatchup, savedMatchupById, upsertSavedMatchup } from './scenario-library.js';
 
 const STORAGE='hoi4-war-planner-v7',LEGACY_STORAGE='hoi4-war-planner-v6';
 const $=id=>document.getElementById(id);
@@ -766,14 +767,99 @@ function data(c){
   if($('clearPack'))$('clearPack').onclick=()=>{if(confirm('Return to the bundled vanilla 1.19.2 baseline?')){state.dataPack=null;save();location.reload();}};
 }
 
+const SAVED_MATCHUPS_STORAGE='hoi4-war-planner-saved-matchups-v1';
+let savedMatchupLibraryError='';
+function loadSavedMatchupLibrary(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(SAVED_MATCHUPS_STORAGE)||'[]'),normalized=normalizeSavedMatchups(raw,{gameVersion:MODEL_META.gameVersion});
+    if(JSON.stringify(raw)!==JSON.stringify(normalized))localStorage.setItem(SAVED_MATCHUPS_STORAGE,JSON.stringify(normalized));
+    return normalized;
+  }catch(error){
+    console.warn('Unable to read saved matchup library.',error);savedMatchupLibraryError='Saved matchup library could not be read. Corrupt entries were ignored.';return [];
+  }
+}
+let savedMatchups=loadSavedMatchupLibrary();
+function persistSavedMatchupLibrary(next){
+  try{
+    const normalized=normalizeSavedMatchups(next,{gameVersion:MODEL_META.gameVersion});
+    localStorage.setItem(SAVED_MATCHUPS_STORAGE,JSON.stringify(normalized));savedMatchups=normalized;savedMatchupLibraryError='';return true;
+  }catch(error){
+    console.error('Unable to save matchup library.',error);savedMatchupLibraryError='Saved matchup library could not be written. Your active planner state is unchanged.';alert(savedMatchupLibraryError);return false;
+  }
+}
+function newSavedMatchupId(){
+  const uuid=globalThis.crypto?.randomUUID?.();
+  return uuid?uuid.replace(/-/g,'_'):`m_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,10)}`;
+}
+function currentSavedMatchupToken(){
+  if(!state.dataPack?.meta?.bundled)throw new Error('Named saves currently support the bundled vanilla 1.19.2 baseline only. Export JSON to preserve a custom imported data pack.');
+  return encodeScenarioShare(serializableState(),scenarioShareBaseline(),{gameVersion:MODEL_META.gameVersion});
+}
+function createNamedSavedMatchup(name){
+  try{
+    const next=upsertSavedMatchup(savedMatchups,{id:newSavedMatchupId(),name,token:currentSavedMatchupToken(),gameVersion:MODEL_META.gameVersion,now:new Date().toISOString()});
+    if(persistSavedMatchupLibrary(next)){alert('Matchup saved to this browser.');shell();}
+  }catch(error){alert(error?.message||String(error));}
+}
+function replaceNamedSavedMatchup(id){
+  const entry=savedMatchupById(savedMatchups,id,{gameVersion:MODEL_META.gameVersion});if(!entry)return;
+  if(!confirm(`Replace “${entry.name}” with the current matchup inputs?`))return;
+  try{
+    const next=upsertSavedMatchup(savedMatchups,{id:entry.id,name:entry.name,token:currentSavedMatchupToken(),gameVersion:MODEL_META.gameVersion,now:new Date().toISOString()});
+    if(persistSavedMatchupLibrary(next))shell();
+  }catch(error){alert(error?.message||String(error));}
+}
+function deleteNamedSavedMatchup(id){
+  const entry=savedMatchupById(savedMatchups,id,{gameVersion:MODEL_META.gameVersion});if(!entry)return;
+  if(!confirm(`Delete saved matchup “${entry.name}”?`))return;
+  if(persistSavedMatchupLibrary(removeSavedMatchup(savedMatchups,id,{gameVersion:MODEL_META.gameVersion})))shell();
+}
+function loadNamedSavedMatchup(id){
+  const entry=savedMatchupById(savedMatchups,id,{gameVersion:MODEL_META.gameVersion});if(!entry)return;
+  if(!confirm(`Load “${entry.name}”? The active planner state will be replaced; other named saves are unaffected.`))return;
+  try{
+    const payload=decodeScenarioShare(entry.token);
+    if(payload.gameVersion!==MODEL_META.gameVersion)throw new Error(`This saved matchup targets HOI4 ${payload.gameVersion}.`);
+    state=materializeScenarioShare(scenarioShareBaseline(),payload);state.dataPack=BUILTIN_1192;state.schema=defaults.schema;
+    ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
+    if(save()){location.hash='#battle';location.reload();}
+  }catch(error){alert(error?.message||String(error));}
+}
+async function copyNamedSavedMatchupLink(id){
+  const entry=savedMatchupById(savedMatchups,id,{gameVersion:MODEL_META.gameVersion});if(!entry)return;
+  try{
+    const href=globalThis.location?.href||'https://hoioracle.com/#battle',url=buildScenarioShareUrl(href,entry.token,'battle'),clipboard=globalThis.navigator?.clipboard;
+    if(clipboard?.writeText){await clipboard.writeText(url);alert('Saved matchup link copied.');}
+    else if(typeof globalThis.prompt==='function')globalThis.prompt('Copy this matchup link:',url);
+    else alert(url);
+  }catch(error){alert(error?.message||String(error));}
+}
+function savedMatchupPanel(){
+  const bundled=!!state.dataPack?.meta?.bundled,rows=savedMatchups.map(entry=>{
+    const updated=new Date(entry.updatedAt).toLocaleString();
+    return `<article class="saved-matchup-row"><div class="saved-matchup-copy"><strong>${esc(entry.name)}</strong><small>Updated ${esc(updated)} · HOI4 ${esc(entry.gameVersion)}</small></div><div class="saved-matchup-actions"><button class="btn" data-saved-load="${entry.id}">Load</button><button class="btn" data-saved-copy="${entry.id}">Copy link</button><button class="btn" data-saved-update="${entry.id}" ${bundled?'':'disabled'}>Replace</button><button class="btn danger" data-saved-delete="${entry.id}">Delete</button></div></article>`;
+  }).join('');
+  const create=bundled?`<div class="saved-matchup-create"><label>Matchup name<input id="savedMatchupName" maxlength="${MAX_SAVED_MATCHUP_NAME}" value="${esc(state.operation||`${state.attackerName} vs ${state.defenderName}`)}"></label><button class="primary" id="saveNamedMatchup">Save current matchup</button></div>`:`<p class="notice warn"><b>Custom data pack active.</b> You can load, copy or delete existing vanilla saves, but saving/replacing is disabled because the imported pack is not embedded. Use Export JSON to preserve the custom ruleset.</p>`;
+  return panel('Saved matchups',`${create}<div class="saved-matchup-count"><span>${savedMatchups.length}/${MAX_SAVED_MATCHUPS} stored in this browser</span><span>No account required</span></div>${savedMatchupLibraryError?`<p class="notice warn">${esc(savedMatchupLibraryError)}</p>`:''}<div class="saved-matchup-list">${rows||'<div class="saved-matchup-empty">No named matchups saved yet.</div>'}</div><p class="muted">Named saves use the same compact, version-locked inputs as share links. Cached battle results are excluded so a loaded matchup is recalculated under the bundled 1.19.2 baseline.</p>`,'saved-matchups-panel');
+}
+function bindSavedMatchupLibrary(){
+  if($('saveNamedMatchup'))$('saveNamedMatchup').onclick=()=>createNamedSavedMatchup($('savedMatchupName').value);
+  document.querySelectorAll('[data-saved-load]').forEach(el=>el.onclick=()=>loadNamedSavedMatchup(el.dataset.savedLoad));
+  document.querySelectorAll('[data-saved-copy]').forEach(el=>el.onclick=()=>copyNamedSavedMatchupLink(el.dataset.savedCopy));
+  document.querySelectorAll('[data-saved-update]').forEach(el=>el.onclick=()=>replaceNamedSavedMatchup(el.dataset.savedUpdate));
+  document.querySelectorAll('[data-saved-delete]').forEach(el=>el.onclick=()=>deleteNamedSavedMatchup(el.dataset.savedDelete));
+}
+
 function scenario(c){
   c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">SCENARIO CONTROL</p><h1>Scenario</h1><p>Manage the full planner state and see exactly what is modeled versus approximate.</p></div>${badge(`Schema ${state.schema}`)}</section>
   <div class="grid two">${panel('Campaign',`<div class="field-grid"><label>Country<input id="s-country" value="${esc(state.country)}"></label><label>Operation<input id="s-operation" value="${esc(state.operation)}"></label></div><label>Objective<textarea id="s-objective" rows="4">${esc(state.objective)}</textarea></label><div class="actions"><button class="primary" id="saveState">Save locally</button><button class="btn" id="shareState" ${state.dataPack?.meta?.bundled?'':'disabled'}>Copy matchup link</button><button class="btn" id="exportState">Export JSON</button><label class="btn file">Import JSON<input id="importState" type="file" accept="application/json" hidden></label><button class="btn danger" id="resetState">Reset</button></div><p class="muted">${state.dataPack?.meta?.bundled?'Share links include current scenario inputs, templates, technology, MIO, tank and aircraft designs on the bundled 1.19.2 baseline. Cached battle results are excluded so the recipient reruns the analysis.':'Share links are disabled for custom imported data packs because the pack itself is not embedded. Use Export JSON instead.'}</p>${sharedScenarioError?`<p class="notice warn"><b>Share link ignored:</b> ${esc(sharedScenarioError)}</p>`:''}`)}${panel('Version lock',`<div class="version-card"><strong>HOI4 ${MODEL_META.gameVersion}</strong><span>Planner ${MODEL_META.appVersion}</span></div><p>${MODEL_META.label}</p><p class="notice">This release is intentionally locked to the supplied vanilla HOI4 1.19.2 game files. Newer patch data is not mixed into the 0.16.0 model.</p>`)}</div>
+  ${savedMatchupPanel()}
   ${panel('Implemented systems',`<div class="check-grid"><span>✓ Target-hardness attack mix</span><span>✓ Defense vs breakthrough roles</span><span>✓ Weighted armor & piercing</span><span>✓ Support-company org/HP/manpower</span><span>✓ Partial piercing approximation</span><span>✓ Terrain-specific combat width</span><span>✓ Extra-flank width</span><span>✓ Over-width & stacking penalties</span><span>✓ Entrenchment attack + defense</span><span>✓ Fort + flanking interaction</span><span>✓ River penalties</span><span>✓ Supply effects</span><span>✓ Air-superiority defense/breakthrough penalty</span><span>✓ CAS support input</span><span>✓ Planning & night inputs</span><span>✓ Aggregate reserve depth</span><span>✓ Attack-level Monte Carlo outcomes</span><span>✓ Reproducible simulation seeds</span><span>✓ Monte Carlo confidence intervals</span><span>✓ Battle equipment-loss estimates</span><span>✓ Enemy uncertainty band</span><span>✓ IC/day production</span><span>✓ Efficiency growth curve</span><span>✓ Per-factory resource penalties</span><span>✓ Division Lab → industry demand</span><span>✓ Factory optimizer</span><span>✓ Lab-integrated tech & doctrine profiles</span><span>✓ HOI-style 5×5 division designer</span><span>✓ 1.19 regimental-support baseline</span><span>✓ Template migration/import/export</span><span>✓ Local game-file data packs</span><span>✓ Clausewitz + defines parser</span><span>✓ Equipment inheritance + year snapshots</span><span>✓ Staged 1.19 land doctrine + mastery tracks</span><span>✓ Staged air doctrine + mastery tracks</span><span>✓ Country/equipment MIO assignment</span><span>✓ MIO combat + production modifiers</span><span>✓ Tank variant designer → Division Lab + Industry</span><span>✓ Air Lab aircraft designer + IC exchange</span><span>✓ Airframe MIOs → Air Lab + IC cost</span><span>✓ Equipment/MIO importer baseline</span><span>✓ Zero-dependency static build</span></div>`)}
   ${panel('Known limits',`<p class="muted">${state.dataPack?'<b>Imported structural data is active.</b> ':''}Not yet executable-parity: some combat-tactic/counter resolution, true per-division reinforcement timing and coordination, exact CAS direct damage, commander traits, weather, experience, some executable-only regimental/module compatibility semantics, executable-parity air combat, every national/DLC MIO special case, and broad mod compatibility. The 1.19.2 files are bundled; behavior that only lives in hoi4.exe remains conservative and explicitly analytical.</p>`)} `;
   $('s-country').onchange=()=>{state.country=$('s-country').value;save();}; $('s-operation').onchange=()=>{state.operation=$('s-operation').value;save();shell();}; $('s-objective').onchange=()=>{state.objective=$('s-objective').value;save();};
   $('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('shareState').onclick=()=>copyScenarioShareLink(); $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());
   $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid scenario JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');if(save())location.reload();});};
+  bindSavedMatchupLibrary();
   $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
 }
 

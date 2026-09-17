@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "gameVersion": "1.19.2.0.a729",
+    "checksum": "d245",
+    "scenarioId": "o1-land-baseline-v1",
+    "captureMethod": "bisection14",
+    "measurementBisections": 14,
+    "measurementIntervalPct": 0.006103515625,
+    "measurementMidpointMaxErrorPct": 0.0030517578125,
+    "endReason": "manual",
+    "source": "HOI4 game.log WPO1",
+    "captureStatus": "baseline-candidate",
+    "scenarioControls": {
+      "attackerTag": "GER",
+      "defenderTag": "POL",
+      "attackerTemplate": "9 infantry battalions, no support companies, 18 width",
+      "defenderTemplate": "9 infantry battalions, no support companies, 18 width",
+      "attackerStartOrgPct": 99.9965,
+      "defenderStartOrgPct": 99.9965,
+      "attackerStartStrengthPct": 99.9965,
+      "defenderStartStrengthPct": 99.9965,
+      "terrain": "plains",
+      "commanders": "none",
+      "planningPct": 0,
+      "supplyPct": 100,
+      "daylight": true,
+      "experienceModifierPct": 25,
+      "displayedSoftAttackAtStart": {
+        "attacker": 75,
+        "defender": 73
+      },
+      "notes": "Screenshot evidence records a 1v1 plains battle with no commanders and identical stripped 9-infantry templates. Displayed combat values are consistent with previously observed GER experience/intel/tactic and POL experience/country/tactic modifiers. Capture was armed before unpausing."
+    },
+    "evidenceStatus": "unvalidated",
+    "evidenceNote": "Controlled executable capture suitable for O1 comparison work, but not oracle-validated until repeated stochastic trials, planner comparison, explicit uncertainty/tolerances, and counterexample checks are complete."
+  },
+  "samples": [
+    {"hour":0,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":1,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":2,"attacker":{"org":99.648,"strength":99.941},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":3,"attacker":{"org":99.648,"strength":99.941},"defender":{"org":99.666,"strength":99.9475}},
+    {"hour":4,"attacker":{"org":99.563,"strength":99.892},"defender":{"org":99.581,"strength":99.8985}},
+    {"hour":5,"attacker":{"org":99.403,"strength":99.868},"defender":{"org":99.581,"strength":99.8985}},
+    {"hour":6,"attacker":{"org":98.848,"strength":99.69},"defender":{"org":99.4095,"strength":99.874}}
+  ]
+}

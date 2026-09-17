@@ -1,0 +1,19 @@
+# HOI4 War Planner Oracle O1 quick-trial helper.
+# One command arms a six-hour capture and auto-stops after the hour-6 sample.
+# Reload the same clean pre-battle save between trials; no destructive reset effects are used.
+
+d_oracle_o1_trial6 = {
+    GER = {
+        clr_country_flag = oracle_o1_running
+        set_country_flag = oracle_o1_running
+        set_variable = { oracle_o1_hour = 0 }
+        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14 runMode=trial6"
+        oracle_o1_capture_sample = yes
+        country_event = { id = oracle_o1.2 hours = 1 }
+        country_event = { id = oracle_o1.2 hours = 2 }
+        country_event = { id = oracle_o1.2 hours = 3 }
+        country_event = { id = oracle_o1.2 hours = 4 }
+        country_event = { id = oracle_o1.2 hours = 5 }
+        country_event = { id = oracle_o1.2 hours = 6 }
+    }
+}

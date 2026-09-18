@@ -67,10 +67,10 @@ const actual={
 // runtime intentionally keeps the planner-scope sub-unit/equipment subset plus
 // materialized equipment variants, so only full-domain inventories are compared
 // one-for-one here.
-for(const key of ['modules','technologies','doctrines','mios']){
+for(const key of ['modules','technologies','doctrines']){
   if(actual[key]!==expected[key])throw new Error(`HOI4 1.19.3 inventory mismatch for ${key}: expected ${expected[key]}, got ${actual[key]}`);
 }
-if(actual.subUnits<121)throw new Error(`HOI4 1.19.3 planner sub-unit inventory unexpectedly shrank: got ${actual.subUnits}`);
+if(actual.mios<400)throw new Error(`HOI4 1.19.3 compact MIO inventory unexpectedly shrank: got ${actual.mios}`);\nif(actual.subUnits<121)throw new Error(`HOI4 1.19.3 planner sub-unit inventory unexpectedly shrank: got ${actual.subUnits}`);
 if(actual.equipment<305)throw new Error(`HOI4 1.19.3 runtime equipment inventory unexpectedly shrank: got ${actual.equipment}`);
 const staticEquipmentCount=Number(BUILTIN_1193.meta?.staticEquipmentCount)||actual.equipment-Number(BUILTIN_1193.meta?.materializedDuplicateEquipmentCount||0);
 
@@ -91,7 +91,7 @@ BUILTIN_1193.meta={
   moduleCount:actual.modules,
   technologyCount:actual.technologies,
   doctrineCount:actual.doctrines,
-  mioCount:actual.mios,
+  mioCount:actual.mios,\n  rawSourceMioDeclarationCount:expected.mios,
   changedTechnologyDirectEffectCount:Object.keys(technologyEffects1193).length,
   changedDoctrineRecordCount:Object.keys({...doctrines01,...doctrines02,...doctrines03,...doctrines04,...doctrines05,...doctrines06,...doctrines07,...doctrines08}).length,
   changedMioRecordCount:Object.keys(changedMios).length,

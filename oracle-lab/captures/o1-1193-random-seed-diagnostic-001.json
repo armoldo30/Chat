@@ -1,0 +1,45 @@
+{
+  "sourceFile": "game(20260918-124219).log",
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-land-baseline-v1"
+  },
+  "diagnostic": "built-in-random_seed-before-attack",
+  "runs": [
+    {
+      "run": 1,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "startGameTime": "1936.02.08.11",
+      "endGameTime": "1936.02.08.17",
+      "attackerH6": {"org": 98.323, "strength": 99.696},
+      "defenderH6": {"org": 98.464, "strength": 99.770},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.6735,
+        "attackerStrength": 0.3005,
+        "defenderOrg": 1.5325,
+        "defenderStrength": 0.2265
+      }
+    },
+    {
+      "run": 2,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "startGameTime": "1936.02.08.11",
+      "endGameTime": "1936.02.08.17",
+      "attackerH6": {"org": 98.2375, "strength": 99.642},
+      "defenderH6": {"org": 99.043, "strength": 99.886},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.759,
+        "attackerStrength": 0.3545,
+        "defenderOrg": 0.9535,
+        "defenderStrength": 0.1105
+      }
+    }
+  ],
+  "exactTraceDuplicate": false,
+  "uniqueTraceCount": 2,
+  "classification": "random-seed-diagnostic-pass",
+  "statisticalUse": "accepted",
+  "reason": "Two runs from the same 11:00 clean daylight save produced distinct combat traces after using the built-in random_seed console command before issuing the attack. This provides a practical way to decorrelate repeated O1 trials while holding the visible scenario fixed.",
+  "batchDecision": "Treat these as trials 1 and 2 of a new standardized 10-run random_seed batch using this exact 11:00 save. Collect 8 additional runs with random_seed immediately before each attack. Keep the earlier 10:00 daylight smoke as validation evidence but outside this standardized 11:00 batch."
+}

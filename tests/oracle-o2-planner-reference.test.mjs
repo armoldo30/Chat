@@ -25,11 +25,11 @@ assert.ok(report.primaryMeanSensitivity.min<=report.primaryMeanSensitivity.midpo
 assert.ok(report.primaryMeanSensitivity.midpoint<=report.primaryMeanSensitivity.max);
 assert.equal(report.predeclaredSamplingPlan.preliminaryUniqueRuns,6);
 assert.equal(report.predeclaredSamplingPlan.confirmatoryTotalUniqueRuns,12);
-assert.ok(report.predeclaredSamplingPlan.preliminaryMeanInterval99.low<report.predeclaredSamplingPlan.preliminaryMeanInterval99.high);
+assert.ok(report.predeclaredSamplingPlan.preliminaryMeanInterval95.low<report.predeclaredSamplingPlan.preliminaryMeanInterval95.high);
 assert.ok(report.predeclaredSamplingPlan.confirmatoryMeanInterval99.low<report.predeclaredSamplingPlan.confirmatoryMeanInterval99.high);
 assert.ok(
   report.predeclaredSamplingPlan.confirmatoryMeanInterval99.high-report.predeclaredSamplingPlan.confirmatoryMeanInterval99.low
-  < report.predeclaredSamplingPlan.preliminaryMeanInterval99.high-report.predeclaredSamplingPlan.preliminaryMeanInterval99.low
+  < report.predeclaredSamplingPlan.preliminaryMeanInterval95.high-report.predeclaredSamplingPlan.preliminaryMeanInterval95.low
 );
 
 assert.throws(()=>buildO2Reference({

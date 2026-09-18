@@ -82,7 +82,19 @@ This specific trace is **not accepted into the O1 combat distribution**. The gam
 
 Keep this run permanently as a scheduler/instrumentation smoke, but do not mix it into the stochastic combat sample.
 
-Before the 10-run batch, collect one replacement daylight smoke. Prefer a start around 09:00 and keep the whole six-hour trial outside the Night modifier. The same `d_oracle_o1_trial6` helper is valid; no new mod package is required.
+A replacement daylight smoke was collected at 10:00→16:00 and passed the scenario controls. It is stored as `oracle-lab/captures/o1-1193-daylight-001.json`.
+
+Screenshot/log controls for the accepted daylight run:
+
+- Plains
+- 1 GER vs 1 POL
+- 18 width each
+- no commanders
+- zero reserves
+- displayed attack values 75 / 73
+- h0 at 10:00 and h6 at 16:00
+
+This run is eligible for the preliminary O1 stochastic batch and counts as **trial 1 of 10**.
 
 ## Historical 1.19.2 trace
 
@@ -90,7 +102,7 @@ The older `o1-baseline-candidate-001` capture remains historical evidence only. 
 
 ## Preliminary stochastic batch
 
-Next collection target: one clean **daylight** six-hour replacement smoke. After that passes the scenario controls, collect 10 clean daylight six-hour trials.
+Next collection target: **9 more clean daylight six-hour trials** from the same controlled pre-battle save, bringing the preliminary sample to 10 accepted trials.
 
 For every trial:
 

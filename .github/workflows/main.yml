@@ -1,7 +1,7 @@
 name: Test and Deploy War Planner
 on:
   push:
-    branches: [main]
+    branches: [main, audit-1.19.3]
   workflow_dispatch:
 
 permissions:

@@ -1,5 +1,5 @@
 # HOI4 War Planner Oracle O1 instrumentation.
-# Target reference: 1.19.3.0.c01a checksum d245.
+# Target reference: 1.19.3.0.c01a checksum 5632.
 # Non-destructive: this file only measures/logs division state and schedules hidden sampler events.
 
 oracle_o1_measure_division = {

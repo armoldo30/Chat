@@ -31,6 +31,9 @@ export const COMBAT_CONSTANTS = {
   armoredOrgDice: D1193_MIL.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE,
   strengthDice: D1193_MIL.LAND_COMBAT_STR_DICE_SIZE,
   combatMinimumHours: D1193_MIL.COMBAT_MINIMUM_TIME,
+  // Oracle O1 / HOI4 1.19.3: 35/35 controlled captures showed no org/strength change from h0 to h1.
+  // Keep this executable observation separate from game-file defines; broader-scenario validation remains pending.
+  initialFireDelayHours: 1,
   equipmentCombatLossFactor: D1193_MIL.EQUIPMENT_COMBAT_LOSS_FACTOR,
   armorWeights: { max: D1193_MIL.ARMOR_VS_AVERAGE, average: 1-D1193_MIL.ARMOR_VS_AVERAGE },
   piercingWeights: { max: D1193_MIL.PEN_VS_AVERAGE, average: 1-D1193_MIL.PEN_VS_AVERAGE },

@@ -37,6 +37,9 @@ const twelve=report.predeclaredSamplingPlan.confirmatoryMeanInterval99;
 for(const interval of [six,twelve]){
   assert.equal(interval.method,'empirical-bootstrap-union-across-full-planner-input-sensitivity');
   assert.equal(interval.replicatesPerSensitivityPoint,2000);
+  assert.ok(interval.low<=interval.plannerOnlyLow);
+  assert.ok(interval.high>=interval.plannerOnlyHigh);
+  assert.ok(interval.executableLossDeltaMaxMeasurementErrorPp>0);
   assert.equal(interval.sensitivityPointCount,17);
   assert.equal(interval.sensitivityIntervals.length,17);
   assert.ok(interval.low<interval.high);
@@ -44,6 +47,9 @@ for(const interval of [six,twelve]){
 }
 assert.equal(six.centralProbability,0.95);
 assert.equal(twelve.centralProbability,0.99);
+assert.equal(report.predeclaredSamplingPlan.measurementUncertainty.bisectionSteps,14);
+assert.ok(report.predeclaredSamplingPlan.measurementUncertainty.h0ToH6LossDeltaMaxErrorPp>0.006);
+assert.ok(report.predeclaredSamplingPlan.measurementUncertainty.h0ToH6LossDeltaMaxErrorPp<0.0062);
 
 assert.throws(()=>buildO2Reference({
   attackerSoft:255,attackerBreakthrough:35,defenderSoft:70,defenderDefense:255,

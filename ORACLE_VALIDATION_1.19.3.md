@@ -524,10 +524,11 @@ An O2 trace is accepted only if all of the following hold:
 9. displayed GER Soft Attack is materially amplified and remains at least 10 points below displayed POL Defense;
 10. WPO2 samples are exactly hours 0..6 with one attacker and one defender each;
 11. h0 is effectively 100% organization/strength within the existing bisection measurement bound;
-12. END is exactly `hour=6 reason=trial6-complete amplifierRemoved=yes`;
-13. start/end remain 11:00→17:00.
+12. h0→h1 shows no measurable organization or strength change on either side, preserving the Oracle-validated one-hour startup-delay control used by the planner reference;
+13. END is exactly `hour=6 reason=trial6-complete amplifierRemoved=yes`;
+14. start/end remain 11:00→17:00.
 
-The O2 parser now machine-enforces the WPO2 schema/version, base-checksum scope, bisection method, scenario, tactic mode, amplifier identity, `prepared=yes`, one-attacker/one-defender cardinality, exact 0..6 sample sequence, fresh h0 bounds, exact END hour/reason, duplicate-trace detection, and amplifier cleanup.
+The O2 parser now treats every WPO2 `BEGIN` as a candidate and machine-enforces the schema/version, base-checksum scope, bisection method, scenario, run mode, tactic mode, amplifier identity, `prepared=yes`, one-attacker/one-defender cardinality, exact 0..6 sample sequence, fresh h0 bounds, no measurable h0→h1 damage, exact END hour/reason, duplicate-trace detection, and amplifier cleanup. Malformed WPO2 runs therefore become explicit rejections instead of disappearing from the candidate set.
 
 Parser acceptance is **necessary but not sufficient** for scenario acceptance. The combat-panel values, exact 11:00→17:00 daylight timing, Plains terrain, supply/planning/entrenchment state, commanders/reserves, and actual use of `random_seed` remain external controls that must be checked from the executable evidence.
 
@@ -571,10 +572,12 @@ Confirmatory target, only when needed:
 
 The planner reference precomputes conservative **empirical** sample-mean intervals for the primary metric: **95% at the six-run preliminary stage** and **99% at the 12-run confirmatory stage**. At each stage it bootstraps sample means directly from the planner Monte Carlo distribution for all 17 sensitivity points (midpoint plus all 16 corners) and takes the union across the full input box. This replaces the earlier small-n normal approximation before any O2 executable result is observed.
 
+The comparison interval is then widened for the known bisection14 measurement uncertainty. One organization/strength midpoint has maximum error about **±0.0030518 percentage points**; an h0→h6 loss formed from two midpoints therefore has a conservative maximum midpoint error of **±0.0061035 percentage points**. The predeclared O2 decision bounds include that full loss-delta allowance and do not shrink it with sample size.
+
 Predeclared interpretation:
 
-- If the six-run executable mean falls **outside** the conservative empirical planner 95% sample-mean interval, collect six more independent O2 runs before any divergence classification.
-- If the 12-run executable mean remains outside the conservative empirical planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
+- If the six-run executable mean falls **outside** the measurement-adjusted conservative empirical planner 95% sample-mean interval, collect six more independent O2 runs before any divergence classification.
+- If the 12-run executable mean remains outside the measurement-adjusted conservative empirical planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
 - If the executable mean falls inside the planner interval, O2 remains `unvalidated`; interval inclusion is **not** an `oracle-validated` criterion.
 
 This stopping rule is declared before seeing any O2 executable loss result.

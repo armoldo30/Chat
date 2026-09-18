@@ -11,6 +11,10 @@ export const O2_CHECKSUM_SCOPE='base-game-reference';
 export const O2_METHOD='bisection14';
 export const O2_TACTIC_MODE='neutral-basic-only';
 export const O2_H0_MIN_BOUND=0.9999;
+export const O2_BISECTION_STEPS=14;
+export const O2_MEASUREMENT_INTERVAL=1/(2**O2_BISECTION_STEPS);
+export const O2_MEASUREMENT_MIDPOINT_MAX_ERROR_PP=100*O2_MEASUREMENT_INTERVAL/2;
+export const O2_LOSS_DELTA_MAX_ERROR_PP=100*O2_MEASUREMENT_INTERVAL;
 
 function finite(value){
   const n=Number(String(value??'').replace(',','.'));
@@ -47,6 +51,17 @@ function assertFreshH0(measurement,label){
     if(measurement[lowKey]<O2_H0_MIN_BOUND||measurement[highKey]<0.99999){
       throw new Error(`hour 0: ${label} ${name} is not effectively 100%`);
     }
+  }
+}
+function sameMeasurement(a,b){
+  return ['orgLow','orgHigh','strengthLow','strengthHigh'].every(key=>a[key]===b[key]);
+}
+function assertNoStartupDamage(rawH0,rawH1){
+  if(!sameMeasurement(rawH0.attackers[0],rawH1.attackers[0])){
+    throw new Error('h0->h1 attacker measurement changed; O2 one-hour startup-delay control failed');
+  }
+  if(!sameMeasurement(rawH0.defenders[0],rawH1.defenders[0])){
+    throw new Error('h0->h1 defender measurement changed; O2 one-hour startup-delay control failed');
   }
 }
 
@@ -105,9 +120,10 @@ export function captureO2Run(run){
   const hours=samples.map(s=>s.hour);
   if(JSON.stringify(hours)!==JSON.stringify(O2_HOURS))throw new Error(`expected hours 0..6, got ${hours.join(',')}`);
 
-  const rawH0=run.samples[0];
+  const rawH0=run.samples[0],rawH1=run.samples[1];
   assertFreshH0(rawH0.attackers[0],'attacker');
   assertFreshH0(rawH0.defenders[0],'defender');
+  assertNoStartupDamage(rawH0,rawH1);
 
   const h0=samples[0],h6=samples.at(-1);
   return {
@@ -141,7 +157,7 @@ function stats(xs){
   return {n,mean:round(mean),sd:round(sd),min:round(Math.min(...xs)),max:round(Math.max(...xs))};
 }
 export function parseO2Batch(text){
-  const candidates=parseO2Runs(text).filter(r=>r.begin?.runMode==='trial6'||r.begin?.scenario===O2_SCENARIO);
+  const candidates=parseO2Runs(text);
   const accepted=[],rejected=[];
   candidates.forEach((r,i)=>{
     try{accepted.push({runNumber:i+1,capture:captureO2Run(r)});}
@@ -163,7 +179,11 @@ export function parseO2Batch(text){
       tacticMode:O2_TACTIC_MODE,
       amplifier:O2_AMPLIFIER,
       requiredHours:O2_HOURS,
-      freshH0MinimumLowerBound:O2_H0_MIN_BOUND
+      freshH0MinimumLowerBound:O2_H0_MIN_BOUND,
+      requiredStartupNoDamageHours:[0,1],
+      bisectionSteps:O2_BISECTION_STEPS,
+      measurementMidpointMaxErrorPp:O2_MEASUREMENT_MIDPOINT_MAX_ERROR_PP,
+      lossDeltaMaxErrorPp:O2_LOSS_DELTA_MAX_ERROR_PP
     },
     totalRuns:candidates.length,
     acceptedRuns:accepted.length,
@@ -178,7 +198,7 @@ export function parseO2Batch(text){
       defenderStrengthLoss:stats(accepted.map(r=>r.capture.deltas.defenderStrengthLoss))
     },
     runs:accepted,
-    acceptanceBoundary:'Parser acceptance verifies WPO2 metadata, fresh h0, cardinality, hours 0..6, completion, and amplifier cleanup. UI combat stats, exact 11:00-17:00 daylight timing, terrain, supply, planning, entrenchment, commander/reserve state, and use of random_seed remain external scenario controls.'
+    acceptanceBoundary:'Parser acceptance verifies every WPO2 BEGIN, exact metadata, fresh h0, no measurable h0->h1 damage, cardinality, hours 0..6, completion, and amplifier cleanup. UI combat stats, exact 11:00-17:00 daylight timing, terrain, supply, planning, entrenchment, commander/reserve state, and use of random_seed remain external scenario controls.'
   };
 }
 

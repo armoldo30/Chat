@@ -27,6 +27,8 @@ function stats(xs){
     zeroLossProbability:xs.filter(x=>Math.abs(x)<1e-12).length/n
   };
 }
+const O2_LOSS_DELTA_MAX_ERROR_PP=100/(2**14);
+
 function side(){
   return {
     divisionCount:1,singleWidth:18,width:18,manpower:9000,
@@ -145,14 +147,19 @@ export function buildO2Reference({
         {replicates:sampleMeanReplicates,seed:0x022000+n*32+index,centralProbability}
       )
     }));
+    const plannerOnlyLow=Math.min(...bounds.map(x=>x.low));
+    const plannerOnlyHigh=Math.max(...bounds.map(x=>x.high));
     return {
       n,
       method:'empirical-bootstrap-union-across-full-planner-input-sensitivity',
       centralProbability,
       replicatesPerSensitivityPoint:sampleMeanReplicates,
       sensitivityPointCount:bounds.length,
-      low:Math.min(...bounds.map(x=>x.low)),
-      high:Math.max(...bounds.map(x=>x.high)),
+      plannerOnlyLow,
+      plannerOnlyHigh,
+      executableLossDeltaMaxMeasurementErrorPp:O2_LOSS_DELTA_MAX_ERROR_PP,
+      low:Math.max(0,plannerOnlyLow-O2_LOSS_DELTA_MAX_ERROR_PP),
+      high:plannerOnlyHigh+O2_LOSS_DELTA_MAX_ERROR_PP,
       sensitivityIntervals:bounds
     };
   };
@@ -194,12 +201,17 @@ export function buildO2Reference({
     predeclaredSamplingPlan:{
       preliminaryUniqueRuns:6,
       confirmatoryTotalUniqueRuns:12,
-      intervalMethod:'empirical planner Monte Carlo sample-mean bootstrap; union across midpoint plus all 16 corners of the displayed-input sensitivity box',
+      intervalMethod:'empirical planner Monte Carlo sample-mean bootstrap; union across midpoint plus all 16 corners of the displayed-input sensitivity box; decision bounds expanded by the bisection14 h0-to-h6 loss midpoint-error bound',
+      measurementUncertainty:{
+        bisectionSteps:14,
+        perMeasurementMidpointMaxErrorPp:O2_LOSS_DELTA_MAX_ERROR_PP/2,
+        h0ToH6LossDeltaMaxErrorPp:O2_LOSS_DELTA_MAX_ERROR_PP
+      },
       preliminaryMeanInterval95:sampleMeanEnvelope(6,0.95),
       confirmatoryMeanInterval99:sampleMeanEnvelope(12,0.99),
       interpretation:[
-        'If the 6-run executable primary-metric mean is outside the conservative planner 95% sample-mean interval, collect 6 more independent runs before any divergence classification.',
-        'If the 12-run executable primary-metric mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch subject to scenario-control review.',
+        'If the 6-run executable primary-metric mean is outside the measurement-adjusted conservative planner 95% sample-mean interval, collect 6 more independent runs before any divergence classification.',
+        'If the 12-run executable primary-metric mean remains outside the measurement-adjusted conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch subject to scenario-control review.',
         'If the executable mean is inside either interval, O2 remains unvalidated; interval inclusion is not an Oracle validation criterion.'
       ]
     },

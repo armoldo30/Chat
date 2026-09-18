@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import {
-  parseO2Batch,O2_HOURS,O2_GAME_VERSION,O2_BASE_CHECKSUM,O2_CHECKSUM_SCOPE,O2_METHOD
+  parseO2Batch,O2_HOURS,O2_GAME_VERSION,O2_BASE_CHECKSUM,O2_CHECKSUM_SCOPE,O2_METHOD,
+  O2_LOSS_DELTA_MAX_ERROR_PP
 } from '../scripts/oracle-o2-trial6.mjs';
 
 function bounded(v){
@@ -41,6 +42,8 @@ assert.equal(result.target.gameVersion,O2_GAME_VERSION);
 assert.equal(result.target.baseChecksum,O2_BASE_CHECKSUM);
 assert.equal(result.target.checksumScope,O2_CHECKSUM_SCOPE);
 assert.equal(result.target.measurementMethod,O2_METHOD);
+assert.ok(Math.abs(result.target.lossDeltaMaxErrorPp-O2_LOSS_DELTA_MAX_ERROR_PP)<1e-12);
+assert.deepEqual(result.target.requiredStartupNoDamageHours,[0,1]);
 assert.equal(result.runs[0].capture.metadata.prepared,true);
 assert.equal(result.runs[0].capture.metadata.endHour,6);
 assert.equal(result.runs[0].capture.samples.length,7);
@@ -62,10 +65,18 @@ rejectWith(run(1).replace(`checksum=${O2_BASE_CHECKSUM}`,'checksum=dead'),/unexp
 rejectWith(run(1).replace(`checksumScope=${O2_CHECKSUM_SCOPE}`,'checksumScope=runtime'),/unexpected checksumScope/);
 rejectWith(run(1).replace(`method=${O2_METHOD}`,'method=bisection10'),/unexpected measurement method/);
 rejectWith(run(1).replace('prepared=yes','prepared=no'),/prepared=yes/);
+rejectWith(run(1).replace('scenario=o2-defended-amplified-v1','scenario=missing-o2'),/unexpected scenario/);
+rejectWith(run(1).replace('runMode=trial6','runMode=wrong'),/unexpected runMode/);
 rejectWith(run(1).replace('WPO2 END hour=6','WPO2 END hour=5'),/unexpected END hour/);
 rejectWith(run(1).replace(
   'WPO2 ATTACKER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000',
   'WPO2 ATTACKER orgLow=0.98000 orgHigh=0.98006 strengthLow=0.99994 strengthHigh=1.00000'
 ),/hour 0.*organization.*100%/);
+
+const h1Changed=run(1).replace(
+  'WPO2 DEFENDER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000\nWPO2 SAMPLE hour=2',
+  'WPO2 DEFENDER orgLow=0.99980 orgHigh=0.99986 strengthLow=0.99990 strengthHigh=0.99996\nWPO2 SAMPLE hour=2'
+);
+rejectWith(h1Changed,/h0->h1 defender measurement changed/);
 
 console.log('Oracle O2 trial6 parser regression passed.');

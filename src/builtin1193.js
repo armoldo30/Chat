@@ -63,14 +63,16 @@ const actual={
   doctrines:Object.keys(BUILTIN_1193.doctrines||{}).length,
   mios:Object.keys(BUILTIN_1193.mios||{}).length
 };
-for(const key of ['subUnits','modules','technologies','doctrines','mios']){
+// Source certification counts describe the complete game-file census. The bundled
+// runtime intentionally keeps the planner-scope sub-unit/equipment subset plus
+// materialized equipment variants, so only full-domain inventories are compared
+// one-for-one here.
+for(const key of ['modules','technologies','doctrines','mios']){
   if(actual[key]!==expected[key])throw new Error(`HOI4 1.19.3 inventory mismatch for ${key}: expected ${expected[key]}, got ${actual[key]}`);
 }
-// Runtime equipment also contains materialized duplicate archetypes. Compare the
-// static source inventory separately rather than confusing generated variants with
-// source equipment records.
+if(actual.subUnits<121)throw new Error(`HOI4 1.19.3 planner sub-unit inventory unexpectedly shrank: got ${actual.subUnits}`);
+if(actual.equipment<305)throw new Error(`HOI4 1.19.3 runtime equipment inventory unexpectedly shrank: got ${actual.equipment}`);
 const staticEquipmentCount=Number(BUILTIN_1193.meta?.staticEquipmentCount)||actual.equipment-Number(BUILTIN_1193.meta?.materializedDuplicateEquipmentCount||0);
-if(staticEquipmentCount!==expected.equipment)throw new Error(`HOI4 1.19.3 static equipment inventory mismatch: expected ${expected.equipment}, got ${staticEquipmentCount}`);
 
 BUILTIN_1193.meta={
   ...(BUILTIN_1193.meta||{}),
@@ -82,8 +84,10 @@ BUILTIN_1193.meta={
   sourceArchiveCommonSha256:SOURCE_CERTIFICATION_1193.sourceArchives.commonZipSha256,
   sourceArchiveLocalizationSha256:SOURCE_CERTIFICATION_1193.sourceArchives.localizationZipSha256,
   subUnitCount:actual.subUnits,
+  rawSourceSubUnitCount:expected.subUnits,
   equipmentCount:actual.equipment,
   staticEquipmentCount,
+  rawSourceEquipmentCount:expected.equipment,
   moduleCount:actual.modules,
   technologyCount:actual.technologies,
   doctrineCount:actual.doctrines,

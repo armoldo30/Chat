@@ -1,0 +1,23 @@
+WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6
+WPO1 SAMPLE hour=0
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=1
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=2
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=3
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99437 orgHigh=0.99443 strengthLow=0.99883 strengthHigh=0.99889
+WPO1 SAMPLE hour=4
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99437 orgHigh=0.99443 strengthLow=0.99883 strengthHigh=0.99889
+WPO1 SAMPLE hour=5
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99437 orgHigh=0.99443 strengthLow=0.99883 strengthHigh=0.99889
+WPO1 SAMPLE hour=6
+WPO1 ATTACKER orgLow=0.99755 orgHigh=0.99761 strengthLow=0.99944 strengthHigh=0.99951
+WPO1 DEFENDER orgLow=0.99254 orgHigh=0.9926 strengthLow=0.99859 strengthHigh=0.99865
+WPO1 END hour=6 reason=trial6-complete

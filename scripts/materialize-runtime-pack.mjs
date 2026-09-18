@@ -1,5 +1,5 @@
-const SOURCE_IMPORT="import BUILTIN_1192 from './builtin1192.js';";
-const RUNTIME_IMPORT="import BUILTIN_1192 from './builtin1192-runtime.js';";
+const SOURCE_IMPORT="import BUILTIN_1193 from './builtin1193.js';";
+const RUNTIME_IMPORT="import BUILTIN_1193 from './builtin1193-runtime.js';";
 
 function replaceExactlyOnce(source,needle,replacement,label){
   const text=String(source),first=text.indexOf(needle);
@@ -12,7 +12,7 @@ function stringLiteral(value){
   return JSON.stringify(value).replace(/\u2028/g,'\\u2028').replace(/\u2029/g,'\\u2029');
 }
 
-function serializeLiteral(value,path='BUILTIN_1192',seen=new Set()){
+function serializeLiteral(value,path='BUILTIN_1193',seen=new Set()){
   if(value===undefined)return 'undefined';
   if(value===null)return 'null';
   if(typeof value==='string')return stringLiteral(value);
@@ -49,11 +49,11 @@ function serializeLiteral(value,path='BUILTIN_1192',seen=new Set()){
 
 export function materializedRuntimePackModule(pack){
   const serialized=serializeLiteral(pack);
-  return `// Generated at build time from the certified source pack. Do not edit.\nexport const RUNTIME_PACK_FORMAT=1;\nconst BUILTIN_1192=${serialized};\nexport default BUILTIN_1192;\n`;
+  return `// Generated at build time from the certified source pack. Do not edit.\nexport const RUNTIME_PACK_FORMAT=1;\nconst BUILTIN_1193=${serialized};\nexport default BUILTIN_1193;\n`;
 }
 
 export function rewriteMainForMaterializedPack(source){
-  return replaceExactlyOnce(source,SOURCE_IMPORT,RUNTIME_IMPORT,'BUILTIN_1192 source import');
+  return replaceExactlyOnce(source,SOURCE_IMPORT,RUNTIME_IMPORT,'BUILTIN_1193 source import');
 }
 
 export const RUNTIME_PACK_SOURCE_IMPORT=SOURCE_IMPORT;

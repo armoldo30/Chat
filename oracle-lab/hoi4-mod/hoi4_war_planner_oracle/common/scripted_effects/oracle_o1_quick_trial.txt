@@ -1,19 +1,72 @@
 # HOI4 War Planner Oracle O1 quick-trial helper.
 # One command arms a six-hour capture and auto-stops after the hour-6 sample.
-# Reload the same clean pre-battle save between trials; no destructive reset effects are used.
+# NOTE: reloading the same save was observed to replay the same combat RNG trace on 1.19.3.
+# Burn commands below are an executable diagnostic to test whether scripted random draws can
+# advance the combat RNG while keeping the visible O1 scenario unchanged.
+
+oracle_o1_trial6_start = {
+    clr_country_flag = oracle_o1_running
+    set_country_flag = oracle_o1_running
+    set_variable = { oracle_o1_hour = 0 }
+    log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 rngBurn=[?oracle_o1_rng_burn_count]"
+    oracle_o1_capture_sample = yes
+    country_event = { id = oracle_o1.2 hours = 1 }
+    country_event = { id = oracle_o1.2 hours = 2 }
+    country_event = { id = oracle_o1.2 hours = 3 }
+    country_event = { id = oracle_o1.2 hours = 4 }
+    country_event = { id = oracle_o1.2 hours = 5 }
+    country_event = { id = oracle_o1.2 hours = 6 }
+}
+
+oracle_o1_rng_burn_once = {
+    random_list = {
+        1 = { set_temp_variable = { oracle_o1_rng_sink = 0 } }
+        1 = { set_temp_variable = { oracle_o1_rng_sink = 1 } }
+    }
+}
 
 d_oracle_o1_trial6 = {
     GER = {
-        clr_country_flag = oracle_o1_running
-        set_country_flag = oracle_o1_running
-        set_variable = { oracle_o1_hour = 0 }
-        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6"
-        oracle_o1_capture_sample = yes
-        country_event = { id = oracle_o1.2 hours = 1 }
-        country_event = { id = oracle_o1.2 hours = 2 }
-        country_event = { id = oracle_o1.2 hours = 3 }
-        country_event = { id = oracle_o1.2 hours = 4 }
-        country_event = { id = oracle_o1.2 hours = 5 }
-        country_event = { id = oracle_o1.2 hours = 6 }
+        set_variable = { oracle_o1_rng_burn_count = 0 }
+        oracle_o1_trial6_start = yes
+    }
+}
+
+d_oracle_o1_trial6_burn64 = {
+    GER = {
+        set_variable = { oracle_o1_rng_burn_count = 64 }
+        for_loop_effect = {
+            start = 0
+            end = 64
+            value = oracle_o1_rng_burn_i
+            oracle_o1_rng_burn_once = yes
+        }
+        oracle_o1_trial6_start = yes
+    }
+}
+
+d_oracle_o1_trial6_burn128 = {
+    GER = {
+        set_variable = { oracle_o1_rng_burn_count = 128 }
+        for_loop_effect = {
+            start = 0
+            end = 128
+            value = oracle_o1_rng_burn_i
+            oracle_o1_rng_burn_once = yes
+        }
+        oracle_o1_trial6_start = yes
+    }
+}
+
+d_oracle_o1_trial6_burn256 = {
+    GER = {
+        set_variable = { oracle_o1_rng_burn_count = 256 }
+        for_loop_effect = {
+            start = 0
+            end = 256
+            value = oracle_o1_rng_burn_i
+            oracle_o1_rng_burn_once = yes
+        }
+        oracle_o1_trial6_start = yes
     }
 }

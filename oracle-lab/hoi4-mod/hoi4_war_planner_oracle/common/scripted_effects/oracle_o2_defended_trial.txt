@@ -7,8 +7,8 @@
 # 3. confirm in the battle/division UI that GER effective attack remains below POL defense;
 # 4. run built-in random_seed;
 # 5. issue the same GER attack while paused;
-# 6. run d_oracle_o2_trial12;
-# 7. unpause through hour 12. The helper removes the amplifier automatically.
+# 6. run d_oracle_o2_trial6;
+# 7. unpause through hour 6. The helper removes the amplifier automatically.
 #
 # The modifier is deliberately +200% infantry attack only. It does not alter
 # defense, breakthrough, organization, HP, supply, planning, or entrenchment.
@@ -56,7 +56,7 @@ d_oracle_o2_clear = {
     }
 }
 
-oracle_o2_trial12_start = {
+oracle_o2_trial6_start = {
     if = {
         limit = { has_country_flag = oracle_o2_prepared }
 
@@ -64,7 +64,7 @@ oracle_o2_trial12_start = {
         set_country_flag = oracle_o2_running
         set_variable = { oracle_o2_hour = 0 }
 
-        log = "WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial12 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0"
+        log = "WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0"
         oracle_o2_capture_sample = yes
 
         country_event = { id = oracle_o2.1 hours = 1 }
@@ -73,20 +73,14 @@ oracle_o2_trial12_start = {
         country_event = { id = oracle_o2.1 hours = 4 }
         country_event = { id = oracle_o2.1 hours = 5 }
         country_event = { id = oracle_o2.1 hours = 6 }
-        country_event = { id = oracle_o2.1 hours = 7 }
-        country_event = { id = oracle_o2.1 hours = 8 }
-        country_event = { id = oracle_o2.1 hours = 9 }
-        country_event = { id = oracle_o2.1 hours = 10 }
-        country_event = { id = oracle_o2.1 hours = 11 }
-        country_event = { id = oracle_o2.1 hours = 12 }
     }
     else = {
         log = "WPO2 STATUS state=not-prepared action=run-d_oracle_o2_prepare-first"
     }
 }
 
-d_oracle_o2_trial12 = {
+d_oracle_o2_trial6 = {
     GER = {
-        oracle_o2_trial12_start = yes
+        oracle_o2_trial6_start = yes
     }
 }

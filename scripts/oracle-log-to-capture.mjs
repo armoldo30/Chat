@@ -111,6 +111,7 @@ export function oracleCaptureFromRun(run){
     metadata:{
       gameVersion:run.begin.gameVersion,
       checksum:run.begin.checksum,
+      checksumScope:run.begin.checksumScope||null,
       scenarioId:run.begin.scenario,
       captureMethod:run.begin.method||'unknown',
       measurementBisections:O1_BISECTIONS,

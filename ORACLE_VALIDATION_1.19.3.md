@@ -336,6 +336,26 @@ Using the supplied 1.19.3 infantry unit source, both templates are source-exact 
 
 The extracted save facts are stored in `oracle-lab/captures/o1-baseline-save-1193-summary.json`. Dynamic combat stats and modifier ordering are not inferred merely from template composition.
 
+#### Dynamic-state narrowing from existing evidence
+
+Existing O1 setup evidence establishes two important controls that were not carried into the original save-summary JSON:
+
+- both test divisions were normalized to the same underlying base Soft Attack of **54.0**;
+- both were brought to the same experience level, producing **Experience +25%**.
+
+A diagnostic inspection of the binary save also located distinct GER and POL technology blocks. The relevant normal-infantry starting technology set is shared between the two test countries: both contain `infantry_weapons`, `infantry_weapons1`, `tech_support`, `tech_engineers`, and `tech_recon`. Germany also contains motorized/armored-car entries that are not used by the exact 9-infantry/no-support O1 templates.
+
+This narrows the source of the GER/POL combat-panel asymmetry: it should not be attributed to different O1 template composition, different controlled experience level, or an obvious mismatch in the directly relevant starting infantry technology set.
+
+The binary save also exposes identifiers for active country ideas/dynamic modifiers, including Germany's `GER_army_modifier` and Poland's starting political spirits. Raw fixed-point probing of the German serialized military variables is useful diagnostically, but a structurally complete HOI4 save-v33 decode is not yet available in the project runtime. Those raw variable interpretations are therefore **not** promoted to `game-file exact`, and final organization/country-modifier ordering remains unresolved.
+
+Evidence boundary:
+
+- exact template/static totals: `game-file exact`
+- controlled base Soft Attack / matched experience: controlled executable setup evidence
+- raw binary dynamic-variable probing: `executable inferred` diagnostic only
+- final effective attack/defense/breakthrough/org and modifier ordering: `unvalidated`
+
 ### O1 combat-entry timing — ORACLE-VALIDATED at the controlled boundary
 
 Across all currently usable O1 captures, **35 of 35** controlled runs show exactly zero organization and strength change from h0 to h1:
@@ -355,28 +375,69 @@ This classification applies only to the controlled O1 combat-entry timing bounda
 
 The Oracle validation branch now sources this value from `src/builtin1193/oracle-combat-certification-1193.js` and the planner simulator skips damage during the initial hour. Production `main` is unchanged.
 
-### Preliminary strength-loss comparison after the timing correction
+### Bounded O1-base strength comparison after the timing correction
 
-Using the exact 9-infantry/no-support templates and the controlled battle conditions, plus the observed combat-panel values to bound effective attack/defense inputs, the current planner model was compared against the 10-run neutral-tactic executable sample.
+The O1 comparator is now deliberately a **bounded sensitivity comparison**, not a single-point parity test.
 
-Before the timing correction (six planner fire rounds over h0→h6), preliminary planner means were approximately:
+Controlled O1 facts preserved separately from the UI-derived inputs:
 
-- GER strength loss: 0.416 pp
-- POL strength loss: 0.171 pp
+- exact saved composition: 9 infantry, no support
+- width 18, HP 225, manpower 9,000
+- shared underlying base Soft Attack: **54.0**
+- matched experience modifier: **+25%**
+- full supply, zero planning, zero entrenchment
+- Plains, daylight, no commanders, no air/CAS
+- Oracle-validated one-hour initial fire delay
 
-The executable neutral-tactic means are:
+The retained pre-neutralization combat-panel observations remain approximately:
 
-- GER strength loss: 0.3059 pp
-- POL strength loss: 0.1029 pp
+- GER Soft Attack: 75
+- POL Soft Attack: 73
+- GER Breakthrough: 35
+- POL Defense: 255
 
-After applying the one-hour startup delay (five planner fire rounds), preliminary planner means become approximately:
+The comparator no longer treats those displayed integers as exact neutral-harness state. It applies a deliberately conservative ±1 sensitivity band around each retained UI value. For Soft Attack, it then removes the known vanilla Basic Attack / Basic Defend +5% tactic-side modifier before running the neutral O1-base planner model.
 
-- GER strength loss: 0.346 pp
-- POL strength loss: 0.143 pp
+Current neutral Soft Attack sensitivity ranges are therefore approximately:
 
-At the current n=10 executable sample size, both corrected planner means fall inside the corresponding preliminary executable mean intervals, whereas the six-round values do not. This is evidence that the startup timing mismatch was a material source of the original divergence.
+- GER: **70.4762–72.3810**
+- POL: **68.5714–70.4762**
+- GER Breakthrough sensitivity: **34–36**
+- POL Defense sensitivity: **254–256**
 
-This is **not** yet promotion of the remaining base damage formulas. Exact dynamic combat inputs still need to be bounded more tightly, and the executable sample remains small.
+Relative to the controlled 54 × 1.25 = 67.5 Soft Attack after experience, the remaining effective multiplier represented by those bounded UI observations is approximately:
+
+- GER: **1.0441–1.0723**
+- POL: **1.0159–1.0441**
+
+These residuals are descriptive only; they are **not** promoted as exact country/doctrine modifier ordering.
+
+Across the complete sensitivity envelope, the hit-regime classification does not change:
+
+- GER attack remains below POL defense, so all German attack points remain in the defended regime;
+- POL attack remains above GER breakthrough, so Polish attack retains an undefended excess.
+
+This threshold statement is `planner analytical`. It does not validate `combatPointScale`, stochastic rounding, hit probability, or damage dice.
+
+The updated comparator now reports, for each side:
+
+- mean and sample SD;
+- minimum / maximum;
+- 5th, 25th, 50th, 75th, and 95th percentiles;
+- zero-strength-loss probability;
+- low / midpoint / high UI-input sensitivity cases;
+- the historical no-startup-delay midpoint for comparison.
+
+The executable input remains the **10-run** tactic-neutralized sample. Its means remain:
+
+- GER strength loss: **0.3059 pp**
+- POL strength loss: **0.10285 pp**
+
+Earlier point estimates showed that correcting the startup delay materially reduced the planner's over-prediction. That result remains useful diagnostic evidence, but the previous “planner mean falls inside the executable mean CI” framing is retired as a validation criterion.
+
+**No CI overlap or sensitivity-envelope overlap in this report is an Oracle pass/fail criterion.**
+
+The remaining base hit/damage formulas stay `unvalidated`. Organization comparison also remains deferred until final executable organization/doctrine state is established.
 
 ## Promotion rule
 

@@ -290,6 +290,17 @@ One accepted run produced zero measurable defender damage over the six-hour wind
 
 The batch is stored in `oracle-lab/captures/o1-base-neutral-tactics-batch-10-summary.json`.
 
+Preliminary contrast with the vanilla-tactics 10-run envelope:
+
+| h0→h6 loss metric | Vanilla tactics mean | Neutral tactics mean | Relative change |
+| --- | ---: | ---: | ---: |
+| GER organization | 1.6776 pp | 1.4918 pp | -11.1% |
+| GER strength | 0.3169 pp | 0.3059 pp | -3.5% |
+| POL organization | 0.9106 pp | 0.5270 pp | -42.1% |
+| POL strength | 0.1599 pp | 0.1029 pp | -35.7% |
+
+With only ten trials per condition this is descriptive, not a final significance claim. It nevertheless confirms that tactic state is not a safe nuisance to ignore in O1 planner-parity work; the neutral-tactic split was necessary.
+
 Evidence remains `unvalidated`. Ten trials are sufficient for the first planner-distribution comparison and variance diagnosis, but not sufficient by themselves for final Oracle promotion.
 
 The next Oracle step is to compare this executable distribution against the planner's tactic-free base hit/damage resolver using the controlled O1 inputs. The historical O1 notes specify a 9-infantry, no-support, 18-width setup with 100% supply, 0 planning, 0 entrenchment, no commanders, Plains, and matched +25% experience. Where the executable UI provides effective combat stats, those values should be preferred over reconstructing hidden modifier ordering.

@@ -438,6 +438,7 @@ export function simulateOnce(a,d,opts,rngOverride){
   const aOrg0=ao,dOrg0=do_,aHp0=ahp,dHp0=dhp; let hours=0,aHitsTotal=0,dHitsTotal=0;
   const maxHours=clamp(Math.floor(Number(opts?.maxHours)||COMBAT_CONSTANTS.simulationSafetyHours),COMBAT_CONSTANTS.combatMinimumHours,24*90);
   const initialFireDelayHours=clamp(Math.floor(Number(opts?.initialFireDelayHours??COMBAT_CONSTANTS.initialFireDelayHours)||0),0,24);
+  const traceIntervalHours=clamp(Math.floor(Number(opts?.traceIntervalHours)||6),1,24*90);
   const timeline=opts?.trace?[{hour:0,aOrg:100,dOrg:100,aStrength:100,dStrength:100}]:null;
   const aDamageTaken=piercingDamageFactor(c.de.side.piercing,c.ae.side.armor),dDamageTaken=piercingDamageFactor(c.ae.side.piercing,c.de.side.armor);
   const aDice=damageDiceProfile(c.ae.side.armor,c.de.side.piercing),dDice=damageDiceProfile(c.de.side.armor,c.ae.side.piercing);
@@ -453,7 +454,7 @@ export function simulateOnce(a,d,opts,rngOverride){
       ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*aDamageTaken;
     }
     hours++;
-    if(timeline&&(hours%6===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===maxHours))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});
+    if(timeline&&(hours%traceIntervalHours===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===maxHours))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});
   }
   hours=Math.max(hours,COMBAT_CONSTANTS.combatMinimumHours);
   const attackerWin=do_<=0&&ao>0,defenderWin=ao<=0&&do_>0,draw=!attackerWin&&!defenderWin;

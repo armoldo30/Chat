@@ -194,7 +194,15 @@ const report={
       planning:0,
       entrenchment:0,
       commanders:'none',
-      evidenceClass:'mixed game-file exact / controlled executable setup evidence'
+      evidenceByField:{
+        template:'game-file exact',
+        width:'game-file exact',
+        hp:'game-file exact',
+        manpower:'game-file exact',
+        sharedBaseSoftAttack:'executable inferred',
+        sharedExperienceAttackFactor:'executable inferred',
+        scenarioControls:'executable inferred'
+      }
     },
     uiDerivedSensitivity:{
       vanillaBasicTacticFactorRemoved:O1_CONTROLLED.vanillaBasicTacticFactor,
@@ -205,7 +213,8 @@ const report={
       defenderDefenseRange:ranges.defenderDefense,
       attackerResidualEffectiveMultiplierRange:residualRange(ranges.attackerSoftAttack),
       defenderResidualEffectiveMultiplierRange:residualRange(ranges.defenderSoftAttack),
-      evidenceClass:'planner analytical sensitivity around approximate executable UI observations',
+      evidenceClass:'planner analytical',
+      sourceObservationClass:'executable inferred',
       note:'The +/-1 display envelope is intentionally conservative because the retained evidence records these UI values as approximate integers. It is not a claim about HOI4 UI rounding. Soft attack removes the known vanilla Basic tactic +5% before comparison; exact country/doctrine modifier ordering remains unvalidated.'
     }
   },

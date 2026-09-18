@@ -35,6 +35,6 @@ for(const point of ['lowDamage','midpoint','highDamage']){
 }
 
 assert.match(report.evidenceBoundary,/organization remains deferred/i);
-assert.ok(report.limitations.some(x=>/not a pass\/fail Oracle promotion criterion/i.test(x)));
+assert.ok(report.limitations.some(x=>/no overlap result.*pass\/fail Oracle promotion criterion/i.test(x)));
 
 console.log('Oracle O1 bounded-input distribution comparator regression passed.');

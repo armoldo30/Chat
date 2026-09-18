@@ -24,10 +24,6 @@ jobs:
           node-version: 24
       - name: Full certified regression suite
         run: npm test
-      - name: O1 100k bounded comparison diagnostic
-        run: |
-          ORACLE_COMPARE_RUNS=100000 node scripts/oracle-o1-base-compare.mjs > o1-report.json
-          node -e "const r=require('./o1-report.json'); console.log('O1_100K '+JSON.stringify({runs:r.plannerRunsPerSensitivityPoint,exec:r.executable,sensitivity:r.oraclePatchedOneHourDelay.meanSensitivity,low:{a:r.oraclePatchedOneHourDelay.lowDamage.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.lowDamage.defenderStrengthLoss},mid:{a:r.oraclePatchedOneHourDelay.midpoint.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.midpoint.defenderStrengthLoss},high:{a:r.oraclePatchedOneHourDelay.highDamage.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.highDamage.defenderStrengthLoss},comparison:r.descriptiveComparison,hitRegime:r.hitRegimeAcrossSensitivity}))"
       - name: Confirm full 160k Gauntlet matrix
         run: node tests/gauntlet-full-smoke.test.mjs
       - name: Build static site
@@ -65,3 +61,16 @@ jobs:
           git diff --exit-code
       - name: Served browser route and accessibility smoke
         run: bash scripts/served-browser-smoke.sh dist
+
+  o1-diagnostic:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: O1 100k bounded comparison diagnostic
+        run: |
+          ORACLE_COMPARE_RUNS=100000 node scripts/oracle-o1-base-compare.mjs > o1-report.json
+          node -e "const r=require('./o1-report.json'); console.log('O1_100K '+JSON.stringify({runs:r.plannerRunsPerSensitivityPoint,exec:r.executable,sensitivity:r.oraclePatchedOneHourDelay.meanSensitivity,low:{a:r.oraclePatchedOneHourDelay.lowDamage.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.lowDamage.defenderStrengthLoss},mid:{a:r.oraclePatchedOneHourDelay.midpoint.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.midpoint.defenderStrengthLoss},high:{a:r.oraclePatchedOneHourDelay.highDamage.attackerStrengthLoss,d:r.oraclePatchedOneHourDelay.highDamage.defenderStrengthLoss},comparison:r.descriptiveComparison,hitRegime:r.hitRegimeAcrossSensitivity}))"

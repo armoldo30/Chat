@@ -121,6 +121,7 @@ export function oracleCaptureFromRun(run){
       runMode:run.begin.runMode||null,
       rngBurn:finiteToken(run.begin.rngBurn),
       preBurn:finiteToken(run.begin.preBurn),
+      tacticMode:run.begin.tacticMode||null,
     },
     samples,
   };

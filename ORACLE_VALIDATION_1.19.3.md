@@ -76,13 +76,21 @@ Current evidence classification: `unvalidated`.
 
 This run validates the 1.19.3 instrumentation and delayed-event scheduler behavior. It does **not** establish combat parity.
 
+### Combat-use rejection
+
+This specific trace is **not accepted into the O1 combat distribution**. The game log shows h0 at 17:00 and h6 at 23:00, so the intended daylight control was not satisfied. The screenshot also shows attack values around 37/36, roughly half the old daylight reference 75/73, which is consistent with night contamination.
+
+Keep this run permanently as a scheduler/instrumentation smoke, but do not mix it into the stochastic combat sample.
+
+Before the 10-run batch, collect one replacement daylight smoke. Prefer a start around 09:00 and keep the whole six-hour trial outside the Night modifier. The same `d_oracle_o1_trial6` helper is valid; no new mod package is required.
+
 ## Historical 1.19.2 trace
 
 The older `o1-baseline-candidate-001` capture remains historical evidence only. It is useful for regression context, but it does not certify 1.19.3 and should not be directly interpreted as a patch effect from one trace because combat is stochastic and the observed named divisions/date differ.
 
 ## Preliminary stochastic batch
 
-Next collection target: 10 clean six-hour trials.
+Next collection target: one clean **daylight** six-hour replacement smoke. After that passes the scenario controls, collect 10 clean daylight six-hour trials.
 
 For every trial:
 

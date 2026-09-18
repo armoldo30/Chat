@@ -118,6 +118,7 @@ assert.deepEqual(supportAllowedBattalionGroups('light_tank_destroyer_support',pa
 assert.equal(Object.keys(pack.modules).length,313);
 assert.equal(Object.keys(pack.technologies).length,552);
 assert.equal(Object.keys(pack.doctrines).length,121);
-assert.equal(Object.keys(pack.mios).length,440);\nassert.equal(pack.meta.rawSourceMioDeclarationCount,552);
+assert.equal(Object.keys(pack.mios).length,440);
+assert.equal(pack.meta.rawSourceMioDeclarationCount,552);
 
 console.log('bundled HOI4 1.19.3 migration certification passed');

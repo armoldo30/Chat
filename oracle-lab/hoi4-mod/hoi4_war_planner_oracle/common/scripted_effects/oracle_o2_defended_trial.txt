@@ -37,6 +37,16 @@ oracle_o2_capture_sample = {
 
 d_oracle_o2_prepare = {
     GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o2_defended_attack_amplifier
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o2_defended_attack_amplifier
+            }
+        }
         add_dynamic_modifier = {
             modifier = oracle_o2_defended_attack_amplifier
         }
@@ -48,7 +58,16 @@ d_oracle_o2_prepare = {
 
 d_oracle_o2_clear = {
     GER = {
-        remove_dynamic_modifier = oracle_o2_defended_attack_amplifier
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o2_defended_attack_amplifier
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o2_defended_attack_amplifier
+            }
+        }
         force_update_dynamic_modifier = yes
         clr_country_flag = oracle_o2_prepared
         clr_country_flag = oracle_o2_running

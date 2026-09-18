@@ -1,0 +1,92 @@
+# HOI4 War Planner Oracle O2 defended-path diagnostic.
+# Separate from O1: distinct WPO2 prefix, namespace, scenario, and running flags.
+#
+# Workflow:
+# 1. load the exact clean O1 baseline save while paused;
+# 2. run d_oracle_o2_prepare;
+# 3. confirm in the battle/division UI that GER effective attack remains below POL defense;
+# 4. run built-in random_seed;
+# 5. issue the same GER attack while paused;
+# 6. run d_oracle_o2_trial12;
+# 7. unpause through hour 12. The helper removes the amplifier automatically.
+#
+# The modifier is deliberately +200% infantry attack only. It does not alter
+# defense, breakthrough, organization, HP, supply, planning, or entrenchment.
+
+oracle_o2_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO2 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o2_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO2 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o2_capture_sample = {
+    log = "WPO2 SAMPLE hour=[?oracle_o2_hour]"
+    oracle_o2_log_attacker_divisions = yes
+    POL = {
+        oracle_o2_log_defender_divisions = yes
+    }
+}
+
+d_oracle_o2_prepare = {
+    GER = {
+        add_dynamic_modifier = {
+            modifier = oracle_o2_defended_attack_amplifier
+        }
+        force_update_dynamic_modifier = yes
+        set_country_flag = oracle_o2_prepared
+        log = "WPO2 STATUS state=prepared scenario=o2-defended-amplified-v1 amplifier=army_infantry_attack_factor:+2.0 expectedRegime=GER-attack-below-POL-defense"
+    }
+}
+
+d_oracle_o2_clear = {
+    GER = {
+        remove_dynamic_modifier = oracle_o2_defended_attack_amplifier
+        force_update_dynamic_modifier = yes
+        clr_country_flag = oracle_o2_prepared
+        clr_country_flag = oracle_o2_running
+        log = "WPO2 STATUS state=cleared amplifierRemoved=yes"
+    }
+}
+
+oracle_o2_trial12_start = {
+    if = {
+        limit = { has_country_flag = oracle_o2_prepared }
+
+        clr_country_flag = oracle_o2_running
+        set_country_flag = oracle_o2_running
+        set_variable = { oracle_o2_hour = 0 }
+
+        log = "WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial12 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0"
+        oracle_o2_capture_sample = yes
+
+        country_event = { id = oracle_o2.1 hours = 1 }
+        country_event = { id = oracle_o2.1 hours = 2 }
+        country_event = { id = oracle_o2.1 hours = 3 }
+        country_event = { id = oracle_o2.1 hours = 4 }
+        country_event = { id = oracle_o2.1 hours = 5 }
+        country_event = { id = oracle_o2.1 hours = 6 }
+        country_event = { id = oracle_o2.1 hours = 7 }
+        country_event = { id = oracle_o2.1 hours = 8 }
+        country_event = { id = oracle_o2.1 hours = 9 }
+        country_event = { id = oracle_o2.1 hours = 10 }
+        country_event = { id = oracle_o2.1 hours = 11 }
+        country_event = { id = oracle_o2.1 hours = 12 }
+    }
+    else = {
+        log = "WPO2 STATUS state=not-prepared action=run-d_oracle_o2_prepare-first"
+    }
+}
+
+d_oracle_o2_trial12 = {
+    GER = {
+        oracle_o2_trial12_start = yes
+    }
+}

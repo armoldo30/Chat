@@ -548,6 +548,12 @@ The planner reference script is:
 
 `scripts/oracle-o2-planner-reference.mjs`
 
+The predeclared assessment command is:
+
+`scripts/oracle-o2-assess.mjs`
+
+After an executable batch exists, this command takes the WPO2 log plus the four directly observed O2 combat-panel values, runs the exact parser/reference, and mechanically applies the staged decision rule. It refuses to treat duplicate/rejected traces as a valid independent batch, requires the ≥10-point defended margin, and keeps `evidenceStatus='unvalidated'` even when an interval is missed or included. A 12-run miss is reported only as a `confirmatory-mismatch-candidate` until the external scenario controls are reviewed.
+
 It takes the directly observed O2 combat-panel values:
 
 `<GER Soft Attack> <GER Breakthrough> <POL Soft Attack> <POL Defense>`
@@ -582,7 +588,7 @@ Predeclared interpretation:
 - If the 12-run executable mean remains outside the measurement-adjusted conservative empirical planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
 - If the executable mean falls inside the planner interval, O2 remains `unvalidated`; interval inclusion is **not** an `oracle-validated` criterion.
 
-This stopping rule is declared before seeing any O2 executable loss result.
+This stopping rule and its machine assessment implementation are declared before seeing any O2 executable loss result.
 
 O2 does not modify production `main` and does not supersede the O1 timing certification.
 

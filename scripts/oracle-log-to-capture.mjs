@@ -118,6 +118,7 @@ export function oracleCaptureFromRun(run){
       measurementMidpointMaxErrorPct:O1_MIDPOINT_MAX_ERROR_PCT,
       endReason:run.end.reason||'unknown',
       source:'HOI4 game.log WPO1',
+      runMode:run.begin.runMode||null,
     },
     samples,
   };

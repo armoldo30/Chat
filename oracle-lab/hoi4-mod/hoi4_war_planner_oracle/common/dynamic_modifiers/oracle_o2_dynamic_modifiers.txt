@@ -1,0 +1,13 @@
+# HOI4 War Planner Oracle O2 diagnostic modifier.
+# Purpose: amplify only infantry attack for a fully-defended hit/damage resolver probe.
+# +200% is chosen to increase statistical signal while the controlled GER attack
+# is expected to remain below POL defense. The executable battle UI must still
+# confirm attack < defense before an O2 trace is accepted.
+
+oracle_o2_defended_attack_amplifier = {
+    enable = { always = yes }
+
+    # Attack only. Do not add defense, breakthrough, organization, HP,
+    # strength, supply, planning, entrenchment, or damage modifiers here.
+    army_infantry_attack_factor = 2.0
+}

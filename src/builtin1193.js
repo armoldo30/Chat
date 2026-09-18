@@ -63,9 +63,14 @@ const actual={
   doctrines:Object.keys(BUILTIN_1193.doctrines||{}).length,
   mios:Object.keys(BUILTIN_1193.mios||{}).length
 };
-for(const key of ['subUnits','equipment','modules','technologies','doctrines','mios']){
+for(const key of ['subUnits','modules','technologies','doctrines','mios']){
   if(actual[key]!==expected[key])throw new Error(`HOI4 1.19.3 inventory mismatch for ${key}: expected ${expected[key]}, got ${actual[key]}`);
 }
+// Runtime equipment also contains materialized duplicate archetypes. Compare the
+// static source inventory separately rather than confusing generated variants with
+// source equipment records.
+const staticEquipmentCount=Number(BUILTIN_1193.meta?.staticEquipmentCount)||actual.equipment-Number(BUILTIN_1193.meta?.materializedDuplicateEquipmentCount||0);
+if(staticEquipmentCount!==expected.equipment)throw new Error(`HOI4 1.19.3 static equipment inventory mismatch: expected ${expected.equipment}, got ${staticEquipmentCount}`);
 
 BUILTIN_1193.meta={
   ...(BUILTIN_1193.meta||{}),
@@ -78,6 +83,7 @@ BUILTIN_1193.meta={
   sourceArchiveLocalizationSha256:SOURCE_CERTIFICATION_1193.sourceArchives.localizationZipSha256,
   subUnitCount:actual.subUnits,
   equipmentCount:actual.equipment,
+  staticEquipmentCount,
   moduleCount:actual.modules,
   technologyCount:actual.technologies,
   doctrineCount:actual.doctrines,

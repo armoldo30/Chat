@@ -1,14 +1,18 @@
 # HOI4 War Planner Oracle O1 quick-trial helper.
 # One command arms a six-hour capture and auto-stops after the hour-6 sample.
-# NOTE: reloading the same save was observed to replay the same combat RNG trace on 1.19.3.
-# Burn commands below are an executable diagnostic to test whether scripted random draws can
-# advance the combat RNG while keeping the visible O1 scenario unchanged.
+# IMPORTANT: same-save reloads replayed the same combat trace on 1.19.3.
+# The preburn commands below consume scripted random draws BEFORE combat is created,
+# allowing us to test whether battle seeding shares the same RNG stream.
 
 oracle_o1_trial6_start = {
+    if = {
+        limit = { NOT = { has_variable = oracle_o1_preburn_count } }
+        set_variable = { oracle_o1_preburn_count = 0 }
+    }
     clr_country_flag = oracle_o1_running
     set_country_flag = oracle_o1_running
     set_variable = { oracle_o1_hour = 0 }
-    log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 rngBurn=[?oracle_o1_rng_burn_count]"
+    log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 preBurn=[?oracle_o1_preburn_count]"
     oracle_o1_capture_sample = yes
     country_event = { id = oracle_o1.2 hours = 1 }
     country_event = { id = oracle_o1.2 hours = 2 }
@@ -25,48 +29,47 @@ oracle_o1_rng_burn_once = {
     }
 }
 
-d_oracle_o1_trial6 = {
+d_oracle_o1_preburn64 = {
     GER = {
-        set_variable = { oracle_o1_rng_burn_count = 0 }
-        oracle_o1_trial6_start = yes
-    }
-}
-
-d_oracle_o1_trial6_burn64 = {
-    GER = {
-        set_variable = { oracle_o1_rng_burn_count = 64 }
+        set_variable = { oracle_o1_preburn_count = 64 }
         for_loop_effect = {
             start = 0
             end = 64
             value = oracle_o1_rng_burn_i
             oracle_o1_rng_burn_once = yes
         }
-        oracle_o1_trial6_start = yes
+        log = "WPO1 STATUS state=preburn-complete preBurn=64"
     }
 }
 
-d_oracle_o1_trial6_burn128 = {
+d_oracle_o1_preburn128 = {
     GER = {
-        set_variable = { oracle_o1_rng_burn_count = 128 }
+        set_variable = { oracle_o1_preburn_count = 128 }
         for_loop_effect = {
             start = 0
             end = 128
             value = oracle_o1_rng_burn_i
             oracle_o1_rng_burn_once = yes
         }
-        oracle_o1_trial6_start = yes
+        log = "WPO1 STATUS state=preburn-complete preBurn=128"
     }
 }
 
-d_oracle_o1_trial6_burn256 = {
+d_oracle_o1_preburn256 = {
     GER = {
-        set_variable = { oracle_o1_rng_burn_count = 256 }
+        set_variable = { oracle_o1_preburn_count = 256 }
         for_loop_effect = {
             start = 0
             end = 256
             value = oracle_o1_rng_burn_i
             oracle_o1_rng_burn_once = yes
         }
+        log = "WPO1 STATUS state=preburn-complete preBurn=256"
+    }
+}
+
+d_oracle_o1_trial6 = {
+    GER = {
         oracle_o1_trial6_start = yes
     }
 }

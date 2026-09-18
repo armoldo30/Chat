@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-export const O2_HOURS=Object.freeze(Array.from({length:13},(_,i)=>i));
+export const O2_HOURS=Object.freeze(Array.from({length:7},(_,i)=>i));
 export const O2_SCENARIO='o2-defended-amplified-v1';
 export const O2_AMPLIFIER='army_infantry_attack_factor:+2.0';
 
@@ -64,10 +64,10 @@ export function captureO2Run(run){
   if(!run?.end)throw new Error('END marker is missing');
   if(Number(run.begin?.schema)!==1)throw new Error('unsupported WPO2 schema');
   if(run.begin.scenario!==O2_SCENARIO)throw new Error(`unexpected scenario ${run.begin.scenario||'missing'}`);
-  if(run.begin.runMode!=='trial12')throw new Error(`unexpected runMode ${run.begin.runMode||'missing'}`);
+  if(run.begin.runMode!=='trial6')throw new Error(`unexpected runMode ${run.begin.runMode||'missing'}`);
   if(run.begin.tacticMode!=='neutral-basic-only')throw new Error(`unexpected tacticMode ${run.begin.tacticMode||'missing'}`);
   if(run.begin.amplifier!==O2_AMPLIFIER)throw new Error(`unexpected amplifier ${run.begin.amplifier||'missing'}`);
-  if(run.end.reason!=='trial12-complete')throw new Error(`unexpected end reason ${run.end.reason||'missing'}`);
+  if(run.end.reason!=='trial6-complete')throw new Error(`unexpected end reason ${run.end.reason||'missing'}`);
   if(run.end.amplifierRemoved!=='yes')throw new Error('amplifier removal was not logged');
 
   const samples=run.samples.map(s=>{
@@ -81,8 +81,8 @@ export function captureO2Run(run){
     };
   });
   const hours=samples.map(s=>s.hour);
-  if(JSON.stringify(hours)!==JSON.stringify(O2_HOURS))throw new Error(`expected hours 0..12, got ${hours.join(',')}`);
-  const h0=samples[0],h12=samples.at(-1);
+  if(JSON.stringify(hours)!==JSON.stringify(O2_HOURS))throw new Error(`expected hours 0..6, got ${hours.join(',')}`);
+  const h0=samples[0],h6=samples.at(-1);
   return {
     metadata:{
       gameVersion:run.begin.gameVersion,
@@ -96,10 +96,10 @@ export function captureO2Run(run){
     },
     samples,
     deltas:{
-      attackerOrgLoss:round(h0.attacker.org-h12.attacker.org),
-      attackerStrengthLoss:round(h0.attacker.strength-h12.attacker.strength),
-      defenderOrgLoss:round(h0.defender.org-h12.defender.org),
-      defenderStrengthLoss:round(h0.defender.strength-h12.defender.strength)
+      attackerOrgLoss:round(h0.attacker.org-h6.attacker.org),
+      attackerStrengthLoss:round(h0.attacker.strength-h6.attacker.strength),
+      defenderOrgLoss:round(h0.defender.org-h6.defender.org),
+      defenderStrengthLoss:round(h0.defender.strength-h6.defender.strength)
     }
   };
 }
@@ -110,7 +110,7 @@ function stats(xs){
   return {n,mean:round(mean),sd:round(sd),min:round(Math.min(...xs)),max:round(Math.max(...xs))};
 }
 export function parseO2Batch(text){
-  const candidates=parseO2Runs(text).filter(r=>r.begin?.runMode==='trial12'||r.begin?.scenario===O2_SCENARIO);
+  const candidates=parseO2Runs(text).filter(r=>r.begin?.runMode==='trial6'||r.begin?.scenario===O2_SCENARIO);
   const accepted=[],rejected=[];
   candidates.forEach((r,i)=>{
     try{accepted.push({runNumber:i+1,capture:captureO2Run(r)});}
@@ -142,7 +142,7 @@ export function parseO2Batch(text){
 
 async function cli(){
   const [,,input,output]=process.argv;
-  if(!input){console.error('Usage: node scripts/oracle-o2-trial12.mjs <game.log> [output.json]');process.exitCode=2;return;}
+  if(!input){console.error('Usage: node scripts/oracle-o2-trial6.mjs <game.log> [output.json]');process.exitCode=2;return;}
   try{
     const result=parseO2Batch(await fs.readFile(input,'utf8'));
     const json=JSON.stringify(result,null,2)+'\n';

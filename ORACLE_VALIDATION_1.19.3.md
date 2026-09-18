@@ -131,6 +131,24 @@ The analyzer:
 
 Ten trials are a preliminary variance estimate, not the final validation sample size. The observed variance will determine whether O1 needs a larger N before comparison with planner Monte Carlo output.
 
+## Reload-repeat diagnostic
+
+The first attempted nine-run repeat batch contained exactly nine complete trial6 captures, all with h0..h6 and exactly one attacker/defender. However, runs 2 through 9 were exact trace duplicates at every sampled hour.
+
+This batch is recorded in `oracle-lab/captures/o1-1193-reload-batch-001-summary.json` and is **not** counted as nine independent stochastic samples. The result strongly indicates that reloading the same clean save restores the relevant RNG state closely enough to replay the same combat sequence.
+
+The batch analyzer now reports `uniqueTraceCount`, duplicate trace groups, and an independence warning.
+
+### RNG-burn diagnostic
+
+The Oracle mod now includes controlled diagnostic commands that consume scripted random draws before arming the same six-hour sampler:
+
+- `d_oracle_o1_trial6_burn64`
+- `d_oracle_o1_trial6_burn128`
+- `d_oracle_o1_trial6_burn256`
+
+Each BEGIN marker records `rngBurn=<count>`. The next executable check is two runs from the same clean daylight save using burn64 and burn128. If the resulting combat traces differ, the mechanism can be expanded to spaced burn counts for the final preliminary sample while keeping visible scenario controls unchanged.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

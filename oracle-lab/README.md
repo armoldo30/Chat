@@ -11,7 +11,7 @@ Active laboratory branch for empirical validation against a real Hearts of Iron 
 - Debug launch: confirmed by the in-game `NUDGE!` developer control
 - Baseline save supplied by tester: `Oracle_Baseline_1936.hoi4`
 - Baseline start: 1936 single-player
-- 1.19.3 executable validation status: pending
+- 1.19.3 executable validation status: O1 six-hour instrumentation/scheduler smoke passed on 2026-09-18; stochastic combat parity remains unvalidated
 
 These facts establish provenance only. They do not by themselves validate any combat behavior.
 
@@ -56,6 +56,27 @@ Then unpause. The helper captures hour 0 immediately, queues hours 1 through 6 u
 For this first 1.19.3 pass, the goal is to validate the sampler and scheduler on the new executable before collecting the 10-run distribution sample. A clean smoke run should contain one `BEGIN` with `runMode=trial6`, samples 0 through 6 in order, exactly one GER attacker and one POL defender at each sample, and `END hour=6 reason=trial6-complete`.
 
 The older `d_oracle_o1_probe` remains available as a non-destructive instrumentation fallback if the six-hour helper fails to load or execute.
+
+## 1.19.3 smoke result
+
+The first `d_oracle_o1_trial6` executable run on 1.19.3.0.c01a / checksum 5632 passed the instrumentation and scheduler smoke check:
+
+- one BEGIN marker with `runMode=trial6`
+- samples 0 through 6 in strict order
+- exactly one GER attacker and one POL defender at every sample
+- automatic `END hour=6 reason=trial6-complete`
+
+The capture is stored as `oracle-lab/captures/o1-1193-smoke-001.json`. It remains `unvalidated` for combat parity because one stochastic trace is not enough.
+
+## Preliminary 10-run batch
+
+Reload the same clean pre-battle save before every trial. For each trial: pause, issue the same GER attack, run `d_oracle_o1_trial6`, unpause through hour 6, then reload the clean save. Ten complete trials may remain in one `game.log`.
+
+Analyze the combined log with:
+
+`node scripts/oracle-trial6-batch.mjs path/to/game.log output.json`
+
+The analyzer rejects incomplete/malformed trial6 runs and reports per-trial h6 losses, damage-interval counts, aggregate mean/SD/min/max/95% interval estimates, and zero-damage interval frequency.
 
 ## Controlled sampler commands
 

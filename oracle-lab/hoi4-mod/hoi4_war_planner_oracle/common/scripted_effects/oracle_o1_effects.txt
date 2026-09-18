@@ -76,7 +76,7 @@ oracle_o1_capture_sample = {
 d_oracle_o1_probe = {
     GER = {
         set_variable = { oracle_o1_hour = 0 }
-        log = "WPO1 BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14"
         oracle_o1_capture_sample = yes
         log = "WPO1 END hour=[?oracle_o1_hour] reason=probe"
     }
@@ -90,7 +90,7 @@ d_oracle_o1_arm = {
         clr_country_flag = oracle_o1_running
         set_country_flag = oracle_o1_running
         set_variable = { oracle_o1_hour = 0 }
-        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14"
         oracle_o1_capture_sample = yes
         country_event = { id = oracle_o1.1 hours = 1 }
         country_event = { id = oracle_o1.1 hours = 2 }

@@ -70,11 +70,11 @@ The capture is stored as `oracle-lab/captures/o1-1193-smoke-001.json`. It remain
 
 ## Daylight replacement smoke
 
-Before the 10-run batch, repeat the six-hour helper once with the battle beginning in daylight. Prefer a start near 09:00 so h0 through h6 stay clear of the Night modifier. The same mod package and `d_oracle_o1_trial6` command are used.
+The daylight replacement smoke passed at 10:00→16:00 with the intended 1v1 Plains controls and displayed attack values 75/73. It is stored as `oracle-lab/captures/o1-1193-daylight-001.json` and counts as accepted preliminary trial 1 of 10.
 
 ## Preliminary 10-run batch
 
-After the daylight replacement smoke passes, reload the same clean pre-battle save before every trial. For each trial: pause, issue the same GER attack, run `d_oracle_o1_trial6`, unpause through hour 6, then reload the clean save. Ten complete trials may remain in one `game.log`.
+Collect 9 more trials from the same clean daylight pre-battle save. Reload that save before every trial. For each trial: pause, issue the same GER attack, run `d_oracle_o1_trial6`, unpause through hour 6, then reload the clean save. Ten complete trials may remain in one `game.log`.
 
 Analyze the combined log with:
 

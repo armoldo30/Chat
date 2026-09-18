@@ -5,6 +5,12 @@ import {fileURLToPath} from 'node:url';
 export const O2_HOURS=Object.freeze(Array.from({length:7},(_,i)=>i));
 export const O2_SCENARIO='o2-defended-amplified-v1';
 export const O2_AMPLIFIER='army_infantry_attack_factor:+2.0';
+export const O2_GAME_VERSION='1.19.3.0.c01a';
+export const O2_BASE_CHECKSUM='5632';
+export const O2_CHECKSUM_SCOPE='base-game-reference';
+export const O2_METHOD='bisection14';
+export const O2_TACTIC_MODE='neutral-basic-only';
+export const O2_H0_MIN_BOUND=0.9999;
 
 function finite(value){
   const n=Number(String(value??'').replace(',','.'));
@@ -33,6 +39,16 @@ function measure(fields,line){
 }
 function midpoint(low,high){return (low+high)*50;}
 function round(x,d=6){const p=10**d;return Math.round((x+Number.EPSILON)*p)/p;}
+function assertFreshH0(measurement,label){
+  for(const [lowKey,highKey,name] of [
+    ['orgLow','orgHigh','organization'],
+    ['strengthLow','strengthHigh','strength']
+  ]){
+    if(measurement[lowKey]<O2_H0_MIN_BOUND||measurement[highKey]<0.99999){
+      throw new Error(`hour 0: ${label} ${name} is not effectively 100%`);
+    }
+  }
+}
 
 export function parseO2Runs(text){
   const runs=[];let run=null,current=null;
@@ -63,11 +79,17 @@ export function parseO2Runs(text){
 export function captureO2Run(run){
   if(!run?.end)throw new Error('END marker is missing');
   if(Number(run.begin?.schema)!==1)throw new Error('unsupported WPO2 schema');
+  if(run.begin.gameVersion!==O2_GAME_VERSION)throw new Error(`unexpected gameVersion ${run.begin.gameVersion||'missing'}`);
+  if(run.begin.checksum!==O2_BASE_CHECKSUM)throw new Error(`unexpected base checksum ${run.begin.checksum||'missing'}`);
+  if(run.begin.checksumScope!==O2_CHECKSUM_SCOPE)throw new Error(`unexpected checksumScope ${run.begin.checksumScope||'missing'}`);
+  if(run.begin.method!==O2_METHOD)throw new Error(`unexpected measurement method ${run.begin.method||'missing'}`);
   if(run.begin.scenario!==O2_SCENARIO)throw new Error(`unexpected scenario ${run.begin.scenario||'missing'}`);
   if(run.begin.runMode!=='trial6')throw new Error(`unexpected runMode ${run.begin.runMode||'missing'}`);
-  if(run.begin.tacticMode!=='neutral-basic-only')throw new Error(`unexpected tacticMode ${run.begin.tacticMode||'missing'}`);
+  if(run.begin.tacticMode!==O2_TACTIC_MODE)throw new Error(`unexpected tacticMode ${run.begin.tacticMode||'missing'}`);
   if(run.begin.amplifier!==O2_AMPLIFIER)throw new Error(`unexpected amplifier ${run.begin.amplifier||'missing'}`);
+  if(run.begin.prepared!=='yes')throw new Error('O2 BEGIN did not confirm prepared=yes');
   if(run.end.reason!=='trial6-complete')throw new Error(`unexpected end reason ${run.end.reason||'missing'}`);
+  if(Number(run.end.hour)!==6)throw new Error(`unexpected END hour ${run.end.hour||'missing'}`);
   if(run.end.amplifierRemoved!=='yes')throw new Error('amplifier removal was not logged');
 
   const samples=run.samples.map(s=>{
@@ -82,17 +104,26 @@ export function captureO2Run(run){
   });
   const hours=samples.map(s=>s.hour);
   if(JSON.stringify(hours)!==JSON.stringify(O2_HOURS))throw new Error(`expected hours 0..6, got ${hours.join(',')}`);
+
+  const rawH0=run.samples[0];
+  assertFreshH0(rawH0.attackers[0],'attacker');
+  assertFreshH0(rawH0.defenders[0],'defender');
+
   const h0=samples[0],h6=samples.at(-1);
   return {
     metadata:{
       gameVersion:run.begin.gameVersion,
       checksum:run.begin.checksum,
-      checksumScope:run.begin.checksumScope||null,
+      checksumScope:run.begin.checksumScope,
+      measurementMethod:run.begin.method,
       scenarioId:run.begin.scenario,
       runMode:run.begin.runMode,
       tacticMode:run.begin.tacticMode,
       amplifier:run.begin.amplifier,
-      endReason:run.end.reason
+      prepared:true,
+      endReason:run.end.reason,
+      endHour:Number(run.end.hour),
+      amplifierRemoved:true
     },
     samples,
     deltas:{
@@ -124,6 +155,16 @@ export function parseO2Batch(text){
   const duplicateTraceGroups=[...signatures.values()].filter(g=>g.length>1);
   return {
     scenario:O2_SCENARIO,
+    target:{
+      gameVersion:O2_GAME_VERSION,
+      baseChecksum:O2_BASE_CHECKSUM,
+      checksumScope:O2_CHECKSUM_SCOPE,
+      measurementMethod:O2_METHOD,
+      tacticMode:O2_TACTIC_MODE,
+      amplifier:O2_AMPLIFIER,
+      requiredHours:O2_HOURS,
+      freshH0MinimumLowerBound:O2_H0_MIN_BOUND
+    },
     totalRuns:candidates.length,
     acceptedRuns:accepted.length,
     rejectedRuns:rejected.length,
@@ -136,7 +177,8 @@ export function parseO2Batch(text){
       attackerStrengthLoss:stats(accepted.map(r=>r.capture.deltas.attackerStrengthLoss)),
       defenderStrengthLoss:stats(accepted.map(r=>r.capture.deltas.defenderStrengthLoss))
     },
-    runs:accepted
+    runs:accepted,
+    acceptanceBoundary:'Parser acceptance verifies WPO2 metadata, fresh h0, cardinality, hours 0..6, completion, and amplifier cleanup. UI combat stats, exact 11:00-17:00 daylight timing, terrain, supply, planning, entrenchment, commander/reserve state, and use of random_seed remain external scenario controls.'
   };
 }
 

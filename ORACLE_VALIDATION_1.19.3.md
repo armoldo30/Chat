@@ -517,14 +517,19 @@ An O2 trace is accepted only if all of the following hold:
 2. neutral tactic Oracle build active;
 3. `d_oracle_o2_prepare` executed before combat creation;
 4. built-in `random_seed` executed before the attack for independent repeated trials;
-5. same one-GER-vs-one-POL, 18-width, Plains battle;
-6. no commanders, no reserves, full starting supply, zero planning, zero POL entrenchment;
-7. paused combat-panel capture records GER Soft Attack, GER Breakthrough, POL Soft Attack, and POL Defense under O2;
-8. displayed GER Soft Attack is materially amplified and remains at least 10 points below displayed POL Defense;
-9. WPO2 samples are exactly hours 0..6 with one attacker and one defender each;
-10. h0 is effectively 100% organization/strength within the existing bisection measurement bound;
-11. END is exactly `reason=trial6-complete amplifierRemoved=yes`;
-12. start/end remain 11:00→17:00.
+5. the GER attack is issued while paused, then the paused combat panel is captured **before** starting the O2 sampler;
+6. same one-GER-vs-one-POL, 18-width, Plains battle;
+7. no commanders, no reserves, full starting supply, zero planning, zero POL entrenchment;
+8. paused combat-panel capture records GER Soft Attack, GER Breakthrough, POL Soft Attack, and POL Defense under O2;
+9. displayed GER Soft Attack is materially amplified and remains at least 10 points below displayed POL Defense;
+10. WPO2 samples are exactly hours 0..6 with one attacker and one defender each;
+11. h0 is effectively 100% organization/strength within the existing bisection measurement bound;
+12. END is exactly `hour=6 reason=trial6-complete amplifierRemoved=yes`;
+13. start/end remain 11:00→17:00.
+
+The O2 parser now machine-enforces the WPO2 schema/version, base-checksum scope, bisection method, scenario, tactic mode, amplifier identity, `prepared=yes`, one-attacker/one-defender cardinality, exact 0..6 sample sequence, fresh h0 bounds, exact END hour/reason, duplicate-trace detection, and amplifier cleanup.
+
+Parser acceptance is **necessary but not sufficient** for scenario acceptance. The combat-panel values, exact 11:00→17:00 daylight timing, Plains terrain, supply/planning/entrenchment state, commanders/reserves, and actual use of `random_seed` remain external controls that must be checked from the executable evidence.
 
 If GER attack approaches/crosses the defended threshold, the trace is rejected for this O2 purpose rather than reinterpreted after the fact.
 
@@ -544,7 +549,7 @@ It takes the directly observed O2 combat-panel values:
 
 `<GER Soft Attack> <GER Breakthrough> <POL Soft Attack> <POL Defense>`
 
-and runs the current planner over the same six-hour / one-hour-startup-delay scenario, including a ±1 display sensitivity.
+and runs the current planner over the same six-hour / one-hour-startup-delay scenario. The ±1 display sensitivity is evaluated at the midpoint **and all 16 corners** of the four-input uncertainty box rather than only along one low/high diagonal.
 
 Evidence classes:
 
@@ -564,12 +569,12 @@ Confirmatory target, only when needed:
 
 **12 unique O2 traces total**
 
-The planner reference precomputes conservative sample-mean intervals for the primary metric across the ±1 input sensitivity: **95% at the six-run preliminary stage** and **99% at the 12-run confirmatory stage**.
+The planner reference precomputes conservative **empirical** sample-mean intervals for the primary metric: **95% at the six-run preliminary stage** and **99% at the 12-run confirmatory stage**. At each stage it bootstraps sample means directly from the planner Monte Carlo distribution for all 17 sensitivity points (midpoint plus all 16 corners) and takes the union across the full input box. This replaces the earlier small-n normal approximation before any O2 executable result is observed.
 
 Predeclared interpretation:
 
-- If the six-run executable mean falls **outside** the conservative planner 95% sample-mean interval, collect six more independent O2 runs before any divergence classification.
-- If the 12-run executable mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
+- If the six-run executable mean falls **outside** the conservative empirical planner 95% sample-mean interval, collect six more independent O2 runs before any divergence classification.
+- If the 12-run executable mean remains outside the conservative empirical planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
 - If the executable mean falls inside the planner interval, O2 remains `unvalidated`; interval inclusion is **not** an `oracle-validated` criterion.
 
 This stopping rule is declared before seeing any O2 executable loss result.

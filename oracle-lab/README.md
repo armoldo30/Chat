@@ -1,17 +1,17 @@
-# HOI4 1.19.2 Oracle Laboratory
+# HOI4 1.19.3 Oracle Laboratory
 
-Active laboratory branch for empirical validation against a real Hearts of Iron IV 1.19.2 executable.
+Active laboratory branch for empirical validation against a real Hearts of Iron IV 1.19.3 executable.
 
 ## Verified reference installation
 
 - Game: Hearts of Iron IV
 - Build label: Operation Postern
-- Version: `v1.19.2.0.a729`
-- Checksum: `d245`
+- Version: `v1.19.3.0.c01a`
+- Checksum: `5632`
 - Debug launch: confirmed by the in-game `NUDGE!` developer control
 - Baseline save supplied by tester: `Oracle_Baseline_1936.hoi4`
 - Baseline start: 1936 single-player
-- Verified: 2026-09-11
+- 1.19.3 executable validation status: pending
 
 These facts establish provenance only. They do not by themselves validate any combat behavior.
 
@@ -21,7 +21,7 @@ O1 is the smallest useful land-combat experiment: one attacker division versus o
 
 The O1 tooling is intentionally split into two layers:
 
-1. **Instrumentation probe** — proves that the exact 1.19.2 executable accepts the scripted sampler and emits parseable values.
+1. **Instrumentation/helper smoke test** — proves that the exact 1.19.3 executable accepts the scripted sampler, honors the delayed-event queue, and emits parseable values.
 2. **Controlled battle capture** — once the probe is clean, captures an hourly trace from a deliberately prepared 1v1 battle.
 
 Do not promote any result to `oracle-validated` merely because the mod loads. A combat behavior is promoted only after a reproducible capture is compared against the planner and passes the declared statistical/tolerance standard.
@@ -43,24 +43,27 @@ The normal Windows user-mod directory is usually:
 
 `Documents/Paradox Interactive/Hearts of Iron IV/mod/`
 
-Enable **HOI4 War Planner Oracle 1.19.2** in the Paradox launcher. Keep `-debug` in the Steam launch options during Oracle work.
+Enable **HOI4 War Planner Oracle 1.19.3** in the Paradox launcher. Keep `-debug` in the Steam launch options during Oracle work.
 
-## First executable probe
+## First 1.19.3 executable smoke test
 
-Load a COPY of the supplied baseline save, open the console, and run:
+Use the clean controlled O1 pre-battle save, issue the same GER attack while paused, open the console, and run:
 
-`d_oracle_o1_probe`
+`d_oracle_o1_trial6`
 
-Then exit to desktop and provide `Documents/Paradox Interactive/Hearts of Iron IV/logs/game.log`.
+Then unpause. The helper captures hour 0 immediately, queues hours 1 through 6 up front, and ends automatically after the hour-6 sample. Exit to desktop and provide `Documents/Paradox Interactive/Hearts of Iron IV/logs/game.log`.
 
-The probe does not destroy units, move divisions, declare war, or alter combat. It only writes `[WPO1]` measurement lines. It is expected to see many GER/POL divisions in an ordinary 1936 save; that is useful for verifying instrumentation but is not yet a valid 1v1 Oracle capture.
+For this first 1.19.3 pass, the goal is to validate the sampler and scheduler on the new executable before collecting the 10-run distribution sample. A clean smoke run should contain one `BEGIN` with `runMode=trial6`, samples 0 through 6 in order, exactly one GER attacker and one POL defender at each sample, and `END hour=6 reason=trial6-complete`.
+
+The older `d_oracle_o1_probe` remains available as a non-destructive instrumentation fallback if the six-hour helper fails to load or execute.
 
 ## Controlled sampler commands
 
-After a controlled 1v1 scenario exists:
+After the six-hour helper is validated on 1.19.3:
 
-- `d_oracle_o1_arm` — begins an hourly trace and takes the hour-0 sample.
-- `d_oracle_o1_stop` — stops sampling and writes a terminal marker.
+- `d_oracle_o1_trial6` — preferred repeated O1 trial command; captures h0 through h6 and auto-stops.
+- `d_oracle_o1_arm` — begins the longer hourly trace and takes the hour-0 sample.
+- `d_oracle_o1_stop` — stops the long sampler and writes a terminal marker.
 
 The sampler has a 96-hour safety horizon. Reload the baseline between experimental runs so no delayed event from an older run can contaminate a later one.
 

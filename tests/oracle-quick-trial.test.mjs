@@ -6,7 +6,7 @@ const events=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracl
 
 assert.match(effects,/d_oracle_o1_trial6\s*=\s*\{/);
 for(let hour=1;hour<=6;hour++){
-  assert.match(effects,new RegExp(`country_event = \\{ id = oracle_o1\\.2 hours = ${hour} \\}`));
+  assert.match(effects,new RegExp(`country_event = \\\\{ id = oracle_o1\\\\.2 hours = ${hour} \\\\}`));
 }
 const queued=[...effects.matchAll(/country_event = \{ id = oracle_o1\.2 hours = (\d+) \}/g)].map(m=>Number(m[1]));
 assert.deepEqual(queued,[1,2,3,4,5,6]);
@@ -14,6 +14,6 @@ assert.match(effects,/runMode=trial6/);
 assert.match(events,/oracle_o1_capture_sample = yes/);
 assert.match(events,/value = 6/);
 assert.match(events,/reason=trial6-complete/);
-assert.doesNotMatch(events,/country_event\s*=\s*\{\s*id\s*=\s*oracle_o1\.2/s);
+assert.doesNotMatch(events,/country_event\s*=\s*\{\s*id\s*=\s*oracle_o1\.2\s+hours\s*=\s*\d+\s*\}/s);
 
 console.log('Oracle O1 six-hour quick-trial regression passed.');

@@ -160,6 +160,30 @@ Workflow: load the same clean daylight save, run the preburn command while still
 
 The next executable check is two runs using preburn64 and preburn128. If the traces differ, the final preliminary sample can use spaced pre-battle burn counts while preserving the visible scenario controls.
 
+### Pre-battle scripted RNG burn result — FAILED
+
+The follow-up pre-battle test used `preBurn=64` and `preBurn=128` before the O1 capture. Both runs were exact trace duplicates at every sampled hour, ending at the same h6 values:
+
+- GER: 98.073 org / 99.587 strength
+- POL: 99.074 org / 99.8985 strength
+
+This rules out scripted `random_list` consumption as a practical method for decorrelating the O1 combat RNG in this scenario.
+
+### Built-in random_seed diagnostic
+
+HOI4 exposes a built-in console command `random_seed` that randomizes the current game seed. The next executable check uses that command directly instead of scripted random draws.
+
+Procedure for each of two runs:
+
+1. reload the same clean daylight pre-battle save;
+2. remain paused;
+3. run `random_seed`;
+4. issue the same GER attack;
+5. run `d_oracle_o1_trial6`;
+6. unpause through h6.
+
+If the two traces differ, the preliminary O1 sample can use one `random_seed` call immediately before each attack while keeping all visible scenario controls fixed.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

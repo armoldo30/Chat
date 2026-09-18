@@ -139,15 +139,26 @@ This batch is recorded in `oracle-lab/captures/o1-1193-reload-batch-001-summary.
 
 The batch analyzer now reports `uniqueTraceCount`, duplicate trace groups, and an independence warning.
 
+### Post-battle RNG-burn diagnostic
+
+Two diagnostic runs were collected with `rngBurn=64` and `rngBurn=128` after the attack was already issued. They were exact trace duplicates at every sampled hour, ending with the same h6 values:
+
+- GER: 98.073 org / 99.587 strength
+- POL: 99.074 org / 99.8985 strength
+
+This result is **inconclusive about RNG-stream sharing** because the battle may already have been seeded when combat was created. The next diagnostic moves the burn before the attack order.
+
 ### RNG-burn diagnostic
 
-The Oracle mod now includes controlled diagnostic commands that consume scripted random draws before arming the same six-hour sampler:
+The Oracle mod now includes controlled pre-battle diagnostic commands that consume scripted random draws before the attack is created:
 
-- `d_oracle_o1_trial6_burn64`
-- `d_oracle_o1_trial6_burn128`
-- `d_oracle_o1_trial6_burn256`
+- `d_oracle_o1_preburn64`
+- `d_oracle_o1_preburn128`
+- `d_oracle_o1_preburn256`
 
-Each BEGIN marker records `rngBurn=<count>`. The next executable check is two runs from the same clean daylight save using burn64 and burn128. If the resulting combat traces differ, the mechanism can be expanded to spaced burn counts for the final preliminary sample while keeping visible scenario controls unchanged.
+Workflow: load the same clean daylight save, run the preburn command while still paused and **before** issuing the attack, issue the attack, then run `d_oracle_o1_trial6` and unpause. BEGIN records `preBurn=<count>`.
+
+The next executable check is two runs using preburn64 and preburn128. If the traces differ, the final preliminary sample can use spaced pre-battle burn counts while preserving the visible scenario controls.
 
 ## Promotion rule
 

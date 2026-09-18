@@ -74,6 +74,23 @@ export function parseTrial6Batch(text){
       rejected.push({runNumber:index+1,reason:error.message});
     }
   });
+  const traceGroups=new Map();
+  for(const run of runs){
+    const signature=JSON.stringify(run.capture.samples.map(sample=>({
+      hour:sample.hour,
+      attacker:sample.attacker,
+      defender:sample.defender,
+    })));
+    const group=traceGroups.get(signature)||[];
+    group.push(run.runNumber);
+    traceGroups.set(signature,group);
+  }
+  const duplicateTraceGroups=[...traceGroups.values()].filter(group=>group.length>1);
+  const uniqueTraceCount=traceGroups.size;
+  const independentSampleWarning=duplicateTraceGroups.length
+    ? `Detected exact duplicate trial traces: ${duplicateTraceGroups.map(group=>group.join(',')).join(' | ')}. Reloading the same save may be restoring RNG state; do not treat duplicate traces as independent stochastic samples.`
+    : null;
+
   const metrics={
     attackerOrgLoss:metricStats(runs.map(r=>r.summary.deltas.attackerOrgLoss)),
     attackerStrengthLoss:metricStats(runs.map(r=>r.summary.deltas.attackerStrengthLoss)),
@@ -86,6 +103,9 @@ export function parseTrial6Batch(text){
     acceptedRuns:runs.length,
     rejectedRuns:rejected.length,
     rejected,
+    uniqueTraceCount,
+    duplicateTraceGroups,
+    independentSampleWarning,
     metrics,
     zeroDamageIntervalRate:intervals?round(runs.reduce((s,r)=>s+r.summary.zeroDamageIntervals,0)/intervals):null,
     runs,

@@ -7,7 +7,7 @@ const events=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracl
 assert.match(effects,/d_oracle_o1_trial6\s*=\s*\{/);
 assert.match(effects,/gameVersion=1\.19\.3\.0\.c01a checksum=5632/);
 for(let hour=1;hour<=6;hour++){
-  assert.match(effects,new RegExp(`country_event = \\\\{ id = oracle_o1\\\\.2 hours = ${hour} \\\\}`));
+  assert.match(effects,new RegExp(`country_event = \\{ id = oracle_o1\\.2 hours = ${hour} \\}`));
 }
 const queued=[...effects.matchAll(/country_event = \{ id = oracle_o1\.2 hours = (\d+) \}/g)].map(m=>Number(m[1]));
 assert.deepEqual(queued,[1,2,3,4,5,6]);

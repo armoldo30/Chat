@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import pack from '../src/builtin1193.js';
 import { MODEL_META } from '../src/data.js';
 import { REGIMENTAL_SUPPORT_COMPATIBILITY_META, supportAllowedBattalionGroups } from '../src/regimental-support-1193.js';
+import { BUILTIN_ENGLISH_LOCALIZATION_1193, BUILTIN_ENGLISH_LOCALIZATION_1193_META } from '../src/builtin1193/localization-english-1193.js';
 
 assert.equal(MODEL_META.appVersion,'0.17.0');
 assert.equal(MODEL_META.gameVersion,'1.19.3');
@@ -12,6 +13,11 @@ assert.equal(pack.meta.sourceCertification,'game-file-exact-1.19.3');
 assert.equal(pack.meta.sourceCertification1193.sourceArchives.commonZipSha256,'0161171c32b58bb50e6fbf4d34deb3d0b00526f23bc4be4f91a8bb740ee3a8ae');
 assert.equal(pack.meta.sourceCertification1193.sourceArchives.localizationZipSha256,'5d63fe3a04f31992c1ebf8da56afe6a58b94a089055e0267fc14beb3c9ee5ede');
 assert.equal(pack.meta.executableValidation,'pending-1.19.3-oracle');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193_META.gameVersion,'1.19.3');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193_META.sourceArchiveSha256,'5d63fe3a04f31992c1ebf8da56afe6a58b94a089055e0267fc14beb3c9ee5ede');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193.airborne_light_armor,'Airborne Light Armor');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193.AST_mio_trait_boomerang_spirit,'Boomerang Spirit');
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193.SUBDOCTRINE_MOBILE_INFANTRY,'Mobile Infantry');
 
 // Land/support changes from the supplied 1.19.3 common files.
 assert.deepEqual(

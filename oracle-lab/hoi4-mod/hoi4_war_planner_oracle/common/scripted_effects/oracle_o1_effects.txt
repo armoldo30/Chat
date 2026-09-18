@@ -1,5 +1,5 @@
 # HOI4 War Planner Oracle O1 instrumentation.
-# Target reference: 1.19.2.0.a729 checksum d245.
+# Target reference: 1.19.3.0.c01a checksum d245.
 # Non-destructive: this file only measures/logs division state and schedules hidden sampler events.
 
 oracle_o1_measure_division = {
@@ -76,21 +76,21 @@ oracle_o1_capture_sample = {
 d_oracle_o1_probe = {
     GER = {
         set_variable = { oracle_o1_hour = 0 }
-        log = "WPO1 BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-instrumentation-probe-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14"
         oracle_o1_capture_sample = yes
         log = "WPO1 END hour=[?oracle_o1_hour] reason=probe"
     }
 }
 
 # Custom debug-console command. Begins an hourly capture and samples immediately at hour 0.
-# HOI4 1.19.2 executes recursively re-scheduled `hours = 1` events in the same tick after
-# the first delay, so arm queues the complete 1..96-hour schedule up front instead.
+# HOI4 1.19.2 was observed to execute recursively re-scheduled `hours = 1` events in the same tick after
+# the first delay. Keep the safe up-front 1..96-hour queue for 1.19.3; scheduler behavior will be revalidated.
 d_oracle_o1_arm = {
     GER = {
         clr_country_flag = oracle_o1_running
         set_country_flag = oracle_o1_running
         set_variable = { oracle_o1_hour = 0 }
-        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.2.0.a729 checksum=d245 method=bisection14"
+        log = "WPO1 BEGIN schema=1 scenario=o1-land-baseline-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14"
         oracle_o1_capture_sample = yes
         country_event = { id = oracle_o1.1 hours = 1 }
         country_event = { id = oracle_o1.1 hours = 2 }

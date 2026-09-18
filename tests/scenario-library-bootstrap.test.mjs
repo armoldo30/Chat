@@ -25,8 +25,8 @@ globalThis.history={replaceState(){}};
 Object.defineProperty(globalThis,'navigator',{value:{clipboard:{async writeText(){}}},configurable:true});
 
 const tokenDefaults={schema:7,country:'Germany',operation:'Default',dataPack:null,lastBattle:null};
-const seededToken=encodeScenarioShare({...tokenDefaults,country:'France',operation:'Stored Matchup'},tokenDefaults,{gameVersion:'1.19.2'});
-store.set('hoi4-war-planner-saved-matchups-v1',JSON.stringify([{id:'seeded',name:'Seeded Matchup',token:seededToken,gameVersion:'1.19.2',createdAt:'2026-09-16T12:00:00.000Z',updatedAt:'2026-09-16T12:00:00.000Z'}]));
+const seededToken=encodeScenarioShare({...tokenDefaults,country:'France',operation:'Stored Matchup'},tokenDefaults,{gameVersion:'1.19.3'});
+store.set('hoi4-war-planner-saved-matchups-v1',JSON.stringify([{id:'seeded',name:'Seeded Matchup',token:seededToken,gameVersion:'1.19.3',createdAt:'2026-09-16T12:00:00.000Z',updatedAt:'2026-09-16T12:00:00.000Z'}]));
 store.set('hoi4-war-planner-v7',JSON.stringify({operation:'Local Active',country:'Germany',lastBattle:{winRate:99},attackerDivisions:1,defenderDivisions:1,labDemandCount:1,production:{days:1,factories:1},battlefield:{runs:50,seed:1944}}));
 
 await import('../src/main.js?scenario-library-bootstrap=1');
@@ -41,7 +41,7 @@ assert.equal(library.length,2,'saving current matchup should add a second named 
 const fresh=library.find(x=>x.name==='Fresh Local Matchup');
 assert.ok(fresh,'new saved matchup name should be normalized');
 const freshPayload=decodeScenarioShare(fresh.token);
-assert.equal(freshPayload.gameVersion,'1.19.2');
+assert.equal(freshPayload.gameVersion,'1.19.3');
 assert.equal(freshPayload.state.lastBattle,undefined,'saved matchup tokens must not contain cached battle results');
 assert.equal(freshPayload.state.dataPack,undefined,'saved matchup tokens must not contain a data pack');
 

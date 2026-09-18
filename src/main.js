@@ -6,11 +6,11 @@ import { hydrateGameData, importedRegimentalSupportIds, prerequisiteText } from 
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
-import { applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1192.js';
+import { applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, AIR_SLOT_MODULES, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus, airDesignOptions, airSlotLabel } from './air.js';
-import BUILTIN_1192 from './builtin1192.js';
+import BUILTIN_1193 from './builtin1193.js';
 import { renderGauntlet } from './gauntlet-ui.js';
 import { buildScenarioShareUrl, decodeScenarioShare, encodeScenarioShare, materializeScenarioShare } from './scenario-share.js';
 import { MAX_SAVED_MATCHUPS, MAX_SAVED_MATCHUP_NAME, normalizeSavedMatchups, removeSavedMatchup, savedMatchupById, upsertSavedMatchup } from './scenario-library.js';
@@ -86,7 +86,7 @@ function load(){
   return loadLocalState();
 }
 let state=load();
-if(!state.dataPack)state.dataPack=BUILTIN_1192;
+if(!state.dataPack)state.dataPack=BUILTIN_1193;
 const LEGACY_REGIMENTAL_SUPPORTS=['regimental_infantry_guns','regimental_at','regimental_aa'];
 const runtimeGameDataStatus=state.dataPack?hydrateGameData(state.dataPack,{battalions,supports,equipment,terrain},{year:state.dataSnapshotYear}):{equipment:0,battalions:0,supports:0,regimentalSupports:0,terrain:0};
 const runtimeTankDataStatus=state.dataPack?configureTankDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
@@ -820,7 +820,7 @@ function loadNamedSavedMatchup(id){
   try{
     const payload=decodeScenarioShare(entry.token);
     if(payload.gameVersion!==MODEL_META.gameVersion)throw new Error(`This saved matchup targets HOI4 ${payload.gameVersion}.`);
-    state=materializeScenarioShare(scenarioShareBaseline(),payload);state.dataPack=BUILTIN_1192;state.schema=defaults.schema;
+    state=materializeScenarioShare(scenarioShareBaseline(),payload);state.dataPack=BUILTIN_1193;state.schema=defaults.schema;
     ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();
     if(save()){location.hash='#battle';location.reload();}
   }catch(error){alert(error?.message||String(error));}

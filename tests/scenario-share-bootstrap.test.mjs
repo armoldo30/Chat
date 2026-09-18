@@ -16,7 +16,7 @@ const base64url=text=>{
   const bytes=new TextEncoder().encode(text);let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);
   return btoa(binary).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
 };
-const token=base64url(JSON.stringify({version:1,gameVersion:'1.19.2',schema:7,state:{country:'France',operation:'Shared Matchup',attackerDivisions:1,defenderDivisions:1,labDemandCount:1,production:{days:1,factories:1},battlefield:{runs:50,seed:1944},dataPack:{malicious:true},lastBattle:{winRate:100}}}));
+const token=base64url(JSON.stringify({version:1,gameVersion:'1.19.3',schema:7,state:{country:'France',operation:'Shared Matchup',attackerDivisions:1,defenderDivisions:1,labDemandCount:1,production:{days:1,factories:1},battlefield:{runs:50,seed:1944},dataPack:{malicious:true},lastBattle:{winRate:100}}}));
 const href=`https://hoioracle.com/?utm_source=share-test&scenario=${token}#scenario`;
 globalThis.location={href,search:`?utm_source=share-test&scenario=${token}`,hash:'#scenario',reload(){}};
 let replaced='';

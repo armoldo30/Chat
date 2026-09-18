@@ -27,7 +27,16 @@ country_event = {
                 }
 
                 clr_country_flag = oracle_o2_running
-                remove_dynamic_modifier = oracle_o2_defended_attack_amplifier
+                if = {
+                            limit = {
+                                has_dynamic_modifier = {
+                                    modifier = oracle_o2_defended_attack_amplifier
+                                }
+                            }
+                            remove_dynamic_modifier = {
+                                modifier = oracle_o2_defended_attack_amplifier
+                            }
+                        }
                 force_update_dynamic_modifier = yes
                 clr_country_flag = oracle_o2_prepared
                 log = "WPO2 END hour=[?oracle_o2_hour] reason=trial6-complete amplifierRemoved=yes"

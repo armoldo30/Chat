@@ -3,6 +3,28 @@ import {simulateOnce} from '../src/engine.js';
 import {terrain} from '../src/data.js';
 
 const DEFAULT_EXECUTABLE='oracle-lab/captures/o1-base-neutral-tactics-batch-10-summary.json';
+const DEFAULT_RUNS=100000;
+const runsFromEnv=Number(process.env.ORACLE_COMPARE_RUNS);
+const PLANNER_RUNS=Number.isFinite(runsFromEnv)&&runsFromEnv>=100?Math.floor(runsFromEnv):DEFAULT_RUNS;
+
+// Controlled O1 facts recovered from the executable setup/history. These are not
+// a reconstruction of HOI4 modifier ordering. The effective combat-panel values
+// below remain the stronger input for the hit/damage resolver.
+const O1_CONTROLLED=Object.freeze({
+  sharedBaseSoftAttack:54,
+  sharedExperienceAttackFactor:0.25,
+  vanillaBasicTacticFactor:0.05,
+  displayed:Object.freeze({
+    attackerSoftAttack:75,
+    defenderSoftAttack:73,
+    attackerBreakthrough:35,
+    defenderDefense:255
+  }),
+  // The handoff records the combat-panel numbers as approximate integer values.
+  // +/-1 is therefore a deliberately conservative sensitivity width, not a claim
+  // about HOI4 UI rounding semantics and not an executable confidence interval.
+  displayedSensitivityHalfWidth:1
+});
 
 function seededRng(seed=0x193){
   let a=seed>>>0;
@@ -13,13 +35,26 @@ function seededRng(seed=0x193){
     return ((t^t>>>14)>>>0)/4294967296;
   };
 }
+function quantile(sorted,p){
+  if(!sorted.length)return 0;
+  const x=(sorted.length-1)*p;
+  const lo=Math.floor(x),hi=Math.ceil(x);
+  if(lo===hi)return sorted[lo];
+  return sorted[lo]+(sorted[hi]-sorted[lo])*(x-lo);
+}
 function stats(xs){
   const n=xs.length,mean=xs.reduce((a,b)=>a+b,0)/n;
   const sd=n>1?Math.sqrt(xs.reduce((s,x)=>s+(x-mean)**2,0)/(n-1)):0;
-  return {n,mean,sd,min:Math.min(...xs),max:Math.max(...xs)};
+  const sorted=[...xs].sort((a,b)=>a-b);
+  return {
+    n,mean,sd,min:sorted[0],max:sorted[sorted.length-1],
+    q05:quantile(sorted,.05),q25:quantile(sorted,.25),median:quantile(sorted,.5),
+    q75:quantile(sorted,.75),q95:quantile(sorted,.95),
+    zeroLossProbability:xs.filter(x=>Math.abs(x)<1e-12).length/n
+  };
 }
 function t95(mean,sd,n){
-  // t(0.975,9)=2.262; sufficient for the fixed n=10 executable preliminary batch.
+  // t(0.975,9)=2.262 for the fixed n=10 executable preliminary batch.
   const t=n===10?2.262:1.96;
   const h=t*sd/Math.sqrt(n);
   return [mean-h,mean+h];
@@ -32,14 +67,36 @@ function side(){
     terrainAttack:{},terrainDefense:{},need:{}
   };
 }
+function displayRange(value){
+  const u=O1_CONTROLLED.displayedSensitivityHalfWidth;
+  return [value-u,value+u];
+}
+function removeBasicTactic(range){
+  const f=1+O1_CONTROLLED.vanillaBasicTacticFactor;
+  return [range[0]/f,range[1]/f];
+}
+function midpoint([lo,hi]){return (lo+hi)/2;}
+function residualRange(effectiveRange){
+  const afterExperience=O1_CONTROLLED.sharedBaseSoftAttack*(1+O1_CONTROLLED.sharedExperienceAttackFactor);
+  return effectiveRange.map(x=>x/afterExperience);
+}
 
-async function plannerSample({runs=100000,delayHours=1,seed=0x1193}={}){
-  // The pre-neutralization combat screenshot showed Basic Attack/Basic Defend at
-  // displayed soft attack 75 / 73. Those vanilla basic tactics are +5% tactic
-  // damage; the O1-base mod neutralizes them. Integer UI display adds small
-  // rounding uncertainty, handled separately in the report.
-  const a={...side(),soft:75/1.05,breakthrough:35,def:0};
-  const d={...side(),soft:73/1.05,def:255,breakthrough:0};
+const ranges=Object.freeze({
+  attackerSoftAttack:removeBasicTactic(displayRange(O1_CONTROLLED.displayed.attackerSoftAttack)),
+  defenderSoftAttack:removeBasicTactic(displayRange(O1_CONTROLLED.displayed.defenderSoftAttack)),
+  attackerBreakthrough:displayRange(O1_CONTROLLED.displayed.attackerBreakthrough),
+  defenderDefense:displayRange(O1_CONTROLLED.displayed.defenderDefense)
+});
+
+function plannerSample({
+  runs=PLANNER_RUNS,delayHours=1,seed=0x1193,
+  attackerSoft=midpoint(ranges.attackerSoftAttack),
+  defenderSoft=midpoint(ranges.defenderSoftAttack),
+  attackerBreakthrough=midpoint(ranges.attackerBreakthrough),
+  defenderDefense=midpoint(ranges.defenderDefense)
+}={}){
+  const a={...side(),soft:attackerSoft,breakthrough:attackerBreakthrough,def:0};
+  const d={...side(),soft:defenderSoft,def:defenderDefense,breakthrough:0};
   const opts={
     terrain:'plains',terrainData:terrain,directions:0,
     entrench:0,fort:0,river:0,asupply:1,dsupply:1,
@@ -52,7 +109,11 @@ async function plannerSample({runs=100000,delayHours=1,seed=0x1193}={}){
     aStr.push(r.attackerCasualtyRate*100);
     dStr.push(r.defenderCasualtyRate*100);
   }
-  return {attackerStrengthLoss:stats(aStr),defenderStrengthLoss:stats(dStr)};
+  return {
+    inputs:{attackerSoft,defenderSoft,attackerBreakthrough,defenderDefense},
+    attackerStrengthLoss:stats(aStr),
+    defenderStrengthLoss:stats(dStr)
+  };
 }
 
 const input=process.argv[2]||DEFAULT_EXECUTABLE;
@@ -66,53 +127,121 @@ const exec={
 exec.attackerStrengthLoss.ci95Mean=t95(exec.attackerStrengthLoss.mean,exec.attackerStrengthLoss.sd,exec.attackerStrengthLoss.n);
 exec.defenderStrengthLoss.ci95Mean=t95(exec.defenderStrengthLoss.mean,exec.defenderStrengthLoss.sd,exec.defenderStrengthLoss.n);
 
-const [legacy,delayed]=await Promise.all([
-  plannerSample({delayHours:0,seed:0x119300}),
-  plannerSample({delayHours:1,seed:0x119301})
+const midpointInputs={
+  attackerSoft:midpoint(ranges.attackerSoftAttack),
+  defenderSoft:midpoint(ranges.defenderSoftAttack),
+  attackerBreakthrough:midpoint(ranges.attackerBreakthrough),
+  defenderDefense:midpoint(ranges.defenderDefense)
+};
+const lowDamageInputs={
+  attackerSoft:ranges.attackerSoftAttack[0],
+  defenderSoft:ranges.defenderSoftAttack[0],
+  attackerBreakthrough:ranges.attackerBreakthrough[1],
+  defenderDefense:ranges.defenderDefense[1]
+};
+const highDamageInputs={
+  attackerSoft:ranges.attackerSoftAttack[1],
+  defenderSoft:ranges.defenderSoftAttack[1],
+  attackerBreakthrough:ranges.attackerBreakthrough[0],
+  defenderDefense:ranges.defenderDefense[0]
+};
+
+const [legacyMidpoint,delayedLow,delayedMidpoint,delayedHigh]=await Promise.all([
+  plannerSample({...midpointInputs,delayHours:0,seed:0x119300}),
+  plannerSample({...lowDamageInputs,delayHours:1,seed:0x119301}),
+  plannerSample({...midpointInputs,delayHours:1,seed:0x119302}),
+  plannerSample({...highDamageInputs,delayHours:1,seed:0x119303})
 ]);
 
-function assessment(planner,observed){
-  const [lo,hi]=observed.ci95Mean;
+function meanEnvelope(low,mid,high,key){
+  const means=[low[key].mean,mid[key].mean,high[key].mean];
+  return {min:Math.min(...means),midpoint:mid[key].mean,max:Math.max(...means)};
+}
+function descriptiveComparison(envelope,observed){
   return {
-    plannerMean:planner.mean,
+    plannerMeanSensitivity:envelope,
     executableMean:observed.mean,
-    delta:planner.mean-observed.mean,
-    insideExecutableMeanCI:planner.mean>=lo&&planner.mean<=hi
+    executableMeanCi95Exploratory:observed.ci95Mean,
+    observedMeanInsidePlannerSensitivityEnvelope:
+      observed.mean>=envelope.min&&observed.mean<=envelope.max,
+    note:'Descriptive only. Envelope overlap or CI overlap is not an Oracle validation criterion.'
   };
 }
 
+const attackerMeanEnvelope=meanEnvelope(delayedLow,delayedMidpoint,delayedHigh,'attackerStrengthLoss');
+const defenderMeanEnvelope=meanEnvelope(delayedLow,delayedMidpoint,delayedHigh,'defenderStrengthLoss');
+const afterExperience=O1_CONTROLLED.sharedBaseSoftAttack*(1+O1_CONTROLLED.sharedExperienceAttackFactor);
+
 const report={
-  schemaVersion:1,
+  schemaVersion:2,
   scenario:'o1-base-neutral-tactics-v1',
-  evidenceBoundary:'strength-only preliminary comparison; organization deferred until exact doctrine/org state is extracted',
+  evidenceBoundary:'strength-only exploratory distribution comparison; organization remains deferred until final executable organization/doctrine state is exact',
+  evidenceStatus:'unvalidated',
+  plannerRunsPerSensitivityPoint:PLANNER_RUNS,
   executable,
   plannerInputs:{
-    template:'9 infantry, no support',
-    width:18,
-    hp:225,
-    attackerSoftAttackApprox:75/1.05,
-    defenderSoftAttackApprox:73/1.05,
-    attackerBreakthroughDisplayed:35,
-    defenderDefenseDisplayed:255,
-    targetHardness:0,
-    daylight:true,
-    supply:1,
-    planning:0,
-    entrenchment:0,
-    commanders:'none',
-    note:'Soft-attack inputs are derived from the pre-neutralization combat UI after removing Basic Attack/Basic Defend +5% tactic damage; integer UI rounding remains bounded uncertainty.'
-  },
-  currentPlannerNoStartupDelay:legacy,
-  oraclePatchedOneHourDelay:delayed,
-  assessment:{
-    noDelay:{
-      attackerStrengthLoss:assessment(legacy.attackerStrengthLoss,exec.attackerStrengthLoss),
-      defenderStrengthLoss:assessment(legacy.defenderStrengthLoss,exec.defenderStrengthLoss)
+    exactControlled:{
+      template:'9 infantry, no support',
+      width:18,
+      hp:225,
+      manpower:9000,
+      sharedBaseSoftAttack:O1_CONTROLLED.sharedBaseSoftAttack,
+      sharedExperienceAttackFactor:O1_CONTROLLED.sharedExperienceAttackFactor,
+      sharedSoftAttackAfterExperience:afterExperience,
+      targetHardness:0,
+      daylight:true,
+      supply:1,
+      planning:0,
+      entrenchment:0,
+      commanders:'none',
+      evidenceClass:'mixed game-file exact / controlled executable setup evidence'
     },
-    oneHourDelay:{
-      attackerStrengthLoss:assessment(delayed.attackerStrengthLoss,exec.attackerStrengthLoss),
-      defenderStrengthLoss:assessment(delayed.defenderStrengthLoss,exec.defenderStrengthLoss)
+    uiDerivedSensitivity:{
+      vanillaBasicTacticFactorRemoved:O1_CONTROLLED.vanillaBasicTacticFactor,
+      displayedSensitivityHalfWidth:O1_CONTROLLED.displayedSensitivityHalfWidth,
+      attackerSoftAttackNeutralRange:ranges.attackerSoftAttack,
+      defenderSoftAttackNeutralRange:ranges.defenderSoftAttack,
+      attackerBreakthroughRange:ranges.attackerBreakthrough,
+      defenderDefenseRange:ranges.defenderDefense,
+      attackerResidualEffectiveMultiplierRange:residualRange(ranges.attackerSoftAttack),
+      defenderResidualEffectiveMultiplierRange:residualRange(ranges.defenderSoftAttack),
+      evidenceClass:'planner analytical sensitivity around approximate executable UI observations',
+      note:'The +/-1 display envelope is intentionally conservative because the retained evidence records these UI values as approximate integers. It is not a claim about HOI4 UI rounding. Soft attack removes the known vanilla Basic tactic +5% before comparison; exact country/doctrine modifier ordering remains unvalidated.'
     }
-  }
+  },
+  hitRegimeAcrossSensitivity:{
+    attackerIntoDefender:{
+      allAttackPointsRemainDefended:ranges.attackerSoftAttack[1]<ranges.defenderDefense[0],
+      maximumNeutralAttack:ranges.attackerSoftAttack[1],
+      minimumDefenderDefense:ranges.defenderDefense[0]
+    },
+    defenderIntoAttacker:{
+      undefendedAttackPointsRemainPossible:ranges.defenderSoftAttack[0]>ranges.attackerBreakthrough[1],
+      minimumNeutralAttack:ranges.defenderSoftAttack[0],
+      maximumAttackerBreakthrough:ranges.attackerBreakthrough[1]
+    },
+    note:'This is a threshold-regime check only; it does not validate combat-point scale, stochastic rounding, or hit probability.'
+  },
+  historicalNoStartupDelayMidpoint:legacyMidpoint,
+  oraclePatchedOneHourDelay:{
+    lowDamage:delayedLow,
+    midpoint:delayedMidpoint,
+    highDamage:delayedHigh,
+    meanSensitivity:{
+      attackerStrengthLoss:attackerMeanEnvelope,
+      defenderStrengthLoss:defenderMeanEnvelope
+    }
+  },
+  descriptiveComparison:{
+    attackerStrengthLoss:descriptiveComparison(attackerMeanEnvelope,exec.attackerStrengthLoss),
+    defenderStrengthLoss:descriptiveComparison(defenderMeanEnvelope,exec.defenderStrengthLoss)
+  },
+  limitations:[
+    'n=10 executable runs is preliminary and too small for strong equivalence claims',
+    'effective attack/defense/breakthrough are still bounded from retained UI evidence rather than directly logged under the neutral harness',
+    'organization comparison remains deferred',
+    'combat-point scale, hit-roll distribution, damage dice, RNG ordering, and modifier ordering remain unvalidated',
+    'no overlap result in this report is a pass/fail Oracle promotion criterion'
+  ]
 };
 process.stdout.write(JSON.stringify(report,null,2)+'\n');

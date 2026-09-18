@@ -352,7 +352,7 @@ The binary save also exposes identifiers for active country ideas/dynamic modifi
 Evidence boundary:
 
 - exact template/static totals: `game-file exact`
-- controlled base Soft Attack / matched experience: controlled executable setup evidence
+- controlled base Soft Attack / matched experience: `executable inferred` (controlled setup observation)
 - raw binary dynamic-variable probing: `executable inferred` diagnostic only
 - final effective attack/defense/breakthrough/org and modifier ordering: `unvalidated`
 

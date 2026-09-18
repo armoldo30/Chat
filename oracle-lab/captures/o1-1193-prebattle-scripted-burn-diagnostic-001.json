@@ -1,0 +1,39 @@
+{
+  "sourceFile": "game(20260918-123156).log",
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-land-baseline-v1"
+  },
+  "runs": [
+    {
+      "preBurn": 64,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "attackerH6": {"org": 98.073, "strength": 99.587},
+      "defenderH6": {"org": 99.074, "strength": 99.8985},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.9235,
+        "attackerStrength": 0.4095,
+        "defenderOrg": 0.9225,
+        "defenderStrength": 0.098
+      }
+    },
+    {
+      "preBurn": 128,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "attackerH6": {"org": 98.073, "strength": 99.587},
+      "defenderH6": {"org": 99.074, "strength": 99.8985},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.9235,
+        "attackerStrength": 0.4095,
+        "defenderOrg": 0.9225,
+        "defenderStrength": 0.098
+      }
+    }
+  ],
+  "exactTraceDuplicate": true,
+  "classification": "prebattle-scripted-rng-burn-failed",
+  "statisticalUse": "rejected",
+  "reason": "The 64- and 128-draw scripted random_list burns were performed before the trial6 capture and produced exact duplicate combat traces. Scripted random_list consumption is therefore not a useful way to decorrelate the O1 combat RNG for this scenario.",
+  "nextDiagnostic": "Use the HOI4 built-in random_seed console command before issuing the attack, then run d_oracle_o1_trial6. Repeat from the same clean save after reloading and run random_seed again. If the traces differ, use random_seed per trial for the preliminary stochastic sample."
+}

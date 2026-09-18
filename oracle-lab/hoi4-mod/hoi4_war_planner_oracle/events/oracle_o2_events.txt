@@ -1,0 +1,37 @@
+add_namespace = oracle_o2
+
+# Hidden sampler for d_oracle_o2_trial12.
+# Twelve copies are queued up front at delays 1..12 hours. Do not recursively
+# reschedule: that pattern caused same-tick scheduler collapse during early O1 work.
+country_event = {
+    id = oracle_o2.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o2_running }
+
+            add_to_variable = { oracle_o2_hour = 1 }
+            oracle_o2_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o2_hour
+                            value = 12
+                            compare = less_than
+                        }
+                    }
+                }
+
+                clr_country_flag = oracle_o2_running
+                remove_dynamic_modifier = oracle_o2_defended_attack_amplifier
+                force_update_dynamic_modifier = yes
+                clr_country_flag = oracle_o2_prepared
+                log = "WPO2 END hour=[?oracle_o2_hour] reason=trial12-complete amplifierRemoved=yes"
+            }
+        }
+    }
+}

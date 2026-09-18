@@ -120,6 +120,7 @@ export function oracleCaptureFromRun(run){
       source:'HOI4 game.log WPO1',
       runMode:run.begin.runMode||null,
       rngBurn:finiteToken(run.begin.rngBurn),
+      preBurn:finiteToken(run.begin.preBurn),
     },
     samples,
   };

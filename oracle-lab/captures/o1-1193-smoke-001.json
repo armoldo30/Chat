@@ -29,23 +29,103 @@
       "notes": "Screenshot confirms a 1v1 Plains battle with no commanders, 18 displayed width on each side, and zero reserves. This smoke capture validates 1.19.3 instrumentation and scheduler behavior only; template identity and planner parity are not promoted from the screenshot alone."
     },
     "evidenceStatus": "unvalidated",
-    "evidenceNote": "1.19.3 executable smoke passed: trial6 produced sequential h0-h6 samples with exactly one attacker and one defender and auto-ended at h6. Statistical combat parity requires repeated trials and planner distribution comparison."
+    "evidenceNote": "1.19.3 executable instrumentation/scheduler smoke passed: sequential h0-h6 samples, exactly one attacker and one defender, and automatic h6 stop. The combat trace is rejected for distribution work because the intended daylight control was not satisfied.",
+    "combatDistributionUse": "rejected",
+    "combatDistributionRejectionReason": "The log starts the trial at 1936.01.10.17 and h6 occurs at 23:00, so the intended daylight control is not satisfied. The screenshot also shows attack values around 37/36, roughly half the historical daylight reference 75/73 and consistent with night contamination. Retain this run only as an instrumentation/scheduler smoke."
   },
   "samples": [
-    {"hour":0,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
-    {"hour":1,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
-    {"hour":2,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
-    {"hour":3,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
-    {"hour":4,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.813,"strength":99.941}},
-    {"hour":5,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.813,"strength":99.941}},
-    {"hour":6,"attacker":{"org":99.678,"strength":99.972},"defender":{"org":99.44,"strength":99.886}}
+    {
+      "hour": 0,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.9965,
+        "strength": 99.9965
+      }
+    },
+    {
+      "hour": 1,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.9965,
+        "strength": 99.9965
+      }
+    },
+    {
+      "hour": 2,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.9965,
+        "strength": 99.9965
+      }
+    },
+    {
+      "hour": 3,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.9965,
+        "strength": 99.9965
+      }
+    },
+    {
+      "hour": 4,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.813,
+        "strength": 99.941
+      }
+    },
+    {
+      "hour": 5,
+      "attacker": {
+        "org": 99.9965,
+        "strength": 99.9965
+      },
+      "defender": {
+        "org": 99.813,
+        "strength": 99.941
+      }
+    },
+    {
+      "hour": 6,
+      "attacker": {
+        "org": 99.678,
+        "strength": 99.972
+      },
+      "defender": {
+        "org": 99.44,
+        "strength": 99.886
+      }
+    }
   ],
   "smokeSummary": {
     "attackerOrgLossH0H6": 0.3185,
     "attackerStrengthLossH0H6": 0.0245,
     "defenderOrgLossH0H6": 0.5565,
     "defenderStrengthLossH0H6": 0.1105,
-    "sampleHours": [0,1,2,3,4,5,6],
+    "sampleHours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
     "schedulerStatus": "pass",
     "instrumentationStatus": "pass"
   }

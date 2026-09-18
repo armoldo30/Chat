@@ -66,11 +66,15 @@ The first `d_oracle_o1_trial6` executable run on 1.19.3.0.c01a / checksum 5632 p
 - exactly one GER attacker and one POL defender at every sample
 - automatic `END hour=6 reason=trial6-complete`
 
-The capture is stored as `oracle-lab/captures/o1-1193-smoke-001.json`. It remains `unvalidated` for combat parity because one stochastic trace is not enough.
+The capture is stored as `oracle-lab/captures/o1-1193-smoke-001.json`. It remains `unvalidated` for combat parity. The run began at 17:00 and ended at 23:00, so it is retained only as an instrumentation/scheduler smoke and is rejected from the combat distribution because the daylight control was not satisfied.
+
+## Daylight replacement smoke
+
+Before the 10-run batch, repeat the six-hour helper once with the battle beginning in daylight. Prefer a start near 09:00 so h0 through h6 stay clear of the Night modifier. The same mod package and `d_oracle_o1_trial6` command are used.
 
 ## Preliminary 10-run batch
 
-Reload the same clean pre-battle save before every trial. For each trial: pause, issue the same GER attack, run `d_oracle_o1_trial6`, unpause through hour 6, then reload the clean save. Ten complete trials may remain in one `game.log`.
+After the daylight replacement smoke passes, reload the same clean pre-battle save before every trial. For each trial: pause, issue the same GER attack, run `d_oracle_o1_trial6`, unpause through hour 6, then reload the clean save. Ten complete trials may remain in one `game.log`.
 
 Analyze the combined log with:
 

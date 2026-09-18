@@ -305,6 +305,79 @@ Evidence remains `unvalidated`. Ten trials are sufficient for the first planner-
 
 The next Oracle step is to compare this executable distribution against the planner's tactic-free base hit/damage resolver using the controlled O1 inputs. The historical O1 notes specify a 9-infantry, no-support, 18-width setup with 100% supply, 0 planning, 0 entrenchment, no commanders, Plains, and matched +25% experience. Where the executable UI provides effective combat stats, those values should be preferred over reconstructing hidden modifier ordering.
 
+### Exact baseline save extraction
+
+The controlled pre-battle save `perfect baseline ready.hoi4` was inspected directly.
+
+Save provenance:
+
+- SHA-256: `bb26ede3a83c8fd25e1d108f074444424dff92e82f58bfa3581ce1f545c09711`
+- binary encoding: `HOI4bin`
+- save format version: 33
+- version string: `Operation Postern v1.19.3.0.c01a (5387)`
+- player: GER
+- Oracle mod present: `HOI4 War Planner Oracle 1.19.3`
+
+Checksum provenance is now explicit: `5387` is the checksum embedded in this Oracle-modded save, while `5632` is the clean 1.19.3 base-game reference checksum. Existing WPO1 captures that say `checksum=5632` are therefore interpreted as **base-game reference checksum**, not the modded runtime checksum. Future Oracle BEGIN markers include `checksumScope=base-game-reference`.
+
+Exact saved templates:
+
+- GER `Infanterie-Division` / `GER_Inf_01`: 9 infantry battalions, no support companies
+- POL `Dywizja Piechoty` / `POL_INF_01`: 9 infantry battalions, no support companies
+
+Using the supplied 1.19.3 infantry unit source, both templates are source-exact at the static composition boundary:
+
+- width: 18
+- HP: 225
+- manpower: 9,000
+- raw infantry battalion organization: 60
+- supply use: 0.54
+- infantry equipment requirement: 900
+
+The extracted save facts are stored in `oracle-lab/captures/o1-baseline-save-1193-summary.json`. Dynamic combat stats and modifier ordering are not inferred merely from template composition.
+
+### O1 combat-entry timing — ORACLE-VALIDATED at the controlled boundary
+
+Across all currently usable O1 captures, **35 of 35** controlled runs show exactly zero organization and strength change from h0 to h1:
+
+- 25 runs with vanilla tactic behavior
+- 10 runs with neutralized Basic Attack / Basic Defend behavior
+
+Damage is observed in the following interval in the large majority of runs. This is a deterministic structural pattern across both tactic modes, not a stochastic mean effect.
+
+The pre-Oracle planner applied a fire/damage round immediately in its first simulated hour, so its h0→h6 window contained six firing opportunities. The executable evidence shows the controlled O1 h0→h6 window has a one-hour startup interval with no damage, leaving five firing opportunities.
+
+The narrow timing conclusion is classified **`oracle-validated`**:
+
+`initialFireDelayHours = 1`
+
+This classification applies only to the controlled O1 combat-entry timing boundary. Hit probability, combat-point scaling, organization/strength dice, modifier ordering, and broader combat scenarios remain `unvalidated`.
+
+The Oracle validation branch now sources this value from `src/builtin1193/oracle-combat-certification-1193.js` and the planner simulator skips damage during the initial hour. Production `main` is unchanged.
+
+### Preliminary strength-loss comparison after the timing correction
+
+Using the exact 9-infantry/no-support templates and the controlled battle conditions, plus the observed combat-panel values to bound effective attack/defense inputs, the current planner model was compared against the 10-run neutral-tactic executable sample.
+
+Before the timing correction (six planner fire rounds over h0→h6), preliminary planner means were approximately:
+
+- GER strength loss: 0.416 pp
+- POL strength loss: 0.171 pp
+
+The executable neutral-tactic means are:
+
+- GER strength loss: 0.3059 pp
+- POL strength loss: 0.1029 pp
+
+After applying the one-hour startup delay (five planner fire rounds), preliminary planner means become approximately:
+
+- GER strength loss: 0.346 pp
+- POL strength loss: 0.143 pp
+
+At the current n=10 executable sample size, both corrected planner means fall inside the corresponding preliminary executable mean intervals, whereas the six-round values do not. This is evidence that the startup timing mismatch was a material source of the original divergence.
+
+This is **not** yet promotion of the remaining base damage formulas. Exact dynamic combat inputs still need to be bounded more tightly, and the executable sample remains small.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

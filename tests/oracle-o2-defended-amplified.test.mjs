@@ -20,22 +20,22 @@ assert.match(effects,/add_dynamic_modifier\s*=\s*\{[\s\S]*?modifier\s*=\s*oracle
 assert.match(effects,/force_update_dynamic_modifier\s*=\s*yes/);
 assert.match(effects,/d_oracle_o2_clear\s*=\s*\{/);
 assert.match(effects,/remove_dynamic_modifier\s*=\s*oracle_o2_defended_attack_amplifier/);
-assert.match(effects,/d_oracle_o2_trial12\s*=\s*\{/);
+assert.match(effects,/d_oracle_o2_trial6\s*=\s*\{/);
 assert.match(effects,/scenario=o2-defended-amplified-v1/);
-assert.match(effects,/runMode=trial12/);
+assert.match(effects,/runMode=trial6/);
 assert.match(effects,/tacticMode=neutral-basic-only/);
 assert.match(effects,/amplifier=army_infantry_attack_factor:\+2\.0/);
 assert.match(effects,/expectedRegime=GER-attack-below-POL-defense/);
 
 const queued=[...effects.matchAll(/country_event = \{ id = oracle_o2\.1 hours = (\d+) \}/g)].map(m=>Number(m[1]));
-assert.deepEqual(queued,[1,2,3,4,5,6,7,8,9,10,11,12]);
-assert.equal(new Set(queued).size,12);
+assert.deepEqual(queued,[1,2,3,4,5,6]);
+assert.equal(new Set(queued).size,6);
 
 assert.match(events,/add_namespace = oracle_o2/);
 assert.match(events,/id = oracle_o2\.1/);
 assert.match(events,/oracle_o2_capture_sample = yes/);
-assert.match(events,/value = 12/);
-assert.match(events,/reason=trial12-complete/);
+assert.match(events,/value = 6/);
+assert.match(events,/reason=trial6-complete/);
 assert.match(events,/amplifierRemoved=yes/);
 assert.match(events,/remove_dynamic_modifier = oracle_o2_defended_attack_amplifier/);
 assert.doesNotMatch(events,/country_event\s*=\s*\{\s*id\s*=\s*oracle_o2\.1\s+hours\s*=\s*\d+/s);

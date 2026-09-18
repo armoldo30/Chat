@@ -1,7 +1,7 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { AD_CONFIG, validAdSenseClient } from '../src/ad-config.js';
-import BUILTIN_1192 from '../src/builtin1192.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
 import { applyPerformancePatch } from './performance-patch-v2.mjs';
 import { materializedRuntimePackModule, rewriteMainForMaterializedPack } from './materialize-runtime-pack.mjs';
 
@@ -53,8 +53,8 @@ for(const file of publicHtmlFiles){
 }
 
 const mainPath=resolve(dist,'src','main.js');
-const runtimePackPath=resolve(dist,'src','builtin1192-runtime.js');
-const runtimePackModule=materializedRuntimePackModule(BUILTIN_1192);
+const runtimePackPath=resolve(dist,'src','builtin1193-runtime.js');
+const runtimePackModule=materializedRuntimePackModule(BUILTIN_1193);
 await writeFile(runtimePackPath,runtimePackModule);
 const runtimeMain=rewriteMainForMaterializedPack(await readFile(mainPath,'utf8'));
 await writeFile(mainPath,applyPerformancePatch(runtimeMain));
@@ -108,7 +108,7 @@ for(const file of publicHtmlFiles){
   const page=await readFile(resolve(dist,file),'utf8');
   if(!page.includes(GOOGLE_ANALYTICS_ID))throw new Error(`Google Analytics missing from ${file}`);
 }
-if(!builtMain.includes(`./builtin1192-runtime.js?v=${buildToken}`))throw new Error('Build did not route main.js through the materialized 1.19.2 runtime pack');
-if(builtMain.includes("./builtin1192.js"))throw new Error('Build still references the source-time 1.19.2 reconstruction module');
+if(!builtMain.includes(`./builtin1193-runtime.js?v=${buildToken}`))throw new Error('Build did not route main.js through the materialized 1.19.3 runtime pack');
+if(builtMain.includes("./builtin1193.js"))throw new Error('Build still references the source-time 1.19.3 reconstruction module');
 if(builtRuntimePack.includes('builtin1192raw/')||builtRuntimePack.includes('JSON.parse(text)'))throw new Error('Materialized runtime pack unexpectedly contains the raw reconstruction path');
-console.log(`Built static site in dist/ with asset token ${buildToken}; materialized 1.19.2 runtime pack ${Buffer.byteLength(runtimePackModule)} bytes; GA4 ${GOOGLE_ANALYTICS_ID} installed on ${publicHtmlFiles.length} pages.`);
+console.log(`Built static site in dist/ with asset token ${buildToken}; materialized 1.19.3 runtime pack ${Buffer.byteLength(runtimePackModule)} bytes; GA4 ${GOOGLE_ANALYTICS_ID} installed on ${publicHtmlFiles.length} pages.`);

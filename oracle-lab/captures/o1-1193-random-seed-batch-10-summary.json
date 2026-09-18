@@ -1,0 +1,34 @@
+{
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-land-baseline-v1"
+  },
+  "method": "built-in random_seed immediately before each attack",
+  "startGameTime": "1936.02.08.11",
+  "endGameTime": "1936.02.08.17",
+  "acceptedRuns": 10,
+  "uniqueTraceCount": 10,
+  "tacticsControlled": false,
+  "classification": "vanilla-stochastic-envelope",
+  "plannerParityUse": "not-yet-eligible",
+  "reason": "The executable batch intentionally randomizes the game seed, which also permits vanilla combat tactic selection to vary. The current planner preserves tactic source data but does not execute tactic selection/counter/effect resolution. Therefore this batch is valid evidence for the executable's total vanilla stochastic envelope but cannot by itself certify the planner's base combat formulas.",
+  "runs": [
+    {"run":1,"source":"game(20260918-124219).log","attackerOrgLoss":1.6735,"attackerStrengthLoss":0.3005,"defenderOrgLoss":1.5325,"defenderStrengthLoss":0.2265},
+    {"run":2,"source":"game(20260918-124219).log","attackerOrgLoss":1.7590,"attackerStrengthLoss":0.3545,"defenderOrgLoss":0.9535,"defenderStrengthLoss":0.1105},
+    {"run":3,"source":"game(20260918-130025).log","attackerOrgLoss":1.5815,"attackerStrengthLoss":0.3305,"defenderOrgLoss":0.2515,"defenderStrengthLoss":0.0490},
+    {"run":4,"source":"game(20260918-130025).log","attackerOrgLoss":1.1730,"attackerStrengthLoss":0.2450,"defenderOrgLoss":1.2710,"defenderStrengthLoss":0.1655},
+    {"run":5,"source":"game(20260918-130025).log","attackerOrgLoss":1.7715,"attackerStrengthLoss":0.1895,"defenderOrgLoss":1.1915,"defenderStrengthLoss":0.2145},
+    {"run":6,"source":"game(20260918-130025).log","attackerOrgLoss":1.9175,"attackerStrengthLoss":0.4035,"defenderOrgLoss":0.6850,"defenderStrengthLoss":0.1285},
+    {"run":7,"source":"game(20260918-130025).log","attackerOrgLoss":1.4105,"attackerStrengthLoss":0.2755,"defenderOrgLoss":0.6605,"defenderStrengthLoss":0.1225},
+    {"run":8,"source":"game(20260918-130025).log","attackerOrgLoss":2.3565,"attackerStrengthLoss":0.4400,"defenderOrgLoss":0.7395,"defenderStrengthLoss":0.2205},
+    {"run":9,"source":"game(20260918-130025).log","attackerOrgLoss":2.2345,"attackerStrengthLoss":0.4035,"defenderOrgLoss":0.8675,"defenderStrengthLoss":0.1960},
+    {"run":10,"source":"game(20260918-130025).log","attackerOrgLoss":0.8985,"attackerStrengthLoss":0.2265,"defenderOrgLoss":0.9535,"defenderStrengthLoss":0.1655}
+  ],
+  "aggregate": {
+    "attackerOrgLoss": {"n":10,"mean":1.6776,"sd":0.445502,"min":0.8985,"max":2.3565,"ci95":[1.401475,1.953725]},
+    "attackerStrengthLoss": {"n":10,"mean":0.3169,"sd":0.083870,"min":0.1895,"max":0.4400,"ci95":[0.264917,0.368883]},
+    "defenderOrgLoss": {"n":10,"mean":0.9106,"sd":0.361820,"min":0.2515,"max":1.5325,"ci95":[0.686342,1.134858]},
+    "defenderStrengthLoss": {"n":10,"mean":0.1599,"sd":0.057328,"min":0.0490,"max":0.2265,"ci95":[0.124367,0.195433]}
+  }
+}

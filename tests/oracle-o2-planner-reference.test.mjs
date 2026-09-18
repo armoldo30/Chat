@@ -23,6 +23,14 @@ assert.equal(report.midpoint.defenderStrengthLoss.n,1200);
 assert.equal(report.highDamage.defenderStrengthLoss.n,1200);
 assert.ok(report.primaryMeanSensitivity.min<=report.primaryMeanSensitivity.midpoint);
 assert.ok(report.primaryMeanSensitivity.midpoint<=report.primaryMeanSensitivity.max);
+assert.equal(report.predeclaredSamplingPlan.preliminaryUniqueRuns,6);
+assert.equal(report.predeclaredSamplingPlan.confirmatoryTotalUniqueRuns,12);
+assert.ok(report.predeclaredSamplingPlan.preliminaryMeanInterval99.low<report.predeclaredSamplingPlan.preliminaryMeanInterval99.high);
+assert.ok(report.predeclaredSamplingPlan.confirmatoryMeanInterval99.low<report.predeclaredSamplingPlan.confirmatoryMeanInterval99.high);
+assert.ok(
+  report.predeclaredSamplingPlan.confirmatoryMeanInterval99.high-report.predeclaredSamplingPlan.confirmatoryMeanInterval99.low
+  < report.predeclaredSamplingPlan.preliminaryMeanInterval99.high-report.predeclaredSamplingPlan.preliminaryMeanInterval99.low
+);
 
 assert.throws(()=>buildO2Reference({
   attackerSoft:255,attackerBreakthrough:35,defenderSoft:70,defenderDefense:255,

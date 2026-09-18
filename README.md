@@ -1,13 +1,15 @@
-# HOI4 War Planner — 0.16.0
+# HOI4 War Planner — 0.17.0
 
-A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.2** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
+A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
-**Live site:** https://armoldo30.github.io/Chat/  
+**Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
 
-## 0.16.0 release focus
+## 0.17.0 release focus
 
-0.16.0 turns the certified 0.15.0 mechanics/data foundation into a launch-ready theorycrafting product. It keeps the audited 1.19.2 combat, production, technology, doctrine, MIO, tank and air data work; adds the visual/UX overhaul; and introduces **Division Gauntlet** as the headline analysis feature.
+0.17.0 migrates the certified source-data layer from HOI4 1.19.2 to **1.19.3.0.c01a (checksum 5632)** using the supplied 1.19.3 `common` and English-localisation files as the authoritative source. The migration updates changed land units, equipment, tank modules, technologies, doctrines and MIO organizations while retaining source-identical 1.19.2 records only where the 1.19.3 source audit found no relevant change.
+
+The public tools remain:
 
 **Research assumptions → Equipment design → Division design → Combat performance → Division Gauntlet → IC/supply tradeoffs**
 
@@ -19,36 +21,45 @@ Opponent families include infantry walls, artillery infantry, cheap holders, mot
 
 The report separates **Raw Combat Grade** from **Practical Division Grade** and exposes offense, defense, terrain, matchup classes, IC efficiency, supply efficiency, consistency, counter resilience, best/worst matchups and percentile. Full-pool screening uses expected combat math; extreme cases receive a second-stage seeded stochastic check.
 
-Gauntlet opponent generation and grading are **planner analytical**. Battle resolution consumes the certified bounded 1.19.2 combat engine.
+Gauntlet opponent generation and grading are **planner analytical**. The underlying bounded combat formulas remain **executable inferred from 1.19.2** until the 1.19.3 Oracle black-box suite is rerun; they are not promoted to 1.19.3 executable validation merely because the game-file constants are unchanged.
 
 ## Accuracy policy
 
 The project distinguishes:
 
-1. **Game-file exact** — values/relationships directly retained from the supplied HOI4 1.19.2 files.
-2. **Executable inferred** — behavior constrained by source evidence but not provable without engine internals.
+1. **Game-file exact** — values/relationships directly retained from the supplied HOI4 1.19.3 files.
+2. **Executable inferred** — behavior constrained by source evidence but not provable without engine internals. Existing combat/production executable inference is explicitly carried forward from 1.19.2 pending 1.19.3 Oracle validation.
 3. **Planner analytical** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
+4. **Oracle-validated / Oracle-divergent / unvalidated** — black-box executable evidence states used by the Oracle laboratory.
 
-Exact tactic/counter selection, per-division reinforcement/coordination, direct CAS allocation/damage, commander/weather/experience interactions, some modifier ordering and other executable-only details remain outside parity claims. See the audit documents for the certified boundary.
+Exact tactic/counter selection, per-division reinforcement/coordination, direct CAS allocation/damage, commander/weather/experience interactions, some modifier ordering and other executable-only details remain outside parity claims.
 
 ## Core tools
 
-- HOI-style 5×5 Division Lab with divisional and 1.19 regimental supports
-- Tank Designer and aircraft Air Lab using parsed 1.19.2 catalogs
+- HOI-style 5×5 Division Lab with divisional and regimental supports
+- Tank Designer and aircraft Air Lab using source-backed 1.19.3 catalogs
 - Technology, doctrine and MIO modeling with theorycraft-first prerequisite handling
 - Stochastic battle simulation, uncertainty bands and terrain comparison
 - Industry/resource planning and equipment replacement estimates
 - Division Gauntlet Quick and Full modes
-- Local scenario persistence plus JSON import/export
+- Local scenario persistence, named matchup saves and compact matchup links
 - Custom game-data pack import while retaining a bundled vanilla baseline
 
 Research, DLC and Special Project requirements are informational unless they define structural compatibility. The planner is a theorycrafting tool, not an in-game progression gate simulator.
 
-## Privacy, resilience and advertising readiness
+## 1.19.3 source migration
 
-The planner works without an account and stores planner state locally in the browser. A privacy page and advertising integration layer are present, but **advertising remains disabled in source configuration** until activation is deliberately completed. No publisher/client ID is active in 0.16.0.
+The retained 1.19.3 source census contains **158 sub-unit declarations, 308 equipment declarations, 313 equipment modules, 552 technologies, 121 doctrines and 552 MIO organization declarations**. The runtime intentionally uses a planner-scope subset for some domains, so source-declaration counts and compact runtime counts are not interchangeable.
 
-The public build also includes a browser-side recovery path for failed module/runtime startup, a no-JavaScript fallback, local-state reset recovery, and structured GitHub bug/feature reporting. The recovery layer does not add telemetry.
+Planner-consumed Defines were re-audited against the supplied 1.19.3 `common/defines` corpus. The **36 consumed values are numerically unchanged from 1.19.2**, but their 1.19.3 provenance is recorded separately.
+
+The migration follows the files over release-note prose if they disagree. For example, the supplied 1.19.3 `common/units/hq_support.txt` still contains armored-HQ supply values of **0.26 / 0.28 / 0.34** for light/medium/heavy HQ battalions, so the planner retains those source values.
+
+## Privacy, resilience and advertising
+
+The planner works without an account and stores planner state locally in the browser. Privacy, analytics, recovery and advertising integration are kept separate from the game-model evidence classes.
+
+The public build includes browser-side recovery for failed module/runtime startup, no-JavaScript fallback content, local-state reset recovery, structured GitHub bug/feature reporting, and GA4 page-view instrumentation.
 
 ## Development and deployment
 
@@ -59,8 +70,8 @@ npm test
 npm run build
 ```
 
-`npm test` includes the certified mechanics/data suite, UI regressions, monetization-readiness checks, Gauntlet tests, runtime-recovery checks and a full 10,000-opponent/160,000-matchup smoke. `npm run build` creates a dependency-free static site in `dist/`.
+`npm test` includes mechanics/data certification, UI regressions, scenario persistence/sharing, monetization-readiness checks, Gauntlet tests, runtime-recovery checks and a full 10,000-opponent/160,000-matchup smoke. `npm run build` creates a dependency-free static site in `dist/` and materializes the certified 1.19.3 runtime pack.
 
-Production deployment occurs only from `main` through GitHub Pages. Release-candidate branches are validation-only and do not deploy.
+Production deployment occurs only from `main` through GitHub Pages. Audit/release-candidate branches are validation-only and do not deploy.
 
-See `RELEASE_NOTES.md`, `DATA_AUDIT_1.19.2.md`, `COMBAT_FORMULAS_AUDIT_1.19.2.md` and `GAUNTLET_1.19.2.md` for details.
+See `RELEASE_NOTES.md`, `DATA_AUDIT_1.19.3.md`, the retained 1.19.2 formula audits, and the Oracle laboratory files for the current evidence boundary.

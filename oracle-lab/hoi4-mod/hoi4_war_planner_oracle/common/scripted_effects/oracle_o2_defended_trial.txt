@@ -38,6 +38,9 @@ oracle_o2_capture_sample = {
 
 d_oracle_o2_prepare = {
     GER = {
+        clr_country_flag = oracle_o2_prepared
+        clr_country_flag = oracle_o2_running
+
         if = {
             limit = {
                 has_dynamic_modifier = {
@@ -47,13 +50,27 @@ d_oracle_o2_prepare = {
             remove_dynamic_modifier = {
                 modifier = oracle_o2_defended_attack_amplifier
             }
+            force_update_dynamic_modifier = yes
         }
+
         add_dynamic_modifier = {
             modifier = oracle_o2_defended_attack_amplifier
         }
         force_update_dynamic_modifier = yes
-        set_country_flag = oracle_o2_prepared
-        log = "WPO2 STATUS state=prepared scenario=o2-defended-amplified-v1 amplifier=army_infantry_attack_factor:+2.0 expectedRegime=GER-attack-below-POL-defense"
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o2_defended_attack_amplifier
+                }
+            }
+            set_country_flag = oracle_o2_prepared
+            log = "WPO2 STATUS state=prepared scenario=o2-defended-amplified-v1 amplifier=army_infantry_attack_factor:+2.0 amplifierPresent=yes expectedRegime=GER-attack-below-POL-defense"
+        }
+        else = {
+            clr_country_flag = oracle_o2_prepared
+            log = "WPO2 STATUS state=prepare-failed scenario=o2-defended-amplified-v1 amplifierPresent=no"
+        }
     }
 }
 
@@ -68,23 +85,40 @@ d_oracle_o2_clear = {
             remove_dynamic_modifier = {
                 modifier = oracle_o2_defended_attack_amplifier
             }
+            force_update_dynamic_modifier = yes
         }
-        force_update_dynamic_modifier = yes
+
         clr_country_flag = oracle_o2_prepared
         clr_country_flag = oracle_o2_running
-        log = "WPO2 STATUS state=cleared amplifierRemoved=yes"
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o2_defended_attack_amplifier
+                }
+            }
+            log = "WPO2 STATUS state=clear-failed amplifierRemoved=no"
+        }
+        else = {
+            log = "WPO2 STATUS state=cleared amplifierRemoved=yes"
+        }
     }
 }
 
 oracle_o2_trial6_start = {
     if = {
-        limit = { has_country_flag = oracle_o2_prepared }
+        limit = {
+            has_country_flag = oracle_o2_prepared
+            has_dynamic_modifier = {
+                modifier = oracle_o2_defended_attack_amplifier
+            }
+        }
 
         clr_country_flag = oracle_o2_running
         set_country_flag = oracle_o2_running
         set_variable = { oracle_o2_hour = 0 }
 
-        log = "WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0 prepared=yes"
+        log = "WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0 prepared=yes amplifierPresent=yes"
         oracle_o2_capture_sample = yes
 
         country_event = { id = oracle_o2.1 hours = 1 }
@@ -95,7 +129,7 @@ oracle_o2_trial6_start = {
         country_event = { id = oracle_o2.1 hours = 6 }
     }
     else = {
-        log = "WPO2 STATUS state=not-prepared action=run-d_oracle_o2_prepare-first"
+        log = "WPO2 STATUS state=not-prepared-or-amplifier-missing action=run-d_oracle_o2_prepare-first"
     }
 }
 

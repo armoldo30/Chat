@@ -528,7 +528,9 @@ An O2 trace is accepted only if all of the following hold:
 13. END is exactly `hour=6 reason=trial6-complete amplifierRemoved=yes`;
 14. start/end remain 11:00→17:00.
 
-The O2 parser now treats every WPO2 `BEGIN` as a candidate and machine-enforces the schema/version, base-checksum scope, bisection method, scenario, run mode, tactic mode, amplifier identity, `prepared=yes`, one-attacker/one-defender cardinality, exact 0..6 sample sequence, fresh h0 bounds, no measurable h0→h1 damage, exact END hour/reason, duplicate-trace detection, and amplifier cleanup. Malformed WPO2 runs therefore become explicit rejections instead of disappearing from the candidate set.
+The O2 prepare helper now verifies the dynamic modifier is actually present before setting the prepared flag. The trial helper requires both that flag and live modifier presence, so `prepared=yes amplifierPresent=yes` is only emitted after an executable-side presence check. At hour 6, cleanup removes the modifier and then re-checks it; `amplifierRemoved=yes cleanupFailure=no` is emitted only when the modifier is actually absent.
+
+The O2 parser treats every WPO2 `BEGIN` as a candidate and machine-enforces the schema/version, base-checksum scope, bisection method, scenario, run mode, tactic mode, amplifier identity, `prepared=yes`, one-attacker/one-defender cardinality, exact 0..6 sample sequence, fresh h0 bounds, no measurable h0→h1 damage, exact END hour/reason, duplicate-trace detection, and confirmed amplifier cleanup. Malformed WPO2 runs therefore become explicit rejections instead of disappearing from the candidate set.
 
 Parser acceptance is **necessary but not sufficient** for scenario acceptance. The combat-panel values, exact 11:00→17:00 daylight timing, Plains terrain, supply/planning/entrenchment state, commanders/reserves, and actual use of `random_seed` remain external controls that must be checked from the executable evidence.
 

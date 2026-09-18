@@ -246,6 +246,35 @@ Captures from this harness use:
 
 The first executable check is two `random_seed` trials from the same clean 11:00 daylight save. If both runs complete and differ stochastically, collect the standardized O1-base batch with the same harness.
 
+### O1-base neutral-tactic smoke — PASS
+
+The first tactic-controlled O1-base build was exercised twice from the same 11:00 daylight save with `random_seed` before each attack. Both runs produced complete h0..h6 captures with the expected metadata:
+
+- `scenario=o1-base-neutral-tactics-v1`
+- `tacticMode=neutral-basic-only`
+- `gameVersion=1.19.3.0.c01a`
+- `checksum=5632`
+
+The two traces were distinct, confirming that combat RNG remains decorrelated under the tactic-control build.
+
+Run 1 h0→h6 losses:
+
+- GER organization: 1.9665 percentage points
+- GER strength: 0.4765 percentage points
+- POL organization: 0.7575 percentage points
+- POL strength: 0.2025 percentage points
+
+Run 2 h0→h6 losses:
+
+- GER organization: 1.2405 percentage points
+- GER strength: 0.2695 percentage points
+- POL organization: 0.0795 percentage points
+- POL strength: 0.0425 percentage points
+
+The mod package replaces all 55 tactic IDs, leaves only Basic Attack and Basic Defend selectable, and neutralizes their normal combat modifiers/counter relationship. The WPO1 log itself does not expose selected tactic identity, so runtime tactic suppression is not independently observed in the capture. For that reason this smoke remains `unvalidated` rather than being promoted on metadata alone.
+
+Next collection target: eight additional O1-base runs from the same 11:00 clean save, using `random_seed` immediately before each attack, for a 10-run preliminary base-formula distribution.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

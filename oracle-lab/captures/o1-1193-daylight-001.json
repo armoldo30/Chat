@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenarioId": "o1-land-baseline-v1",
+    "captureMethod": "bisection14",
+    "measurementBisections": 14,
+    "measurementIntervalPct": 0.006103515625,
+    "measurementMidpointMaxErrorPct": 0.0030517578125,
+    "endReason": "trial6-complete",
+    "source": "HOI4 game.log WPO1",
+    "runMode": "trial6",
+    "captureStatus": "daylight-smoke-accepted",
+    "batchEligible": true,
+    "scenarioControls": {
+      "attackerTag": "GER",
+      "defenderTag": "POL",
+      "terrain": "plains",
+      "commanders": "none",
+      "attackerDisplayedWidth": 18,
+      "defenderDisplayedWidth": 18,
+      "attackerDivisions": 1,
+      "defenderDivisions": 1,
+      "attackerReserves": 0,
+      "defenderReserves": 0,
+      "attackerDivisionName": "12. Infanterie-Division",
+      "defenderDivisionName": "15 Wielkopolska Dywizja",
+      "attackerDisplayedSoftAttack": 75,
+      "defenderDisplayedSoftAttack": 73,
+      "startGameHour": 10,
+      "endGameHour": 16,
+      "daylight": true,
+      "screenshotObserved": true,
+      "notes": "Screenshot confirms a 1v1 Plains battle with no commanders, 18 displayed width on each side, zero reserves, and daylight attack values 75/73. Log confirms h0 at 10:00 and h6 at 16:00."
+    },
+    "evidenceStatus": "unvalidated",
+    "evidenceNote": "Accepted as the clean daylight O1 1.19.3 smoke and eligible for the preliminary stochastic batch. Combat parity remains unvalidated until repeated trials and planner distribution comparison are complete."
+  },
+  "samples": [
+    {"hour":0,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":1,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":2,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.9965,"strength":99.9965}},
+    {"hour":3,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.44,"strength":99.886}},
+    {"hour":4,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.44,"strength":99.886}},
+    {"hour":5,"attacker":{"org":99.9965,"strength":99.9965},"defender":{"org":99.44,"strength":99.886}},
+    {"hour":6,"attacker":{"org":99.758,"strength":99.9475},"defender":{"org":99.257,"strength":99.862}}
+  ],
+  "smokeSummary": {
+    "attackerOrgLossH0H6": 0.2385,
+    "attackerStrengthLossH0H6": 0.049,
+    "defenderOrgLossH0H6": 0.7395,
+    "defenderStrengthLossH0H6": 0.1345,
+    "sampleHours": [0,1,2,3,4,5,6],
+    "schedulerStatus": "pass",
+    "instrumentationStatus": "pass",
+    "scenarioControlStatus": "pass",
+    "combatDistributionUse": "accepted"
+  }
+}

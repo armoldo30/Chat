@@ -16,6 +16,15 @@ assert.equal(report.plannerInputs.exactControlled.sharedBaseSoftAttack,54);
 assert.equal(report.plannerInputs.exactControlled.sharedExperienceAttackFactor,0.25);
 assert.equal(report.plannerInputs.exactControlled.sharedSoftAttackAfterExperience,67.5);
 
+const canonicalEvidenceClasses=new Set([
+  'game-file exact','executable inferred','planner analytical','oracle-validated','oracle-divergent','unvalidated'
+]);
+for(const value of Object.values(report.plannerInputs.exactControlled.evidenceByField)){
+  assert.ok(canonicalEvidenceClasses.has(value));
+}
+assert.equal(report.plannerInputs.uiDerivedSensitivity.evidenceClass,'planner analytical');
+assert.equal(report.plannerInputs.uiDerivedSensitivity.sourceObservationClass,'executable inferred');
+
 const ui=report.plannerInputs.uiDerivedSensitivity;
 assert.equal(ui.vanillaBasicTacticFactorRemoved,0.05);
 assert.equal(ui.displayedSensitivityHalfWidth,1);

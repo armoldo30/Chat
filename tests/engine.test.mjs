@@ -90,6 +90,24 @@ assert.deepEqual(
 );
 assert.ok(seededA.winRateLow<=seededA.winRate && seededA.winRateHigh>=seededA.winRate,'simulation should report a confidence interval around win rate');
 
+
+const oracleStartup=simulateOnce(
+  softAttacker,
+  softTarget,
+  {...opts,maxHours:6,trace:true,traceIntervalHours:1},
+  ()=>0.01
+);
+assert.equal(oracleStartup.initialFireDelayHours,1,'HOI4 1.19.3 Oracle O1 startup delay should default to one hour');
+assert.deepEqual(
+  oracleStartup.timeline.find(x=>x.hour===1),
+  {hour:1,aOrg:100,dOrg:100,aStrength:100,dStrength:100},
+  'first in-game hour after combat creation must not apply land-combat damage'
+);
+assert.ok(
+  oracleStartup.timeline.find(x=>x.hour===2).aStrength<100||oracleStartup.timeline.find(x=>x.hour===2).dStrength<100,
+  'combat damage must begin after the one-hour startup delay'
+);
+
 const one=simulateOnce(softAttacker,softTarget,opts);
 assert.ok(one.hours>=4,'land combat should respect the minimum combat duration baseline');
 assert.ok(Object.keys(one.attackerEquipmentLosses).length>0,'battle results should estimate equipment replacement losses');

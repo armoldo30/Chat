@@ -208,6 +208,24 @@ For strict batch consistency, these two runs are trials **1 and 2** of a new sta
 
 Next collection target: **8 additional runs**. For every run, reload the same 11:00 clean save, run `random_seed` while paused, issue the attack, run `d_oracle_o1_trial6`, then unpause through h6.
 
+### 10-run vanilla stochastic envelope — COMPLETE
+
+Using `random_seed` immediately before each attack, ten unique 11:00→17:00 O1 traces were collected from the same visible scenario. Aggregate h0→h6 losses:
+
+- GER organization: mean 1.6776 pp, SD 0.4455
+- GER strength: mean 0.3169 pp, SD 0.0839
+- POL organization: mean 0.9106 pp, SD 0.3618
+- POL strength: mean 0.1599 pp, SD 0.0573
+
+This is valid evidence for the executable's **vanilla stochastic envelope**, but it is **not yet a planner-parity sample** because combat tactics were not controlled or logged. The current planner preserves tactic source records but deliberately does not execute exact tactic selection, counters, phase transitions, or tactic effect ordering.
+
+Therefore the next Oracle phase splits O1 into two layers:
+
+1. **O1-base** — tactic-controlled executable test for base damage/organization/strength formulas.
+2. **O1-tactics** — separate validation of vanilla tactic selection/effects, after which the full stochastic envelope can be compared end-to-end.
+
+The ten-run envelope is retained in `oracle-lab/captures/o1-1193-random-seed-batch-10-summary.json` and must not be used to promote the current tactic-free planner to `oracle-validated`.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

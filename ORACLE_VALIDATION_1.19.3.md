@@ -439,6 +439,52 @@ Earlier point estimates showed that correcting the startup delay materially redu
 
 The remaining base hit/damage formulas stay `unvalidated`. Organization comparison also remains deferred until final executable organization/doctrine state is established.
 
+### 100k bounded planner diagnostic — residual point-mean gap
+
+A full planner Monte Carlo diagnostic was run in CI at **100,000 trials per sensitivity point** using the bounded O1-base inputs above. The compact result is persisted in:
+
+`oracle-lab/captures/o1-base-planner-100k-bounded-summary.json`
+
+Planner strength-loss mean sensitivity:
+
+- GER/attacker loss: **0.33237–0.35952 pp**, midpoint **0.34578 pp**
+- POL/defender loss: **0.14091–0.14440 pp**, midpoint **0.14263 pp**
+
+Executable 10-run point means:
+
+- GER/attacker loss: **0.30590 pp**
+- POL/defender loss: **0.10285 pp**
+
+Therefore both executable point means are below the entire current planner input-sensitivity envelope.
+
+At the midpoint:
+
+- GER planner minus executable: **+0.03988 pp** (**+13.0%** relative to the executable point mean)
+- POL planner minus executable: **+0.03978 pp** (**+38.7%** relative to the executable point mean)
+
+At the most damage-reducing edge of the current UI-input envelope, the planner is still above the executable point mean by:
+
+- GER: **+0.02647 pp**
+- POL: **+0.03806 pp**
+
+This is a meaningful diagnostic signal, but **not** an `oracle-divergent` classification. The executable distribution is still only n=10, and its exploratory mean intervals remain wide enough to overlap the current planner means.
+
+The important methodological conclusion is narrower: **the existing ±1 displayed-stat uncertainty cannot by itself explain the current point-mean gap, especially for POL strength loss.** The next high-value work is to isolate the base resolver rather than spend another cycle refining only tooltip rounding.
+
+The current source/model chain for ordinary soft strength damage is:
+
+- attack / 10 combat-point scaling: `executable inferred` carried from 1.19.2
+- defended hit chance: 10% from `game-file exact` defines
+- undefended hit chance: 40% from `game-file exact` defines
+- strength die size: 2 from `game-file exact` defines
+- strength damage modifier: 0.060 from `game-file exact` defines
+- exact stochastic rounding / hit / damage ordering: `unvalidated`
+
+For the GER→POL fully defended path, these assumptions analytically reproduce the planner Monte Carlo mean near 0.143 pp. The executable pilot mean near 0.103 pp therefore points directly at either finite-sample noise or one/more of the executable-inferred/hardcoded ordering assumptions.
+
+No resolver constant is changed on this evidence alone.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

@@ -12,7 +12,7 @@ oracle_o1_trial6_start = {
     clr_country_flag = oracle_o1_running
     set_country_flag = oracle_o1_running
     set_variable = { oracle_o1_hour = 0 }
-    log = "WPO1 BEGIN schema=1 scenario=o1-base-neutral-tactics-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 tacticMode=neutral-basic-only preBurn=[?oracle_o1_preburn_count]"
+    log = "WPO1 BEGIN schema=1 scenario=o1-base-neutral-tactics-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only preBurn=[?oracle_o1_preburn_count]"
     oracle_o1_capture_sample = yes
     country_event = { id = oracle_o1.2 hours = 1 }
     country_event = { id = oracle_o1.2 hours = 2 }

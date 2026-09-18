@@ -81,6 +81,8 @@ BUILTIN_1193.meta={
   gameBuild:SOURCE_CERTIFICATION_1193.gameBuild,
   checksum:SOURCE_CERTIFICATION_1193.checksum,
   sourceCertification:'game-file-exact-1.19.3',
+  definesCertification:'game-file-exact-consumed-defines-1.19.3',
+  definesSourceSha256:'881b4076a41355fd67771064770338791fc7076bff1038c6271bb0dd0b717ac6',
   sourceCertification1193:clone(SOURCE_CERTIFICATION_1193),
   sourceArchiveCommonSha256:SOURCE_CERTIFICATION_1193.sourceArchives.commonZipSha256,
   sourceArchiveLocalizationSha256:SOURCE_CERTIFICATION_1193.sourceArchives.localizationZipSha256,

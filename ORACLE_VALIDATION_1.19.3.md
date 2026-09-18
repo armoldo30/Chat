@@ -184,6 +184,30 @@ Procedure for each of two runs:
 
 If the two traces differ, the preliminary O1 sample can use one `random_seed` call immediately before each attack while keeping all visible scenario controls fixed.
 
+### Built-in random_seed result — PASS
+
+Two runs from the same clean 11:00 daylight save used the built-in `random_seed` command immediately before issuing the attack. They produced different combat traces while preserving the same visible scenario and sample hours 0..6.
+
+Run 1 h0→h6 losses:
+
+- GER organization: 1.6735 percentage points
+- GER strength: 0.3005 percentage points
+- POL organization: 1.5325 percentage points
+- POL strength: 0.2265 percentage points
+
+Run 2 h0→h6 losses:
+
+- GER organization: 1.7590 percentage points
+- GER strength: 0.3545 percentage points
+- POL organization: 0.9535 percentage points
+- POL strength: 0.1105 percentage points
+
+This establishes `random_seed` as the practical decorrelation method for repeated O1 trials.
+
+For strict batch consistency, these two runs are trials **1 and 2** of a new standardized 10-run batch using this exact 11:00 save. The earlier accepted 10:00 daylight smoke remains valid scenario/instrumentation evidence but is kept outside the standardized statistical batch because its start hour differs.
+
+Next collection target: **8 additional runs**. For every run, reload the same 11:00 clean save, run `random_seed` while paused, issue the attack, run `d_oracle_o1_trial6`, then unpause through h6.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

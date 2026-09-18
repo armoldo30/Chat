@@ -91,7 +91,21 @@ export function buildO2Reference({
   const lowResult=plannerO2Sample({...low,runs,seed:0x020001});
   const midResult=plannerO2Sample({...mid,runs,seed:0x020002});
   const highResult=plannerO2Sample({...high,runs,seed:0x020003});
-  const primaryMeans=[lowResult.defenderStrengthLoss.mean,midResult.defenderStrengthLoss.mean,highResult.defenderStrengthLoss.mean];
+  const points=[lowResult,midResult,highResult];
+  const primaryMeans=points.map(r=>r.defenderStrengthLoss.mean);
+  const sampleMeanEnvelope=(n,z)=>{
+    const bounds=points.map(r=>{
+      const s=r.defenderStrengthLoss;
+      const half=z*s.sd/Math.sqrt(n);
+      return {low:s.mean-half,high:s.mean+half};
+    });
+    return {
+      n,
+      method:'normal-approx-across-planner-input-sensitivity',
+      low:Math.min(...bounds.map(x=>x.low)),
+      high:Math.max(...bounds.map(x=>x.high))
+    };
+  };
   return {
     schemaVersion:1,
     scenario:'o2-defended-amplified-v1',
@@ -122,6 +136,17 @@ export function buildO2Reference({
       min:Math.min(...primaryMeans),
       midpoint:midResult.defenderStrengthLoss.mean,
       max:Math.max(...primaryMeans)
+    },
+    predeclaredSamplingPlan:{
+      preliminaryUniqueRuns:6,
+      confirmatoryTotalUniqueRuns:12,
+      preliminaryMeanInterval99:sampleMeanEnvelope(6,2.576),
+      confirmatoryMeanInterval99:sampleMeanEnvelope(12,2.576),
+      interpretation:[
+        'If the 6-run executable primary-metric mean is outside the conservative planner 99% sample-mean interval, collect 6 more independent runs before any divergence classification.',
+        'If the 12-run executable primary-metric mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch subject to scenario-control review.',
+        'If the executable mean is inside either interval, O2 remains unvalidated; interval inclusion is not an Oracle validation criterion.'
+      ]
     },
     note:'Use directly observed O2 combat-panel values. This report tests the current planner resolver; it does not validate the O2 modifier or executable modifier ordering.'
   };

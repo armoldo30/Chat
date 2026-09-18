@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o2-defended-amplified-v1",
+  "captureId": "smoke-001",
+  "evidenceStatus": "unvalidated",
+  "executableClassification": "executable inferred",
+  "source": {
+    "userGameLog": "game(20260918-234118).log",
+    "screenshot": "Screenshot 2026-09-18 194026.png",
+    "gameStartDate": "1936.02.08.11"
+  },
+  "observedCombatPanel": {
+    "attackerSoftAttack": 215,
+    "attackerHardAttack": 35,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderHardAttack": 11,
+    "defenderDefense": 255,
+    "defendedMargin": 40
+  },
+  "visualControls": {
+    "attackerDivisions": 1,
+    "defenderDivisions": 1,
+    "attackerWidth": 18,
+    "defenderWidth": 18,
+    "attackerCommander": "none",
+    "defenderCommander": "none",
+    "attackerReserves": 0,
+    "defenderReserves": 0
+  },
+  "parserExpected": {
+    "acceptedRuns": 1,
+    "rejectedRuns": 0,
+    "uniqueTraceCount": 1,
+    "startupNoDamage": true,
+    "amplifierCleanupConfirmed": true
+  },
+  "measured": {
+    "attackerOrgLoss": 1.9665,
+    "attackerStrengthLoss": 0.4525,
+    "defenderOrgLoss": 2.7595,
+    "defenderStrengthLoss": 0.3605
+  },
+  "externalControls": {
+    "randomSeedInvocation": "procedural-not-machine-verifiable-from-game.log",
+    "exactBaselineSave": "context-controlled",
+    "plainsAndSupplyPlanningEntrenchment": "baseline-controlled",
+    "screenshotCaptureOrdering": "not independently timestamp-verifiable from PNG metadata"
+  },
+  "interpretation": "First O2 run is harness/executable smoke only. It cannot validate or diverge the resolver by itself."
+}

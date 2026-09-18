@@ -1,7 +1,7 @@
 add_namespace = oracle_o2
 
-# Hidden sampler for d_oracle_o2_trial12.
-# Twelve copies are queued up front at delays 1..12 hours. Do not recursively
+# Hidden sampler for d_oracle_o2_trial6.
+# Six copies are queued up front at delays 1..6 hours. Do not recursively
 # reschedule: that pattern caused same-tick scheduler collapse during early O1 work.
 country_event = {
     id = oracle_o2.1
@@ -20,7 +20,7 @@ country_event = {
                     NOT = {
                         check_variable = {
                             var = oracle_o2_hour
-                            value = 12
+                            value = 6
                             compare = less_than
                         }
                     }
@@ -30,7 +30,7 @@ country_event = {
                 remove_dynamic_modifier = oracle_o2_defended_attack_amplifier
                 force_update_dynamic_modifier = yes
                 clr_country_flag = oracle_o2_prepared
-                log = "WPO2 END hour=[?oracle_o2_hour] reason=trial12-complete amplifierRemoved=yes"
+                log = "WPO2 END hour=[?oracle_o2_hour] reason=trial6-complete amplifierRemoved=yes"
             }
         }
     }

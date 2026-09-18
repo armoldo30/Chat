@@ -275,6 +275,25 @@ The mod package replaces all 55 tactic IDs, leaves only Basic Attack and Basic D
 
 Next collection target: eight additional O1-base runs from the same 11:00 clean save, using `random_seed` immediately before each attack, for a 10-run preliminary base-formula distribution.
 
+### O1-base 10-run preliminary distribution — COMPLETE
+
+The neutral-tactic O1-base harness now has ten accepted, unique 11:00→17:00 traces. All runs used the same clean daylight save, `random_seed` immediately before the attack, and `tacticMode=neutral-basic-only`.
+
+Aggregate h0→h6 losses:
+
+- GER organization: mean 1.4918 pp, SD 0.3553, 95% mean interval 1.2716–1.7120
+- GER strength: mean 0.3059 pp, SD 0.0813, 95% mean interval 0.2555–0.3563
+- POL organization: mean 0.5270 pp, SD 0.3142, 95% mean interval 0.3322–0.7217
+- POL strength: mean 0.1029 pp, SD 0.0634, 95% mean interval 0.0636–0.1421
+
+One accepted run produced zero measurable defender damage over the six-hour window; this is retained as legitimate stochastic evidence, not discarded.
+
+The batch is stored in `oracle-lab/captures/o1-base-neutral-tactics-batch-10-summary.json`.
+
+Evidence remains `unvalidated`. Ten trials are sufficient for the first planner-distribution comparison and variance diagnosis, but not sufficient by themselves for final Oracle promotion.
+
+The next Oracle step is to compare this executable distribution against the planner's tactic-free base hit/damage resolver using the controlled O1 inputs. The historical O1 notes specify a 9-infantry, no-support, 18-width setup with 100% supply, 0 planning, 0 entrenchment, no commanders, Plains, and matched +25% experience. Where the executable UI provides effective combat stats, those values should be preferred over reconstructing hidden modifier ordering.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

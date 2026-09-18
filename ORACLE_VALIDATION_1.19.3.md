@@ -564,11 +564,11 @@ Confirmatory target, only when needed:
 
 **12 unique O2 traces total**
 
-The planner reference precomputes a conservative **99% sample-mean interval** for the primary metric across the ±1 input sensitivity.
+The planner reference precomputes conservative sample-mean intervals for the primary metric across the ±1 input sensitivity: **95% at the six-run preliminary stage** and **99% at the 12-run confirmatory stage**.
 
 Predeclared interpretation:
 
-- If the six-run executable mean falls **outside** the conservative planner 99% sample-mean interval, collect six more independent O2 runs before any divergence classification.
+- If the six-run executable mean falls **outside** the conservative planner 95% sample-mean interval, collect six more independent O2 runs before any divergence classification.
 - If the 12-run executable mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
 - If the executable mean falls inside the planner interval, O2 remains `unvalidated`; interval inclusion is **not** an `oracle-validated` criterion.
 

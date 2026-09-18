@@ -226,6 +226,26 @@ Therefore the next Oracle phase splits O1 into two layers:
 
 The ten-run envelope is retained in `oracle-lab/captures/o1-1193-random-seed-batch-10-summary.json` and must not be used to promote the current tactic-free planner to `oracle-validated`.
 
+### O1-base neutral-tactic harness
+
+A dedicated executable harness now removes tactic selection as a confounder for base combat-formula validation.
+
+The Oracle mod overrides `common/combat_tactics.txt` for this test only:
+
+- all 55 vanilla tactic IDs remain defined so technology/doctrine references still resolve;
+- every non-basic tactic is ineligible (`trigger = { always = no }`, inactive, zero weight);
+- `tactic_basic_attack` and `tactic_basic_defend` are the only selectable tactics;
+- their normal +5% damage modifiers are removed;
+- the Basic Attack counter relationship is removed;
+- no tactic-driven phase transition can occur.
+
+Captures from this harness use:
+
+- scenario: `o1-base-neutral-tactics-v1`
+- tactic mode: `neutral-basic-only`
+
+The first executable check is two `random_seed` trials from the same clean 11:00 daylight save. If both runs complete and differ stochastically, collect the standardized O1-base batch with the same harness.
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

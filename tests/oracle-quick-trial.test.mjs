@@ -12,6 +12,12 @@ for(let hour=1;hour<=6;hour++){
 const queued=[...effects.matchAll(/country_event = \{ id = oracle_o1\.2 hours = (\d+) \}/g)].map(m=>Number(m[1]));
 assert.deepEqual(queued,[1,2,3,4,5,6]);
 assert.match(effects,/runMode=trial6/);
+assert.match(effects,/preBurn=\[\?oracle_o1_preburn_count\]/);
+for(const count of [64,128,256]){
+  assert.match(effects,new RegExp(`d_oracle_o1_preburn${count}\\s*=\\s*\\{`));
+  assert.match(effects,new RegExp(`set_variable = \\{ oracle_o1_preburn_count = ${count} \\}`));
+  assert.match(effects,new RegExp(`end = ${count}`));
+}
 assert.match(events,/oracle_o1_capture_sample = yes/);
 assert.match(events,/value = 6/);
 assert.match(events,/reason=trial6-complete/);

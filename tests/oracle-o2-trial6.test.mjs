@@ -13,10 +13,11 @@ function run(scale=1){
     `WPO2 BEGIN schema=1 scenario=o2-defended-amplified-v1 gameVersion=${O2_GAME_VERSION} checksum=${O2_BASE_CHECKSUM} checksumScope=${O2_CHECKSUM_SCOPE} method=${O2_METHOD} runMode=trial6 tacticMode=neutral-basic-only amplifier=army_infantry_attack_factor:+2.0 prepared=yes`
   ];
   for(const hour of O2_HOURS){
-    const aOrg=bounded(0.99997-hour*0.00055*scale);
-    const aStr=bounded(0.99997-hour*0.00012*scale);
-    const dOrg=bounded(0.99997-hour*0.0012*scale);
-    const dStr=bounded(0.99997-hour*0.00065*scale);
+    const fireHours=Math.max(0,hour-1);
+    const aOrg=bounded(0.99997-fireHours*0.00055*scale);
+    const aStr=bounded(0.99997-fireHours*0.00012*scale);
+    const dOrg=bounded(0.99997-fireHours*0.0012*scale);
+    const dStr=bounded(0.99997-fireHours*0.00065*scale);
     lines.push(`WPO2 SAMPLE hour=${hour}`);
     lines.push(`WPO2 ATTACKER orgLow=${aOrg.low} orgHigh=${aOrg.high} strengthLow=${aStr.low} strengthHigh=${aStr.high}`);
     lines.push(`WPO2 DEFENDER orgLow=${dOrg.low} orgHigh=${dOrg.high} strengthLow=${dStr.low} strengthHigh=${dStr.high}`);
@@ -74,8 +75,8 @@ rejectWith(run(1).replace(
 ),/hour 0.*organization.*100%/);
 
 const h1Changed=run(1).replace(
-  'WPO2 DEFENDER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000\nWPO2 SAMPLE hour=2',
-  'WPO2 DEFENDER orgLow=0.99980 orgHigh=0.99986 strengthLow=0.99990 strengthHigh=0.99996\nWPO2 SAMPLE hour=2'
+  'WPO2 SAMPLE hour=1\nWPO2 ATTACKER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000\nWPO2 DEFENDER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000',
+  'WPO2 SAMPLE hour=1\nWPO2 ATTACKER orgLow=0.99994 orgHigh=1.00000 strengthLow=0.99994 strengthHigh=1.00000\nWPO2 DEFENDER orgLow=0.99980 orgHigh=0.99986 strengthLow=0.99990 strengthHigh=0.99996'
 );
 rejectWith(h1Changed,/h0->h1 defender measurement changed/);
 

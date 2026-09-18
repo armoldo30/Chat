@@ -485,6 +485,98 @@ For the GER→POL fully defended path, these assumptions analytically reproduce 
 No resolver constant is changed on this evidence alone.
 
 
+### O2 defended-path amplified probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+The O1 100k result makes another large batch of the same low-damage scenario a poor next experiment. O2 is designed to amplify only the already-fully-defended GER→POL path while preserving the established daylight baseline and neutral tactic control.
+
+O2 scenario:
+
+`o2-defended-amplified-v1`
+
+Oracle commands:
+
+- `d_oracle_o2_prepare`
+- `d_oracle_o2_trial6`
+- emergency/manual cleanup: `d_oracle_o2_clear`
+
+O2 uses a temporary dynamic modifier on GER:
+
+`army_infantry_attack_factor = 2.0`
+
+This is **+200% infantry attack only**. The O2 modifier does not intentionally alter defense, breakthrough, organization, HP, supply, planning, entrenchment, or damage modifiers. The helper force-updates the dynamic modifier, and the hour-6 event removes it automatically.
+
+The expected purpose is to raise GER effective attack to roughly three times the neutral O1 level while keeping it below POL defense. Exact executable effective values are **not assumed** from modifier arithmetic: the paused battle UI must be captured and those directly observed values become the O2 planner inputs.
+
+The originally considered 12-hour version was rejected before executable use because the exact 11:00 baseline would run into night. O2 therefore retains the established **11:00→17:00 six-hour window**, preserving the O1 daylight control while obtaining approximately three times as many defended attack points per firing hour.
+
+#### O2 run acceptance controls
+
+An O2 trace is accepted only if all of the following hold:
+
+1. exact clean 11:00 baseline save;
+2. neutral tactic Oracle build active;
+3. `d_oracle_o2_prepare` executed before combat creation;
+4. built-in `random_seed` executed before the attack for independent repeated trials;
+5. same one-GER-vs-one-POL, 18-width, Plains battle;
+6. no commanders, no reserves, full starting supply, zero planning, zero POL entrenchment;
+7. paused combat-panel capture records GER Soft Attack, GER Breakthrough, POL Soft Attack, and POL Defense under O2;
+8. displayed GER Soft Attack is materially amplified and remains at least 10 points below displayed POL Defense;
+9. WPO2 samples are exactly hours 0..6 with one attacker and one defender each;
+10. h0 is effectively 100% organization/strength within the existing bisection measurement bound;
+11. END is exactly `reason=trial6-complete amplifierRemoved=yes`;
+12. start/end remain 11:00→17:00.
+
+If GER attack approaches/crosses the defended threshold, the trace is rejected for this O2 purpose rather than reinterpreted after the fact.
+
+#### O2 primary metric
+
+Primary metric:
+
+**POL defender h0→h6 strength loss**
+
+GER loss is retained as diagnostic context but is not the primary O2 resolver test because POL→GER remains a mixed defended/undefended path.
+
+The planner reference script is:
+
+`scripts/oracle-o2-planner-reference.mjs`
+
+It takes the directly observed O2 combat-panel values:
+
+`<GER Soft Attack> <GER Breakthrough> <POL Soft Attack> <POL Defense>`
+
+and runs the current planner over the same six-hour / one-hour-startup-delay scenario, including a ±1 display sensitivity.
+
+Evidence classes:
+
+- observed executable combat-panel inputs: `executable inferred`
+- planner O2 distribution/reference: `planner analytical`
+- O2 resolver status before executable collection: `unvalidated`
+
+#### O2 predeclared sample plan
+
+The first valid O2 run is a harness/executable smoke. It may also be retained as statistical trial 1 if every acceptance control above passes, but it cannot establish a formula result by itself.
+
+Preliminary target:
+
+**6 unique O2 traces**
+
+Confirmatory target, only when needed:
+
+**12 unique O2 traces total**
+
+The planner reference precomputes a conservative **99% sample-mean interval** for the primary metric across the ±1 input sensitivity.
+
+Predeclared interpretation:
+
+- If the six-run executable mean falls **outside** the conservative planner 99% sample-mean interval, collect six more independent O2 runs before any divergence classification.
+- If the 12-run executable mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch, subject to final scenario-control review before assigning a narrow `oracle-divergent` classification.
+- If the executable mean falls inside the planner interval, O2 remains `unvalidated`; interval inclusion is **not** an `oracle-validated` criterion.
+
+This stopping rule is declared before seeing any O2 executable loss result.
+
+O2 does not modify production `main` and does not supersede the O1 timing certification.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

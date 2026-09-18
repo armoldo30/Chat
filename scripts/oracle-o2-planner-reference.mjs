@@ -140,10 +140,10 @@ export function buildO2Reference({
     predeclaredSamplingPlan:{
       preliminaryUniqueRuns:6,
       confirmatoryTotalUniqueRuns:12,
-      preliminaryMeanInterval99:sampleMeanEnvelope(6,2.576),
+      preliminaryMeanInterval95:sampleMeanEnvelope(6,1.96),
       confirmatoryMeanInterval99:sampleMeanEnvelope(12,2.576),
       interpretation:[
-        'If the 6-run executable primary-metric mean is outside the conservative planner 99% sample-mean interval, collect 6 more independent runs before any divergence classification.',
+        'If the 6-run executable primary-metric mean is outside the conservative planner 95% sample-mean interval, collect 6 more independent runs before any divergence classification.',
         'If the 12-run executable primary-metric mean remains outside the conservative planner 99% sample-mean interval, treat that as confirmatory evidence of a material O2 resolver mismatch subject to scenario-control review.',
         'If the executable mean is inside either interval, O2 remains unvalidated; interval inclusion is not an Oracle validation criterion.'
       ]

@@ -31,4 +31,13 @@ assert.equal(a.kHigh,32);
 const bad=parseO6Batch(run('low',22)+run('high',18));
 const b1=assessO6({batch:bad,lowStats:{attackerSoft:12,defenderDefense:255},highStats:{attackerSoft:18,defenderDefense:255}});
 assert.equal(b1.action,'attack-div10-probability-law-mismatch-candidate');
+
+
+const lowOnly=parseO6Batch(run('low',8));
+lowOnly.byMode.low[0].capture.positiveIntervals=31;
+const lowFail=assessO6({batch:lowOnly,lowStats:{attackerSoft:12,defenderDefense:255},highStats:{attackerSoft:18,defenderDefense:255}});
+assert.equal(lowFail.stage,'low-control-failure');
+assert.equal(lowFail.action,'review-unexpected-zero-damage-intervals-before-original-o6-interpretation');
+assert.equal(lowFail.lowZeroIntervals,9);
+
 console.log('Oracle O6 parser/assessment regression passed.');

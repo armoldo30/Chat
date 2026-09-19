@@ -934,6 +934,104 @@ Persisted rejected evidence:
 - `oracle-lab/captures/o4-tuning-smoke-001-summary.json`
 
 
+### O4 v1 zero-defense design — RETIRED BEFORE ANY ACCEPTED RUN
+
+The dynamic-defense suppression path cannot reach literal zero Defense in the controlled baseline. During O4 tuning, the executable UI exposed:
+
+- underlying/base POL Defense: **198**
+- Experience modifier: **+25%**
+- country modifier after the O4 suppressor: approximately **-100.7%**
+- final modifier shown as **1.00%**
+- resulting effective Defense: approximately **1.98** (tooltip about **1.9**, combat panel rounded to **1**)
+
+The exact numerical relationship `198 × 1.00% = 1.98` strongly indicates a minimum **1% final-stat modifier floor** on this modifier path. This is retained as an `executable inferred` tuning observation, not promoted to `oracle-validated` from one UI observation.
+
+Consequences:
+
+- the original O4 requirement `POL Defense = 0` is not reachable through additional negative `army_infantry_defence_factor`;
+- the earlier O4 tuning traces remain rejected and contribute no statistical O4 result;
+- no accepted O4 v1 run exists;
+- further defense-factor retuning is stopped.
+
+Because retaining Defense ~1.98 would introduce a second integerization unknown for defense points, O4 v1 is superseded rather than reinterpreted.
+
+### O4 v2 guaranteed-hit sub-10 probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+Scenario:
+
+`o4-guaranteed-hit-sub10-v2`
+
+O4 v2 isolates attack-point integerization by eliminating defended-hit RNG while restoring POL to its normal high Defense.
+
+Oracle-only diagnostic define intervention:
+
+`NDefines.NMilitary.BASE_CHANCE_TO_AVOID_HIT = 0`
+
+This changes the source-defined defended hit chance from 10% to **100%** for the O4 v2 diagnostic package only. The intervention is deliberate and is not a claim about vanilla balance. It must be removed after O4 v2 before any ordinary Oracle scenario is run.
+
+The executable application of this override is not assumed merely because the file loads. O4 v2 therefore contains a separate control run before the low-attack probe.
+
+#### O4 v2 control run
+
+The control uses:
+
+- normal high POL Defense;
+- GER displayed Soft Attack accepted only in the range **10–19**;
+- five post-startup firing intervals;
+- neutral tactics and all established baseline controls.
+
+At Soft Attack 10–19, all candidate integerization mechanisms under examination produce at least one attack point per firing hour. With the O4 v2 defended-hit override active, every firing interval must therefore show measurable POL damage.
+
+Control acceptance requires:
+
+**5 of 5 positive defender-damage intervals**
+
+If the control is not 5/5, O4 v2 is invalid and the low-attack probe is not interpreted.
+
+As a diagnostic cross-check, without the 100% hit override even two defended attack points at the vanilla 10% hit chance would yield at most a 19% interval-hit probability; five positive intervals would then have probability only about **0.025%**. Thus a clean 5/5 control is strong executable evidence that the diagnostic intervention is active.
+
+#### O4 v2 probe run
+
+After reloading the clean baseline, the probe uses:
+
+- normal high POL Defense;
+- GER displayed Soft Attack exactly **2**;
+- five post-startup firing intervals;
+- the same 100% defended-hit diagnostic define;
+- the same neutral tactics, timing, terrain, supply, planning, commander, reserve, and `random_seed` controls.
+
+The panel is captured only after the trial has started and combat has instantiated, no later than h1 and before advancing into h1→h2.
+
+Primary probe metric:
+
+**K = number of the five firing intervals with any measurable POL organization or strength damage**
+
+An interval is positive only with strict raw-bound separation between consecutive bisection samples.
+
+#### O4 v2 competing hypotheses and fixed decision rule
+
+Current planner hypothesis:
+
+- combat-point scale = 0.1;
+- attack points are stochastically rounded;
+- with displayed Soft Attack 2 and the existing ±1 display sensitivity, true Soft Attack is bounded 1–3;
+- because defended hit chance is forced to 100%, predicted positive-interval probability is therefore **10%–30%**.
+
+Competing minimum-one / ceiling-style sub-10 hypothesis:
+
+- any positive sub-10 Soft Attack produces at least one attack point every firing hour;
+- with defended hit chance forced to 100%, predicted positive-interval probability is **100%**.
+
+Predeclared interpretation, conditional on a valid 5/5 control:
+
+- **Probe K ≤ 4:** the minimum-one/ceiling-style hypothesis is contradicted at this controlled boundary. O4 remains `unvalidated`; this does not by itself validate the planner's exact stochastic-rounding implementation.
+- **Probe K = 5:** create a narrow mismatch candidate against the current stochastic-rounding planner hypothesis. Even at the most damage-favoring sensitivity edge p=0.30, `P(K=5)=0.30^5=0.243%`.
+- No adaptive extension is permitted after seeing the probe. One valid control plus one valid probe completes O4 v2.
+- No O4 v2 outcome alone promotes the broad resolver to `oracle-validated`.
+
+This revised O4 protocol is declared after the zero-defense tuning failure but before any accepted O4 statistical result.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

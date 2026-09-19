@@ -9,7 +9,7 @@ import {
   REGIMENTAL_SUPPORT_COMPATIBILITY_1193
 } from '../src/regimental-support-1193.js';
 import { HQ_ONLY_SUPPORT_IDS_1193, SUPPORT_STRUCTURE_META_1193, applySupportStructureFallback1193 } from '../src/builtin1193/support-structure-certification-1193.js';
-import { supportCompaniesConflict, supportChoiceBlocked } from '../src/division-designer-options.js';
+import { supportCompaniesConflict, supportChoiceBlocked, normalizeSupportCompanies } from '../src/division-designer-options.js';
 
 const EXPECTED_DIVISIONAL=Object.freeze(`
 airborne_light_armor
@@ -171,6 +171,16 @@ for(const [a,b] of [['engineer','support_artillery'],['recon','logistics'],['sup
 }
 assert.equal(supportChoiceBlocked('mot_recon','recon',['recon','support_artillery'],supports),false,'the current slot remains replaceable within its own support family');
 assert.equal(supportChoiceBlocked('mot_recon','support_artillery',['recon','support_artillery'],supports),true,'another occupied slot in the same support family must block the choice');
+assert.deepEqual(
+  normalizeSupportCompanies(['recon','mot_recon','engineer','armored_engineer','support_artillery'],supports,hydratedDivisional,5),
+  ['recon','engineer','support_artillery'],
+  'saved/imported support selections must drop same-family structural conflicts deterministically'
+);
+assert.deepEqual(
+  normalizeSupportCompanies(['hq_signal','engineer','support_artillery'],supports,hydratedDivisional,5),
+  ['engineer','support_artillery'],
+  'normal Division Designer state must drop Army-HQ-only support companies'
+);
 
 // Source abbreviations used by the in-game regimental support records.
 assert.deepEqual(REGIMENTAL_SUPPORT_ABBREVIATIONS_1193,{

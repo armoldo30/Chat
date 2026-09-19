@@ -64,7 +64,7 @@ assert.equal(supportLabels.heavy_flame_tank,'Heavy Flame Tank Company');
 
 assert.equal(supportCompaniesConflict('recon',supports.recon,'mot_recon',supports.mot_recon),true,'recon variants share the source same_support_type');
 assert.equal(supportCompaniesConflict('engineer',supports.engineer,'armored_engineer',supports.armored_engineer),true,'engineer variants share the source same_support_type');
-assert.equal(supportCompaniesConflict('logistics_company',supports.logistics_company,'helicopter_transport',supports.helicopter_transport),true,'helicopter transport conflicts with ordinary logistics by source same_support_type');
+assert.equal(supportCompaniesConflict('logistics',supports.logistics,'helicopter_transport',supports.helicopter_transport),true,'helicopter transport conflicts with ordinary logistics by source same_support_type');
 assert.equal(supportCompaniesConflict('artillery',supports.artillery,'anti_air',supports.anti_air),false);
 assert.equal(supportCompanyAllowedWithSelection('mot_recon',supports,['engineer','recon'],-1),false);
 assert.deepEqual(normalizeSupportCompanySelection(['recon','mot_recon','engineer','armored_engineer','artillery'],supports,runtimeDiv,5),['recon','engineer','artillery']);

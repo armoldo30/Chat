@@ -12,7 +12,7 @@ export const O3_EXTERNAL_CONTROLS=Object.freeze([
   'same one-GER-vs-one-POL 18-width Plains battle',
   'no commanders and no reserves',
   'full starting supply, zero planning, zero POL entrenchment',
-  'combat-panel values captured after the trial starts, during the h0->h1 startup interval, before the first firing opportunity',
+  'combat-panel values captured after the trial starts, after combat instantiates, no later than the h1 boundary and before advancing into the h1->h2 firing interval',
   'displayed GER Soft Attack is 7 or 8',
   'displayed GER Soft Attack remains at least 10 points below displayed POL Defense',
   'GER Breakthrough and POL offensive/defensive context remain consistent with the controlled baseline apart from the intended GER attack attenuation',

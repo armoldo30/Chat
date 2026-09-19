@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o6-two-point-probability-law-v1",
+  "mode": "high",
+  "evidenceStatus": "unexpected-pattern-control-review",
+  "sourceLog": "game(20260919-020435).log",
+  "observedCombatPanel": {
+    "attackerSoftAttack": 18,
+    "defenderDefense": 255,
+    "provenance": "user-reported live panel"
+  },
+  "machineControls": {
+    "hours": "0..41 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "defenderOrgLossPpByInterval": [
+    0.0855,
+    0.086,
+    0.177,
+    0.177,
+    0.178,
+    0.1765,
+    0.1775,
+    0.091,
+    0.171,
+    0.268,
+    0.178,
+    0.085,
+    0.177,
+    0.177,
+    0.176,
+    0.178,
+    0.086,
+    0.0905,
+    0.0915,
+    0.085,
+    0.177,
+    0.0855,
+    0.0915,
+    0.086,
+    0.269,
+    0.085,
+    0.177,
+    0.178,
+    0.0915,
+    0.1765,
+    0.086,
+    0.085,
+    0.182,
+    0.086,
+    0.178,
+    0.085,
+    0.177,
+    0.268,
+    0.177,
+    0.177
+  ],
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 17,
+    "two": 20,
+    "three": 3
+  },
+  "clusterStats": {
+    "one": {
+      "count": 17,
+      "meanPp": 0.0871764706,
+      "minPp": 0.085,
+      "maxPp": 0.0915
+    },
+    "two": {
+      "count": 20,
+      "meanPp": 0.177125,
+      "minPp": 0.171,
+      "maxPp": 0.182
+    },
+    "three": {
+      "count": 3,
+      "meanPp": 0.2683333333,
+      "minPp": 0.268,
+      "maxPp": 0.269
+    },
+    "twoToOneMeanRatio": 2.0317848411,
+    "threeToOneMeanRatio": 3.0780479103
+  },
+  "predeclaredStatus": {
+    "originalO6AcceptancePassed": false,
+    "reason": "O6 required only the expected one-hit/two-hit fixed-damage multiplicities. Three clear ~3x intervals were observed.",
+    "originalProbabilityLawDecision": "not automatically interpretable"
+  },
+  "importantObservation": "At displayed Soft Attack 18, the current planner's stochasticRound(attack*0.1) model can produce only 1 or 2 attack points across the retained ±1 display sensitivity. The executable produced three distinct ~3x organization-loss intervals while all diagnostic controls remained clean. This is a structural mismatch candidate against the planner's current integerization placement."
+}

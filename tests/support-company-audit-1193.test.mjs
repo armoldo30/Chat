@@ -8,6 +8,7 @@ import {
   REGIMENTAL_SUPPORT_ABBREVIATIONS_1193,
   REGIMENTAL_SUPPORT_COMPATIBILITY_1193
 } from '../src/regimental-support-1193.js';
+import { HQ_ONLY_SUPPORT_IDS_1193, SUPPORT_STRUCTURE_META_1193, applySupportStructureFallback1193 } from '../src/builtin1193/support-structure-certification-1193.js';
 
 const EXPECTED_DIVISIONAL=Object.freeze(`
 airborne_light_armor
@@ -101,15 +102,28 @@ assert.equal(Object.keys(REGIMENTAL_SUPPORT_ABBREVIATIONS_1193).length,14);
 
 const battalions={},supports={},equipment={},terrain={};
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+applySupportStructureFallback1193(supports);
 
 const sourceId=id=>supports[id]?.gameId||supports[id]?.id||id;
 const hydratedDivisional=importedDivisionalSupportIds(supports);
 const hydratedRegimental=importedRegimentalSupportIds(supports);
-assert.equal(hydratedDivisional.length,54,'Division Designer must expose exactly the 54 source divisional supports');
+const EXPECTED_HQ_ONLY=[...HQ_ONLY_SUPPORT_IDS_1193].sort();
+const EXPECTED_REGULAR_DIVISIONAL=EXPECTED_DIVISIONAL.filter(id=>!EXPECTED_HQ_ONLY.includes(id));
+assert.equal(SUPPORT_STRUCTURE_META_1193.evidence,'game-file exact');
+assert.equal(EXPECTED_HQ_ONLY.length,11,'1.19.3 source must retain exactly 11 Army-HQ-only support companies');
+assert.equal(EXPECTED_REGULAR_DIVISIONAL.length,43,'normal Division Designer should have 43 structurally eligible divisional support companies');
+assert.equal(hydratedDivisional.length,43,'Division Designer must expose exactly 43 regular-division supports after HQ-only filtering');
 assert.equal(hydratedRegimental.length,14,'Division Designer must expose exactly the 14 source regimental supports');
-assert.deepEqual(hydratedDivisional.map(sourceId).sort(),EXPECTED_DIVISIONAL,'hydrated divisional support aliases must map one-for-one to source IDs');
+assert.deepEqual(hydratedDivisional.map(sourceId).sort(),EXPECTED_REGULAR_DIVISIONAL,'regular divisional support picker must exclude only the 11 source HQ-only companies');
 assert.deepEqual(hydratedRegimental.map(sourceId).sort(),EXPECTED_REGIMENTAL,'hydrated regimental support aliases must map one-for-one to source IDs');
-assert.equal(new Set([...hydratedDivisional,...hydratedRegimental]).size,68,'support picker inventories must not overlap or alias-collide');
+assert.equal(new Set([...hydratedDivisional,...hydratedRegimental]).size,57,'normal-division support picker inventories must not overlap or alias-collide');
+for(const id of EXPECTED_HQ_ONLY){
+  const record=supports[id];
+  assert.ok(record,`missing HQ support record ${id}`);
+  assert.equal(record.allowInArmyHq,true,`${id} should remain Army-HQ eligible`);
+  assert.equal(record.allowInNonArmyHq,false,`${id} must be excluded from normal divisions`);
+  assert.ok(!hydratedDivisional.includes(id),`${id} leaked into regular Division Designer support list`);
+}
 
 for(const id of [...EXPECTED_DIVISIONAL,...EXPECTED_REGIMENTAL]){
   const label=BUILTIN_ENGLISH_LOCALIZATION_1193[id];
@@ -168,7 +182,8 @@ for(const [family,[hp,supply,breakthrough]] of Object.entries(spaa)){
 console.log(JSON.stringify({
   sourceDivisional:sourceDivisional.length,
   sourceRegimental:sourceRegimental.length,
-  hydratedDivisional:hydratedDivisional.length,
+  sourceHqOnly:EXPECTED_HQ_ONLY.length,
+  regularDivisional:hydratedDivisional.length,
   hydratedRegimental:hydratedRegimental.length,
   localizedSupportRecords:68,
   regimentalAbbreviations:Object.keys(REGIMENTAL_SUPPORT_ABBREVIATIONS_1193).length

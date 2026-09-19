@@ -1481,6 +1481,99 @@ Persisted combined assessment:
 - `oracle-lab/captures/o6-combined-assessment.json`
 
 
+### O7 integer-centered wide-rounding probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O6 established a narrow `oracle-divergent` result for the planner's current single-Bernoulli attack-point integerization. The observed 0/1/2 pattern at Soft Attack 12 and 1/2/3 pattern at Soft Attack 18 suggest a wider discrete random-rounding law centered near the retained `attack / 10` mean scale.
+
+O7 tests one explicit replacement candidate before any planner code is changed.
+
+Scenario:
+
+`o7-wide-random-rounding-v1`
+
+Candidate executable approximation:
+
+`round( attack / 10 + U[-1, +1] )`
+
+where ties have zero probability and negative results are clamped to zero.
+
+This candidate is **planner analytical / executable inferred**, not game-file exact. It is motivated by the O5/O6 multiplicity structure and is declared before O7 executable data exists.
+
+#### O7 diagnostic controls
+
+O7 retains the fixed-damage Oracle interventions:
+
+- defended avoid chance forced to zero;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0;
+- neutral tactics.
+
+Target attack modifier:
+
+`army_infantry_attack_factor = -0.721`
+
+Panel acceptance:
+
+- displayed GER Soft Attack exactly **20**;
+- tooltip/effective GER Soft Attack between **19.8 and 20.2 inclusive**;
+- POL Defense at least **200**;
+- one GER division vs one POL division;
+- width 18 each;
+- no commanders and zero reserves.
+
+The tooltip value is required for O7 because the candidate distribution changes continuously around the integer center.
+
+#### O7 trace
+
+Collect exactly one h0..h61 trace:
+
+- h0→h1 startup;
+- exactly **60 firing intervals**;
+- exact strength invariance for both sides;
+- clean modifier removal at h61.
+
+Using the fixed-damage calibration:
+
+- 1x cluster: defender organization loss < **0.13 pp**
+- 2x cluster: **0.13 ≤ loss < 0.225 pp**
+- 3x cluster: **0.225 ≤ loss < 0.315 pp**
+- zero loss or loss ≥0.315 pp is outside the candidate support and triggers immediate unexpected-pattern review.
+
+#### O7 candidate probabilities
+
+Let `a` be the tooltip/effective Soft Attack and `x = a / 10`.
+
+For accepted `a ∈ [19.8,20.2]`, the candidate predicts only 1x/2x/3x multiplicities with:
+
+- `p1 = (2.5 - x) / 2`
+- `p2 = 0.5`
+- `p3 = (x - 1.5) / 2`
+
+At exactly Soft Attack 20.0 this is:
+
+**25% / 50% / 25%**
+
+for 1x / 2x / 3x.
+
+The planner's current Bernoulli stochastic-rounding implementation would instead collapse essentially to the 2x level at an exact integer center and, for a stable tooltip value, cannot generate both lower and upper tails in the same run.
+
+#### O7 fixed decision rule
+
+For the 60 accepted firing intervals:
+
+1. If any 0x or ≥4x interval appears, action = `wide-rounding-candidate-mismatch`.
+2. Otherwise compute Pearson chi-square against the tooltip-conditioned candidate probabilities above.
+3. Degrees of freedom = 2; predeclared significance level = **1%**; critical value = **9.21034**.
+4. If chi-square ≤ 9.21034 and both 1x and 3x clusters are observed, action = `wide-rounding-candidate-supported`.
+5. If chi-square > 9.21034, action = `wide-rounding-candidate-mismatch`.
+6. No adaptive extension is permitted. One accepted 60-interval run completes O7.
+
+A supported O7 result does not claim source-code identity. It would justify replacing the planner's currently divergent one-Bernoulli integerization with this empirically supported wider discrete law on the Oracle branch, followed by planner-only replay/regression against O1/O2/O3/O4/O5/O6 evidence before any production merge.
+
+O7 is intended to be the **final manual attack-point integerization experiment** unless it returns an unexpected pattern. If it supports the candidate, subsequent work should be planner-side integration and regression rather than additional O-number executable runs.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

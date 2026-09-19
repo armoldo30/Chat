@@ -2,7 +2,7 @@ import { MODEL_META, RESOURCES, COMBAT_CONSTANTS, PRODUCTION_CONSTANTS, equipmen
 import { fmt, optimizeForceProduction, divisionEquipmentIC, calcDivision, aggregateDivision, simulateBattle, compareTerrains, uncertaintyBand, scoreDivision, clamp } from './engine.js';
 import { safeStructuralOverrides, defineOverrides, equipmentSnapshot } from './parser.js';
 import { buildExtendedDataPack } from './gameDataParser.js';
-import { hydrateGameData, importedRegimentalSupportIds, prerequisiteText } from './gameData.js';
+import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSupportIds, prerequisiteText } from './gameData.js';
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
@@ -94,8 +94,9 @@ const runtimeTankDataStatus=state.dataPack?configureTankDataPack(state.dataPack,
 const runtimeAirDataStatus=state.dataPack?configureAirDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
 applyRegimentalSupportCompatibilityFallback(supports);
 const importedRegimentalSupports=state.dataPack?importedRegimentalSupportIds(supports):[];
+const importedDivisionalSupports=state.dataPack?importedDivisionalSupportIds(supports):[];
 const BASE_REGIMENTAL_SUPPORTS=importedRegimentalSupports.length?importedRegimentalSupports:LEGACY_REGIMENTAL_SUPPORTS;
-const BASE_DIVISIONAL_SUPPORTS=Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k)&&!(state.dataPack&&LEGACY_REGIMENTAL_SUPPORTS.includes(k)));
+const BASE_DIVISIONAL_SUPPORTS=importedDivisionalSupports.length?importedDivisionalSupports:Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k)&&!LEGACY_REGIMENTAL_SUPPORTS.includes(k));
 const LEGACY_REGIMENTAL_MAP={support_artillery:'field_guns',regimental_infantry_guns:'field_guns',support_at:'anti_tank_battery',regimental_at:'anti_tank_battery',support_aa:'anti_air_battery',regimental_aa:'anti_air_battery'};
 function ensureDesignerState(side){
   const key=side+'Grid';

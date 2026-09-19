@@ -6,7 +6,7 @@ import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSuppor
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
-import { battalionPickerGroups, supportCompanyPickerGroups, supportChoiceBlocked, assignRegimentalSupport } from './division-designer-options.js';
+import { battalionPickerGroups, supportCompanyPickerGroups, supportChoiceBlocked, normalizeSupportCompanies, assignRegimentalSupport } from './division-designer-options.js';
 import { REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
@@ -104,7 +104,7 @@ function ensureDesignerState(side){
   if(!Array.isArray(state[key]))state[key]=countsToGrid(state[side],Object.keys(battalions),battalions);
   else state[key]=normalizeGrid(state[key],Object.keys(battalions),battalions);
   state[side]=gridToCounts(state[key],Object.keys(battalions));
-  state[side+'Supports']=(Array.isArray(state[side+'Supports'])?state[side+'Supports']:[]).filter(x=>supports[x]).slice(0,5);
+  state[side+'Supports']=normalizeSupportCompanies(Array.isArray(state[side+'Supports'])?state[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);
   const regKey=side+'RegimentalSupports';
   state[regKey]=Array.isArray(state[regKey])?Array.from({length:DESIGNER_COLS},(_,i)=>{
     const raw=state[regKey][i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;

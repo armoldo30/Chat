@@ -1,9 +1,15 @@
-# HOI4 War Planner — 0.17.0
+# HOI4 War Planner — 0.17.1
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.1 release focus
+
+0.17.1 is a focused Division Designer maintenance release on the certified HOI4 1.19.3 baseline. It fixes regimental-support selection, replaces the hardcoded line-battalion picker subset with the hydrated source-backed battalion catalog, exposes armored combat-support battalions such as tank destroyers, SP artillery and SP anti-air, and groups divisional support companies by battlefield role for faster navigation.
+
+The underlying 1.19.3 game-data baseline and evidence classifications are unchanged by this patch.
 
 ## 0.17.0 release focus
 

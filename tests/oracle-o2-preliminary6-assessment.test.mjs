@@ -40,8 +40,12 @@ const assessment=assessO2Decision({batch,reference,observedStats});
 assert.equal(assessment.stage,'preliminary-6');
 assert.equal(assessment.evidenceStatus,'unvalidated');
 assert.equal(assessment.externalScenarioControlStatus,'requires-manual-evidence-review');
-assert.ok(['collect-confirmatory-to-12','no-preliminary-mismatch-trigger'].includes(assessment.action));
+assert.equal(assessment.action,'no-preliminary-mismatch-trigger');
+assert.equal(assessment.outsideReferenceInterval,false);
 assert.equal(assessment.referenceInterval.centralProbability,0.95);
+assert.ok(Math.abs(assessment.referenceInterval.low-0.31834092881945464)<1e-12);
+assert.ok(Math.abs(assessment.referenceInterval.high-0.5483257378472323)<1e-12);
+assert.ok(Math.abs(reference.midpoint.defenderStrengthLoss.mean-0.43018266666690985)<1e-12);
 
 console.log('O2_PRELIMINARY6_ASSESSMENT '+JSON.stringify({
   observedMean:capture.aggregate.defenderStrengthLoss.mean,

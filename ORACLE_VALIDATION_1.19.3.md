@@ -590,6 +590,44 @@ Predeclared interpretation:
 
 This stopping rule and its machine assessment implementation are declared before seeing any O2 executable loss result.
 
+#### O2 preliminary six-run result
+
+The first accepted O2 smoke plus five additional independent runs produced **6 unique accepted traces**, with no parser rejections and no exact duplicate traces. Every run retained the one-hour no-damage startup control and confirmed amplifier cleanup.
+
+The executable combat-panel state was stable across the screenshots:
+
+- GER Soft Attack **215**
+- GER Breakthrough **35**
+- POL Soft Attack **69**
+- POL Defense **255**
+- defended margin: **40 points**
+
+The six-run primary metric, POL/defender strength loss over h0→h6, was:
+
+- mean: **0.4035 percentage points**
+- sample SD: **0.0553245**
+- minimum: **0.3185**
+- maximum: **0.4585**
+
+The predeclared planner assessment used 100,000 Monte Carlo runs at each of the 17 input-sensitivity points and 50,000 bootstrap sample-mean replicates per point. The resulting preliminary **95% measurement-adjusted interval** was:
+
+- **0.3183409–0.5483257 percentage points**
+
+The planner midpoint mean was **0.4301827 pp**; the full ±1 input sensitivity moved the planner mean only from **0.4269989 to 0.4324157 pp**.
+
+The observed executable mean **0.4035 pp is inside the predeclared 95% interval**. Therefore the machine action is:
+
+`no-preliminary-mismatch-trigger`
+
+Under the declared staged rule, **do not collect runs 7–12**. O2 remains `unvalidated`: interval inclusion is not validation and does not promote the remaining hit/damage resolver. It means only that this amplified fully-defended probe did not produce the material mismatch required to escalate to the 12-run confirmatory stage.
+
+Assessment provenance:
+
+- planner/evidence source SHA: `8708283abcdff806de99bd8b7086eea0d72f9536`
+- GitHub Actions run: `35407901759` (#223), success
+- persisted result: `oracle-lab/captures/o2-defended-amplified-preliminary-6-assessment.json`
+
+
 O2 does not modify production `main` and does not supersede the O1 timing certification.
 
 

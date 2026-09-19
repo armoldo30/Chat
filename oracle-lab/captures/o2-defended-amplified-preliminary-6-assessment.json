@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o2-defended-amplified-v1",
+  "evidenceStatus": "unvalidated",
+  "stage": "preliminary-6",
+  "sourceCapture": "oracle-lab/captures/o2-defended-amplified-preliminary-6-summary.json",
+  "plannerReferenceSourceSha": "8708283abcdff806de99bd8b7086eea0d72f9536",
+  "ci": {
+    "workflowRunId": 35407901759,
+    "runNumber": 223,
+    "conclusion": "success",
+    "emittedAt": "2026-09-19T00:03:51.8600930Z"
+  },
+  "observedCombatPanel": {
+    "attackerSoftAttack": 215,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderDefense": 255,
+    "defendedMargin": 40
+  },
+  "executable": {
+    "uniqueRuns": 6,
+    "rejectedRuns": 0,
+    "primaryMetric": "defenderStrengthLoss",
+    "observedMean": 0.4035,
+    "observedSd": 0.055324497286464346
+  },
+  "reference": {
+    "runsPerSensitivityPoint": 100000,
+    "sampleMeanBootstrapReplicates": 50000,
+    "centralProbability": 0.95,
+    "decisionInterval": {
+      "low": 0.31834092881945464,
+      "high": 0.5483257378472323
+    },
+    "plannerOnlyInterval": {
+      "low": 0.32444444444445464,
+      "high": 0.5422222222222323
+    },
+    "executableMeasurementAllowancePp": 0.006103515625,
+    "primaryMeanSensitivity": {
+      "min": 0.42699893333356803,
+      "midpoint": 0.43018266666690985,
+      "max": 0.43241573333356903
+    }
+  },
+  "outsideReferenceInterval": false,
+  "action": "no-preliminary-mismatch-trigger",
+  "interpretation": "The six-run executable primary-metric mean is inside the predeclared measurement-adjusted empirical planner 95% interval. Stop at six under the staged rule. O2 remains unvalidated and the resolver is not promoted."
+}

@@ -168,9 +168,13 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
   return status;
 }
 
-export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>supports[id]?.regimentalSupport&&supports[id]?.categories?.includes('category_regimental_support_battalions'));}
+export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>supports[id]?.regimentalSupport);}
 export function importedDivisionalSupportIds(supports,{includeHqOnly=false}={}){return Object.keys(supports||{}).filter(id=>{
-  const u=supports[id];if(!u?.divisionalSupport||!u.categories?.includes('category_divisional_support_battalions'))return false;
+  const u=supports[id];if(!u)return false;
+  const categories=Array.isArray(u.categories)?u.categories:[];
+  const hasExactSupportCategories=categories.includes('category_divisional_support_battalions')||categories.includes('category_regimental_support_battalions');
+  if(hasExactSupportCategories&&!categories.includes('category_divisional_support_battalions'))return false;
+  if(!hasExactSupportCategories&&u.regimentalSupport)return false;
   if(!includeHqOnly&&u.allowInNonArmyHq===false)return false;
   return !u.regimentalSupport;
 });}

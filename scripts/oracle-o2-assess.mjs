@@ -12,7 +12,7 @@ export const O2_EXTERNAL_CONTROLS=Object.freeze([
   'same one-GER-vs-one-POL 18-width Plains battle',
   'no commanders and no reserves',
   'full starting supply, zero planning, zero POL entrenchment',
-  'paused O2 combat-panel values captured before the sampler starts',
+  'combat-panel values captured after the trial starts, during the h0->h1 startup interval, before the first firing opportunity',
   'displayed GER Soft Attack at least 10 points below displayed POL Defense',
   '11:00->17:00 daylight window'
 ]);

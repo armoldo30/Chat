@@ -9,6 +9,7 @@ import {
   REGIMENTAL_SUPPORT_COMPATIBILITY_1193
 } from '../src/regimental-support-1193.js';
 import { HQ_ONLY_SUPPORT_IDS_1193, SUPPORT_STRUCTURE_META_1193, applySupportStructureFallback1193 } from '../src/builtin1193/support-structure-certification-1193.js';
+import { supportCompaniesConflict, supportChoiceBlocked } from '../src/division-designer-options.js';
 
 const EXPECTED_DIVISIONAL=Object.freeze(`
 airborne_light_armor
@@ -133,6 +134,43 @@ for(const id of [...EXPECTED_DIVISIONAL,...EXPECTED_REGIMENTAL]){
 for(const id of EXPECTED_REGIMENTAL){
   assert.equal(REGIMENTAL_SUPPORT_LABELS_1193[id],BUILTIN_ENGLISH_LOCALIZATION_1193[id],`regimental display label mismatch for ${id}`);
 }
+
+// Structural same_support_type rules must block mutually exclusive support families.
+const conflictPairs=[
+  ['recon','mot_recon'],
+  ['recon','armored_car_recon'],
+  ['recon','light_tank_recon'],
+  ['recon','airborne_light_armor'],
+  ['recon','rangers_support'],
+  ['recon','northern_territory_recon_support'],
+  ['recon','winter_logistics_support'],
+  ['recon','long_range_patrol_support'],
+  ['recon','elephantry'],
+  ['engineer','pioneer_support'],
+  ['engineer','jungle_pioneers_support'],
+  ['engineer','assault_engineer'],
+  ['engineer','armored_engineer'],
+  ['signal','armored_signal'],
+  ['maintenance','armored_maintenance'],
+  ['military_police','motorized_military_police'],
+  ['light_flame_tank','medium_flame_tank'],
+  ['medium_flame_tank','heavy_flame_tank'],
+  ['field_hospital','helicopter_field_hospital'],
+  ['logistics','helicopter_transport'],
+  ['super_heavy_artillery','self_propelled_super_heavy_artillery'],
+  ['helicopter_brigade','helicopter_recon'],
+  ['helicopter_brigade','helicopter_transport'],
+  ['helicopter_brigade','helicopter_field_hospital']
+];
+for(const [a,b] of conflictPairs){
+  assert.equal(supportCompaniesConflict(a,b,supports),true,`source same_support_type conflict missing: ${a} vs ${b}`);
+  assert.equal(supportCompaniesConflict(b,a,supports),true,`source same_support_type conflict must be symmetric: ${b} vs ${a}`);
+}
+for(const [a,b] of [['engineer','support_artillery'],['recon','logistics'],['support_aa','support_at']]){
+  assert.equal(supportCompaniesConflict(a,b,supports),false,`unrelated support companies should coexist: ${a} vs ${b}`);
+}
+assert.equal(supportChoiceBlocked('mot_recon','recon',['recon','support_artillery'],supports),false,'the current slot remains replaceable within its own support family');
+assert.equal(supportChoiceBlocked('mot_recon','support_artillery',['recon','support_artillery'],supports),true,'another occupied slot in the same support family must block the choice');
 
 // Source abbreviations used by the in-game regimental support records.
 assert.deepEqual(REGIMENTAL_SUPPORT_ABBREVIATIONS_1193,{

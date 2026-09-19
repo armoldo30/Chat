@@ -631,6 +631,109 @@ Assessment provenance:
 O2 does not modify production `main` and does not supersede the O1 timing certification.
 
 
+### O3 sub-10 defended-incidence probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O2 did not trigger a material mismatch, so O3 changes the question rather than collecting more of the same O2 signal. O3 isolates a narrow gate in the remaining resolver uncertainty: **can a fully defended displayed GER Soft Attack below 10 still transmit any measurable POL strength damage?**
+
+Scenario: o3-sub10-defended-incidence-v1
+
+Oracle commands:
+
+- d_oracle_o3_prepare
+- d_oracle_o3_trial6
+- emergency/manual cleanup: d_oracle_o3_clear
+
+The temporary GER-only modifier is army_infantry_attack_factor = -0.89.
+
+The modifier intentionally changes infantry attack only. It must not alter defense, breakthrough, organization, HP, supply, planning, entrenchment, or damage modifiers. Exact executable effective values are not inferred from modifier arithmetic: the paused combat panel remains authoritative.
+
+#### O3 acceptance boundary
+
+An O3 run is accepted only when the existing controlled O1/O2 conditions remain intact and the paused combat panel shows:
+
+- displayed GER Soft Attack **7 or 8**;
+- displayed GER Soft Attack at least 10 points below displayed POL Defense;
+- one GER division vs one POL division;
+- width 18 each;
+- Plains;
+- no commanders;
+- no reserves;
+- full starting supply;
+- zero planning;
+- zero POL entrenchment;
+- neutral tactic harness active;
+- exact 11:00→17:00 window;
+- random_seed executed before the attack;
+- WPO3 samples exactly h0..h6;
+- h0→h1 shows no measurable damage;
+- successful automatic attenuator cleanup at h6.
+
+The displayed-stat acceptance of 7–8 preserves the conservative ±1 UI uncertainty entirely below 10: an accepted displayed 7 maps to a 6–8 sensitivity band and an accepted displayed 8 maps to 7–9.
+
+#### O3 primary metric
+
+Primary metric:
+
+**number of accepted runs with any measurable POL defender strength damage after h1**
+
+Damage incidence is detected conservatively from the raw bisection bounds:
+
+h6 defender strengthHigh < h1 defender strengthLow
+
+This is intentionally a binary incidence test rather than a loss-magnitude comparison.
+
+The current planner hypothesis being probed is:
+
+- combat-point scale: 0.1 (executable inferred, carried from 1.19.2);
+- attack-point integerization: stochastic rounding before hit resolution (unvalidated);
+- defended hit chance: 10% from game-file exact 1.19.3 defines;
+- one-hour initial fire delay: oracle-validated.
+
+A simple competing gate model is floor(SoftAttack / 10).
+
+If true Soft Attack stays below 10, that simple floor model yields zero GER attack points and therefore predicts zero POL strength damage throughout O3.
+
+Positive O3 damage therefore has a sharp interpretation: it contradicts that simple floor-zero transmission model at this controlled boundary. It does **not** uniquely establish stochastic rounding, because other non-floor executable mechanisms could also transmit sub-10 attack.
+
+An all-zero O3 result is weaker: zero observed strength damage could arise from attack-point integerization, hit RNG, or downstream executable damage handling. Therefore an all-zero result is interpreted only against the complete current planner hypothesis, not as proof of a particular alternative formula.
+
+#### O3 exact planner incidence reference
+
+For the current planner model, five firing hours remain after the Oracle-validated startup interval. For displayed GER Soft Attack 8 with the same ±1 sensitivity used elsewhere, the exact current-model probability of at least one POL strength-damage event per six-hour run is:
+
+- Soft Attack 7: about **30.43%**
+- Soft Attack 8: about **34.09%**
+- Soft Attack 9: about **37.60%**
+
+Corresponding all-zero batch probabilities:
+
+- six runs, worst sensitivity edge: about **11.34%**
+- ten runs, worst sensitivity edge: about **2.66%**
+
+For an accepted displayed Soft Attack of 7, the lower sensitivity edge is 6; the ten-run all-zero probability remains below 5%.
+
+These values are computed analytically from the current planner's stochastic-rounding + defended-hit process rather than by Monte Carlo.
+
+#### O3 predeclared staged rule
+
+Preliminary stage:
+
+**6 unique accepted runs**
+
+- If **any** accepted run shows measurable POL strength damage, stop. The simple floor-after-/10 zero-transmission hypothesis is contradicted for O3. O3 remains unvalidated; do not promote stochastic rounding or the broad resolver.
+- If all six accepted runs show zero POL strength damage, collect exactly **4 more** independent runs.
+
+Confirmatory stage:
+
+**10 unique accepted runs total**
+
+- If any of the ten accepted runs shows measurable POL strength damage, stop with the same narrow floor-zero contradiction; O3 remains unvalidated.
+- If all ten accepted runs show zero POL strength damage, create a **narrow mismatch candidate** against the current stochastic-rounding planner hypothesis because the predeclared worst-case all-zero probability across the accepted displayed-stat sensitivity is below 5%.
+- A ten-run all-zero result is **not automatically oracle-divergent**. Every external scenario control must be reviewed first, and the result does not by itself identify which downstream executable step differs.
+
+O3 is not a validation criterion for the entire hit/damage resolver. Its purpose is to eliminate or retain one high-value class of integerization/transmission behavior with substantially more information per user-run than repeating O1 or O2.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

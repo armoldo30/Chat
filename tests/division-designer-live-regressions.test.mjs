@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import BUILTIN_1193 from '../src/builtin1193.js';
-import { hydrateGameData } from '../src/gameData.js';
+import { hydrateGameData, importedDivisionalSupportIds } from '../src/gameData.js';
 import { battalionPickerGroups, supportCompanyPickerGroups, supportCompanySection, assignRegimentalSupport } from '../src/division-designer-options.js';
 import { regimentGroupForUnit } from '../src/regiment-groups.js';
 import { REGIMENTAL_SUPPORT_IDS_1193, applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
@@ -30,7 +30,14 @@ for(const id of REGIMENTAL_SUPPORT_IDS_1193)assert.ok(supports[id]?.regimentalSu
 
 
 
-const supportGroups=supportCompanyPickerGroups(supports,Object.keys(supports).filter(id=>!supports[id]?.regimentalSupport));
+const auditedDivisionalSupports=importedDivisionalSupportIds(supports);
+const supportGroups=supportCompanyPickerGroups(supports,auditedDivisionalSupports);
+for(const id of ['elephantry','armored_engineer','helicopter_field_hospital','winter_logistics_support','super_heavy_artillery']){
+  assert.ok(auditedDivisionalSupports.includes(id),`audited Division Designer support catalog should include ${id}`);
+}
+for(const id of ['hq_engineer','hq_recon','hq_logistics','hq_signal','hq_field_hospital']){
+  assert.ok(!auditedDivisionalSupports.includes(id),`HQ-only support ${id} must not appear in normal Division Designer support choices`);
+}
 assert.equal(supportCompanySection('engineer',supports.engineer),'Engineering & Recon');
 assert.equal(supportCompanySection('support_artillery',supports.support_artillery),'Fire Support');
 assert.equal(supportCompanySection('support_at',supports.support_at),'Anti-Tank & Anti-Air');
@@ -51,6 +58,8 @@ assert.equal(state.attackerRegimentalSupports[2],null,'incompatible regimental s
 const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 assert.match(main,/battalionPickerGroups\(battalions\)/,'Division Designer should derive battalion picker groups from hydrated source data');
 assert.match(main,/supportCompanyPickerGroups\(supports,BASE_DIVISIONAL_SUPPORTS\)/,'support company picker should be grouped instead of rendered as one unsorted wall');
+assert.match(main,/importedDivisionalSupportIds\(supports\)/,'Division Designer must use the positive source-backed divisional support catalog');
+assert.match(main,/filter\(x=>BASE_DIVISIONAL_SUPPORTS\.includes\(x\)\)/,'saved support selections must be normalized against the audited catalog');
 assert.doesNotMatch(main,/'Armored Battalions':\['light_armor','medium_armor','heavy_armor'\]/,'armor picker must not be hardcoded to only three tank battalions');
 assert.match(main,/data-regimental-choice=/,'regimental support choices should use a dedicated click binding');
 assert.match(main,/assignRegimentalSupport\(state,side,column,value/,'regimental support click binding should mutate the selected regiment explicitly');

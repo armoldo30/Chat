@@ -782,6 +782,114 @@ Persisted evidence:
 - `oracle-lab/captures/o3-sub10-smoke-001-assessment.json`
 
 
+### O4 low-attack undefended incidence probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O3 established that a conservatively sub-10 displayed GER Soft Attack can transmit measurable POL damage, contradicting the simple floor(SoftAttack/10) zero-transmission model at that controlled boundary. O4 now targets a different competing integerization behavior: **does any positive sub-10 attack effectively receive a minimum one full attack point every firing hour, or does transmission frequency continue to scale fractionally with attack magnitude as in the current planner?**
+
+Scenario:
+
+`o4-sub10-undefended-incidence-v1`
+
+The O4 harness creates a one-way diagnostic regime by:
+
+- attenuating GER infantry attack to target displayed Soft Attack **2**;
+- suppressing POL infantry defense to target displayed Defense **0**;
+- leaving GER Breakthrough, POL Soft Attack, organization, HP, supply, planning, entrenchment, tactics, and damage modifiers otherwise untouched.
+
+Exact executable panel values remain authoritative. Modifier arithmetic is not treated as evidence.
+
+Target dynamic modifiers:
+
+- GER: `army_infantry_attack_factor = -0.97`
+- POL: `army_infantry_defence_factor = -1.0`
+
+#### O4 acceptance boundary
+
+An O4 run is accepted only when all of the existing O1/O2/O3 controls remain intact and the paused combat panel shows:
+
+- GER displayed Soft Attack exactly **2**;
+- POL displayed Defense exactly **0**;
+- GER Soft Attack > POL Defense, so every generated GER attack point is in the undefended hit regime;
+- one GER division vs one POL division;
+- width 18 each;
+- Plains;
+- no commanders;
+- zero reserves;
+- full starting supply;
+- zero planning;
+- zero POL entrenchment;
+- neutral tactic harness active;
+- exact 11:00→17:00 window;
+- `random_seed` executed before the attack;
+- WPO4 samples exactly h0..h6;
+- h0→h1 shows no measurable damage;
+- both temporary O4 modifiers are removed successfully at h6.
+
+If the screenshot does not show exactly GER Soft Attack 2 and POL Defense 0, the smoke is rejected for O4 and no statistical batch is collected until the modifiers are retuned.
+
+#### O4 primary metric
+
+The primary metric is the number of **post-startup firing intervals with any measurable POL defender damage** across the accepted batch.
+
+There are five firing intervals per six-hour run:
+
+- h1→h2
+- h2→h3
+- h3→h4
+- h4→h5
+- h5→h6
+
+An interval counts positive when either organization or strength shows strict raw-bound separation:
+
+- current defender orgHigh < previous defender orgLow, or
+- current defender strengthHigh < previous defender strengthLow.
+
+Using either organization or strength makes the hit-incidence detector robust to small strength-display changes while remaining conservative against bisection overlap.
+
+#### O4 competing hypotheses
+
+Current planner hypothesis:
+
+- combat-point scale 0.1;
+- attack points are stochastically rounded before hit resolution;
+- undefended hit chance is 40% from `game-file exact` 1.19.3 defines;
+- displayed Soft Attack 2 is treated with the same conservative ±1 uncertainty used elsewhere.
+
+Across true Soft Attack 1–3, the planner predicts per-firing-hour POL damage incidence of approximately:
+
+- attack 1: **4%**
+- attack 2: **8%**
+- attack 3: **12%**
+
+Competing minimum-one-point hypothesis:
+
+- any positive sub-10 attack produces one full attack point every firing hour;
+- with POL Defense 0, that point uses the 40% undefended hit chance;
+- predicted per-firing-hour damage incidence: **40%**.
+
+This O4 test is intentionally about incidence frequency, not damage magnitude.
+
+#### O4 fixed sample and predeclared decision rule
+
+Collect exactly:
+
+**4 unique accepted O4 runs**
+
+That yields **20 post-startup firing intervals**.
+
+Let K be the number of intervals with measurable POL defender damage.
+
+Predeclared interpretation:
+
+- **K ≤ 3:** create a narrow mismatch candidate against the minimum-one-point hypothesis. Under p=0.40, P(K≤3 | n=20) ≈ **1.60%**. Under the current planner sensitivity p=0.04–0.12, the same outcome remains common; even at p=0.12, P(K≤3) ≈ **78.73%**.
+- **K = 4 or 5:** O4 is inconclusive between these hypotheses; stop at four runs and design a different experiment rather than extending the batch after seeing the result.
+- **K ≥ 6:** create a narrow mismatch candidate against the current stochastic-rounding planner hypothesis. At the most damage-favoring planner sensitivity p=0.12, P(K≥6 | n=20) ≈ **2.60%**.
+- No O4 outcome alone promotes the broad resolver to `oracle-validated`.
+- Any mismatch candidate remains `unvalidated` until every external scenario control is reviewed.
+
+The first O4 run is a smoke and may count as run 1 only if all controls pass. If it passes, collect exactly three more accepted runs; do not change the four-run target after observing the smoke result.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

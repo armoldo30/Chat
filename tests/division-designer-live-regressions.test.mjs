@@ -4,11 +4,46 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { battalionPickerGroups, supportCompanyPickerGroups, supportCompanySection, assignRegimentalSupport } from '../src/division-designer-options.js';
 import { regimentGroupForUnit } from '../src/regiment-groups.js';
-import { REGIMENTAL_SUPPORT_IDS_1193, applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
+import { REGIMENTAL_SUPPORT_IDS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed } from '../src/regimental-support-1193.js';
 
 const battalions={},supports={},equipment={},terrain={};
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 applyRegimentalSupportCompatibilityFallback(supports);
+
+const exactHydratedGroups={
+  infantry:'infantry',
+  artillery:'combat_support',
+  motorized:'mobile',
+  mot_artillery_brigade:'mobile_combat_support',
+  medium_armor:'armor',
+  medium_tank_destroyer_brigade:'armor_combat_support'
+};
+for(const [id,expected] of Object.entries(exactHydratedGroups)){
+  assert.ok(battalions[id],`hydrated 1.19.3 battalion catalog should include ${id}`);
+  assert.equal(battalions[id].group,expected,`${id} must preserve source regiment group during hydration`);
+  assert.equal(regimentGroupForUnit(id,battalions[id]),expected,`${id} runtime regiment group should match hydrated source group`);
+}
+
+const basicRegimentalSupport=['fire_support','mot_fire_support','field_guns','rocket_battery','anti_air_battery','anti_tank_battery'];
+const armoredRegimentalSupport=[
+  'mot_fire_support',
+  'light_tank_destroyer_support','medium_tank_destroyer_support','heavy_tank_destroyer_support','modern_tank_destroyer_support',
+  'light_sp_anti_air_support','medium_sp_anti_air_support','heavy_sp_anti_air_support','modern_sp_anti_air_support'
+];
+for(const group of ['infantry','combat_support','mobile']){
+  assert.deepEqual(
+    REGIMENTAL_SUPPORT_IDS_1193.filter(id=>regimentalSupportAllowed(id,supports[id],group)),
+    basicRegimentalSupport,
+    `${group} regiment must expose the exact 1.19.3 basic Regimental Support set`
+  );
+}
+for(const group of ['mobile_combat_support','armor','armor_combat_support']){
+  assert.deepEqual(
+    REGIMENTAL_SUPPORT_IDS_1193.filter(id=>regimentalSupportAllowed(id,supports[id],group)),
+    armoredRegimentalSupport,
+    `${group} regiment must expose the exact 1.19.3 armored Regimental Support set`
+  );
+}
 
 const groups=battalionPickerGroups(battalions);
 const armorSupport=groups['Armored Combat Support']||[];

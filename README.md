@@ -1,9 +1,15 @@
-# HOI4 War Planner — 0.17.2
+# HOI4 War Planner — 0.17.3
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.3 release focus
+
+0.17.3 fixes Regimental Support compatibility mapping in the Division Designer. Hydration now preserves the game's exact six regiment groups — infantry, combat support, mobile, mobile combat support, armor, and armor combat support — instead of collapsing the three combat-support groups into broader buckets and relying on a later browser repair pass.
+
+The audited 1.19.3 `allowed_battalion_groups` source values are unchanged. This is a planner runtime-mapping correction, not a source-data rewrite, and it does not change any Oracle evidence classification or combat formula.
 
 ## 0.17.2 release focus
 

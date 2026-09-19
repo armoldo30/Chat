@@ -1,3 +1,32 @@
+# HOI4 War Planner 0.17.3 — Release Notes
+
+## Overview
+
+0.17.3 is a focused Division Designer correctness patch for Regimental Support on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Regimental Support regiment-group fix
+
+- Fixed hydration collapsing exact source regiment groups into broader planner buckets before a later browser repair pass.
+- Preserves all six source regiment groups directly during hydration:
+  - infantry
+  - combat_support
+  - mobile
+  - mobile_combat_support
+  - armor
+  - armor_combat_support
+- Keeps the existing heuristic group recovery only for legacy or incomplete records.
+- Removes initialization/import-order dependence from Regimental Support compatibility.
+- Adds regressions for representative hydrated battalions in all six groups.
+- Adds a permanent six-group compatibility-matrix regression for the 14 audited 1.19.3 Regimental Support entries.
+
+## Evidence boundary
+
+The certified/source-backed Regimental Support `allowed_battalion_groups` arrays are unchanged by this release. The defect was in planner runtime mapping of battalions to those source groups, not in the source compatibility records themselves.
+
+No Oracle evidence, combat formula, or executable-validation classification is changed by 0.17.3.
+
+---
+
 # HOI4 War Planner 0.17.2 — Release Notes
 
 ## Overview

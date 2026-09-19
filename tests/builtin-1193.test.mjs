@@ -117,7 +117,7 @@ assert.ok(!cac.inheritanceWarning);
 
 // Regimental-support compatibility is now exact from 1.19.3 source.
 assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.gameVersion,'1.19.3');
-assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.evidence,'game-file-exact');
+assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.evidence,'game-file exact');
 assert.deepEqual(supportAllowedBattalionGroups('fire_support',pack.subUnits.fire_support).groups,['infantry','mobile','combat_support']);
 assert.deepEqual(supportAllowedBattalionGroups('light_tank_destroyer_support',pack.subUnits.light_tank_destroyer_support).groups,['armor','mobile_combat_support','armor_combat_support']);
 

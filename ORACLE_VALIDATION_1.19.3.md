@@ -1258,6 +1258,87 @@ Persisted evidence:
 - `oracle-lab/captures/o5-fixed-damage-001-assessment.json`
 
 
+### O6 two-point stochastic-probability probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O5 established two discrete fixed-damage multiplicities consistent with one-hit and two-hit outcomes. O6 now tests whether the **frequency** of those two multiplicities changes with displayed Soft Attack in the way expected from the current `attack / 10` stochastic-rounding model.
+
+Scenario:
+
+`o6-two-point-probability-law-v1`
+
+O6 retains the O5 diagnostic defines:
+
+- defended hit chance forced to 100%;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0.
+
+The O5 observed loss clusters are used only to predeclare the multiplicity classifier:
+
+- one-hit/low loss: approximately **0.092 pp**
+- two-hit/high loss: approximately **0.171–0.177 pp**
+- O6 classification threshold: **0.13 pp defender organization loss per firing interval**
+
+Any interval outside the expected one-hit/two-hit pattern or any strength movement triggers control review rather than automatic probability-law interpretation.
+
+#### O6 low-attack mode
+
+Target panel:
+
+- GER displayed Soft Attack exactly **12**
+- POL Defense at least **200**
+
+Target modifier:
+
+`army_infantry_attack_factor = -0.83`
+
+With the retained ±1 displayed-stat uncertainty, true effective Soft Attack is conservatively 11–13. Under the current planner's `attack / 10` stochastic-rounding hypothesis, the probability of a two-hit/high-loss interval is therefore **0.10–0.30**.
+
+Collect exactly **40 firing intervals** from one h0..h41 run.
+
+Let `K_low` be the number of high-loss intervals.
+
+#### O6 high-attack mode
+
+Target panel:
+
+- GER displayed Soft Attack exactly **18**
+- POL Defense at least **200**
+
+Target modifier:
+
+`army_infantry_attack_factor = -0.75`
+
+With ±1 displayed-stat uncertainty, true effective Soft Attack is conservatively 17–19. Under the same current planner hypothesis, the probability of a two-hit/high-loss interval is **0.70–0.90**.
+
+Collect exactly **40 firing intervals** from one separate h0..h41 run.
+
+Let `K_high` be the number of high-loss intervals.
+
+#### O6 fixed decision rule
+
+Both runs must pass all diagnostic controls:
+
+- exact h0..h41 sample sequence;
+- h0→h1 no-damage startup;
+- strength unchanged throughout both traces;
+- all 40 post-startup intervals show measurable POL organization loss;
+- only the expected low/high fixed-damage multiplicities are observed;
+- clean automatic modifier removal.
+
+Predeclared mismatch triggers against the current `attack / 10` stochastic probability law:
+
+- **K_low ≥ 21**: at the most high-favoring low-mode sensitivity edge p=0.30, `P(K≥21 | n=40) ≈ 0.242%`;
+- **K_high ≤ 19**: at the most low-favoring high-mode sensitivity edge p=0.70, `P(K≤19 | n=40) ≈ 0.242%`;
+- **K_high − K_low ≤ 4**: under the least-separated allowed current-model edge p_low=0.30 / p_high=0.70, this occurs with probability approximately **0.325%**.
+
+If none of those mismatch triggers fire and the observed rates increase strongly from the low to high mode, classify O6 as **probability-gradient consistent with the current /10 stochastic-rounding hypothesis**, not as broad resolver validation.
+
+No adaptive extension is permitted. O6 is exactly **two runs**, one low and one high, each with 40 firing intervals.
+
+If O6 is consistent, the remaining useful Oracle work should shift away from attack-point integerization toward downstream damage magnitude/ordering rather than continuing to multiply attack-rounding experiments.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

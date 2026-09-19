@@ -25,6 +25,7 @@ import technologyEffects01 from './builtin1193/technology-effects-exact-1193-01.
 import technologyEffects02 from './builtin1193/technology-effects-exact-1193-02.js';
 import technologyEffects03 from './builtin1193/technology-effects-exact-1193-03.js';
 import SOURCE_CERTIFICATION_1193 from './builtin1193/source-certification-1193.js';
+import { applyHqLineEligibilityRecovery, HQ_LINE_ELIGIBILITY_1193_META } from './builtin1193/hq-line-eligibility-1193.js';
 import { resolveMIOs } from './parser.js';
 
 const clone=value=>structuredClone(value);
@@ -59,6 +60,7 @@ export const BUILTIN_1193=clone(BUILTIN_1192);
 // Unchanged 1.19.2 records are retained because their normalized source content was
 // audited as identical; executable-only behavior remains separately classified.
 BUILTIN_1193.subUnits=overlay(BUILTIN_1193.subUnits||{},landSubUnitsA,landSubUnitsB,landSubUnitsC,landSubUnitsD);
+const hqLineEligibilityRecovery1193=applyHqLineEligibilityRecovery(BUILTIN_1193.subUnits);
 supportAuditRecovery(BUILTIN_1193.subUnits,supportSubUnitsA1193,supportSubUnitsB1193);
 BUILTIN_1193.equipment=overlay(BUILTIN_1193.equipment||{},landEquipment1193);
 BUILTIN_1193.modules=overlay(BUILTIN_1193.modules||{},tankModules1193);
@@ -128,6 +130,11 @@ BUILTIN_1193.meta={
   auditedSupportSubUnitCount:Object.keys({...supportSubUnitsA1193,...supportSubUnitsB1193}).length,
   auditedSupportSource:'retained-certified-records-with-bounded-public-1.19.3-cross-check-recovery',
   auditedSupportRecoveryPrecedence:'certified-retained-values-win',
+  hqOnlyLineBattalionSourceCount:7,
+  hqOnlyLineBattalionRecoveryCount:hqLineEligibilityRecovery1193.recovered.length,
+  hqOnlyLineBattalionMissingFromCompact:[...hqLineEligibilityRecovery1193.missing],
+  hqLineEligibilityEvidence:HQ_LINE_ELIGIBILITY_1193_META.evidence,
+  hqLineEligibilityRecovery:HQ_LINE_ELIGIBILITY_1193_META.recovery,
   executableValidation:'pending-1.19.3-oracle',
   executableEvidenceBase:'1.19.2-executable-inferred'
 };

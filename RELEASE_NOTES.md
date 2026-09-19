@@ -1,3 +1,27 @@
+# HOI4 War Planner 0.17.4 — Release Notes
+
+## Overview
+
+0.17.4 is a focused Division Designer structural-correctness patch on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Army-HQ-only battalion exclusion
+
+- Recovers omitted HQ eligibility metadata for the seven 1.19.3 Army-HQ-only line battalion IDs where the compact runtime retained the battalion record.
+- Excludes `allowInNonArmyHq === false` battalions from ordinary Division Designer choices.
+- Uses one ordinary-division battalion allowlist for grid creation, saved/import normalization, regiment filling, calculation and export.
+- Prevents hidden HQ-only battalions from surviving in ordinary templates after they disappear from the picker.
+- Keeps the 0.17.3 exact six-group Regimental Support mapping unchanged.
+
+## Evidence boundary
+
+The compact runtime omitted the relevant HQ eligibility flags. A File Library search did not recover the original supplied `hq_support.txt` source record directly, so the missing structural fields are recovered from the bounded public 1.19.3 mirror at commit `228560dc3508a43c1eaef0774f1c0dcc3c954ada`.
+
+That recovery remains **unvalidated** and is not relabeled `game-file exact`.
+
+No Oracle evidence, executable combat formula, or resolver classification changes in 0.17.4.
+
+---
+
 # HOI4 War Planner 0.17.3 — Release Notes
 
 ## Overview

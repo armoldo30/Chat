@@ -45,8 +45,9 @@ const runtimeReg=importedRegimentalSupportIds(supports).sort();
 const runtimeDiv=importedDivisionalSupportIds(supports).sort();
 assert.deepEqual(runtimeReg,regimentalSource.sort(),'runtime regimental picker must be category-derived from the audited 1.19.3 catalog');
 assert.equal(runtimeDiv.length,43,'runtime normal divisional support picker must exclude all 11 HQ-only supports');
-for(const id of hqOnly)assert.ok(!runtimeDiv.includes(id),`HQ-only support ${id} must not appear in a normal division support slot`);
-for(const id of normalDivisional)assert.ok(runtimeDiv.includes(id),`normal source-valid support ${id} must appear in the normal support catalog`);
+const runtimeDivGameIds=runtimeDiv.map(id=>supports[id]?.gameId||id).sort();
+for(const id of hqOnly)assert.ok(!runtimeDivGameIds.includes(id),`HQ-only support ${id} must not appear in a normal division support slot`);
+assert.deepEqual(runtimeDivGameIds,[...normalDivisional].sort(),'normal support picker must map one-to-one onto the 43 audited source-valid support companies');
 
 for(const id of REGIMENTAL_SUPPORT_IDS_1193){
   assert.deepEqual(supports[id].allowedBattalionGroups,REGIMENTAL_SUPPORT_COMPATIBILITY_1193[id],`${id} must retain exact source allowed_battalion_groups`);

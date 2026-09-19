@@ -3,6 +3,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import supportA from '../src/builtin1193/support-subunits-complete-a.js';
 import supportB from '../src/builtin1193/support-subunits-complete-b.js';
 import supportLabels from '../src/builtin1193/support-localization-complete-1193.js';
+import { BUILTIN_ENGLISH_LOCALIZATION_1193, BUILTIN_ENGLISH_LOCALIZATION_1193_META } from '../src/builtin1193/localization-english-1193.js';
 import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSupportIds } from '../src/gameData.js';
 import { applyRegimentalSupportCompatibilityFallback, REGIMENTAL_SUPPORT_IDS_1193, REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, REGIMENTAL_SUPPORT_COMPATIBILITY_1193 } from '../src/regimental-support-1193.js';
 import { supportCompaniesConflict, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection } from '../src/division-designer-options.js';
@@ -25,7 +26,11 @@ assert.deepEqual(hqOnly.sort(),[
 ].sort());
 
 assert.deepEqual(regimentalSource.sort(),[...REGIMENTAL_SUPPORT_IDS_1193].sort(),'regimental catalog must match the source-category census exactly');
-for(const id of auditedIds)assert.ok(supportLabels[id]&&supportLabels[id]!==id,`audited support ${id} needs a player-facing English label`);
+for(const id of auditedIds){
+  assert.ok(supportLabels[id]&&supportLabels[id]!==id,`audited support ${id} needs a player-facing English label`);
+  assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193[id],supportLabels[id],`support cross-check label must agree with the certified/retained runtime label for ${id}`);
+}
+assert.equal(BUILTIN_ENGLISH_LOCALIZATION_1193_META.auditedSupportLabelPrecedence,'certified-localisation-wins-cross-check-fills-only');
 
 assert.equal(audited.fire_support.abbreviation,'FSC');
 assert.equal(audited.mot_fire_support.abbreviation,'FSC');
@@ -78,4 +83,5 @@ assert.equal(supportCompanyAllowedWithSelection('mot_recon',supports,['engineer'
 assert.deepEqual(normalizeSupportCompanySelection(['recon','mot_recon','engineer','armored_engineer','support_artillery'],supports,runtimeDiv,5),['recon','engineer','support_artillery']);
 
 assert.equal(BUILTIN_1193.meta.auditedSupportSubUnitCount,68);
+assert.equal(BUILTIN_1193.meta.auditedSupportRecoveryPrecedence,'certified-retained-values-win');
 console.log('HOI4 1.19.3 support-company census and structural audit passed');

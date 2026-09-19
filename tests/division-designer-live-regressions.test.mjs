@@ -77,11 +77,12 @@ assert.equal(assignRegimentalSupport(state,'attacker',2,'medium_sp_anti_air_supp
 assert.equal(state.attackerRegimentalSupports[2],null,'incompatible regimental support should still be rejected');
 
 const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
-assert.match(main,/battalionPickerGroups\(battalions\)/,'Division Designer should derive battalion picker groups from hydrated source data');
+assert.match(main,/BASE_DIVISION_BATTALIONS=ordinaryDivisionBattalionIds\(battalions\)/,'normal Division Designer must derive a structural battalion allowlist');
+assert.match(main,/battalionPickerGroups\(battalions,BASE_DIVISION_BATTALIONS\)/,'Division Designer picker should use the ordinary-division battalion allowlist');
 assert.match(main,/supportCompanyPickerGroups\(supports,BASE_DIVISIONAL_SUPPORTS\)/,'support company picker should be grouped instead of rendered as one unsorted wall');
 assert.doesNotMatch(main,/'Armored Battalions':\['light_armor','medium_armor','heavy_armor'\]/,'armor picker must not be hardcoded to only three tank battalions');
 assert.match(main,/data-regimental-choice=/,'regimental support choices should use a dedicated click binding');
 assert.match(main,/assignRegimentalSupport\(state,side,column,value/,'regimental support click binding should mutate the selected regiment explicitly');
-assert.match(main,/normalizeGrid\(state\[key\],Object\.keys\(battalions\),battalions\)/,'designer normalization must use the hydrated battalion map');
+assert.match(main,/normalizeGrid\(state\[key\],BASE_DIVISION_BATTALIONS,battalions\)/,'designer normalization must reject HQ-only battalions from saved grids');
 
 console.log('Division Designer live regression checks passed.');

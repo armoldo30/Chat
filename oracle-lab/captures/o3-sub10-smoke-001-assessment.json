@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o3-sub10-defended-incidence-v1",
+  "evidenceStatus": "unvalidated",
+  "stage": "early-positive-incidence",
+  "sourceCapture": "oracle-lab/captures/o3-sub10-smoke-001-summary.json",
+  "observedCombatPanel": {
+    "attackerSoft": 7,
+    "attackerBreakthrough": 35,
+    "defenderSoft": 69,
+    "defenderDefense": 255
+  },
+  "plannerReference": {
+    "displayHalfWidth": 1,
+    "sensitivitySoftAttack": [
+      6,
+      7,
+      8
+    ],
+    "anyStrengthDamageProbabilityPerRun": {
+      "min": 0.2660959776,
+      "midpoint": 0.3043116307,
+      "max": 0.3409184768
+    },
+    "allZeroProbabilityAt10WorstCase": 0.045330726560729034
+  },
+  "executable": {
+    "acceptedRuns": 1,
+    "damageRuns": 1,
+    "zeroDamageRuns": 0,
+    "strictBoundSeparatedDefenderStrengthDamage": true
+  },
+  "action": "stop-floor-zero-hypothesis-contradicted",
+  "interpretation": "At least one accepted O3 run shows measurable POL strength damage while displayed GER Soft Attack remains conservatively sub-10. Stop O3 under the predeclared rule. The simple floor(SoftAttack/10) zero-transmission hypothesis is contradicted at this boundary. O3 remains unvalidated and the result does not uniquely establish stochastic rounding or validate the broad hit/damage resolver."
+}

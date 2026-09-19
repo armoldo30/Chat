@@ -1,9 +1,17 @@
-# HOI4 War Planner — 0.17.1
+# HOI4 War Planner — 0.17.2
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.2 release focus
+
+0.17.2 is a deep Division Designer support-company correction on the HOI4 1.19.3 baseline. It audits the complete support-category surface, separates the 14 Regimental Support entries from divisional support, excludes 11 Army-HQ-only companies from ordinary divisions, and exposes the resulting 43 regular divisional support choices in role-sorted groups.
+
+The update also enforces source `same_support_type` conflicts, restores player-facing support names/abbreviations and specialist support records, preserves support-specific source metadata such as `battalion_mult`, recon, entrenchment, initiative, reliability, supply/fuel modifiers and casualty/experience effects, and retains Army-HQ eligibility when importing custom data packs.
+
+Source-defined support mechanics that the planner does not yet execute completely remain explicitly bounded rather than being presented as executable parity.
 
 ## 0.17.1 release focus
 

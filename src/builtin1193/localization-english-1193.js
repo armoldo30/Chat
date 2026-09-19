@@ -7,7 +7,9 @@ import p05 from './localization-relevant-05.js';
 import p06 from './localization-relevant-06.js';
 import supportLabels1193 from './support-localization-complete-1193.js';
 
-const raw=Object.assign({},BASE_1192,p01,p02,p03,p04,p05,p06,supportLabels1193);
+// Cross-check labels are lowest precedence. Certified retained/base and supplied
+// 1.19.3 localisation overlays always win; the audit map only fills a missing key.
+const raw=Object.assign({},supportLabels1193,BASE_1192,p01,p02,p03,p04,p05,p06);
 const TOKEN=/\$([^$]+)\$/g;
 const memo=new Map();
 
@@ -37,8 +39,9 @@ export const BUILTIN_ENGLISH_LOCALIZATION_1193_META=Object.freeze({
   sourceFileCount:207,
   sourceDigestSha256:'0383787c595625289dbbd1d69dc243eb2dc16c5beec4a2dbf3e0f11dbf1e2603',
   sourceArchiveSha256:'5d63fe3a04f31992c1ebf8da56afe6a58b94a089055e0267fc14beb3c9ee5ede',
-  changedSourceOverlayCount:Object.keys(Object.assign({},p01,p02,p03,p04,p05,p06,supportLabels1193)).length,
+  changedSourceOverlayCount:Object.keys(Object.assign({},p01,p02,p03,p04,p05,p06)).length,
   auditedSupportLabelCount:Object.keys(supportLabels1193).length,
+  auditedSupportLabelPrecedence:'certified-localisation-wins-cross-check-fills-only',
   resolvedCount:Object.keys(resolved).length,
   referenceTokensResolved:true,
   scope:'planner-facing labels with a 1.19.3 changed-source overlay and retained source-identical baseline labels'

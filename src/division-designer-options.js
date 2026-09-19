@@ -71,3 +71,27 @@ export function supportCompanyPickerGroups(supportMap={},ids=[]){
   }
   return Object.fromEntries(SUPPORT_SECTION_ORDER.filter(label=>groups[label].length).map(label=>[label,groups[label]]));
 }
+
+
+function supportIdentityTokens(id,record={}){
+  return new Set([id,record?.id,record?.gameId].filter(Boolean).map(String));
+}
+function supportTypeTokens(record={}){
+  return new Set((record?.sameSupportType||[]).filter(Boolean).map(String));
+}
+
+export function supportCompaniesConflict(aId,bId,supportMap={}){
+  if(!aId||!bId)return false;
+  if(String(aId)===String(bId))return true;
+  const a=supportMap?.[aId]||{},b=supportMap?.[bId]||{};
+  const aIds=supportIdentityTokens(aId,a),bIds=supportIdentityTokens(bId,b);
+  const aTypes=supportTypeTokens(a),bTypes=supportTypeTokens(b);
+  for(const token of aTypes)if(bTypes.has(token)||bIds.has(token))return true;
+  for(const token of bTypes)if(aIds.has(token))return true;
+  return false;
+}
+
+export function supportChoiceBlocked(candidate,currentSlot,selectedIds=[],supportMap={}){
+  if(!candidate)return false;
+  return (selectedIds||[]).some(id=>id&&id!==currentSlot&&supportCompaniesConflict(candidate,id,supportMap));
+}

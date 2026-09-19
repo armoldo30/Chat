@@ -1,4 +1,5 @@
 import { equipmentFamilies, resolveEquipment } from './parser.js';
+import { isDivisionDesignerSupport1193, isHeadquartersSupport1193 } from './support-company-catalog-1193.js';
 import './ui-localization-bootstrap.js';
 import { sourceDisplayLabel } from './source-display-label.js';
 
@@ -34,14 +35,15 @@ export function equipmentAlias(id){return EQUIPMENT_ALIAS[id]||id;}
 export function classifySubUnit(u){
   const text=words(u),group=String(u?.group||'').toLowerCase(),categories=Array.isArray(u?.categories)?u.categories.map(x=>String(x).toLowerCase()):[];
   const support=u?.width===undefined||u?.width===0||group==='support'||/category_(?:all_)?support|\bsupport\b/.test(text);
-  const hasExplicitCategories=categories.length>0,explicitRegimental=typeof u?.regimental==='boolean'?u.regimental:null;
+  const hasExplicitCategories=categories.length>0,explicitRegimental=typeof u?.regimental==='boolean'?u.regimental:null,explicitDivisional=typeof u?.divisional==='boolean'?u.divisional:null;
   const regimental=support&&(explicitRegimental!==null?explicitRegimental:(hasExplicitCategories?categories.includes('category_regimental_support_battalions'):/regiment|regimental|infantry_gun|heavy_weapon|rocket_battery|anti_air_battery|anti_tank_battery|tank_destroyer.*support|spaa.*support/.test(text)));
+  const divisional=support&&!regimental&&(explicitDivisional!==null?explicitDivisional:(hasExplicitCategories?categories.includes('category_divisional_support_battalions'):false));
   let regimentGroup=null;
   if(/armor|tank|spaa|tank_destroyer/.test(text))regimentGroup='armor';
   else if(/motor|mechanized|mobile/.test(text))regimentGroup='mobile';
   else if(regimental)regimentGroup='infantry';
   const allowedBattalionGroups=Array.isArray(u?.allowedBattalionGroups)?[...new Set(u.allowedBattalionGroups.map(String))]:[];
-  return {support,regimental,regimentGroup,allowedBattalionGroups,divisional:u?.divisional,sameSupportType:Array.isArray(u?.sameSupportType)?[...u.sameSupportType]:[],battalionMult:Array.isArray(u?.battalionMult)?clone(u.battalionMult):[]};
+  return {support,regimental,divisional,regimentGroup,allowedBattalionGroups,sameSupportType:Array.isArray(u?.sameSupportType)?[...u.sameSupportType]:[],battalionMult:Array.isArray(u?.battalionMult)?clone(u.battalionMult):[]};
 }
 
 function normalizedGroup(u){
@@ -146,7 +148,7 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
     const terrainModifiers=clone(raw.terrainModifiers||{});
     const fallbackName=(kind.support?supports[id]?.name:battalions[id]?.name)||humanize(raw.id);
     // The old compact 1.19.2 sub-unit bundle did not retain source terrain blocks. Never allow hand-written fallback terrain guesses to leak into a source-backed hydrated unit. Exact imported terrain blocks are preserved separately until the aggregation/formula audit certifies how they combine.
-    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:sourceName(raw.id,raw,fallbackName),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,regimentGroup:kind.regimentGroup,allowedBattalionGroups:[...(kind.allowedBattalionGroups||[])],divisional:kind.divisional,sameSupportType:[...(kind.sameSupportType||[])],battalionMult:clone(kind.battalionMult||[]),requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null,terrain:{},terrainModifiers,terrainSource:Object.keys(terrainModifiers).length?'game-pack-source':'source-terrain-not-retained',terrainRuntimeClassification:Object.keys(terrainModifiers).length?'combat-formulas-audited':'no-source-terrain-block'};
+    const record={...(kind.support?supports[id]:battalions[id]||{}),...computed,id,name:sourceName(raw.id,raw,fallbackName),group:normalizedGroup(raw),gameId:raw.id,categories:[...(raw.categories||[])],types:[...(raw.types||[])],regimentalSupport:kind.regimental,divisionalSupport:kind.divisional,headquartersSupport:isHeadquartersSupport1193(raw.id,raw),regimentGroup:kind.regimentGroup,allowedBattalionGroups:[...(kind.allowedBattalionGroups||[])],divisional:kind.divisional,sameSupportType:[...(kind.sameSupportType||[])],battalionMult:clone(kind.battalionMult||[]),requirements:indexedRequirements(pack,'subUnits',raw.id),prerequisite:raw.prerequisite||null,terrain:{},terrainModifiers,terrainSource:Object.keys(terrainModifiers).length?'game-pack-source':'source-terrain-not-retained',terrainRuntimeClassification:Object.keys(terrainModifiers).length?'combat-formulas-audited':'no-source-terrain-block'};
     if(kind.support){supports[id]=record;status.supports++;if(kind.regimental)status.regimentalSupports++;}
     else {battalions[id]=record;status.battalions++;}
   }
@@ -163,7 +165,7 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
 }
 
 export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>supports[id]?.regimentalSupport);}
-export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>!supports[id]?.regimentalSupport);}
+export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>isDivisionDesignerSupport1193(id,supports[id]));}
 
 const requirementLabel=value=>sourceDisplayLabel(value,'',String(value??''));
 export function prerequisiteText(record){

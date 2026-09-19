@@ -6,7 +6,7 @@ import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSuppor
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
-import { battalionPickerGroups, supportCompanyPickerGroups, assignRegimentalSupport } from './division-designer-options.js';
+import { battalionPickerGroups, supportCompanyPickerGroups, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection, assignRegimentalSupport } from './division-designer-options.js';
 import { applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
@@ -103,7 +103,7 @@ function ensureDesignerState(side){
   if(!Array.isArray(state[key]))state[key]=countsToGrid(state[side],Object.keys(battalions),battalions);
   else state[key]=normalizeGrid(state[key],Object.keys(battalions),battalions);
   state[side]=gridToCounts(state[key],Object.keys(battalions));
-  state[side+'Supports']=(Array.isArray(state[side+'Supports'])?state[side+'Supports']:[]).filter(x=>supports[x]&&BASE_DIVISIONAL_SUPPORTS.includes(x)).slice(0,5);
+  state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(state[side+'Supports'])?state[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);
   const regKey=side+'RegimentalSupports';
   state[regKey]=Array.isArray(state[regKey])?Array.from({length:DESIGNER_COLS},(_,i)=>{
     const raw=state[regKey][i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;
@@ -353,10 +353,18 @@ function pickerBattalionMeta(side,key){
   const ic=templateIC({need:u.need||{}},side);
   return `<span class="picker-meta"><em>${fmt(u.width,0)}w</em><em>${fmt(u.org,0)} org</em><em>${fmt(u.soft,0)} SA</em>${u.armor?`<em>${fmt(u.armor,0)} arm</em>`:''}${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}<em>${fmt(ic,0)} IC</em>${requirementBadge(u)}</span>`;
 }
+function supportSourceEffectMeta(u={}){
+  const items=[];
+  const pctItem=(label,value)=>{const n=Number(value);if(Number.isFinite(n)&&n!==0)items.push(`<em title="Source-defined support effect; downstream executable formula coverage may be partial">${label} ${n>0?'+':''}${fmt(n*100,0)}%</em>`);};
+  const flatItem=(label,value,d=1)=>{const n=Number(value);if(Number.isFinite(n)&&n!==0)items.push(`<em title="Source-defined support effect; downstream executable formula coverage may be partial">${label} ${n>0?'+':''}${fmt(n,d)}</em>`);};
+  flatItem('REC',u.recon,1);flatItem('ENT',u.entrenchment,1);pctItem('INIT',u.initiative);pctItem('SUP',u.supplyConsumptionFactor);pctItem('REL',u.reliabilityFactor);pctItem('TRICKLE',u.casualtyTrickleback);pctItem('XP LOSS',u.experienceLossFactor);
+  if(Array.isArray(u.battalionMult)&&u.battalionMult.length)items.push(`<em title="This company has source battalion_mult effects. They are preserved for audit but not all are applied by the current planner resolver.">Battalion effect</em>`);
+  return items.join('');
+}
 function pickerSupportMeta(side,key){
   const u=techData(side).supports[key];if(!u)return '';
   const ic=templateIC({need:u.need||{}},side);
-  return `<span class="picker-meta"><em>${fmt(u.soft||0,0)} SA</em><em>${fmt(u.def||0,0)} DEF</em>${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}<em>${fmt(ic,0)} IC</em>${requirementBadge(u)}</span>`;
+  return `<span class="picker-meta"><em>${fmt(u.soft||0,0)} SA</em><em>${fmt(u.def||0,0)} DEF</em>${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}${supportSourceEffectMeta(u)}<em>${fmt(ic,0)} IC</em>${requirementBadge(u)}</span>`;
 }
 function supportSlot(side,i){
   const key=state[side+'Supports'][i];
@@ -379,8 +387,8 @@ function designerPicker(side){
   if(!designerPick||designerPick.side!==side)return '';
   const battalionGroups=battalionPickerGroups(battalions);
   if(designerPick.kind==='support'){
-    const current=state[side+'Supports'][designerPick.i],used=new Set(state[side+'Supports'].filter(Boolean)),groups=supportCompanyPickerGroups(supports,BASE_DIVISIONAL_SUPPORTS);
-    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3><p class="muted">Grouped by battlefield role and alphabetized within each group.</p></div><button class="btn" data-cancel-pick>Back</button></div><section class="picker-group"><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button></div></section>${Object.entries(groups).map(([name,ids])=>`<section class="picker-group"><h4>${esc(name)}</h4><div class="picker-grid">${ids.map(k=>{const v=supports[k],info=requirementInfo(v);return `<button class="picker-choice ${info?'prereq-info':''}" data-choice="${k}" ${used.has(k)&&k!==current?'disabled':''} title="${esc(info)}"><b>${supportCode(k)}</b><small>${esc(v.name)}${info?' · ⓘ':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></section>`).join('')}</div>`;
+    const groups=supportCompanyPickerGroups(supports,BASE_DIVISIONAL_SUPPORTS),selected=state[side+'Supports'];
+    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3><p class="muted">Audited 1.19.3 divisional-support catalog. Grouped by battlefield role; source same_support_type conflicts are enforced. Research, DLC and unlock requirements remain informational.</p></div><button class="btn" data-cancel-pick>Back</button></div><section class="picker-group"><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button></div></section>${Object.entries(groups).map(([name,ids])=>`<section class="picker-group"><h4>${esc(name)}</h4><div class="picker-grid">${ids.map(k=>{const v=supports[k],info=requirementInfo(v),ok=supportCompanyAllowedWithSelection(k,supports,selected,designerPick.i);return `<button class="picker-choice ${info?'prereq-info':''}" data-choice="${k}" ${ok?'':'disabled'} title="${esc(ok?info:'Conflicts with another selected support company of the same source support type.')}"><b>${supportCode(k)}</b><small>${esc(v.name)}${info?' · ⓘ':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></section>`).join('')}</div>`;
   }
   if(designerPick.kind==='regimental'){
     const column=designerPick.c;
@@ -424,8 +432,9 @@ function bindDivisionDesigner(side){
     }
     if(designerPick?.kind==='support'){
       const next=[...state[side+'Supports']];
-      if(value)next[designerPick.i]=value;else next.splice(designerPick.i,1);
-      state[side+'Supports']=next.filter(Boolean).slice(0,5);
+      if(value&&supportCompanyAllowedWithSelection(value,supports,next,designerPick.i))next[designerPick.i]=value;
+      else if(!value)next.splice(designerPick.i,1);
+      state[side+'Supports']=normalizeSupportCompanySelection(next,supports,BASE_DIVISIONAL_SUPPORTS,5);
     }
     if(designerPick?.kind==='regimental')state[side+'RegimentalSupports'][designerPick.c]=value&&regimentalBaselineCompatible(side,designerPick.c,value)?value:null;
     syncDesignerSide(side);designerPick=null;save();shell();
@@ -433,7 +442,7 @@ function bindDivisionDesigner(side){
   $('clearDesigner').onclick=()=>{state[side+'Grid']=blankGrid();state[side+'Supports']=[];state[side+'RegimentalSupports']=Array(DESIGNER_COLS).fill(null);syncDesignerSide(side);designerPick=null;save();shell();};
   $('copyDesigner').onclick=()=>{const other=side==='attacker'?'defender':'attacker';state[other+'Grid']=structuredClone(state[side+'Grid']);state[other+'Supports']=structuredClone(state[side+'Supports']);state[other+'RegimentalSupports']=structuredClone(state[side+'RegimentalSupports']);state[other+'Name']=`Copy of ${state[side+'Name']}`;syncDesignerSide(other);save();shell();};
   $('exportDesigner').onclick=()=>downloadJSON(`${side}-division.json`,{name:state[side+'Name'],grid:state[side+'Grid'],battalions:gridToCounts(state[side+'Grid'],Object.keys(battalions)),supports:state[side+'Supports'],regimentalSupports:state[side+'RegimentalSupports']});
-  $('importDesigner').onchange=e=>{const f=e.target.files[0];if(!f)return;readJSON(f,x=>{state[side+'Grid']=Array.isArray(x.grid)?normalizeGrid(x.grid,Object.keys(battalions),battalions):countsToGrid(Array.isArray(x.battalions)?x.battalions:Array.isArray(x[side])?x[side]:[],Object.keys(battalions),battalions);state[side+'Supports']=(Array.isArray(x.supports)?x.supports:Array.isArray(x[side+'Supports'])?x[side+'Supports']:[]).filter(k=>supports[k]).slice(0,5);state[side+'RegimentalSupports']=Array.isArray(x.regimentalSupports)?Array.from({length:DESIGNER_COLS},(_,i)=>{const raw=x.regimentalSupports[i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;}):Array(DESIGNER_COLS).fill(null);if(x.name)state[side+'Name']=String(x.name).slice(0,80);syncDesignerSide(side);save();shell();});};
+  $('importDesigner').onchange=e=>{const f=e.target.files[0];if(!f)return;readJSON(f,x=>{state[side+'Grid']=Array.isArray(x.grid)?normalizeGrid(x.grid,Object.keys(battalions),battalions):countsToGrid(Array.isArray(x.battalions)?x.battalions:Array.isArray(x[side])?x[side]:[],Object.keys(battalions),battalions);state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(x.supports)?x.supports:Array.isArray(x[side+'Supports'])?x[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);state[side+'RegimentalSupports']=Array.isArray(x.regimentalSupports)?Array.from({length:DESIGNER_COLS},(_,i)=>{const raw=x.regimentalSupports[i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;}):Array(DESIGNER_COLS).fill(null);if(x.name)state[side+'Name']=String(x.name).slice(0,80);syncDesignerSide(side);save();shell();});};
 }
 
 function techTierOptions(levels,current){return levels.map(x=>`<option value="${x.value}" ${+current===x.value?'selected':''}>${esc(x.label)}</option>`).join('');}

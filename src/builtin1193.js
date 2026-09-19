@@ -3,6 +3,8 @@ import landSubUnitsA from './builtin1193/land-subunits-a.js';
 import landSubUnitsB from './builtin1193/land-subunits-b.js';
 import landSubUnitsC from './builtin1193/land-subunits-c.js';
 import landSubUnitsD from './builtin1193/land-subunits-d.js';
+import supportSubUnitsA1193 from './builtin1193/support-subunits-complete-a.js';
+import supportSubUnitsB1193 from './builtin1193/support-subunits-complete-b.js';
 import landEquipment1193 from './builtin1193/land-equipment.js';
 import tankModules1193 from './builtin1193/tank-modules.js';
 import doctrines01 from './builtin1193/doctrines-changed-1193-01.js';
@@ -33,7 +35,7 @@ export const BUILTIN_1193=clone(BUILTIN_1192);
 // Only source domains changed by the supplied 1.19.3 install are replaced here.
 // Unchanged 1.19.2 records are retained because their normalized source content was
 // audited as identical; executable-only behavior remains separately classified.
-BUILTIN_1193.subUnits=overlay(BUILTIN_1193.subUnits||{},landSubUnitsA,landSubUnitsB,landSubUnitsC,landSubUnitsD);
+BUILTIN_1193.subUnits=overlay(BUILTIN_1193.subUnits||{},landSubUnitsA,landSubUnitsB,landSubUnitsC,landSubUnitsD,supportSubUnitsA1193,supportSubUnitsB1193);
 BUILTIN_1193.equipment=overlay(BUILTIN_1193.equipment||{},landEquipment1193);
 BUILTIN_1193.modules=overlay(BUILTIN_1193.modules||{},tankModules1193);
 BUILTIN_1193.doctrines=overlay(BUILTIN_1193.doctrines||{},doctrines01,doctrines02,doctrines03,doctrines04,doctrines05,doctrines06,doctrines07,doctrines08);
@@ -99,6 +101,8 @@ BUILTIN_1193.meta={
   changedTechnologyDirectEffectCount:Object.keys(technologyEffects1193).length,
   changedDoctrineRecordCount:Object.keys({...doctrines01,...doctrines02,...doctrines03,...doctrines04,...doctrines05,...doctrines06,...doctrines07,...doctrines08}).length,
   changedMioRecordCount:Object.keys(changedMios).length,
+  auditedSupportSubUnitCount:Object.keys({...supportSubUnitsA1193,...supportSubUnitsB1193}).length,
+  auditedSupportSource:'public-1.19.3-mirror-cross-check-against-certified-source-census',
   executableValidation:'pending-1.19.3-oracle',
   executableEvidenceBase:'1.19.2-executable-inferred'
 };

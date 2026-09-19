@@ -6,11 +6,13 @@ import { classifySubUnit, hydrateGameData, importedRegimentalSupportIds } from '
 import { REGIMENTAL_SUPPORT_IDS_1192, REGIMENTAL_SUPPORT_LABELS_1192, REGIMENTAL_SUPPORT_COMPATIBILITY_1192, REGIMENTAL_SUPPORT_COMPATIBILITY_META, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from '../src/regimental-support-1192.js';
 
 const fixture=extractSubUnits(parseClausewitz(`sub_units={
-  test_reg={ group=support combat_width=0 allowed_battalion_groups={ infantry combat_support mobile } divisional=no categories={ category_support_battalions category_regimental_support_battalions } same_support_type=foo same_support_type=bar battalion_mult={ category=category_all_infantry max_strength=0.1 } }
+  test_reg={ group=support combat_width=0 allowed_battalion_groups={ infantry combat_support mobile } divisional=no allow_in_army_hq=yes allow_in_non_army_hq=no categories={ category_support_battalions category_regimental_support_battalions } same_support_type=foo same_support_type=bar battalion_mult={ category=category_all_infantry max_strength=0.1 } }
   explicit_no={ group=support combat_width=0 regimental=no categories={ category_support_battalions category_regimental_support_battalions } }
 }`));
 assert.deepEqual(fixture.test_reg.allowedBattalionGroups,['infantry','combat_support','mobile']);
 assert.equal(fixture.test_reg.divisional,false);
+assert.equal(fixture.test_reg.allowInArmyHq,true);
+assert.equal(fixture.test_reg.allowInNonArmyHq,false);
 assert.deepEqual(fixture.test_reg.sameSupportType,['foo','bar']);
 assert.equal(fixture.test_reg.battalionMult.length,1);
 assert.equal(classifySubUnit(fixture.test_reg).regimental,true);
@@ -54,6 +56,7 @@ assert.match(main,/regimentalSupportAllowed/,'designer should consume structural
 assert.match(main,/value&&regimentalBaselineCompatible/,'picker should reject incompatible regimental support');
 assert.match(main,/filledInRegiment\(state\[side\+'Grid'\],c\)>=3/,'invalid saved regimental support should be cleaned when the regiment changes');
 assert.match(parser,/allowedBattalionGroups:items\(raw\.allowed_battalion_groups\)/,'imports should preserve allowed_battalion_groups');
+assert.match(parser,/allowInNonArmyHq:raw\.allow_in_non_army_hq/,'imports should preserve normal-division vs Army-HQ structural eligibility');
 assert.match(gameData,/allowedBattalionGroups:\[\.\.\.\(kind\.allowedBattalionGroups\|\|\[\]\)\]/,'hydration should retain imported group compatibility');
 
 console.log('Regimental support structural and naming regression checks passed.');

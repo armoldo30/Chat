@@ -1070,6 +1070,62 @@ Persisted evidence:
 - `oracle-lab/captures/o4v2-control-001-summary.json`
 
 
+#### O4 v2 probe 001 — COMPLETE / MINIMUM-ONE HYPOTHESIS CONTRADICTED
+
+The single predeclared O4 v2 probe run hit the target panel exactly:
+
+- GER Soft Attack: **2**
+- GER Hard Attack: **0**
+- GER Breakthrough: **35**
+- POL Soft Attack: **69**
+- POL Hard Attack: **11**
+- POL Defense: **255**
+
+The WPO4V2 trace is structurally clean:
+
+- exact h0..h6 samples;
+- h0→h1 unchanged;
+- `defineOverride=BASE_CHANCE_TO_AVOID_HIT:0`;
+- successful completion at h6;
+- attack modifier removed;
+- `cleanupFailure=no`.
+
+Post-startup POL defender-damage incidence:
+
+- h1→h2: **no**
+- h2→h3: **no**
+- h3→h4: **yes**
+- h4→h5: **no**
+- h5→h6: **no**
+
+Therefore the probe statistic is:
+
+**K = 1 positive interval out of 5**
+
+The predeclared O4 v2 control had already produced **5/5 positive intervals** at GER Soft Attack 11 / POL Defense 255 under the same diagnostic define override. That control established that the intervention is active strongly enough for the probe interpretation.
+
+Machine action:
+
+`minimum-one-hypothesis-contradicted`
+
+A minimum-one / ceiling-style mechanism in which any positive sub-10 attack always receives at least one full attack point per firing hour predicts 5/5 positive intervals when defended hit chance is forced to 100%. The executable probe instead produced four zero-damage intervals, so that hypothesis is contradicted at the controlled O4 v2 boundary.
+
+The current planner's stochastic-rounding hypothesis remains `unvalidated`. With displayed Soft Attack 2 and the retained ±1 displayed-stat uncertainty, the planner predicts a positive-interval probability of approximately 10%–30%; K=1/5 is compatible with that range, but compatibility is not a validation criterion.
+
+Combined with O3:
+
+- O3 contradicted simple `floor(SoftAttack/10)` zero transmission below 10;
+- O4 v2 contradicted minimum-one / ceiling-style guaranteed transmission below 10.
+
+The surviving mechanism class is therefore narrower: sub-10 attack transmission is **fractional/stochastic rather than deterministic zero or deterministic one-per-hour**. Exact stochastic-rounding placement and downstream ordering remain unresolved.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o4v2-probe-001-wpo4v2.log.txt`
+- `oracle-lab/captures/o4v2-probe-001-summary.json`
+- `oracle-lab/captures/o4v2-complete-assessment.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

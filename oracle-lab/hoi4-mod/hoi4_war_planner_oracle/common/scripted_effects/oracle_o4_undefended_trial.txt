@@ -5,10 +5,11 @@
 # 2. run d_oracle_o4_prepare;
 # 3. run built-in random_seed;
 # 4. issue same GER -> POL attack while paused;
-# 5. capture panel before sampler;
-# 6. accept only if GER Soft Attack = 2 and POL Defense = 0;
-# 7. run d_oracle_o4_trial6;
-# 8. unpause through 17:00.
+# 5. run d_oracle_o4_trial6 while still paused; this records h0;
+# 6. unpause only until the battle instantiates, then pause immediately during
+#    the Oracle-validated h0->h1 no-damage startup interval;
+# 7. capture the panel and accept only if GER Soft Attack = 2 and POL Defense = 0;
+# 8. resume through 17:00.
 
 oracle_o4_log_attacker_divisions = {
     every_country_division = {

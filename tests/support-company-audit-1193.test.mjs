@@ -4,7 +4,7 @@ import supportA from '../src/builtin1193/support-subunits-complete-a.js';
 import supportB from '../src/builtin1193/support-subunits-complete-b.js';
 import supportLabels from '../src/builtin1193/support-localization-complete-1193.js';
 import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSupportIds } from '../src/gameData.js';
-import { applyRegimentalSupportCompatibilityFallback, REGIMENTAL_SUPPORT_IDS_1193, REGIMENTAL_SUPPORT_COMPATIBILITY_1193 } from '../src/regimental-support-1193.js';
+import { applyRegimentalSupportCompatibilityFallback, REGIMENTAL_SUPPORT_IDS_1193, REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, REGIMENTAL_SUPPORT_COMPATIBILITY_1193 } from '../src/regimental-support-1193.js';
 import { supportCompaniesConflict, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection } from '../src/division-designer-options.js';
 
 const audited={...supportA,...supportB};
@@ -33,6 +33,12 @@ assert.equal(audited.field_guns.abbreviation,'IFG');
 assert.equal(audited.rocket_battery.abbreviation,'RBC');
 assert.equal(audited.anti_air_battery.abbreviation,'RAA');
 assert.equal(audited.anti_tank_battery.abbreviation,'RAT');
+assert.deepEqual(REGIMENTAL_SUPPORT_ABBREVIATIONS_1193,{
+  fire_support:'FSC',mot_fire_support:'FSC',field_guns:'IFG',rocket_battery:'RBC',
+  anti_air_battery:'RAA',anti_tank_battery:'RAT',
+  light_tank_destroyer_support:'LTD',medium_tank_destroyer_support:'MTD',heavy_tank_destroyer_support:'HTD',modern_tank_destroyer_support:'OTD',
+  light_sp_anti_air_support:'LAA',medium_sp_anti_air_support:'MAA',heavy_sp_anti_air_support:'HAA',modern_sp_anti_air_support:'OAA'
+});
 
 for(const id of ['armored_engineer','assault_engineer','armored_maintenance','armored_signal','helicopter_transport','helicopter_recon','helicopter_field_hospital','motorized_military_police','winter_logistics_support','long_range_patrol_support','super_heavy_tank_destroyer_brigade','super_heavy_sp_artillery_brigade','super_heavy_sp_anti_air_brigade']){
   assert.ok(audited[id],`audit overlay must include previously omitted source support ${id}`);

@@ -12,6 +12,14 @@ export const ORACLE_COMBAT_1193=Object.freeze({
     observedFirstDamageWindow:'after h1; damage may appear by h2',
     neutralScenario:'o1-base-neutral-tactics-v1'
   }),
+  integerizationEvidence:Object.freeze({
+    status:'oracle-divergent',
+    boundary:'O6 fixed-damage diagnostic only',
+    plannerMechanism:'stochasticRound(totalAttack * 0.1)',
+    lowMode:Object.freeze({displayedSoftAttack:12,defenderDefense:255,multiplicityCounts:Object.freeze({zero:9,one:20,two:11,three:0})}),
+    highMode:Object.freeze({displayedSoftAttack:18,defenderDefense:255,multiplicityCounts:Object.freeze({zero:0,one:17,two:20,three:3})}),
+    interpretation:'The current single Bernoulli stochastic-round step has support 1/2 at both controlled panel values but the executable produced 0 and 3 multiplicities under fixed-damage diagnostics. The /10 mean scale remains unvalidated rather than rejected.'
+  }),
   limitations:Object.freeze([
     'does not validate combat-point scaling',
     'does not validate hit-roll distribution',

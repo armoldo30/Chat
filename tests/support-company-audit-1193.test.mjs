@@ -50,11 +50,11 @@ for(const id of normalDivisional)assert.ok(runtimeDiv.includes(id),`normal sourc
 
 for(const id of REGIMENTAL_SUPPORT_IDS_1193){
   assert.deepEqual(supports[id].allowedBattalionGroups,REGIMENTAL_SUPPORT_COMPATIBILITY_1193[id],`${id} must retain exact source allowed_battalion_groups`);
-  const source=audited[id];
+  const source=audited[id],packed=BUILTIN_1193.subUnits[id];
   for(const field of ['hp','org','manpower','supply','soft','hard','def','breakthrough','airAttack','armor','piercing']){
-    if(source[field]!==undefined)assert.equal(supports[id][field],source[field],`${id} ${field} should match audited source overlay`);
+    if(source[field]!==undefined)assert.equal(packed[field],source[field],`${id} raw ${field} should match audited source overlay`);
   }
-  assert.deepEqual(supports[id].need,source.need,`${id} equipment need should match audited source overlay`);
+  assert.deepEqual(packed.need,source.need,`${id} raw equipment need should match audited source overlay`);
 }
 
 assert.equal(supportLabels.light_flame_tank,'Light Flame Tank Company');

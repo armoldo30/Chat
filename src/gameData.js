@@ -170,6 +170,7 @@ export function isRegimentalSupportRecord(record){
   return record?.regimentalSupport===true||record?.regimental===true;
 }
 export function isDivisionalSupportRecord(record){
+  if(record?.allowInNonArmyHq===false)return false;
   const categories=supportCategories(record);
   if(categories.has('category_divisional_support_battalions'))return true;
   if(categories.has('category_regimental_support_battalions'))return false;

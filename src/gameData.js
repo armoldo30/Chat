@@ -181,12 +181,17 @@ export function importedDivisionalSupportIds(supports,{includeHqOnly=false}={}){
 
 const requirementLabel=value=>sourceDisplayLabel(value,'',String(value??''));
 export function prerequisiteText(record){
-  const indexed=record?.requirements;if(Array.isArray(indexed)&&indexed.length)return indexed.map(requirementLabel).join(' · ');
+  const parts=[],indexed=record?.requirements;
+  if(Array.isArray(indexed)&&indexed.length)parts.push(indexed.map(requirementLabel).join(' · '));
   const p=record?.prerequisite;
-  if(!p)return '';
-  if(typeof p==='string')return requirementLabel(p);
-  if(Array.isArray(p))return p.map(requirementLabel).join(', ');
-  return Object.entries(p).map(([k,v])=>`${sourceDisplayLabel(k,'',humanize(k))}: ${Array.isArray(v)?v.map(requirementLabel).join(', '):requirementLabel(v)}`).join(' · ');
+  if(p){
+    if(typeof p==='string')parts.push(requirementLabel(p));
+    else if(Array.isArray(p))parts.push(p.map(requirementLabel).join(', '));
+    else parts.push(Object.entries(p).map(([k,v])=>`${sourceDisplayLabel(k,'',humanize(k))}: ${Array.isArray(v)?v.map(requirementLabel).join(', '):requirementLabel(v)}`).join(' · '));
+  }
+  const dlc=Array.isArray(record?.requiredDlc)?record.requiredDlc.filter(Boolean):[];
+  if(dlc.length)parts.push(`DLC: ${dlc.map(requirementLabel).join(', ')}`);
+  return [...new Set(parts.filter(Boolean))].join(' · ');
 }
 
 export function gameDataCoverage(pack){

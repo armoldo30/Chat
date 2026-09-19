@@ -1,0 +1,189 @@
+# HOI4 War Planner Oracle O4 low-attack undefended-incidence probe.
+#
+# Workflow:
+# 1. load exact clean baseline at 11:00 while paused;
+# 2. run d_oracle_o4_prepare;
+# 3. run built-in random_seed;
+# 4. issue same GER -> POL attack while paused;
+# 5. capture panel before sampler;
+# 6. accept only if GER Soft Attack = 2 and POL Defense = 0;
+# 7. run d_oracle_o4_trial6;
+# 8. unpause through 17:00.
+
+oracle_o4_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO4 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o4_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO4 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o4_capture_sample = {
+    log = "WPO4 SAMPLE hour=[?oracle_o4_hour]"
+    oracle_o4_log_attacker_divisions = yes
+    POL = {
+        oracle_o4_log_defender_divisions = yes
+    }
+}
+
+d_oracle_o4_prepare = {
+    GER = {
+        clr_country_flag = oracle_o4_prepared
+        clr_country_flag = oracle_o4_running
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_low_attack_attenuator
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o4_low_attack_attenuator
+            }
+            force_update_dynamic_modifier = yes
+        }
+
+        add_dynamic_modifier = {
+            modifier = oracle_o4_low_attack_attenuator
+        }
+        force_update_dynamic_modifier = yes
+    }
+
+    POL = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_zero_defense_suppressor
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o4_zero_defense_suppressor
+            }
+            force_update_dynamic_modifier = yes
+        }
+
+        add_dynamic_modifier = {
+            modifier = oracle_o4_zero_defense_suppressor
+        }
+        force_update_dynamic_modifier = yes
+    }
+
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_low_attack_attenuator
+                }
+                POL = {
+                    has_dynamic_modifier = {
+                        modifier = oracle_o4_zero_defense_suppressor
+                    }
+                }
+            }
+            set_country_flag = oracle_o4_prepared
+            log = "WPO4 STATUS state=prepared scenario=o4-sub10-undefended-incidence-v1 attackAttenuator=army_infantry_attack_factor:-0.97 defenseSuppressor=army_infantry_defence_factor:-1.0 attackAttenuatorPresent=yes defenseSuppressorPresent=yes expectedPanel=GER-soft-2-POL-defense-0"
+        }
+        else = {
+            clr_country_flag = oracle_o4_prepared
+            log = "WPO4 STATUS state=prepare-failed scenario=o4-sub10-undefended-incidence-v1"
+        }
+    }
+}
+
+d_oracle_o4_clear = {
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_low_attack_attenuator
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o4_low_attack_attenuator
+            }
+            force_update_dynamic_modifier = yes
+        }
+        clr_country_flag = oracle_o4_prepared
+        clr_country_flag = oracle_o4_running
+    }
+
+    POL = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_zero_defense_suppressor
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o4_zero_defense_suppressor
+            }
+            force_update_dynamic_modifier = yes
+        }
+    }
+
+    GER = {
+        if = {
+            limit = {
+                OR = {
+                    has_dynamic_modifier = {
+                        modifier = oracle_o4_low_attack_attenuator
+                    }
+                    POL = {
+                        has_dynamic_modifier = {
+                            modifier = oracle_o4_zero_defense_suppressor
+                        }
+                    }
+                }
+            }
+            log = "WPO4 STATUS state=clear-failed modifiersRemoved=no"
+        }
+        else = {
+            log = "WPO4 STATUS state=cleared modifiersRemoved=yes"
+        }
+    }
+}
+
+oracle_o4_trial6_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o4_prepared
+            has_dynamic_modifier = {
+                modifier = oracle_o4_low_attack_attenuator
+            }
+            POL = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4_zero_defense_suppressor
+                }
+            }
+        }
+
+        clr_country_flag = oracle_o4_running
+        set_country_flag = oracle_o4_running
+        set_variable = { oracle_o4_hour = 0 }
+
+        log = "WPO4 BEGIN schema=1 scenario=o4-sub10-undefended-incidence-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only attackAttenuator=army_infantry_attack_factor:-0.97 defenseSuppressor=army_infantry_defence_factor:-1.0 prepared=yes attackAttenuatorPresent=yes defenseSuppressorPresent=yes"
+        oracle_o4_capture_sample = yes
+
+        country_event = { id = oracle_o4.1 hours = 1 }
+        country_event = { id = oracle_o4.1 hours = 2 }
+        country_event = { id = oracle_o4.1 hours = 3 }
+        country_event = { id = oracle_o4.1 hours = 4 }
+        country_event = { id = oracle_o4.1 hours = 5 }
+        country_event = { id = oracle_o4.1 hours = 6 }
+    }
+    else = {
+        log = "WPO4 STATUS state=not-prepared-or-modifier-missing action=run-d_oracle_o4_prepare-first"
+    }
+}
+
+d_oracle_o4_trial6 = {
+    GER = {
+        oracle_o4_trial6_start = yes
+    }
+}

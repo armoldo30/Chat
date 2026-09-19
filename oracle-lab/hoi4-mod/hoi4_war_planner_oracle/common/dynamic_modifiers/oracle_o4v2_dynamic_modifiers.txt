@@ -1,0 +1,16 @@
+# HOI4 War Planner Oracle O4 v2 guaranteed-hit sub-10 probe.
+# POL defense is intentionally left at its normal high baseline.
+
+oracle_o4v2_control_attack = {
+    enable = { always = yes }
+
+    # Target displayed GER Soft Attack 10-19.
+    army_infantry_attack_factor = -0.84
+}
+
+oracle_o4v2_probe_attack = {
+    enable = { always = yes }
+
+    # Previously observed to target displayed GER Soft Attack 2.
+    army_infantry_attack_factor = -0.97
+}

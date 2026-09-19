@@ -17,14 +17,17 @@ The answer must not be inferred from the presence of a field in the data model. 
 
 ### Structurally consumed
 
-These rules are enforced directly by the Division Designer:
+These source rules are enforced directly by the Division Designer:
 
 - `allowed_battalion_groups` — Regimental Support compatibility
 - `same_support_type` — mutually exclusive support families
 - `allow_in_non_army_hq` — excludes Army-HQ-only support from ordinary divisions
-- DLC / unlock requirements — displayed informationally only by design
 
-The first three are direct structural source rules. Theorycraft mode intentionally does not hard-lock research, DLC, focus, or Special Project requirements.
+### Retained as informational requirements
+
+- DLC / unlock requirements
+
+Theorycraft mode intentionally displays these prerequisites without hard-locking research, DLC, focus, or Special Project requirements. They are therefore not classified as structurally consumed gameplay rules.
 
 ### Consumed by the existing planner model, but not promoted by this audit
 

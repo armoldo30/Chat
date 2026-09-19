@@ -1126,6 +1126,89 @@ Persisted evidence:
 - `oracle-lab/captures/o4v2-complete-assessment.json`
 
 
+### O5 fixed-damage discrete-multiplicity probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O3 and O4 v2 narrow sub-10 transmission to a fractional/stochastic mechanism, but they do not establish where the discreteness occurs. O5 removes the remaining source-defined hit/damage randomness so the number of effective attack points can be observed through fixed organization-damage increments.
+
+Scenario:
+
+`o5-fixed-damage-integerization-v1`
+
+O5 is an Oracle-only diagnostic package. It intentionally overrides:
+
+- `NDefines.NMilitary.BASE_CHANCE_TO_AVOID_HIT = 0` — defended hit chance 100%;
+- `NDefines.NMilitary.LAND_COMBAT_ORG_DICE_SIZE = 1`;
+- `NDefines.NMilitary.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 1`;
+- `NDefines.NMilitary.LAND_COMBAT_STR_DAMAGE_MODIFIER = 0` — removes strength feedback;
+- `NDefines.NMilitary.BASE_NIGHT_ATTACK_PENALTY = 0` — preserves the same attack regime after sunset.
+
+These interventions are diagnostic only and must not be used for ordinary O1/O2/O3/O4 scenarios.
+
+#### O5 panel and trace target
+
+GER infantry attack is attenuated with:
+
+`army_infantry_attack_factor = -0.79`
+
+The executable panel is authoritative. An O5 run is accepted only if, after combat instantiates and no later than h1:
+
+- displayed GER Soft Attack is **14–16 inclusive**;
+- POL Defense remains high, at least **200**;
+- GER attack remains fully defended;
+- one GER division vs one POL division;
+- width 18 each;
+- no commanders and zero reserves;
+- neutral tactics remain active.
+
+O5 starts at the same 11:00 baseline. It records h0..h11, yielding the Oracle-validated h0→h1 startup interval plus exactly **10 firing intervals**. The night-penalty diagnostic override allows this single run to continue past sunset without changing the intended attack regime.
+
+#### O5 acceptance checks
+
+The run is machine-acceptable only when:
+
+1. exact h0..h11 samples are present;
+2. h0→h1 organization and strength are unchanged on both sides;
+3. attacker and defender strength remain unchanged for the entire trace, verifying the zero-strength-damage intervention and eliminating strength-based combat-stat feedback;
+4. cleanup completes successfully;
+5. all 10 post-startup intervals show measurable POL organization loss.
+
+If strength changes or any firing interval has zero POL organization loss, the expected diagnostic boundary has failed and the damage-multiplicity result is not interpreted automatically.
+
+#### O5 current-planner prediction
+
+With displayed GER Soft Attack 14–16 and the retained ±1 displayed-stat uncertainty, true effective Soft Attack is conservatively bounded **13–17**.
+
+Under the current planner:
+
+- combat-point scale = 0.1;
+- expected attack points per hour = **1.3–1.7**;
+- stochastic integerization therefore yields exactly **1 or 2 attack points** each firing hour;
+- with defended hit chance forced to 100%, all generated points hit;
+- with organization die fixed at 1, each hit contributes the same organization-damage increment.
+
+Therefore the 10 interval losses should form two discrete magnitude clusters:
+
+- low cluster = one-hit damage;
+- high cluster = two-hit damage;
+- high/low mean ratio approximately **2:1**.
+
+Across the full 13–17 Soft Attack sensitivity, the per-hour probability of the high/two-hit cluster lies between **30% and 70%**. The worst-case probability that all 10 intervals nevertheless fall into only one cluster is:
+
+`0.7^10 + 0.3^10 ≈ 2.83%`
+
+#### O5 predeclared interpretation
+
+For the 10 accepted firing intervals:
+
+- **Two stable clusters with a high/low mean ratio of 1.8–2.2:** classify this as strong executable evidence for **stochastic discrete damage multiplicity** at the controlled O5 boundary. This narrows the remaining resolver substantially but does not yet assert the exact internal code location of the stochastic integerization.
+- **All 10 intervals at one fixed magnitude:** create a narrow mismatch candidate against the current stochastic 1-or-2 point hypothesis; the predeclared worst-case probability of missing one cluster is about 2.83%.
+- **More than two unstable levels, a ratio outside 1.8–2.2, strength movement, or zero-damage intervals:** treat O5 as an unexpected-pattern/control-review result rather than forcing a model classification.
+
+No adaptive extension is permitted after seeing the O5 trace. One valid h0..h11 run completes this experiment.
+
+If the two-level prediction is observed cleanly, the next stage may test the **probability law / exact combat-point scale** separately. O5 by itself is not a broad `oracle-validated` result for the whole hit/damage resolver.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

@@ -95,3 +95,15 @@ export function supportChoiceBlocked(candidate,currentSlot,selectedIds=[],suppor
   if(!candidate)return false;
   return (selectedIds||[]).some(id=>id&&id!==currentSlot&&supportCompaniesConflict(candidate,id,supportMap));
 }
+
+
+export function normalizeSupportCompanies(ids=[],supportMap={},validIds=null,max=5){
+  const valid=validIds?new Set(validIds):null,out=[];
+  for(const id of ids||[]){
+    if(!id||!supportMap?.[id]||(valid&&!valid.has(id)))continue;
+    if(out.some(existing=>supportCompaniesConflict(id,existing,supportMap)))continue;
+    out.push(id);
+    if(out.length>=max)break;
+  }
+  return out;
+}

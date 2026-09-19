@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import BUILTIN_1193 from '../src/builtin1193.js';
 import { hydrateGameData } from '../src/gameData.js';
-import { battalionPickerGroups, assignRegimentalSupport } from '../src/division-designer-options.js';
+import { battalionPickerGroups, supportCompanyPickerGroups, supportCompanySection, assignRegimentalSupport } from '../src/division-designer-options.js';
 import { regimentGroupForUnit } from '../src/regiment-groups.js';
 import { REGIMENTAL_SUPPORT_IDS_1193, applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
 
@@ -28,6 +28,20 @@ assert.ok((groups['Armored Battalions']||[]).includes('heavy_armor'));
 
 for(const id of REGIMENTAL_SUPPORT_IDS_1193)assert.ok(supports[id]?.regimentalSupport,`1.19.3 regimental support ${id} should hydrate as regimental support`);
 
+
+
+const supportGroups=supportCompanyPickerGroups(supports,Object.keys(supports).filter(id=>!supports[id]?.regimentalSupport));
+assert.equal(supportCompanySection('engineer',supports.engineer),'Engineering & Recon');
+assert.equal(supportCompanySection('support_artillery',supports.support_artillery),'Fire Support');
+assert.equal(supportCompanySection('support_at',supports.support_at),'Anti-Tank & Anti-Air');
+assert.equal(supportCompanySection('support_aa',supports.support_aa),'Anti-Tank & Anti-Air');
+if(supports.logistics)assert.equal(supportCompanySection('logistics',supports.logistics),'Logistics & Maintenance');
+if(supports.signal)assert.equal(supportCompanySection('signal',supports.signal),'Command, Medical & Security');
+for(const ids of Object.values(supportGroups)){
+  const names=ids.map(id=>String(supports[id]?.name||id));
+  assert.deepEqual(names,[...names].sort((a,b)=>a.localeCompare(b)),'support companies should be alphabetized within each role group');
+}
+
 const state={attackerRegimentalSupports:[null,null,null,null,null]};
 assert.equal(assignRegimentalSupport(state,'attacker',2,'medium_sp_anti_air_support',()=>true),'medium_sp_anti_air_support');
 assert.equal(state.attackerRegimentalSupports[2],'medium_sp_anti_air_support','regimental support click helper should persist the selected company');
@@ -36,6 +50,7 @@ assert.equal(state.attackerRegimentalSupports[2],null,'incompatible regimental s
 
 const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
 assert.match(main,/battalionPickerGroups\(battalions\)/,'Division Designer should derive battalion picker groups from hydrated source data');
+assert.match(main,/supportCompanyPickerGroups\(supports,BASE_DIVISIONAL_SUPPORTS\)/,'support company picker should be grouped instead of rendered as one unsorted wall');
 assert.doesNotMatch(main,/'Armored Battalions':\['light_armor','medium_armor','heavy_armor'\]/,'armor picker must not be hardcoded to only three tank battalions');
 assert.match(main,/data-regimental-choice=/,'regimental support choices should use a dedicated click binding');
 assert.match(main,/assignRegimentalSupport\(state,side,column,value/,'regimental support click binding should mutate the selected regiment explicitly');

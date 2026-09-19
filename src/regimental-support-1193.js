@@ -23,6 +23,24 @@ export const REGIMENTAL_SUPPORT_LABELS_1193=Object.freeze({
 
 export const REGIMENTAL_SUPPORT_IDS_1193=Object.freeze(Object.keys(REGIMENTAL_SUPPORT_LABELS_1193));
 
+export const REGIMENTAL_SUPPORT_ABBREVIATIONS_1193=Object.freeze({
+  fire_support:'FSC',
+  mot_fire_support:'FSC',
+  field_guns:'IFG',
+  rocket_battery:'RBC',
+  anti_air_battery:'RAA',
+  anti_tank_battery:'RAT',
+  light_tank_destroyer_support:'LTD',
+  medium_tank_destroyer_support:'MTD',
+  heavy_tank_destroyer_support:'HTD',
+  modern_tank_destroyer_support:'OTD',
+  light_sp_anti_air_support:'LAA',
+  medium_sp_anti_air_support:'MAA',
+  heavy_sp_anti_air_support:'HAA',
+  modern_sp_anti_air_support:'OAA'
+});
+
+
 export const REGIMENTAL_SUPPORT_COMPATIBILITY_1193=Object.freeze({
   fire_support:['infantry','mobile','combat_support'],
   mot_fire_support:['infantry','mobile','combat_support','mobile_combat_support','armor','armor_combat_support'],
@@ -42,9 +60,9 @@ export const REGIMENTAL_SUPPORT_COMPATIBILITY_1193=Object.freeze({
 
 export const REGIMENTAL_SUPPORT_COMPATIBILITY_META=Object.freeze({
   gameVersion:'1.19.3',
-  evidence:'game-file-exact',
+  evidence:'game-file exact',
   authoritativeSourceRetained:true,
-  displayNameEvidence:'game-file-exact-localisation',
+  displayNameEvidence:'game-file exact',
   sourceFiles:[
     'common/units/fire_support.txt',
     'common/units/tank_destroyer_brigade.txt',
@@ -74,7 +92,7 @@ export function applyRegimentalSupportCompatibilityFallback(supports){
     if(!record)continue;
     record.name=REGIMENTAL_SUPPORT_LABELS_1193[id];
     record.regimentalSupport=true;
-    record.regimentalDisplayNameSource='game-file-exact-localisation';
+    record.regimentalDisplayNameSource='game-file exact';
     const retained=cleanGroups(record.allowedBattalionGroups);
     if(retained.length){record.allowedBattalionGroups=retained;record.regimentalCompatibilitySource='game-pack';continue;}
     record.allowedBattalionGroups=[...REGIMENTAL_SUPPORT_COMPATIBILITY_1193[id]];

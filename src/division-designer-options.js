@@ -9,11 +9,15 @@ const PICKER_SECTIONS=Object.freeze([
   ['armor_combat_support','Armored Combat Support']
 ]);
 
-export function battalionPickerGroups(battalionMap={}){
+export function ordinaryDivisionBattalionIds(battalionMap={}){
+  return Object.entries(battalionMap||{}).filter(([,unit])=>unit&&typeof unit==='object'&&unit.allowInNonArmyHq!==false).map(([id])=>id);
+}
+
+export function battalionPickerGroups(battalionMap={},ids=ordinaryDivisionBattalionIds(battalionMap)){
   const buckets=Object.fromEntries(PICKER_SECTIONS.map(([group,label])=>[label,[]]));
-  const labelByGroup=Object.fromEntries(PICKER_SECTIONS);
+  const labelByGroup=Object.fromEntries(PICKER_SECTIONS),allowed=new Set(ids||[]);
   for(const [id,unit] of Object.entries(battalionMap||{})){
-    if(!unit||typeof unit!=='object')continue;
+    if(!unit||typeof unit!=='object'||!allowed.has(id))continue;
     const group=regimentGroupForUnit(id,unit),label=labelByGroup[group];
     if(!label)continue;
     buckets[label].push(id);

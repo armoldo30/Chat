@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o5-fixed-damage-integerization-v1",
+  "evidenceStatus": "unvalidated",
+  "stage": "complete",
+  "action": "stochastic-discrete-multiplicity-supported",
+  "observedCombatPanel": {
+    "attackerSoft": 15,
+    "defenderDefense": 255
+  },
+  "lowCluster": {
+    "count": 1,
+    "meanPp": 0.092
+  },
+  "highCluster": {
+    "count": 9,
+    "meanPp": 0.17572222222222225
+  },
+  "highLowMeanRatio": 1.9100241545893724,
+  "highClusterFraction": 0.9,
+  "frequencyNote": "The 9/10 high-cluster frequency is not used as an O5 validation criterion. Under the retained displayed-stat sensitivity the current planner's high-cluster probability spans roughly 0.4-0.6; O6 should test the probability law explicitly with a predeclared larger sample.",
+  "interpretation": "O5 supports discrete stochastic multiplicity but does not validate the exact /10 combat-point scale or stochastic-rounding probability law."
+}

@@ -1,0 +1,48 @@
+{
+  "sourceFile": "game(20260918-131515).log",
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-base-neutral-tactics-v1",
+    "tacticMode": "neutral-basic-only"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "h6": {
+        "attackerOrg": 98.03,
+        "attackerStrength": 99.52,
+        "defenderOrg": 99.239,
+        "defenderStrength": 99.794
+      },
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.9665,
+        "attackerStrength": 0.4765,
+        "defenderOrg": 0.7575,
+        "defenderStrength": 0.2025
+      }
+    },
+    {
+      "run": 2,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "h6": {
+        "attackerOrg": 98.756,
+        "attackerStrength": 99.727,
+        "defenderOrg": 99.917,
+        "defenderStrength": 99.954
+      },
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.2405,
+        "attackerStrength": 0.2695,
+        "defenderOrg": 0.0795,
+        "defenderStrength": 0.0425
+      }
+    }
+  ],
+  "uniqueTraceCount": 2,
+  "smokeResult": "pass",
+  "evidenceStatus": "unvalidated",
+  "evidenceNote": "The neutral-tactic O1-base build loaded and produced two complete, decorrelated six-hour traces with the expected scenario and tacticMode metadata. This validates the harness/scheduler path. The log does not expose the executable's selected tactic identity, so exact runtime tactic-selection suppression is inferred from the loaded override definitions rather than directly observed in WPO1 output.",
+  "nextStep": "Collect a larger O1-base sample only after deciding whether an additional tactic-identity observation is required for promotion."
+}

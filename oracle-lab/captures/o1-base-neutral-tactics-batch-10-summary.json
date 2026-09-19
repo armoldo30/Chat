@@ -1,0 +1,141 @@
+{
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "scenario": "o1-base-neutral-tactics-v1",
+    "tacticMode": "neutral-basic-only",
+    "startGameTime": "1936.02.08.11",
+    "endGameTime": "1936.02.08.17",
+    "baseChecksum": "5632",
+    "checksumScope": "base-game-reference",
+    "saveRuntimeChecksum": "5387"
+  },
+  "method": "same clean 11:00 daylight save; built-in random_seed immediately before each attack; d_oracle_o1_trial6; neutral tactic override",
+  "acceptedRuns": 10,
+  "uniqueTraceCount": 10,
+  "rejectedRuns": 0,
+  "sourceFiles": [
+    "o1-base-neutral-tactics-smoke-001-wpo1.log.txt",
+    "game(20260918-134028).log"
+  ],
+  "runs": [
+    {
+      "run": 1,
+      "attackerOrgLoss": 1.9665,
+      "attackerStrengthLoss": 0.4765,
+      "defenderOrgLoss": 0.7575,
+      "defenderStrengthLoss": 0.2025
+    },
+    {
+      "run": 2,
+      "attackerOrgLoss": 1.2405,
+      "attackerStrengthLoss": 0.2695,
+      "defenderOrgLoss": 0.0795,
+      "defenderStrengthLoss": 0.0425
+    },
+    {
+      "run": 3,
+      "attackerOrgLoss": 2.0395,
+      "attackerStrengthLoss": 0.4035,
+      "defenderOrgLoss": 0.8985,
+      "defenderStrengthLoss": 0.147
+    },
+    {
+      "run": 4,
+      "attackerOrgLoss": 1.7655,
+      "attackerStrengthLoss": 0.2385,
+      "defenderOrgLoss": 0,
+      "defenderStrengthLoss": 0
+    },
+    {
+      "run": 5,
+      "attackerOrgLoss": 1.7405,
+      "attackerStrengthLoss": 0.3305,
+      "defenderOrgLoss": 0.3125,
+      "defenderStrengthLoss": 0.0425
+    },
+    {
+      "run": 6,
+      "attackerOrgLoss": 1.4355,
+      "attackerStrengthLoss": 0.3305,
+      "defenderOrgLoss": 0.5075,
+      "defenderStrengthLoss": 0.0735
+    },
+    {
+      "run": 7,
+      "attackerOrgLoss": 1.1425,
+      "attackerStrengthLoss": 0.2815,
+      "defenderOrgLoss": 0.8735,
+      "defenderStrengthLoss": 0.1165
+    },
+    {
+      "run": 8,
+      "attackerOrgLoss": 1.2955,
+      "attackerStrengthLoss": 0.2695,
+      "defenderOrgLoss": 0.4765,
+      "defenderStrengthLoss": 0.1405
+    },
+    {
+      "run": 9,
+      "attackerOrgLoss": 1.2095,
+      "attackerStrengthLoss": 0.2385,
+      "defenderOrgLoss": 0.6485,
+      "defenderStrengthLoss": 0.098
+    },
+    {
+      "run": 10,
+      "attackerOrgLoss": 1.0825,
+      "attackerStrengthLoss": 0.2205,
+      "defenderOrgLoss": 0.7155,
+      "defenderStrengthLoss": 0.1655
+    }
+  ],
+  "aggregate": {
+    "attackerOrgLoss": {
+      "n": 10,
+      "mean": 1.4918,
+      "sd": 0.355303,
+      "min": 1.0825,
+      "max": 2.0395,
+      "ci95": [
+        1.271581,
+        1.712019
+      ]
+    },
+    "attackerStrengthLoss": {
+      "n": 10,
+      "mean": 0.3059,
+      "sd": 0.081284,
+      "min": 0.2205,
+      "max": 0.4765,
+      "ci95": [
+        0.255519,
+        0.356281
+      ]
+    },
+    "defenderOrgLoss": {
+      "n": 10,
+      "mean": 0.52695,
+      "sd": 0.314188,
+      "min": 0,
+      "max": 0.8985,
+      "ci95": [
+        0.332214,
+        0.721686
+      ]
+    },
+    "defenderStrengthLoss": {
+      "n": 10,
+      "mean": 0.10285,
+      "sd": 0.063382,
+      "min": 0,
+      "max": 0.2025,
+      "ci95": [
+        0.063565,
+        0.142135
+      ]
+    }
+  },
+  "classification": "preliminary-o1-base-executable-distribution",
+  "evidenceStatus": "unvalidated",
+  "evidenceNote": "This is the first 10-run tactic-neutralized executable distribution. It is appropriate for preliminary comparison against the planner's base hit/damage resolver. Ten trials are not sufficient by themselves for final Oracle promotion."
+}

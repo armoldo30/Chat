@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o5-fixed-damage-integerization-v1",
+  "evidenceStatus": "unvalidated",
+  "sourceLog": "game(20260919-014129).log",
+  "observedCombatPanel": {
+    "attackerSoftAttack": 15,
+    "defenderDefense": 255,
+    "provenance": "user-reported live panel"
+  },
+  "machineControls": {
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0",
+    "hours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11
+    ],
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false
+  },
+  "defenderOrgLossPpByInterval": [
+    0.1715,
+    0.177,
+    0.177,
+    0.092,
+    0.177,
+    0.177,
+    0.177,
+    0.171,
+    0.177,
+    0.177
+  ],
+  "clusters": {
+    "low": {
+      "count": 1,
+      "mean": 0.092,
+      "min": 0.092,
+      "max": 0.092
+    },
+    "high": {
+      "count": 9,
+      "mean": 0.17572222222222225,
+      "min": 0.171,
+      "max": 0.177
+    },
+    "highLowMeanRatio": 1.9100241545893724
+  },
+  "positiveIntervals": 10,
+  "totalIntervals": 10,
+  "predeclaredDecision": "stochastic-discrete-multiplicity-supported",
+  "interpretation": "All ten firing intervals produced defender organization loss with strength fixed. Losses form two stable magnitude levels: one low interval near 0.092 pp and nine high intervals near 0.171-0.177 pp, with high/low mean ratio about 1.91. This satisfies the predeclared 1.8-2.2 two-level criterion and is strong executable evidence for stochastic discrete damage multiplicity at the controlled O5 boundary. Exact probability law and exact internal placement remain unvalidated."
+}

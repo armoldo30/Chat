@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o4-guaranteed-hit-sub10-v2",
+  "mode": "control",
+  "evidenceStatus": "unvalidated",
+  "sourceLog": "game(20260919-011430).log",
+  "observedCombatPanel": {
+    "attackerSoftAttack": 11,
+    "defenderDefense": 255,
+    "provenance": "user-reported from live combat panel; screenshot not retained"
+  },
+  "machineControls": {
+    "defineOverride": "BASE_CHANCE_TO_AVOID_HIT:0",
+    "prepared": true,
+    "requiredHours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "startupNoDamage": true,
+    "endHour": 6,
+    "modifiersRemoved": true,
+    "cleanupFailure": false
+  },
+  "firingIntervals": [
+    {
+      "fromHour": 1,
+      "toHour": 2,
+      "positive": true
+    },
+    {
+      "fromHour": 2,
+      "toHour": 3,
+      "positive": true
+    },
+    {
+      "fromHour": 3,
+      "toHour": 4,
+      "positive": true
+    },
+    {
+      "fromHour": 4,
+      "toHour": 5,
+      "positive": true
+    },
+    {
+      "fromHour": 5,
+      "toHour": 6,
+      "positive": true
+    }
+  ],
+  "positiveIntervals": 5,
+  "totalIntervals": 5,
+  "controlAccepted": true,
+  "interpretation": "The O4 v2 control satisfies the predeclared 5-of-5 positive interval requirement at reported GER Soft Attack 11 and POL Defense 255. This is strong executable evidence that the diagnostic defended-hit override is active. Proceed to exactly one Soft-Attack-2 probe run."
+}

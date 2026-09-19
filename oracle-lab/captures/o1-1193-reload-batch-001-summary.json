@@ -1,0 +1,32 @@
+{
+  "sourceFile": "game(20260918-055004).log",
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-land-baseline-v1"
+  },
+  "trial6Runs": 9,
+  "completeRuns": 9,
+  "allHours0to6": true,
+  "allOneAttackerOneDefender": true,
+  "allStartGameTime": "1936.02.08.11",
+  "allEndGameTime": "1936.02.08.17",
+  "uniqueTraceCount": 2,
+  "duplicateTraceGroups": [
+    [2,3,4,5,6,7,8,9]
+  ],
+  "classification": "deterministic-replay-diagnostic",
+  "statisticalUse": "rejected-as-nine-independent-trials",
+  "reason": "Runs 2 through 9 are exact trace duplicates at every sampled hour, strongly indicating that reloading the same save restores the same RNG state. The batch is useful evidence about reproducibility and RNG handling but must not be counted as nine independent stochastic combat samples.",
+  "runH0ToH6LossesPct": [
+    {"run":1,"attackerOrg":0.9715,"attackerStrength":0.2025,"defenderOrg":1.9475,"defenderStrength":0.2755},
+    {"run":2,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":3,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":4,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":5,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":6,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":7,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":8,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980},
+    {"run":9,"attackerOrg":1.9235,"attackerStrength":0.4095,"defenderOrg":0.9225,"defenderStrength":0.0980}
+  ]
+}

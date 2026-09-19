@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o3-sub10-defended-incidence-v1",
+  "evidenceStatus": "unvalidated",
+  "sourceFiles": {
+    "log": "game(20260919-003911).log",
+    "screenshot": "Screenshot 2026-09-18 203831.png"
+  },
+  "observedCombatPanel": {
+    "attackerSoftAttack": 7,
+    "attackerHardAttack": 1,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderHardAttack": 11,
+    "defenderDefense": 255,
+    "defendedMargin": 248
+  },
+  "visualControls": {
+    "attackerDivisions": 1,
+    "defenderDivisions": 1,
+    "attackerWidth": 18,
+    "defenderWidth": 18,
+    "attackerCommander": "none",
+    "defenderCommander": "none",
+    "attackerReserves": 0,
+    "defenderReserves": 0
+  },
+  "machineControls": {
+    "prepared": true,
+    "attenuatorPresent": true,
+    "requiredHours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "startupNoDamage": true,
+    "endHour": 6,
+    "attenuatorRemoved": true,
+    "cleanupFailure": false
+  },
+  "primaryMetric": "runsWithDefenderStrengthDamage",
+  "incidence": {
+    "defenderStrengthDamageObserved": true,
+    "detectionRule": "h6 defender strengthHigh < h1 defender strengthLow",
+    "h1StrengthLow": 0.99993,
+    "h6StrengthHigh": 0.99981,
+    "strictBoundSeparationPp": 0.012
+  },
+  "deltasMidpointPp": {
+    "attackerOrgLoss": 2.3135,
+    "attackerStrengthLoss": 0.391,
+    "defenderOrgLoss": 0.0795,
+    "defenderStrengthLoss": 0.0185
+  },
+  "interpretation": {
+    "stage": "early-positive-incidence",
+    "action": "stop-floor-zero-hypothesis-contradicted",
+    "conclusion": "A positive POL strength-damage event occurred while displayed GER Soft Attack was 7, conservatively sub-10 under the predeclared displayed-stat sensitivity. This contradicts the simple floor(SoftAttack/10) zero-transmission hypothesis at the controlled O3 boundary. O3 remains unvalidated and this does not uniquely validate stochastic rounding."
+  }
+}

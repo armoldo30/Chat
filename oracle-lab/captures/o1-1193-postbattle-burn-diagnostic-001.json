@@ -1,0 +1,38 @@
+{
+  "sourceFile": "game(20260918-060119).log",
+  "target": {
+    "gameVersion": "1.19.3.0.c01a",
+    "checksum": "5632",
+    "scenario": "o1-land-baseline-v1"
+  },
+  "runs": [
+    {
+      "rngBurn": 64,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "attackerH6": {"org": 98.073, "strength": 99.587},
+      "defenderH6": {"org": 99.074, "strength": 99.8985},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.9235,
+        "attackerStrength": 0.4095,
+        "defenderOrg": 0.9225,
+        "defenderStrength": 0.098
+      }
+    },
+    {
+      "rngBurn": 128,
+      "sampleHours": [0,1,2,3,4,5,6],
+      "attackerH6": {"org": 98.073, "strength": 99.587},
+      "defenderH6": {"org": 99.074, "strength": 99.8985},
+      "h0ToH6LossesPct": {
+        "attackerOrg": 1.9235,
+        "attackerStrength": 0.4095,
+        "defenderOrg": 0.9225,
+        "defenderStrength": 0.098
+      }
+    }
+  ],
+  "exactTraceDuplicate": true,
+  "classification": "post-battle-rng-burn-inconclusive",
+  "statisticalUse": "rejected",
+  "reason": "The 64- and 128-draw scripted burns produced identical combat traces. Because the burn commands were executed after the attack/battle had already been created, this does not yet prove that scripted random_list uses a separate RNG stream. Battle RNG may be seeded at combat creation. The next diagnostic must consume RNG before the attack is issued."
+}

@@ -1,0 +1,17 @@
+# HOI4 War Planner Oracle O3 sub-10 attack transmission probe.
+# Purpose: attenuate only GER infantry attack so the displayed Soft Attack is
+# expected to land at 7-8, safely below 10 even under the conservative +/-1
+# displayed-stat sensitivity used by the Oracle analysis.
+#
+# This probes whether sub-10 displayed attack can still transmit damage. Under
+# the planner's current stat/10 + stochastic-rounding model it can; under a
+# simple floor(stat/10) model it cannot.
+
+oracle_o3_sub10_attack_attenuator = {
+    enable = { always = yes }
+
+    # Attack only. Estimated from the stable neutral O2 panel state: the intent
+    # is a displayed GER Soft Attack near 8. The executable battle UI, not this
+    # arithmetic, is authoritative for run acceptance.
+    army_infantry_attack_factor = -0.89
+}

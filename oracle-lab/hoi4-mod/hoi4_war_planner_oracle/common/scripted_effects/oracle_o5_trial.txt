@@ -1,0 +1,145 @@
+# HOI4 War Planner Oracle O5 fixed-damage discrete-multiplicity probe.
+#
+# Diagnostic defines force:
+# - defended hits to 100%;
+# - org dice to 1;
+# - strength damage to zero;
+# - night attack penalty to zero.
+#
+# Workflow:
+# 1. load exact clean 11:00 baseline while paused;
+# 2. run d_oracle_o5_prepare;
+# 3. run built-in random_seed;
+# 4. issue same GER -> POL attack while paused;
+# 5. run d_oracle_o5_trial11 while still paused; h0 is recorded;
+# 6. unpause until combat instantiates, pause no later than h1;
+# 7. capture panel; accept only GER Soft Attack 14-16 and POL Defense >= 200;
+# 8. resume through h11. Cleanup is automatic.
+
+oracle_o5_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO5 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o5_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO5 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o5_capture_sample = {
+    log = "WPO5 SAMPLE hour=[?oracle_o5_hour]"
+    oracle_o5_log_attacker_divisions = yes
+    POL = {
+        oracle_o5_log_defender_divisions = yes
+    }
+}
+
+d_oracle_o5_prepare = {
+    GER = {
+        clr_country_flag = oracle_o5_prepared
+        clr_country_flag = oracle_o5_running
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o5_attack_target
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o5_attack_target
+            }
+            force_update_dynamic_modifier = yes
+        }
+
+        add_dynamic_modifier = {
+            modifier = oracle_o5_attack_target
+        }
+        force_update_dynamic_modifier = yes
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o5_attack_target
+                }
+            }
+            set_country_flag = oracle_o5_prepared
+            log = "WPO5 STATUS state=prepared scenario=o5-fixed-damage-integerization-v1 attackModifier=army_infantry_attack_factor:-0.79 modifierPresent=yes expectedPanel=GER-soft-14-to-16-POL-defense-high"
+        }
+        else = {
+            log = "WPO5 STATUS state=prepare-failed"
+        }
+    }
+}
+
+d_oracle_o5_clear = {
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o5_attack_target
+                }
+            }
+            remove_dynamic_modifier = {
+                modifier = oracle_o5_attack_target
+            }
+            force_update_dynamic_modifier = yes
+        }
+        clr_country_flag = oracle_o5_prepared
+        clr_country_flag = oracle_o5_running
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o5_attack_target
+                }
+            }
+            log = "WPO5 STATUS state=clear-failed modifierRemoved=no"
+        }
+        else = {
+            log = "WPO5 STATUS state=cleared modifierRemoved=yes"
+        }
+    }
+}
+
+oracle_o5_trial11_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o5_prepared
+            has_dynamic_modifier = {
+                modifier = oracle_o5_attack_target
+            }
+        }
+
+        clr_country_flag = oracle_o5_running
+        set_country_flag = oracle_o5_running
+        set_variable = { oracle_o5_hour = 0 }
+
+        log = "WPO5 BEGIN schema=1 scenario=o5-fixed-damage-integerization-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial11 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.79 prepared=yes modifierPresent=yes"
+        oracle_o5_capture_sample = yes
+
+        country_event = { id = oracle_o5.1 hours = 1 }
+        country_event = { id = oracle_o5.1 hours = 2 }
+        country_event = { id = oracle_o5.1 hours = 3 }
+        country_event = { id = oracle_o5.1 hours = 4 }
+        country_event = { id = oracle_o5.1 hours = 5 }
+        country_event = { id = oracle_o5.1 hours = 6 }
+        country_event = { id = oracle_o5.1 hours = 7 }
+        country_event = { id = oracle_o5.1 hours = 8 }
+        country_event = { id = oracle_o5.1 hours = 9 }
+        country_event = { id = oracle_o5.1 hours = 10 }
+        country_event = { id = oracle_o5.1 hours = 11 }
+    }
+    else = {
+        log = "WPO5 STATUS state=not-prepared action=run-d_oracle_o5_prepare-first"
+    }
+}
+
+d_oracle_o5_trial11 = {
+    GER = {
+        oracle_o5_trial11_start = yes
+    }
+}

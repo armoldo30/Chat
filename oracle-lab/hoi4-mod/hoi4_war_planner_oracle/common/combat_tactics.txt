@@ -1,0 +1,457 @@
+#### HOI4 War Planner Oracle O1 tactic-control override ########################
+# Target: HOI4 1.19.3.0.c01a / checksum 5632
+# Purpose: isolate base land-combat RNG/formulas from tactic selection/effects.
+# All non-basic tactics remain defined for technology/doctrine references but are
+# made ineligible. Basic attack/defend are the only selectable tactics and their
+# damage modifiers/counter relationship are deliberately neutralized.
+
+phases = {
+	close_combat
+	tactical_withdrawal
+	seize_bridge
+	hold_bridge
+	street_fighting
+}
+
+tactic_basic_attack = {
+	is_attacker = yes
+	trigger = { is_attacker = yes phase = no }
+	active = yes
+	base = { factor = 100 }
+	picture = attack
+	# intentionally neutral: no attacker/defender modifier and no counter
+}
+
+tactic_basic_defend = {
+	is_attacker = no
+	trigger = { is_attacker = no phase = no }
+	active = yes
+	base = { factor = 100 }
+	picture = defend
+	# intentionally neutral: no attacker/defender modifier
+}
+
+tactic_counterattack = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = counterattack
+}
+
+tactic_assault = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = assault
+}
+
+tactic_cc_attack = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = cc_attack
+}
+
+tactic_cc_defend = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = cc_defend
+}
+
+tactic_cc_storm = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = cc_storm
+}
+
+tactic_cc_local_strong_point = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = cc_local_strong_point
+}
+
+tactic_cc_withdraw = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = cc_withdraw
+}
+
+tactic_encirclement = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = encircle
+}
+
+tactic_delay = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = delay
+}
+
+tactic_shock = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = shock
+}
+
+tactic_tactical_withdrawal = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = withdraw
+}
+
+tactic_tw_attack = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tw_attack
+}
+
+tactic_tw_defend = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tw_defend
+}
+
+tactic_tw_chase = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tw_chase
+}
+
+tactic_tw_evade = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tw_evade
+}
+
+tactic_tw_intercept = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tw_intercept
+}
+
+tactic_breakthrough = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = breakthrough
+}
+
+tactic_ambush = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = ambush
+}
+
+tactic_blitz = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = blitz
+}
+
+tactic_elastic_defense = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = elastic_defence
+}
+
+tactic_backhand_blow = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = backhand_blow
+}
+
+tactic_seize_bridge = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = seize_bridge
+}
+
+tactic_attacker_sb_hold = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = attacker_sb_hold
+}
+
+tactic_attacker_sb_skillful_defence = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = attacker_sb_skillful_defence
+}
+
+tactic_defender_sb_assault = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = defender_sb_assault
+}
+
+tactic_defender_sb_reckless_assault = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = defender_sb_reckless_assault
+}
+
+tactic_defender_sb_retake_bridge = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = defender_sb_retake_bridge
+}
+
+tactic_hold_bridge = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_hold_bridge
+}
+
+tactic_attacker_hb_attack = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = attacker_hb_attack
+}
+
+tactic_attacker_hb_rush = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = attacker_hb_rush
+}
+
+tactic_attacker_hb_storm = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = attacker_hb_storm
+}
+
+tactic_defender_hb_hold = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = defender_hb_hold
+}
+
+tactic_defender_hb_skillful_defence = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = defender_hb_skillful_defence
+}
+
+tactic_guerrilla_tactics = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_guerrilla_tactics
+}
+
+tactic_human_wave_tactics = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_human_wave_tactics
+}
+
+tactic_banzai_charge = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_banzai_charge
+}
+
+tactic_grand_banzai_charge = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_banzai_charge
+}
+
+tactic_infantry_charge = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_infantry_charge
+}
+
+tactic_planned_attack = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_planned_attack
+}
+
+tactic_relentless_assault = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_relentless_assault
+}
+
+tactic_unexpected_thrust = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_unexpected_thrust
+}
+
+tactic_overwhelming_fire = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_overwhelming_fire
+}
+
+tactic_barrage = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_barrage
+}
+
+tactic_masterful_blitz = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = SOV_tank_desant_blitz
+}
+
+tactic_masterful_delay = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = delay
+}
+
+tactic_urban_defense = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_urban_defense
+}
+
+tactic_sf_storm = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_storm
+}
+
+tactic_sf_barrage = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_barrage
+}
+
+tactic_sf_armor_supported_assault = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_armor_supported_assault
+}
+
+tactic_sf_mouse_holing = {
+	is_attacker = yes
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_mouse_holing
+}
+
+tactic_sf_defense = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_defense
+}
+
+tactic_sf_fortify = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_fortify
+}
+
+tactic_sf_ambush = {
+	is_attacker = no
+	trigger = { always = no }
+	active = no
+	base = { factor = 0 }
+	picture = tactic_sf_ambush
+}
+

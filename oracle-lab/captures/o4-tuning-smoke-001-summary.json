@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o4-sub10-undefended-incidence-v1",
+  "evidenceStatus": "rejected-for-o4-statistical-batch",
+  "sourceFiles": {
+    "log": "game(20260919-005541).log",
+    "screenshot": "Screenshot 2026-09-18 205507.png"
+  },
+  "observedCombatPanel": {
+    "attackerSoftAttack": 2,
+    "attackerHardAttack": 0,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderHardAttack": 11,
+    "defenderDefense": 8
+  },
+  "acceptanceFailure": "POL displayed Defense was 8; O4 requires exactly 0.",
+  "machineControls": {
+    "prepared": true,
+    "samples": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "startupNoDamage": true,
+    "modifiersRemoved": true,
+    "cleanupFailure": false
+  },
+  "statisticalUse": "none",
+  "diagnosticUse": "tuning only",
+  "retune": {
+    "previousDefenseSuppressor": -1,
+    "observedResidualDefense": 8,
+    "baselineDefense": 255,
+    "observedResidualFraction": 0.03137254901960784,
+    "nextDefenseSuppressor": -1.04,
+    "reason": "Adds about 4 percentage points of suppression, slightly more than the observed 3.14% residual, to target the displayed zero floor."
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o6-two-point-probability-law-v1",
+  "mode": "low",
+  "evidenceStatus": "unexpected-pattern-control-review",
+  "sourceLog": "game(20260919-015314).log",
+  "observedCombatPanel": {
+    "attackerSoftAttack": 12,
+    "defenderDefense": 255,
+    "provenance": "user-reported live panel"
+  },
+  "machineControls": {
+    "hours": "0..41 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "intervalCounts": {
+    "total": 40,
+    "zeroDamage": 9,
+    "oneHitLikeLow": 20,
+    "twoHitLikeHigh": 11,
+    "positive": 31
+  },
+  "clusterStats": {
+    "lowMeanPp": 0.088425,
+    "highMeanPp": 0.1760909091,
+    "highLowRatio": 1.9914154265,
+    "impliedDiscreteMultiplicityTotal": 42,
+    "impliedMeanMultiplicityPerHour": 1.05
+  },
+  "zeroIntervals": [
+    "h1→h2",
+    "h4→h5",
+    "h14→h15",
+    "h15→h16",
+    "h25→h26",
+    "h30→h31",
+    "h32→h33",
+    "h33→h34",
+    "h40→h41"
+  ],
+  "predeclaredStatus": {
+    "originalO6AcceptancePassed": false,
+    "reason": "O6 required all 40 post-startup intervals to show measurable POL organization loss; only 31 did.",
+    "originalProbabilityLawDecision": "not automatically interpretable"
+  },
+  "importantObservation": "The nonzero intervals still form the same ~1x/~2x fixed-damage levels seen in O5, but nine additional zero-damage intervals create an apparent 0/1/2 multiplicity pattern. Under the current planner's stochasticRound(attack*0.1) placement, Soft Attack 12 would produce 1 or 2 attack points every hour and cannot produce zero. This is therefore a structural mismatch candidate pending diagnostic-control review, not a routine O6 frequency result."
+}

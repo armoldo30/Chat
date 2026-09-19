@@ -99,8 +99,8 @@ BUILTIN_1193.meta={
   changedTechnologyDirectEffectCount:Object.keys(technologyEffects1193).length,
   changedDoctrineRecordCount:Object.keys({...doctrines01,...doctrines02,...doctrines03,...doctrines04,...doctrines05,...doctrines06,...doctrines07,...doctrines08}).length,
   changedMioRecordCount:Object.keys(changedMios).length,
-  executableValidation:'pending-1.19.3-oracle',
-  executableEvidenceBase:'1.19.2-executable-inferred'
+  executableValidation:'partial-1.19.3-oracle-o1-timing',
+  executableEvidenceBase:'1.19.2-executable-inferred plus bounded 1.19.3 O1 timing validation'
 };
 
 export default BUILTIN_1193;

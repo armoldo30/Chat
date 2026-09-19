@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "fileName": "perfect baseline ready.hoi4",
+    "bytes": 43904414,
+    "sha256": "bb26ede3a83c8fd25e1d108f074444424dff92e82f58bfa3581ce1f545c09711",
+    "encoding": "HOI4bin",
+    "saveVersion": 33,
+    "versionString": "Operation Postern v1.19.3.0.c01a (5387)",
+    "player": "GER",
+    "runtimeChecksumFromSave": "5387",
+    "baseGameReferenceChecksum": "5632",
+    "checksumNote": "5387 is the checksum embedded in the Oracle-modded save version string. 5632 is the unmodded 1.19.3 base-game reference checksum used by the Oracle project. Existing WPO1 checksum=5632 markers describe the base reference, not this modded runtime checksum.",
+    "activeOracleModObserved": "HOI4 War Planner Oracle 1.19.3"
+  },
+  "templates": {
+    "GER": {
+      "displayName": "Infanterie-Division",
+      "internalTemplate": "GER_Inf_01",
+      "lineBattalions": {
+        "infantry": 9
+      },
+      "supportCompanies": [],
+      "layout": [
+        [0,0],[0,1],[0,2],
+        [1,0],[1,1],[1,2],
+        [2,0],[2,1],[2,2]
+      ],
+      "sourceExactStaticTotals": {
+        "combatWidth": 18,
+        "maxStrengthHp": 225,
+        "manpower": 9000,
+        "rawBattalionOrganisation": 60,
+        "supplyUse": 0.54,
+        "infantryEquipmentRequirement": 900
+      }
+    },
+    "POL": {
+      "displayName": "Dywizja Piechoty",
+      "internalTemplate": "POL_INF_01",
+      "lineBattalions": {
+        "infantry": 9
+      },
+      "supportCompanies": [],
+      "layout": [
+        [0,0],[0,1],[0,2],
+        [1,0],[1,1],[1,2],
+        [2,0],[2,1],[2,2]
+      ],
+      "sourceExactStaticTotals": {
+        "combatWidth": 18,
+        "maxStrengthHp": 225,
+        "manpower": 9000,
+        "rawBattalionOrganisation": 60,
+        "supplyUse": 0.54,
+        "infantryEquipmentRequirement": 900
+      }
+    }
+  },
+  "evidence": {
+    "saveCompositionClassification": "game-file exact",
+    "staticBattalionTotalsClassification": "game-file exact",
+    "dynamicCombatStatsClassification": "unvalidated",
+    "notes": [
+      "The binary save directly establishes the tested GER and POL template composition as nine infantry battalions with no support companies.",
+      "Width, HP, manpower, raw battalion organisation, supply use, and equipment requirement totals are computed from the supplied 1.19.3 infantry unit source and the exact saved template composition.",
+      "The save summary does not infer dynamic attack, defense, breakthrough, doctrine, experience, or modifier ordering from static template structure."
+    ]
+  }
+}

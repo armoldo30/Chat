@@ -1,0 +1,46 @@
+WPO1 BEGIN schema=1 scenario=o1-base-neutral-tactics-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 tacticMode=neutral-basic-only preBurn=0
+WPO1 SAMPLE hour=0
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=1
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=2
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99645 orgHigh=0.99651 strengthLow=0.99944 strengthHigh=0.99951
+WPO1 SAMPLE hour=3
+WPO1 ATTACKER orgLow=0.99615 orgHigh=0.99621 strengthLow=0.99902 strengthHigh=0.99908
+WPO1 DEFENDER orgLow=0.99553 orgHigh=0.9956 strengthLow=0.99889 strengthHigh=0.99895
+WPO1 SAMPLE hour=4
+WPO1 ATTACKER orgLow=0.99388 orgHigh=0.99394 strengthLow=0.99804 strengthHigh=0.9981
+WPO1 DEFENDER orgLow=0.99553 orgHigh=0.9956 strengthLow=0.99889 strengthHigh=0.99895
+WPO1 SAMPLE hour=5
+WPO1 ATTACKER orgLow=0.98936 orgHigh=0.98942 strengthLow=0.9973 strengthHigh=0.99736
+WPO1 DEFENDER orgLow=0.99474 orgHigh=0.9948 strengthLow=0.9984 strengthHigh=0.99846
+WPO1 SAMPLE hour=6
+WPO1 ATTACKER orgLow=0.98027 orgHigh=0.98033 strengthLow=0.99517 strengthHigh=0.99523
+WPO1 DEFENDER orgLow=0.99236 orgHigh=0.99242 strengthLow=0.99791 strengthHigh=0.99797
+WPO1 END hour=6 reason=trial6-complete
+WPO1 BEGIN schema=1 scenario=o1-base-neutral-tactics-v1 gameVersion=1.19.3.0.c01a checksum=5632 method=bisection14 runMode=trial6 tacticMode=neutral-basic-only preBurn=0
+WPO1 SAMPLE hour=0
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=1
+WPO1 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=2
+WPO1 ATTACKER orgLow=0.99742 orgHigh=0.99748 strengthLow=0.99969 strengthHigh=0.99975
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=3
+WPO1 ATTACKER orgLow=0.99657 orgHigh=0.99663 strengthLow=0.99914 strengthHigh=0.9992
+WPO1 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO1 SAMPLE hour=4
+WPO1 ATTACKER orgLow=0.99132 orgHigh=0.99138 strengthLow=0.99797 strengthHigh=0.99804
+WPO1 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO1 SAMPLE hour=5
+WPO1 ATTACKER orgLow=0.98905 orgHigh=0.98911 strengthLow=0.99748 strengthHigh=0.99755
+WPO1 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO1 SAMPLE hour=6
+WPO1 ATTACKER orgLow=0.98753 orgHigh=0.98759 strengthLow=0.99724 strengthHigh=0.9973
+WPO1 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO1 END hour=6 reason=trial6-complete

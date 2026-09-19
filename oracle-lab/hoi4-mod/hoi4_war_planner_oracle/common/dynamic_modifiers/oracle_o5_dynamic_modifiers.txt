@@ -1,0 +1,7 @@
+# HOI4 War Planner Oracle O5 fixed-damage discrete-multiplicity probe.
+# Target displayed GER Soft Attack: 14-16 inclusive.
+
+oracle_o5_attack_target = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.79
+}

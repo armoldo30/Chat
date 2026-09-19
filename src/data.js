@@ -1,12 +1,13 @@
 import { DEFINE_VALUES_1193 } from './builtin1193/defines-certification-1193.js';
 import { PRODUCTION_SOURCE_1192, PRODUCTION_EXECUTABLE_1192 } from './builtin1192/production-formulas-certification-1192.js';
 import { COMBAT_EXECUTABLE_1192, COMBAT_ANALYTICAL_1192 } from './builtin1192/combat-formulas-certification-1192.js';
+import ORACLE_COMBAT_1193 from './builtin1193/oracle-combat-certification-1193.js';
 
 export const MODEL_META = {
   appVersion: '0.17.0',
   gameVersion: '1.19.3',
   label: 'Vanilla 1.19.3 bundled game-data baseline',
-  confidence: 'Authoritative 1.19.3 game-file data; executable-only combat behavior carried forward from 1.19.2 pending Oracle revalidation',
+  confidence: 'Authoritative 1.19.3 game-file data; combat-entry timing Oracle-validated for controlled O1, remaining executable-only combat behavior still under validation',
   updated: '2026-09-18'
 };
 
@@ -31,6 +32,7 @@ export const COMBAT_CONSTANTS = {
   armoredOrgDice: D1193_MIL.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE,
   strengthDice: D1193_MIL.LAND_COMBAT_STR_DICE_SIZE,
   combatMinimumHours: D1193_MIL.COMBAT_MINIMUM_TIME,
+  initialFireDelayHours: ORACLE_COMBAT_1193.initialFireDelayHours,
   equipmentCombatLossFactor: D1193_MIL.EQUIPMENT_COMBAT_LOSS_FACTOR,
   armorWeights: { max: D1193_MIL.ARMOR_VS_AVERAGE, average: 1-D1193_MIL.ARMOR_VS_AVERAGE },
   piercingWeights: { max: D1193_MIL.PEN_VS_AVERAGE, average: 1-D1193_MIL.PEN_VS_AVERAGE },

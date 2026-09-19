@@ -1,0 +1,46 @@
+add_namespace = oracle_o6
+
+country_event = {
+    id = oracle_o6.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o6_running }
+
+            add_to_variable = { oracle_o6_hour = 1 }
+            oracle_o6_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o6_hour
+                            value = 41
+                            compare = less_than
+                        }
+                    }
+                }
+
+                clr_country_flag = oracle_o6_running
+                oracle_o6_remove_attack_modifiers = yes
+                clr_country_flag = oracle_o6_low_prepared
+                clr_country_flag = oracle_o6_high_prepared
+
+                if = {
+                    limit = {
+                        OR = {
+                            has_dynamic_modifier = { modifier = oracle_o6_low_attack }
+                            has_dynamic_modifier = { modifier = oracle_o6_high_attack }
+                        }
+                    }
+                    log = "WPO6 END hour=[?oracle_o6_hour] reason=trial41-complete modifiersRemoved=no cleanupFailure=yes"
+                }
+                else = {
+                    log = "WPO6 END hour=[?oracle_o6_hour] reason=trial41-complete modifiersRemoved=yes cleanupFailure=no"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,24 @@
+WPO4V2 STATUS state=probe-prepared scenario=o4-guaranteed-hit-sub10-v2 attackModifier=army_infantry_attack_factor:-0.97 modifierPresent=yes expectedPanel=GER-soft-2-POL-defense-high
+WPO4V2 BEGIN schema=1 scenario=o4-guaranteed-hit-sub10-v2 mode=probe gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only defineOverride=BASE_CHANCE_TO_AVOID_HIT:0 attackModifier=army_infantry_attack_factor:-0.97 prepared=yes modifierPresent=yes
+WPO4V2 SAMPLE hour=0
+WPO4V2 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 SAMPLE hour=1
+WPO4V2 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 SAMPLE hour=2
+WPO4V2 ATTACKER orgLow=0.99156 orgHigh=0.99162 strengthLow=0.99865 strengthHigh=0.99871
+WPO4V2 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 SAMPLE hour=3
+WPO4V2 ATTACKER orgLow=0.97808 orgHigh=0.97814 strengthLow=0.99621 strengthHigh=0.99627
+WPO4V2 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO4V2 SAMPLE hour=4
+WPO4V2 ATTACKER orgLow=0.96746 orgHigh=0.96752 strengthLow=0.99406 strengthHigh=0.99413
+WPO4V2 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO4V2 SAMPLE hour=5
+WPO4V2 ATTACKER orgLow=0.95841 orgHigh=0.95848 strengthLow=0.99236 strengthHigh=0.99242
+WPO4V2 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO4V2 SAMPLE hour=6
+WPO4V2 ATTACKER orgLow=0.94933 orgHigh=0.94939 strengthLow=0.99071 strengthHigh=0.99077
+WPO4V2 DEFENDER orgLow=0.99914 orgHigh=0.9992 strengthLow=0.99951 strengthHigh=0.99957
+WPO4V2 END hour=6 reason=trial6-complete modifiersRemoved=yes cleanupFailure=no

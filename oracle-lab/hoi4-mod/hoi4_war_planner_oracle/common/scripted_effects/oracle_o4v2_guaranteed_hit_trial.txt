@@ -1,0 +1,191 @@
+# HOI4 War Planner Oracle O4 v2 guaranteed-hit sub-10 diagnostic.
+#
+# IMPORTANT: common/defines/zz_oracle_o4v2_defines.lua forces defended hit
+# chance to 100% for this diagnostic package only.
+#
+# Panel timing for either run:
+# 1. load exact clean 11:00 baseline and remain paused;
+# 2. prepare the requested mode;
+# 3. run built-in random_seed;
+# 4. issue GER -> POL attack while paused;
+# 5. start the matching O4 v2 trial while still paused; h0 is recorded;
+# 6. unpause until combat instantiates, then pause immediately, no later than h1;
+# 7. capture the panel before advancing into h1->h2;
+# 8. if the mode-specific panel target passes, resume through h6.
+
+oracle_o4v2_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO4V2 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o4v2_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO4V2 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o4v2_capture_sample = {
+    log = "WPO4V2 SAMPLE hour=[?oracle_o4v2_hour]"
+    oracle_o4v2_log_attacker_divisions = yes
+    POL = {
+        oracle_o4v2_log_defender_divisions = yes
+    }
+}
+
+oracle_o4v2_remove_attack_modifiers = {
+    if = {
+        limit = {
+            has_dynamic_modifier = {
+                modifier = oracle_o4v2_control_attack
+            }
+        }
+        remove_dynamic_modifier = {
+            modifier = oracle_o4v2_control_attack
+        }
+        force_update_dynamic_modifier = yes
+    }
+    if = {
+        limit = {
+            has_dynamic_modifier = {
+                modifier = oracle_o4v2_probe_attack
+            }
+        }
+        remove_dynamic_modifier = {
+            modifier = oracle_o4v2_probe_attack
+        }
+        force_update_dynamic_modifier = yes
+    }
+}
+
+d_oracle_o4v2_control_prepare = {
+    GER = {
+        clr_country_flag = oracle_o4v2_control_prepared
+        clr_country_flag = oracle_o4v2_probe_prepared
+        clr_country_flag = oracle_o4v2_running
+        oracle_o4v2_remove_attack_modifiers = yes
+
+        add_dynamic_modifier = {
+            modifier = oracle_o4v2_control_attack
+        }
+        force_update_dynamic_modifier = yes
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4v2_control_attack
+                }
+            }
+            set_country_flag = oracle_o4v2_control_prepared
+            log = "WPO4V2 STATUS state=control-prepared scenario=o4-guaranteed-hit-sub10-v2 attackModifier=army_infantry_attack_factor:-0.84 modifierPresent=yes expectedPanel=GER-soft-10-to-19-POL-defense-high"
+        }
+        else = {
+            log = "WPO4V2 STATUS state=control-prepare-failed"
+        }
+    }
+}
+
+d_oracle_o4v2_probe_prepare = {
+    GER = {
+        clr_country_flag = oracle_o4v2_control_prepared
+        clr_country_flag = oracle_o4v2_probe_prepared
+        clr_country_flag = oracle_o4v2_running
+        oracle_o4v2_remove_attack_modifiers = yes
+
+        add_dynamic_modifier = {
+            modifier = oracle_o4v2_probe_attack
+        }
+        force_update_dynamic_modifier = yes
+
+        if = {
+            limit = {
+                has_dynamic_modifier = {
+                    modifier = oracle_o4v2_probe_attack
+                }
+            }
+            set_country_flag = oracle_o4v2_probe_prepared
+            log = "WPO4V2 STATUS state=probe-prepared scenario=o4-guaranteed-hit-sub10-v2 attackModifier=army_infantry_attack_factor:-0.97 modifierPresent=yes expectedPanel=GER-soft-2-POL-defense-high"
+        }
+        else = {
+            log = "WPO4V2 STATUS state=probe-prepare-failed"
+        }
+    }
+}
+
+d_oracle_o4v2_clear = {
+    GER = {
+        oracle_o4v2_remove_attack_modifiers = yes
+        clr_country_flag = oracle_o4v2_control_prepared
+        clr_country_flag = oracle_o4v2_probe_prepared
+        clr_country_flag = oracle_o4v2_running
+
+        if = {
+            limit = {
+                OR = {
+                    has_dynamic_modifier = {
+                        modifier = oracle_o4v2_control_attack
+                    }
+                    has_dynamic_modifier = {
+                        modifier = oracle_o4v2_probe_attack
+                    }
+                }
+            }
+            log = "WPO4V2 STATUS state=clear-failed modifiersRemoved=no"
+        }
+        else = {
+            log = "WPO4V2 STATUS state=cleared modifiersRemoved=yes"
+        }
+    }
+}
+
+oracle_o4v2_queue_trial6 = {
+    set_variable = { oracle_o4v2_hour = 0 }
+    oracle_o4v2_capture_sample = yes
+
+    country_event = { id = oracle_o4v2.1 hours = 1 }
+    country_event = { id = oracle_o4v2.1 hours = 2 }
+    country_event = { id = oracle_o4v2.1 hours = 3 }
+    country_event = { id = oracle_o4v2.1 hours = 4 }
+    country_event = { id = oracle_o4v2.1 hours = 5 }
+    country_event = { id = oracle_o4v2.1 hours = 6 }
+}
+
+d_oracle_o4v2_control_trial6 = {
+    GER = {
+        if = {
+            limit = {
+                has_country_flag = oracle_o4v2_control_prepared
+                has_dynamic_modifier = {
+                    modifier = oracle_o4v2_control_attack
+                }
+            }
+            set_country_flag = oracle_o4v2_running
+            log = "WPO4V2 BEGIN schema=1 scenario=o4-guaranteed-hit-sub10-v2 mode=control gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only defineOverride=BASE_CHANCE_TO_AVOID_HIT:0 attackModifier=army_infantry_attack_factor:-0.84 prepared=yes modifierPresent=yes"
+            oracle_o4v2_queue_trial6 = yes
+        }
+        else = {
+            log = "WPO4V2 STATUS state=control-not-prepared action=run-d_oracle_o4v2_control_prepare-first"
+        }
+    }
+}
+
+d_oracle_o4v2_probe_trial6 = {
+    GER = {
+        if = {
+            limit = {
+                has_country_flag = oracle_o4v2_probe_prepared
+                has_dynamic_modifier = {
+                    modifier = oracle_o4v2_probe_attack
+                }
+            }
+            set_country_flag = oracle_o4v2_running
+            log = "WPO4V2 BEGIN schema=1 scenario=o4-guaranteed-hit-sub10-v2 mode=probe gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial6 tacticMode=neutral-basic-only defineOverride=BASE_CHANCE_TO_AVOID_HIT:0 attackModifier=army_infantry_attack_factor:-0.97 prepared=yes modifierPresent=yes"
+            oracle_o4v2_queue_trial6 = yes
+        }
+        else = {
+            log = "WPO4V2 STATUS state=probe-not-prepared action=run-d_oracle_o4v2_probe_prepare-first"
+        }
+    }
+}

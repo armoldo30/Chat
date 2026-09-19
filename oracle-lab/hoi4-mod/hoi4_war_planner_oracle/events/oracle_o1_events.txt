@@ -1,0 +1,33 @@
+add_namespace = oracle_o1
+
+# Hidden hourly sampler event. d_oracle_o1_arm queues 96 copies up front at delays
+# 1..96 hours. Do not recursively schedule from inside this event: in HOI4 1.19.2
+# that pattern collapses subsequent delayed events into the same game tick.
+country_event = {
+    id = oracle_o1.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o1_running }
+
+            add_to_variable = { oracle_o1_hour = 1 }
+            oracle_o1_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o1_hour
+                            value = 96
+                            compare = less_than
+                        }
+                    }
+                }
+                clr_country_flag = oracle_o1_running
+                log = "WPO1 END hour=[?oracle_o1_hour] reason=horizon"
+            }
+        }
+    }
+}

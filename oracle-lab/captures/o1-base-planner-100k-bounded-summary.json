@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o1-base-neutral-tactics-v1",
+  "generatedFromBranchHead": "cc9fe79f997014415962797980722b85126acfb2",
+  "ciRunId": 35374796965,
+  "ciJobId": 105696837242,
+  "plannerRunsPerSensitivityPoint": 100000,
+  "evidenceStatus": "unvalidated",
+  "comparisonClassification": "planner analytical",
+  "executableClassification": "executable inferred",
+  "executable": {
+    "acceptedRuns": 10,
+    "uniqueTraceCount": 10,
+    "attackerStrengthLoss": {
+      "mean": 0.3059,
+      "sd": 0.081284
+    },
+    "defenderStrengthLoss": {
+      "mean": 0.10285,
+      "sd": 0.063382
+    }
+  },
+  "plannerMeanSensitivity": {
+    "attackerStrengthLoss": {
+      "min": 0.3323728,
+      "midpoint": 0.345775466667,
+      "max": 0.359521066667
+    },
+    "defenderStrengthLoss": {
+      "min": 0.140906666667,
+      "midpoint": 0.142628533333,
+      "max": 0.144399733333
+    }
+  },
+  "midpointDistribution": {
+    "attackerStrengthLoss": {
+      "mean": 0.345775466667,
+      "sd": 0.104338308532,
+      "q05": 0.186666666667,
+      "q25": 0.266666666667,
+      "median": 0.346666666667,
+      "q75": 0.426666666667,
+      "q95": 0.533333333333,
+      "zeroLossProbability": 0.00002
+    },
+    "defenderStrengthLoss": {
+      "mean": 0.142628533333,
+      "sd": 0.075857878233,
+      "q05": 0.026666666667,
+      "q25": 0.08,
+      "median": 0.133333333333,
+      "q75": 0.186666666667,
+      "q95": 0.266666666667,
+      "zeroLossProbability": 0.02337
+    }
+  },
+  "pointMeanDelta": {
+    "attackerStrengthLoss": {
+      "lowMinusExecutable": 0.0264728,
+      "midpointMinusExecutable": 0.039875466667,
+      "highMinusExecutable": 0.053621066667,
+      "midpointRelativeToExecutable": 0.130354582762
+    },
+    "defenderStrengthLoss": {
+      "lowMinusExecutable": 0.038056666667,
+      "midpointMinusExecutable": 0.039778533333,
+      "highMinusExecutable": 0.041549733333,
+      "midpointRelativeToExecutable": 0.386762599252
+    }
+  },
+  "envelopeFinding": {
+    "attackerExecutableMeanInsidePlannerSensitivityEnvelope": false,
+    "defenderExecutableMeanInsidePlannerSensitivityEnvelope": false,
+    "hitRegimeStableAcrossSensitivity": true
+  },
+  "interpretation": [
+    "The current planner point mean is above the executable point mean for both sides across the entire bounded UI-input sensitivity envelope.",
+    "The defender/POL strength-loss gap is too large to attribute to the existing +/-1 displayed-stat sensitivity alone.",
+    "This does not establish oracle-divergent because the executable sample is only n=10 and final dynamic inputs remain unvalidated.",
+    "The next high-value work is resolver isolation: combat-point scaling, defended/undefended hit handling, strength-damage dice/modifier, stochastic rounding, and ordering."
+  ]
+}

@@ -1,0 +1,59 @@
+add_namespace = oracle_o3
+
+# Hidden sampler for d_oracle_o3_trial6.
+# Six copies are queued up front at delays 1..6 hours, matching the stable O2
+# scheduler pattern and avoiding recursive same-tick scheduler collapse.
+country_event = {
+    id = oracle_o3.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o3_running }
+
+            add_to_variable = { oracle_o3_hour = 1 }
+            oracle_o3_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o3_hour
+                            value = 6
+                            compare = less_than
+                        }
+                    }
+                }
+
+                clr_country_flag = oracle_o3_running
+
+                if = {
+                    limit = {
+                        has_dynamic_modifier = {
+                            modifier = oracle_o3_sub10_attack_attenuator
+                        }
+                    }
+                    remove_dynamic_modifier = {
+                        modifier = oracle_o3_sub10_attack_attenuator
+                    }
+                    force_update_dynamic_modifier = yes
+                }
+
+                clr_country_flag = oracle_o3_prepared
+
+                if = {
+                    limit = {
+                        has_dynamic_modifier = {
+                            modifier = oracle_o3_sub10_attack_attenuator
+                        }
+                    }
+                    log = "WPO3 END hour=[?oracle_o3_hour] reason=trial6-complete attenuatorRemoved=no cleanupFailure=yes"
+                }
+                else = {
+                    log = "WPO3 END hour=[?oracle_o3_hour] reason=trial6-complete attenuatorRemoved=yes cleanupFailure=no"
+                }
+            }
+        }
+    }
+}

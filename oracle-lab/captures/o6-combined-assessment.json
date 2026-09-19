@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o6-two-point-probability-law-v1",
+  "evidenceStatus": "narrow-oracle-divergence-candidate",
+  "low": {
+    "attackerSoft": 12,
+    "defenderDefense": 255,
+    "multiplicityCounts": {
+      "zero": 9,
+      "one": 20,
+      "two": 11,
+      "three": 0
+    },
+    "impliedMeanMultiplicity": 1.05
+  },
+  "high": {
+    "attackerSoft": 18,
+    "defenderDefense": 255,
+    "multiplicityCounts": {
+      "zero": 0,
+      "one": 17,
+      "two": 20,
+      "three": 3
+    },
+    "impliedMeanMultiplicity": 1.65
+  },
+  "currentPlanner": {
+    "mechanism": "stochasticRound((softAttack+hardAttack)*0.1) before defended-hit resolution",
+    "lowSupportUnderSensitivity": "1 or 2 only",
+    "highSupportUnderSensitivity": "1 or 2 only"
+  },
+  "structuralContradictions": [
+    "Low mode observed 9 zero-multiplicity intervals; current planner support excludes 0 at Soft Attack 12 ±1.",
+    "High mode observed 3 three-multiplicity intervals; current planner support excludes 3 at Soft Attack 18 ±1."
+  ],
+  "meanGradient": {
+    "attackDifference": 6,
+    "multiplicityMeanDifference": 0.6,
+    "empiricalSlopePerSoftAttack": 0.1
+  },
+  "interpretation": "The /10 mean scale remains strikingly plausible from the mean gradient, but the planner's single Bernoulli stochastic-round step is too narrow. O6 indicates a wider discrete random-rounding distribution centered on approximately attack/10. The exact executable probability law remains unvalidated and requires one final discriminating experiment before changing the planner."
+}

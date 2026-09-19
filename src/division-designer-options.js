@@ -33,3 +33,41 @@ export function assignRegimentalSupport(state,side,column,value,isCompatible=()=
   state[key][c]=next;
   return next;
 }
+
+
+const SUPPORT_SECTION_ORDER=Object.freeze([
+  'Engineering & Recon',
+  'Fire Support',
+  'Anti-Tank & Anti-Air',
+  'Logistics & Maintenance',
+  'Command, Medical & Security',
+  'Specialist Support',
+  'Other Support'
+]);
+
+function supportSearchText(id,record={}){
+  return [id,record.id,record.gameId,record.name,...(record.categories||[]),...(record.types||[])].filter(Boolean).join(' ').toLowerCase();
+}
+
+export function supportCompanySection(id,record={}){
+  const text=supportSearchText(id,record);
+  if(/engineer|pioneer|recon|scout/.test(text))return 'Engineering & Recon';
+  if(/artillery|rocket|mortar|heavy weapon|fire support/.test(text))return 'Fire Support';
+  if(/anti[_ -]?tank|tank destroyer|anti[_ -]?air|sp[_ -]?anti[_ -]?air/.test(text))return 'Anti-Tank & Anti-Air';
+  if(/logistic|maintenance|repair|supply/.test(text))return 'Logistics & Maintenance';
+  if(/signal|field hospital|medical|military police|security/.test(text))return 'Command, Medical & Security';
+  if(/flame|airborne|amphibious|land cruiser|super heavy|armor/.test(text))return 'Specialist Support';
+  return 'Other Support';
+}
+
+export function supportCompanyPickerGroups(supportMap={},ids=[]){
+  const groups=Object.fromEntries(SUPPORT_SECTION_ORDER.map(label=>[label,[]]));
+  for(const id of ids||[]){
+    const record=supportMap?.[id];if(!record)continue;
+    groups[supportCompanySection(id,record)].push(id);
+  }
+  for(const values of Object.values(groups)){
+    values.sort((a,b)=>String(supportMap[a]?.name||a).localeCompare(String(supportMap[b]?.name||b)));
+  }
+  return Object.fromEntries(SUPPORT_SECTION_ORDER.filter(label=>groups[label].length).map(label=>[label,groups[label]]));
+}

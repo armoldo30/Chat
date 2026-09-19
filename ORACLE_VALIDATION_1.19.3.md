@@ -364,11 +364,11 @@ HOI4 does not expose the combat panel while the attack order is still only pendi
 2. issue the attack while paused;
 3. start the Oracle trial while still paused, recording h0;
 4. unpause only until the battle instantiates;
-5. pause immediately during the h0→h1 startup interval;
+5. pause immediately when the combat panel becomes available, no later than h1;
 6. capture the combat panel;
 7. resume through h6.
 
-This does not weaken the controlled stat observation because the h0→h1 interval is the separately Oracle-validated no-damage startup interval. The panel is therefore observed after combat exists but before the first firing opportunity. Historical O2/O3 screenshots collected this way remain usable; wording that required a panel screenshot before the sampler started was procedurally impossible and is superseded by this correction.
+This does not weaken the controlled stat observation because h0 and h1 are separately Oracle-validated as unchanged. The panel may therefore be captured as soon as combat exists, including at the h1 boundary, provided the game is paused before advancing into the h1→h2 firing interval. Historical O2/O3 screenshots collected this way remain usable; wording that required a panel screenshot before the sampler started was procedurally impossible and is superseded by this correction.
 
 ### O1 combat-entry timing — ORACLE-VALIDATED at the controlled boundary
 
@@ -519,7 +519,7 @@ O2 uses a temporary dynamic modifier on GER:
 
 This is **+200% infantry attack only**. The O2 modifier does not intentionally alter defense, breakthrough, organization, HP, supply, planning, entrenchment, or damage modifiers. The helper force-updates the dynamic modifier, and the hour-6 event removes it automatically.
 
-The expected purpose is to raise GER effective attack to roughly three times the neutral O1 level while keeping it below POL defense. Exact executable effective values are **not assumed** from modifier arithmetic: the battle UI must be captured immediately after combat instantiates, during the h0→h1 startup interval, and those directly observed values become the O2 planner inputs.
+The expected purpose is to raise GER effective attack to roughly three times the neutral O1 level while keeping it below POL defense. Exact executable effective values are **not assumed** from modifier arithmetic: the battle UI must be captured immediately after combat instantiates, after combat instantiates, no later than h1 and before the h1→h2 firing interval, and those directly observed values become the O2 planner inputs.
 
 The originally considered 12-hour version was rejected before executable use because the exact 11:00 baseline would run into night. O2 therefore retains the established **11:00→17:00 six-hour window**, preserving the O1 daylight control while obtaining approximately three times as many defended attack points per firing hour.
 
@@ -531,7 +531,7 @@ An O2 trace is accepted only if all of the following hold:
 2. neutral tactic Oracle build active;
 3. `d_oracle_o2_prepare` executed before combat creation;
 4. built-in `random_seed` executed before the attack for independent repeated trials;
-5. the GER attack is issued while paused, then `d_oracle_o2_trial6` is started while still paused; after unpausing just long enough for combat to instantiate, the game is paused again during h0→h1 and the combat panel is captured before the first firing opportunity;
+5. the GER attack is issued while paused, then `d_oracle_o2_trial6` is started while still paused; after unpausing just long enough for combat to instantiate, the game is paused again no later than h1 and the combat panel is captured before advancing into the h1→h2 firing interval;
 6. same one-GER-vs-one-POL, 18-width, Plains battle;
 7. no commanders, no reserves, full starting supply, zero planning, zero POL entrenchment;
 8. paused combat-panel capture records GER Soft Attack, GER Breakthrough, POL Soft Attack, and POL Defense under O2;
@@ -663,7 +663,7 @@ The modifier intentionally changes infantry attack only. It must not alter defen
 
 #### O3 acceptance boundary
 
-An O3 run is accepted only when the existing controlled O1/O2 conditions remain intact and the combat panel, captured during the h0→h1 startup interval after the trial has started and combat has instantiated, shows:
+An O3 run is accepted only when the existing controlled O1/O2 conditions remain intact and the combat panel, captured after the trial has started and combat has instantiated, no later than h1 and before the h1→h2 firing interval, shows:
 
 - displayed GER Soft Attack **7 or 8**;
 - displayed GER Soft Attack at least 10 points below displayed POL Defense;
@@ -819,7 +819,7 @@ Target dynamic modifiers:
 
 #### O4 acceptance boundary
 
-An O4 run is accepted only when all of the existing O1/O2/O3 controls remain intact and the combat panel, captured during the h0→h1 startup interval after the trial has started and combat has instantiated, shows:
+An O4 run is accepted only when all of the existing O1/O2/O3 controls remain intact and the combat panel, captured after the trial has started and combat has instantiated, no later than h1 and before the h1→h2 firing interval, shows:
 
 - GER displayed Soft Attack exactly **2**;
 - POL displayed Defense exactly **0**;

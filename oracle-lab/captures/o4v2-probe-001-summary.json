@@ -1,0 +1,75 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o4-guaranteed-hit-sub10-v2",
+  "mode": "probe",
+  "evidenceStatus": "unvalidated",
+  "sourceFiles": {
+    "log": "game(20260919-012146).log",
+    "screenshot": "Screenshot 2026-09-18 212115.png"
+  },
+  "observedCombatPanel": {
+    "attackerSoftAttack": 2,
+    "attackerHardAttack": 0,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderHardAttack": 11,
+    "defenderDefense": 255
+  },
+  "machineControls": {
+    "defineOverride": "BASE_CHANCE_TO_AVOID_HIT:0",
+    "prepared": true,
+    "requiredHours": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "startupNoDamage": true,
+    "endHour": 6,
+    "modifiersRemoved": true,
+    "cleanupFailure": false
+  },
+  "firingIntervals": [
+    {
+      "fromHour": 1,
+      "toHour": 2,
+      "positive": false
+    },
+    {
+      "fromHour": 2,
+      "toHour": 3,
+      "positive": false
+    },
+    {
+      "fromHour": 3,
+      "toHour": 4,
+      "positive": true
+    },
+    {
+      "fromHour": 4,
+      "toHour": 5,
+      "positive": false
+    },
+    {
+      "fromHour": 5,
+      "toHour": 6,
+      "positive": false
+    }
+  ],
+  "positiveIntervals": 1,
+  "totalIntervals": 5,
+  "controlReference": {
+    "sourceCapture": "oracle-lab/captures/o4v2-control-001-summary.json",
+    "positiveIntervals": 5,
+    "totalIntervals": 5,
+    "accepted": true
+  },
+  "predeclaredDecision": {
+    "action": "minimum-one-hypothesis-contradicted",
+    "reason": "Valid control was 5/5 positive, while probe K=1 <= 4."
+  },
+  "interpretation": "With the guaranteed-hit control validated at 5/5, the Soft-Attack-2 probe produced damage in only one of five firing intervals. This contradicts a minimum-one/ceiling-style mechanism that would assign at least one full attack point every firing hour to any positive sub-10 attack. O4 v2 remains unvalidated and does not by itself prove the planner's exact stochastic-rounding implementation."
+}

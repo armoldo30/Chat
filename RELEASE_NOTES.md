@@ -1,3 +1,26 @@
+# HOI4 War Planner 0.17.1 — Release Notes
+
+## Overview
+
+0.17.1 is a focused Division Designer maintenance release on the existing certified HOI4 1.19.3 baseline.
+
+## Division Designer fixes
+
+- Fixed regimental-support choices opening correctly but failing to persist when clicked.
+- Replaced the hardcoded line-battalion picker subset with the hydrated source-backed battalion catalog.
+- Added armored combat-support battalions to the picker where structurally compatible, including light/medium/heavy Tank Destroyers, SP Artillery, and SP Anti-Air.
+- Preserved source-backed regiment-group compatibility when normalizing designer grids.
+- Grouped divisional support companies by battlefield role and alphabetized them within each group to make large support catalogs easier to navigate.
+- Added permanent regressions for regimental-support selection, TD/SPG/SPAA picker availability, and support-company grouping.
+
+## Evidence boundary
+
+This patch changes Division Designer UI/state behavior and catalog exposure only. It does not promote or alter any Oracle combat finding, game-file certification, or executable-inferred formula.
+
+The bundled game-data baseline remains **HOI4 1.19.3.0.c01a (checksum 5632)**. The broad combat resolver remains subject to the existing Oracle evidence boundary.
+
+---
+
 # HOI4 War Planner 0.17.0 — Release Notes
 
 ## Overview

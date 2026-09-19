@@ -76,12 +76,18 @@ export function supportCompanyPickerGroups(supportMap={},ids=[]){
 export function supportTypeTokens(record={}){
   return [...new Set((record?.sameSupportType||[]).map(x=>String(x||'').trim()).filter(Boolean))];
 }
+function supportIdentityTokens(id,record={}){
+  return new Set([id,record?.id,record?.gameId].filter(Boolean).map(x=>String(x)));
+}
 
 export function supportCompaniesConflict(aId,aRecord={},bId,bRecord={}){
   if(!aId||!bId)return false;
   if(String(aId)===String(bId))return true;
-  const a=supportTypeTokens(aRecord),b=new Set(supportTypeTokens(bRecord));
-  return a.some(token=>b.has(token));
+  const aTypes=new Set(supportTypeTokens(aRecord)),bTypes=new Set(supportTypeTokens(bRecord));
+  const aIds=supportIdentityTokens(aId,aRecord),bIds=supportIdentityTokens(bId,bRecord);
+  for(const token of aTypes)if(bTypes.has(token)||bIds.has(token))return true;
+  for(const token of bTypes)if(aIds.has(token))return true;
+  return false;
 }
 
 export function supportCompanyAllowedWithSelection(candidateId,supportMap={},selectedIds=[],replaceIndex=-1){

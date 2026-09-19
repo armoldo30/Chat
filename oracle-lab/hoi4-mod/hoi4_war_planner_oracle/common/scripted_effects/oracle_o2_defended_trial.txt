@@ -6,13 +6,13 @@
 # 2. run d_oracle_o2_prepare;
 # 3. run built-in random_seed;
 # 4. issue the same GER attack while paused;
-# 5. while still paused, capture the battle panel and confirm GER effective
-#    Soft Attack remains at least 10 points below POL Defense;
-# 6. run d_oracle_o2_trial6;
-# 7. unpause through hour 6. The helper removes the amplifier automatically.
-#
-# The modifier is deliberately +200% infantry attack only. It does not alter
-# defense, breakthrough, organization, HP, supply, planning, or entrenchment.
+# 5. run d_oracle_o2_trial6 while still paused; this records h0 before combat
+#    has advanced;
+# 6. unpause only until the battle instantiates, then pause immediately during
+#    the Oracle-validated h0->h1 no-damage startup interval;
+# 7. capture the battle panel and confirm GER effective Soft Attack remains at
+#    least 10 points below POL Defense;
+# 8. resume and let the helper run through hour 6. Cleanup is automatic.
 
 oracle_o2_log_attacker_divisions = {
     every_country_division = {

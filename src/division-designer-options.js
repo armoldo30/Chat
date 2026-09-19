@@ -9,11 +9,19 @@ const PICKER_SECTIONS=Object.freeze([
   ['armor_combat_support','Armored Combat Support']
 ]);
 
+export function battalionAllowedInNormalDivision(record={}){
+  return !!record&&typeof record==='object'&&record.allowInNonArmyHq!==false;
+}
+
+export function normalDivisionBattalionIds(battalionMap={}){
+  return Object.entries(battalionMap||{}).filter(([,unit])=>battalionAllowedInNormalDivision(unit)).map(([id])=>id);
+}
+
 export function battalionPickerGroups(battalionMap={}){
   const buckets=Object.fromEntries(PICKER_SECTIONS.map(([group,label])=>[label,[]]));
   const labelByGroup=Object.fromEntries(PICKER_SECTIONS);
   for(const [id,unit] of Object.entries(battalionMap||{})){
-    if(!unit||typeof unit!=='object')continue;
+    if(!battalionAllowedInNormalDivision(unit))continue;
     const group=regimentGroupForUnit(id,unit),label=labelByGroup[group];
     if(!label)continue;
     buckets[label].push(id);

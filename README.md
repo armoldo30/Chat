@@ -41,10 +41,10 @@ Gauntlet opponent generation and grading are **planner analytical**. The underly
 
 The project distinguishes:
 
-1. **Game-file exact** — values/relationships directly retained from the supplied HOI4 1.19.3 files.
-2. **Executable inferred** — behavior constrained by source evidence but not provable without engine internals. Existing combat/production executable inference is explicitly carried forward from 1.19.2 pending 1.19.3 Oracle validation.
-3. **Planner analytical** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
-4. **Oracle-validated / Oracle-divergent / unvalidated** — black-box executable evidence states used by the Oracle laboratory.
+1. **`game-file exact`** — values/relationships directly retained from the supplied HOI4 1.19.3 files.
+2. **`executable inferred`** — behavior constrained by source evidence but not provable without engine internals. Existing combat/production executable inference is explicitly carried forward from 1.19.2 pending 1.19.3 Oracle validation.
+3. **`planner analytical`** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
+4. **`oracle-validated` / `oracle-divergent` / `unvalidated`** — black-box executable evidence states used by the Oracle laboratory.
 
 Exact tactic/counter selection, per-division reinforcement/coordination, direct CAS allocation/damage, commander/weather/experience interactions, some modifier ordering and other executable-only details remain outside parity claims.
 

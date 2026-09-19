@@ -1,0 +1,39 @@
+WPO5 STATUS state=prepared scenario=o5-fixed-damage-integerization-v1 attackModifier=army_infantry_attack_factor:-0.79 modifierPresent=yes expectedPanel=GER-soft-14-to-16-POL-defense-high
+WPO5 BEGIN schema=1 scenario=o5-fixed-damage-integerization-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial11 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.79 prepared=yes modifierPresent=yes
+WPO5 SAMPLE hour=0
+WPO5 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=1
+WPO5 ATTACKER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99993 orgHigh=1 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=2
+WPO5 ATTACKER orgLow=0.99578 orgHigh=0.99584 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99822 orgHigh=0.99828 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=3
+WPO5 ATTACKER orgLow=0.99156 orgHigh=0.99162 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99645 orgHigh=0.99651 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=4
+WPO5 ATTACKER orgLow=0.9865 orgHigh=0.98656 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99468 orgHigh=0.99474 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=5
+WPO5 ATTACKER orgLow=0.98228 orgHigh=0.98234 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99376 orgHigh=0.99382 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=6
+WPO5 ATTACKER orgLow=0.97722 orgHigh=0.97728 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99199 orgHigh=0.99205 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=7
+WPO5 ATTACKER orgLow=0.97222 orgHigh=0.97228 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.99022 orgHigh=0.99028 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=8
+WPO5 ATTACKER orgLow=0.96715 orgHigh=0.96721 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.98845 orgHigh=0.98851 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=9
+WPO5 ATTACKER orgLow=0.96129 orgHigh=0.96135 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.98674 orgHigh=0.9868 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=10
+WPO5 ATTACKER orgLow=0.95537 orgHigh=0.95543 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.98497 orgHigh=0.98503 strengthLow=0.99993 strengthHigh=1
+WPO5 SAMPLE hour=11
+WPO5 ATTACKER orgLow=0.9503 orgHigh=0.95036 strengthLow=0.99993 strengthHigh=1
+WPO5 DEFENDER orgLow=0.9832 orgHigh=0.98326 strengthLow=0.99993 strengthHigh=1
+WPO5 END hour=11 reason=trial11-complete modifierRemoved=yes cleanupFailure=no

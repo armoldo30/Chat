@@ -162,8 +162,21 @@ export function hydrateGameData(pack,{battalions,supports,equipment,terrain},{ye
   return status;
 }
 
-export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>supports[id]?.regimentalSupport);}
-export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>!supports[id]?.regimentalSupport);}
+const supportCategories=record=>new Set((record?.categories||[]).map(String));
+export function isRegimentalSupportRecord(record){
+  const categories=supportCategories(record);
+  if(categories.has('category_regimental_support_battalions'))return true;
+  if(categories.has('category_divisional_support_battalions'))return false;
+  return record?.regimentalSupport===true||record?.regimental===true;
+}
+export function isDivisionalSupportRecord(record){
+  const categories=supportCategories(record);
+  if(categories.has('category_divisional_support_battalions'))return true;
+  if(categories.has('category_regimental_support_battalions'))return false;
+  return record?.divisional===true||(record?.regimentalSupport===false&&record?.group==='support');
+}
+export function importedRegimentalSupportIds(supports){return Object.keys(supports||{}).filter(id=>isRegimentalSupportRecord(supports[id]));}
+export function importedDivisionalSupportIds(supports){return Object.keys(supports||{}).filter(id=>isDivisionalSupportRecord(supports[id]));}
 
 const requirementLabel=value=>sourceDisplayLabel(value,'',String(value??''));
 export function prerequisiteText(record){

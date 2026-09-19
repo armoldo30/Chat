@@ -1,3 +1,38 @@
+# HOI4 War Planner 0.17.3 — Release Notes
+
+## Overview
+
+0.17.3 is a focused Division Designer structural-correctness release following live 0.17.2 QA. The bundled game target remains **HOI4 1.19.3.0.c01a (checksum 5632)**.
+
+## Normal-division battalion eligibility
+
+- Re-audited all **53 currently bundled combat battalions** against their retained source regiment groups; the planner's six-group mapping has **zero mismatches**.
+- Confirmed the 1.19.3 Regimental Support `allowed_battalion_groups` matrix is unchanged and source-consistent.
+- Found a separate structural defect: six Army-HQ-only line battalions present in the compact runtime had lost `allow_in_non_army_hq = no` and could appear in the ordinary Division Designer.
+- The 1.19.3 source contains seven HQ-only line battalions total; `hq_armored_car` is outside the current compact line-battalion subset, while the other six are now explicitly excluded from normal templates.
+- Normal-template filtering is enforced across picker display, grid creation/normalization, saved/imported templates, regiment fill, export, and division calculation.
+
+## Regimental Support matrix locked
+
+Permanent regression coverage now verifies the exact six source regiment groups:
+
+- infantry
+- combat support
+- mobile
+- mobile combat support
+- armor
+- armor combat support
+
+Infantry/mobile/combat-support regiments retain the source-valid infantry-oriented Regimental Support set. Mobile-combat-support/armor/armor-combat-support regiments retain Motorized Heavy Weapons plus TD/SPAA Regimental Support. SP Artillery remains a line battalion only and is intentionally not promoted into Regimental Support.
+
+## Evidence boundary
+
+Retained supplied/certified source fields remain preferred authority. The compact runtime's omitted HQ-eligibility flags are recovered through the bounded public 1.19.3 source-mirror cross-check at `prisle123/hoi4-archive` commit `228560dc3508a43c1eaef0774f1c0dcc3c954ada`.
+
+That recovery is kept explicitly separate from `game-file exact` evidence. No Oracle result, combat formula, or executable-parity claim is changed by 0.17.3.
+
+---
+
 # HOI4 War Planner 0.17.2 — Release Notes
 
 ## Overview

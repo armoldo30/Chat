@@ -1,0 +1,13 @@
+# HOI4 War Planner Oracle O4 low-attack undefended incidence probe.
+# The executable battle panel, not modifier arithmetic, is authoritative.
+# O4 accepts only GER Soft Attack = 2 and POL Defense = 0.
+
+oracle_o4_low_attack_attenuator = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.97
+}
+
+oracle_o4_zero_defense_suppressor = {
+    enable = { always = yes }
+    army_infantry_defence_factor = -1.0
+}

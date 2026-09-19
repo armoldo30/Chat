@@ -4,7 +4,7 @@ import { MODEL_META } from '../src/data.js';
 import { REGIMENTAL_SUPPORT_COMPATIBILITY_META, supportAllowedBattalionGroups } from '../src/regimental-support-1193.js';
 import { BUILTIN_ENGLISH_LOCALIZATION_1193, BUILTIN_ENGLISH_LOCALIZATION_1193_META } from '../src/builtin1193/localization-english-1193.js';
 
-assert.equal(MODEL_META.appVersion,'0.17.1');
+assert.equal(MODEL_META.appVersion,'0.17.2');
 assert.equal(MODEL_META.gameVersion,'1.19.3');
 assert.equal(pack.meta.gameVersion,'1.19.3');
 assert.equal(pack.meta.gameBuild,'1.19.3.0.c01a');
@@ -117,7 +117,7 @@ assert.ok(!cac.inheritanceWarning);
 
 // Regimental-support compatibility is now exact from 1.19.3 source.
 assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.gameVersion,'1.19.3');
-assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.evidence,'game-file-exact');
+assert.equal(REGIMENTAL_SUPPORT_COMPATIBILITY_META.evidence,'game-file exact');
 assert.deepEqual(supportAllowedBattalionGroups('fire_support',pack.subUnits.fire_support).groups,['infantry','mobile','combat_support']);
 assert.deepEqual(supportAllowedBattalionGroups('light_tank_destroyer_support',pack.subUnits.light_tank_destroyer_support).groups,['armor','mobile_combat_support','armor_combat_support']);
 

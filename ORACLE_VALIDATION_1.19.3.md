@@ -1032,6 +1032,44 @@ Predeclared interpretation, conditional on a valid 5/5 control:
 This revised O4 protocol is declared after the zero-defense tuning failure but before any accepted O4 statistical result.
 
 
+#### O4 v2 control 001 — PASS
+
+The guaranteed-hit control run satisfied the predeclared executable conditions.
+
+Observed live combat-panel values (reported during the run; no screenshot retained):
+
+- GER Soft Attack: **11**
+- POL Defense: **255**
+
+The WPO4V2 trace is structurally clean:
+
+- exact h0..h6 samples;
+- h0→h1 unchanged;
+- `defineOverride=BASE_CHANCE_TO_AVOID_HIT:0`;
+- successful completion at h6;
+- attack modifier removed;
+- `cleanupFailure=no`.
+
+All five post-startup firing intervals show strict measurable POL defender damage:
+
+- h1→h2: positive
+- h2→h3: positive
+- h3→h4: positive
+- h4→h5: positive
+- h5→h6: positive
+
+Therefore the control result is **5/5 positive intervals**, satisfying the predeclared O4 v2 control gate.
+
+This is strong executable evidence that the O4 v2 defended-hit intervention is active in the controlled scenario. The lack of a retained screenshot does not block the control decision because the reported panel values are inside the predeclared acceptance region and the 5/5 interval behavior independently provides a strong intervention cross-check. The panel values are retained as user-reported executable observations rather than screenshot-verified observations.
+
+Next step: collect exactly **one** O4 v2 probe run at displayed GER Soft Attack **2**, with normal/high POL Defense. No additional control runs are required.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o4v2-control-001-wpo4v2.log.txt`
+- `oracle-lab/captures/o4v2-control-001-summary.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

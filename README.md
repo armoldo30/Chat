@@ -1,9 +1,17 @@
-# HOI4 War Planner — 0.17.1
+# HOI4 War Planner — 0.17.2
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.2 release focus
+
+0.17.2 is a deep Division Designer support-company correction on the HOI4 1.19.3 baseline. It audits the complete support-category surface, separates the 14 Regimental Support entries from divisional support, excludes 11 Army-HQ-only companies from ordinary divisions, and exposes the resulting 43 regular divisional support choices in role-sorted groups.
+
+The update also enforces source `same_support_type` conflicts, restores player-facing support names/abbreviations and specialist support records, preserves support-specific source metadata such as `battalion_mult`, recon, entrenchment, initiative, reliability, supply/fuel modifiers and casualty/experience effects, and retains Army-HQ eligibility when importing custom data packs.
+
+Source-defined support mechanics that the planner does not yet execute completely remain explicitly bounded rather than being presented as executable parity.
 
 ## 0.17.1 release focus
 
@@ -33,10 +41,10 @@ Gauntlet opponent generation and grading are **planner analytical**. The underly
 
 The project distinguishes:
 
-1. **Game-file exact** — values/relationships directly retained from the supplied HOI4 1.19.3 files.
-2. **Executable inferred** — behavior constrained by source evidence but not provable without engine internals. Existing combat/production executable inference is explicitly carried forward from 1.19.2 pending 1.19.3 Oracle validation.
-3. **Planner analytical** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
-4. **Oracle-validated / Oracle-divergent / unvalidated** — black-box executable evidence states used by the Oracle laboratory.
+1. **`game-file exact`** — values/relationships directly retained from the supplied HOI4 1.19.3 files.
+2. **`executable inferred`** — behavior constrained by source evidence but not provable without engine internals. Existing combat/production executable inference is explicitly carried forward from 1.19.2 pending 1.19.3 Oracle validation.
+3. **`planner analytical`** — War Planner abstractions, scenario inputs, scoring and generated comparison systems.
+4. **`oracle-validated` / `oracle-divergent` / `unvalidated`** — black-box executable evidence states used by the Oracle laboratory.
 
 Exact tactic/counter selection, per-division reinforcement/coordination, direct CAS allocation/damage, commander/weather/experience interactions, some modifier ordering and other executable-only details remain outside parity claims.
 

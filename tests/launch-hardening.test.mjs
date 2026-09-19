@@ -8,9 +8,9 @@ const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,bro
 ]);
 const pkg=JSON.parse(pkgText);
 
-assert.equal(pkg.version,'0.17.1','release candidate must use 0.17.1 package version');
-assert.match(data,/appVersion:\s*'0\.17\.1'/,'visible planner version must match package version');
-assert.match(data,/updated:\s*'2026-09-18'/,'model metadata must carry the release-candidate update date');
+assert.equal(pkg.version,'0.17.2','release candidate must use 0.17.2 package version');
+assert.match(data,/appVersion:\s*'0\.17\.2'/,'visible planner version must match package version');
+assert.match(data,/updated:\s*'2026-09-19'/,'model metadata must carry the release-candidate update date');
 
 assert.match(main,/function serializableState\(\)/,'scenario persistence must share one serialization path');
 assert.match(main,/let saveFailureShown=false/,'local persistence failures must be throttled instead of repeatedly interrupting users');

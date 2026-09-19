@@ -3,6 +3,8 @@ import landSubUnitsA from './builtin1193/land-subunits-a.js';
 import landSubUnitsB from './builtin1193/land-subunits-b.js';
 import landSubUnitsC from './builtin1193/land-subunits-c.js';
 import landSubUnitsD from './builtin1193/land-subunits-d.js';
+import supportSubUnitsA1193 from './builtin1193/support-subunits-complete-a.js';
+import supportSubUnitsB1193 from './builtin1193/support-subunits-complete-b.js';
 import landEquipment1193 from './builtin1193/land-equipment.js';
 import tankModules1193 from './builtin1193/tank-modules.js';
 import doctrines01 from './builtin1193/doctrines-changed-1193-01.js';
@@ -28,12 +30,36 @@ import { resolveMIOs } from './parser.js';
 const clone=value=>structuredClone(value);
 const overlay=(target,...sources)=>{for(const source of sources)for(const [id,record] of Object.entries(source||{}))target[id]=clone(record);return target;};
 
+// The support audit recovery is deliberately lower precedence than the retained
+// user-supplied/certified runtime record. It fills metadata the compact runtime
+// omitted without allowing the public 1.19.3 cross-check to overwrite retained
+// source values.
+const supportAuditRecovery=(target,...sources)=>{
+  const arrayFields=['allowedBattalionGroups','sameSupportType','battalionMult','requiredDlc','enableAbility','essential'];
+  const objectFields=['deployedLeaderModifiers','terrainModifiers'];
+  for(const source of sources)for(const [id,auditRecord] of Object.entries(source||{})){
+    const retained=target[id];
+    if(!retained){target[id]=clone(auditRecord);continue;}
+    const merged={...clone(auditRecord),...clone(retained)};
+    for(const key of arrayFields){
+      if((!Array.isArray(retained[key])||retained[key].length===0)&&Array.isArray(auditRecord[key])&&auditRecord[key].length)merged[key]=clone(auditRecord[key]);
+    }
+    for(const key of objectFields){
+      const kept=retained[key];
+      if((!kept||typeof kept!=='object'||Array.isArray(kept)||Object.keys(kept).length===0)&&auditRecord[key]&&typeof auditRecord[key]==='object'&&!Array.isArray(auditRecord[key])&&Object.keys(auditRecord[key]).length)merged[key]=clone(auditRecord[key]);
+    }
+    target[id]=merged;
+  }
+  return target;
+};
+
 export const BUILTIN_1193=clone(BUILTIN_1192);
 
 // Only source domains changed by the supplied 1.19.3 install are replaced here.
 // Unchanged 1.19.2 records are retained because their normalized source content was
 // audited as identical; executable-only behavior remains separately classified.
 BUILTIN_1193.subUnits=overlay(BUILTIN_1193.subUnits||{},landSubUnitsA,landSubUnitsB,landSubUnitsC,landSubUnitsD);
+supportAuditRecovery(BUILTIN_1193.subUnits,supportSubUnitsA1193,supportSubUnitsB1193);
 BUILTIN_1193.equipment=overlay(BUILTIN_1193.equipment||{},landEquipment1193);
 BUILTIN_1193.modules=overlay(BUILTIN_1193.modules||{},tankModules1193);
 BUILTIN_1193.doctrines=overlay(BUILTIN_1193.doctrines||{},doctrines01,doctrines02,doctrines03,doctrines04,doctrines05,doctrines06,doctrines07,doctrines08);
@@ -99,6 +125,9 @@ BUILTIN_1193.meta={
   changedTechnologyDirectEffectCount:Object.keys(technologyEffects1193).length,
   changedDoctrineRecordCount:Object.keys({...doctrines01,...doctrines02,...doctrines03,...doctrines04,...doctrines05,...doctrines06,...doctrines07,...doctrines08}).length,
   changedMioRecordCount:Object.keys(changedMios).length,
+  auditedSupportSubUnitCount:Object.keys({...supportSubUnitsA1193,...supportSubUnitsB1193}).length,
+  auditedSupportSource:'retained-certified-records-with-bounded-public-1.19.3-cross-check-recovery',
+  auditedSupportRecoveryPrecedence:'certified-retained-values-win',
   executableValidation:'pending-1.19.3-oracle',
   executableEvidenceBase:'1.19.2-executable-inferred'
 };

@@ -145,7 +145,7 @@ function applyImportedEquipmentTier(target,pack,profile,year){
   for(const unit of Object.values(target||{})){
     const gameId=unit?.gameId;if(!gameId||!pack?.subUnits?.[gameId])continue;
     const imported=resolveSubUnitFromPack(pack.subUnits[gameId],pack,{year,profile});
-    for(const k of ['width','hp','org','manpower','supply','hardness','armor','piercing','soft','hard','def','breakthrough','airAttack','need','sourceEquipment','source'])if(imported[k]!==undefined)unit[k]=imported[k];
+    for(const k of ['width','hp','org','manpower','supply','hardness','armor','piercing','soft','hard','def','breakthrough','airAttack','initiative','recon','entrenchment','recovery','suppression','suppressionFactor','reliabilityFactor','equipmentCaptureFactor','supplyConsumptionFactor','fuelConsumptionFactor','casualtyTrickleback','experienceLossFactor','maximumSpeed','need','sourceEquipment','source'])if(imported[k]!==undefined)unit[k]=imported[k];
   }
 }
 

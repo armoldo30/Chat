@@ -1,3 +1,51 @@
+# HOI4 War Planner 0.17.2 — Release Notes
+
+## Overview
+
+0.17.2 completes the support-company audit opened after live 0.17.1 testing. The release keeps the bundled game target at **HOI4 1.19.3.0.c01a (checksum 5632)** and focuses on Division Designer catalog correctness and support-company structure.
+
+## Support-company audit
+
+- Audited **68** support-category sub-units represented by the 1.19.3 source surface.
+- Separated the **14 Regimental Support** entries from the divisional-support catalog.
+- Identified **54** divisional-support-category entries, including **11 Army-HQ-only** support companies.
+- Excluded those HQ-only entries from ordinary Division Designer templates, leaving **43 regular divisional support choices**.
+- Restored specialist support records that were missing or incompletely represented by the compact runtime surface.
+- Uses player-facing English support labels and source abbreviations where retained by the audit.
+- Groups the expanded support picker by battlefield role and alphabetizes each group.
+
+## Structural correctness
+
+- Enforces source `same_support_type` conflicts instead of merely blocking exact duplicate IDs.
+- Handles asymmetric support-type declarations by matching support-family tokens against source/runtime identities.
+- Preserves `allow_in_army_hq` / `allow_in_non_army_hq` when parsing imported data packs.
+- Keeps Regimental Support filtered by the source `allowed_battalion_groups` structure and the three-line-battalion slot requirement.
+- Saved/imported templates are normalized so structurally invalid duplicate support families are removed deterministically.
+
+## Retained support metadata
+
+The audited runtime now preserves support-company metadata that the earlier reduced representation could drop, including:
+
+- `battalion_mult`
+- recon and initiative
+- entrenchment
+- reliability and equipment-capture factors
+- supply/fuel-consumption factors
+- casualty trickleback and experience-loss factors
+- suppression-related fields
+- HQ eligibility
+- abilities and DLC requirements
+
+## Evidence boundary
+
+The supplied 1.19.3 source corpus remains the preferred authority for the certified game-data baseline. Where the compact runtime did not retain enough support metadata, 0.17.2 uses a bounded 1.19.3 source-mirror cross-check and labels that recovery separately rather than silently promoting the reconstructed record to `game-file exact`.
+
+Catalog membership, structural constraints and directly retained source values do **not** validate every downstream executable aggregation rule. In particular, some support-specific mechanics such as complete `battalion_mult` ordering, casualty replacement behavior, equipment capture/reliability effects and specialist abilities remain preserved but not fully executed by the battle resolver.
+
+The combat model's existing Oracle evidence classifications are unchanged by this release.
+
+---
+
 # HOI4 War Planner 0.17.1 — Release Notes
 
 ## Overview

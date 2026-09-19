@@ -1,0 +1,46 @@
+add_namespace = oracle_o7
+
+country_event = {
+    id = oracle_o7.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o7_running }
+
+            add_to_variable = { oracle_o7_hour = 1 }
+            oracle_o7_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o7_hour
+                            value = 61
+                            compare = less_than
+                        }
+                    }
+                }
+
+                clr_country_flag = oracle_o7_running
+
+                if = {
+                    limit = { has_dynamic_modifier = { modifier = oracle_o7_attack_target } }
+                    remove_dynamic_modifier = { modifier = oracle_o7_attack_target }
+                    force_update_dynamic_modifier = yes
+                }
+
+                clr_country_flag = oracle_o7_prepared
+
+                if = {
+                    limit = { has_dynamic_modifier = { modifier = oracle_o7_attack_target } }
+                    log = "WPO7 END hour=[?oracle_o7_hour] reason=trial61-complete modifierRemoved=no cleanupFailure=yes"
+                }
+                else = {
+                    log = "WPO7 END hour=[?oracle_o7_hour] reason=trial61-complete modifierRemoved=yes cleanupFailure=no"
+                }
+            }
+        }
+    }
+}

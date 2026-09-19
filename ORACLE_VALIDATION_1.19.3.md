@@ -801,7 +801,7 @@ Exact executable panel values remain authoritative. Modifier arithmetic is not t
 Target dynamic modifiers:
 
 - GER: `army_infantry_attack_factor = -0.97`
-- POL: `army_infantry_defence_factor = -1.0`
+- POL: `army_infantry_defence_factor = -1.04`
 
 #### O4 acceptance boundary
 
@@ -888,6 +888,36 @@ Predeclared interpretation:
 - Any mismatch candidate remains `unvalidated` until every external scenario control is reviewed.
 
 The first O4 run is a smoke and may count as run 1 only if all controls pass. If it passes, collect exactly three more accepted runs; do not change the four-run target after observing the smoke result.
+
+#### O4 tuning smoke 001 — REJECTED / RETUNE ONLY
+
+The first O4 executable smoke successfully hit the GER attack target but did **not** reach the predeclared undefended-defense target:
+
+- GER Soft Attack: **2**
+- GER Hard Attack: **0**
+- GER Breakthrough: **35**
+- POL Soft Attack: **69**
+- POL Hard Attack: **11**
+- POL Defense: **8**
+- one division per side, width 18 each, no commanders, zero reserves
+
+The WPO4 trace itself was structurally clean: exact h0..h6 sampling, h0→h1 no-damage, successful completion, both modifiers removed, and `cleanupFailure=no`. POL took no measurable damage across the five firing intervals.
+
+This trace is **rejected from the O4 statistical batch** because POL Defense was 8 rather than the predeclared 0. The observed zero damage is therefore not used in the O4 decision statistic.
+
+Tuning action only:
+
+- previous POL suppressor: `army_infantry_defence_factor = -1.00`
+- baseline POL Defense: 255
+- residual displayed Defense: 8 (about 3.14% of baseline)
+- next POL suppressor: `army_infantry_defence_factor = -1.04`
+
+This retune does not alter the predeclared O4 scenario, primary metric, four-run sample size, or K thresholds. A new tuning smoke must again show exactly GER Soft Attack 2 and POL Defense 0 before any run is accepted.
+
+Persisted rejected evidence:
+
+- `oracle-lab/captures/o4-tuning-smoke-001-wpo4.log.txt`
+- `oracle-lab/captures/o4-tuning-smoke-001-summary.json`
 
 
 ## Promotion rule

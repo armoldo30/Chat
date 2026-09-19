@@ -93,6 +93,7 @@ const runtimeGameDataStatus=state.dataPack?hydrateGameData(state.dataPack,{batta
 const runtimeTankDataStatus=state.dataPack?configureTankDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
 const runtimeAirDataStatus=state.dataPack?configureAirDataPack(state.dataPack,state.dataSnapshotYear):{active:false};
 applyRegimentalSupportCompatibilityFallback(supports);
+applySupportStructureFallback1193(supports);
 const importedRegimentalSupports=state.dataPack?importedRegimentalSupportIds(supports):[];
 const importedDivisionalSupports=state.dataPack?importedDivisionalSupportIds(supports):[];
 const BASE_REGIMENTAL_SUPPORTS=importedRegimentalSupports.length?importedRegimentalSupports:LEGACY_REGIMENTAL_SUPPORTS;

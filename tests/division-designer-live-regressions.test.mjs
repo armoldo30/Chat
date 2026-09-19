@@ -54,6 +54,7 @@ assert.match(main,/supportCompanyPickerGroups\(supports,BASE_DIVISIONAL_SUPPORTS
 assert.doesNotMatch(main,/'Armored Battalions':\['light_armor','medium_armor','heavy_armor'\]/,'armor picker must not be hardcoded to only three tank battalions');
 assert.match(main,/data-regimental-choice=/,'regimental support choices should use a dedicated click binding');
 assert.match(main,/assignRegimentalSupport\(state,side,column,value/,'regimental support click binding should mutate the selected regiment explicitly');
-assert.match(main,/normalizeGrid\(state\[key\],Object\.keys\(battalions\),battalions\)/,'designer normalization must use the hydrated battalion map');
+assert.match(main,/normalizeGrid\(state\[key\],divisionBattalionIds\(\),battalions\)/,'designer normalization must use only battalions structurally valid in ordinary divisions');
+assert.match(main,/regimentGroupForUnit\(k,battalions\[k\]\)===lockedGroup/,'locked regiment picker filtering must use the source regiment-group resolver');
 
 console.log('Division Designer live regression checks passed.');

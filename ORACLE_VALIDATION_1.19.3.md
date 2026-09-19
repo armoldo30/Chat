@@ -1209,6 +1209,55 @@ No adaptive extension is permitted after seeing the O5 trace. One valid h0..h11 
 If the two-level prediction is observed cleanly, the next stage may test the **probability law / exact combat-point scale** separately. O5 by itself is not a broad `oracle-validated` result for the whole hit/damage resolver.
 
 
+#### O5 fixed-damage run 001 — PASS / STOCHASTIC DISCRETE MULTIPLICITY SUPPORTED
+
+The single predeclared O5 run hit the target panel:
+
+- GER Soft Attack: **15**
+- POL Defense: **255**
+
+The WPO5 trace is structurally clean:
+
+- exact h0..h11 samples;
+- h0→h1 unchanged;
+- `BASE_CHANCE_TO_AVOID_HIT=0`;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0;
+- attacker and defender strength unchanged for the full trace;
+- successful cleanup at h11.
+
+All ten firing intervals produced measurable POL organization loss.
+
+Observed defender organization-loss magnitudes (percentage points):
+
+`0.1715, 0.1770, 0.1770, 0.0920, 0.1770, 0.1770, 0.1770, 0.1710, 0.1770, 0.1770`
+
+The losses form two stable magnitude levels:
+
+- low cluster: **1 interval**, mean **0.0920 pp**
+- high cluster: **9 intervals**, mean approximately **0.17572 pp**
+- high/low mean ratio: approximately **1.91**
+
+This satisfies the predeclared O5 two-level acceptance criterion of a high/low mean ratio between 1.8 and 2.2.
+
+Machine action:
+
+`stochastic-discrete-multiplicity-supported`
+
+The controlled executable therefore shows discrete stochastic damage multiplicity rather than a single continuous/fixed hourly damage amount. This substantially narrows the plausible resolver class.
+
+The observed 9/10 high-cluster frequency is **not** itself used as an O5 validation criterion. Under the retained displayed-stat uncertainty, the current planner's high-cluster probability is roughly 0.4–0.6. O6 should test that probability law explicitly with a larger, predeclared sample rather than retrofitting a conclusion from this one short trace.
+
+O5 remains `unvalidated` for exact internal placement. The result supports stochastic discrete multiplicity but does not yet certify the exact `attack / 10` scale or the planner's precise stochastic-rounding probability law.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o5-fixed-damage-001-wpo5.log.txt`
+- `oracle-lab/captures/o5-fixed-damage-001-summary.json`
+- `oracle-lab/captures/o5-fixed-damage-001-assessment.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

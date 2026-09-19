@@ -8,7 +8,7 @@ const events=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracl
 assert.match(modifier,/oracle_o4_low_attack_attenuator\s*=\s*\{/);
 assert.match(modifier,/army_infantry_attack_factor\s*=\s*-0\.97/);
 assert.match(modifier,/oracle_o4_zero_defense_suppressor\s*=\s*\{/);
-assert.match(modifier,/army_infantry_defence_factor\s*=\s*-1\.0/);
+assert.match(modifier,/army_infantry_defence_factor\s*=\s*-1\.04/);
 
 assert.match(effects,/d_oracle_o4_prepare\s*=\s*\{/);
 assert.match(effects,/d_oracle_o4_trial6\s*=\s*\{/);

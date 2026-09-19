@@ -51,12 +51,12 @@ function supportSearchText(id,record={}){
 
 export function supportCompanySection(id,record={}){
   const text=supportSearchText(id,record);
-  if(/engineer|pioneer|recon|scout/.test(text))return 'Engineering & Recon';
+  if(/engineer|pioneer|recon|scout|airborne_light_armor|long_range_patrol|northern_territory/.test(text))return 'Engineering & Recon';
   if(/artillery|rocket|mortar|heavy weapon|fire support/.test(text))return 'Fire Support';
   if(/anti[_ -]?tank|tank destroyer|anti[_ -]?air|sp[_ -]?anti[_ -]?air/.test(text))return 'Anti-Tank & Anti-Air';
-  if(/logistic|maintenance|repair|supply/.test(text))return 'Logistics & Maintenance';
-  if(/signal|field hospital|medical|military police|security/.test(text))return 'Command, Medical & Security';
-  if(/flame|airborne|amphibious|land cruiser|super heavy|armor/.test(text))return 'Specialist Support';
+  if(/logistic|maintenance|repair|supply|helicopter_transport|winter_logistics/.test(text))return 'Logistics & Maintenance';
+  if(/signal|field hospital|medical|military police|security|helicopter_field_hospital/.test(text))return 'Command, Medical & Security';
+  if(/flame|land cruiser|super[_ -]?heavy|blackshirt|sturmtruppe|helicopter_brigade/.test(text))return 'Specialist Support';
   return 'Other Support';
 }
 
@@ -70,4 +70,24 @@ export function supportCompanyPickerGroups(supportMap={},ids=[]){
     values.sort((a,b)=>String(supportMap[a]?.name||a).localeCompare(String(supportMap[b]?.name||b)));
   }
   return Object.fromEntries(SUPPORT_SECTION_ORDER.filter(label=>groups[label].length).map(label=>[label,groups[label]]));
+}
+
+
+export function supportTypeTokens(record={}){
+  return [...new Set((record?.sameSupportType||[]).map(x=>String(x||'').trim()).filter(Boolean))];
+}
+
+export function supportCompaniesConflict(aId,aRecord={},bId,bRecord={}){
+  if(!aId||!bId)return false;
+  if(String(aId)===String(bId))return true;
+  const a=supportTypeTokens(aRecord),b=new Set(supportTypeTokens(bRecord));
+  return a.some(token=>b.has(token));
+}
+
+export function supportCompanyAllowedWithSelection(candidateId,supportMap={},selectedIds=[],replaceIndex=-1){
+  const candidate=supportMap?.[candidateId];if(!candidate)return false;
+  return (selectedIds||[]).every((id,index)=>{
+    if(index===replaceIndex||!id)return true;
+    return !supportCompaniesConflict(candidateId,candidate,id,supportMap?.[id]);
+  });
 }

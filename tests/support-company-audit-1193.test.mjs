@@ -67,7 +67,7 @@ assert.equal(supportCompaniesConflict('engineer',supports.engineer,'armored_engi
 assert.equal(supportCompaniesConflict('logistics',supports.logistics,'helicopter_transport',supports.helicopter_transport),true,'helicopter transport conflicts with ordinary logistics by source same_support_type');
 assert.equal(supportCompaniesConflict('artillery',supports.artillery,'anti_air',supports.anti_air),false);
 assert.equal(supportCompanyAllowedWithSelection('mot_recon',supports,['engineer','recon'],-1),false);
-assert.deepEqual(normalizeSupportCompanySelection(['recon','mot_recon','engineer','armored_engineer','artillery'],supports,runtimeDiv,5),['recon','engineer','artillery']);
+assert.deepEqual(normalizeSupportCompanySelection(['recon','mot_recon','engineer','armored_engineer','support_artillery'],supports,runtimeDiv,5),['recon','engineer','support_artillery']);
 
 assert.equal(BUILTIN_1193.meta.auditedSupportSubUnitCount,68);
 console.log('HOI4 1.19.3 support-company census and structural audit passed');

@@ -1339,6 +1339,48 @@ No adaptive extension is permitted. O6 is exactly **two runs**, one low and one 
 If O6 is consistent, the remaining useful Oracle work should shift away from attack-point integerization toward downstream damage magnitude/ordering rather than continuing to multiply attack-rounding experiments.
 
 
+#### O6 low run 001 — UNEXPECTED 0/1/2 MULTIPLICITY / ORIGINAL O6 ACCEPTANCE FAILED
+
+The predeclared O6 low-mode panel target was hit exactly:
+
+- GER Soft Attack: **12**
+- POL Defense: **255**
+
+The WPO6 trace is structurally clean:
+
+- exact h0..h41 sampling;
+- h0→h1 unchanged;
+- attacker and defender strength remain unchanged throughout;
+- O6 diagnostic define bundle declared active;
+- successful modifier cleanup at h41.
+
+However, the original O6 acceptance condition required all 40 post-startup intervals to show measurable POL organization loss. That condition **failed**.
+
+Observed interval classification using the predeclared O5/O6 fixed-damage threshold:
+
+- zero-damage intervals: **9**
+- one-hit-like low cluster: **20**
+- two-hit-like high cluster: **11**
+
+The nonzero clusters remain extremely stable:
+
+- low-cluster mean: approximately **0.08843 pp**
+- high-cluster mean: approximately **0.17609 pp**
+- high/low ratio: approximately **1.991**
+
+Thus the trace exhibits a clear **0 / 1x / 2x** organization-damage multiplicity pattern.
+
+This is important because the current planner's exact implementation uses `stochasticRound(attack * 0.1)`. At displayed Soft Attack 12, even allowing the retained ±1 uncertainty, that implementation yields either 1 or 2 attack points every firing hour and cannot yield zero attack points. Therefore the nine zero-damage intervals are a **structural mismatch candidate** against the planner's current integerization placement, subject to diagnostic-control review.
+
+Per the predeclared O6 rule, this low run is **not** fed into the original probability-gradient pass/fail assessment because its all-positive-interval acceptance boundary failed.
+
+The second O6 high-mode run was already predeclared before this result existed. It may still be collected as the planned second half of O6, but its role is now diagnostic completion of the unexpected multiplicity pattern rather than an automatic application of the original O6 probability-law acceptance rule.
+
+Persisted summary:
+
+- `oracle-lab/captures/o6-low-001-summary.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

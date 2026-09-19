@@ -9,6 +9,12 @@ export function assessO6({batch,lowStats,highStats}){
   if(hs!==18||hd<200)throw new Error('O6 high panel must be Soft Attack 18 and Defense >=200');
   const base={scenario:'o6-two-point-probability-law-v1',evidenceStatus:'unvalidated',lowPanel:{attackerSoft:ls,defenderDefense:ld},highPanel:{attackerSoft:hs,defenderDefense:hd}};
   if(batch.rejectedRuns>0)return {...base,stage:'invalid-batch',action:'repair-or-rerun-rejected-traces',rejected:batch.rejected};
+  if(batch.byMode.low.length===1){
+    const lowOnly=batch.byMode.low[0].capture;
+    if(lowOnly.intervals.length!==40||lowOnly.positiveIntervals!==40){
+      return {...base,stage:'low-control-failure',action:'review-unexpected-zero-damage-intervals-before-original-o6-interpretation',lowPositiveIntervals:lowOnly.positiveIntervals,lowZeroIntervals:40-lowOnly.positiveIntervals};
+    }
+  }
   if(batch.byMode.low.length!==1||batch.byMode.high.length!==1)return {...base,stage:'incomplete-or-nonpredeclared',action:'require-one-low-and-one-high-run'};
   const low=batch.byMode.low[0].capture,high=batch.byMode.high[0].capture;
   if(low.intervals.length!==40||high.intervals.length!==40||low.positiveIntervals!==40||high.positiveIntervals!==40){

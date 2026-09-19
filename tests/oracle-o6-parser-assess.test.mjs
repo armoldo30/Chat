@@ -4,7 +4,7 @@ import {assessO6} from '../scripts/oracle-o6-assess.mjs';
 
 function b(v){return {low:Math.max(0,v-.00003).toFixed(5),high:Math.min(1,v+.00003).toFixed(5)};}
 function run(mode,highCount){
-  const mod=mode==='low'?'army_infantry_attack_factor:-0.83':'army_infantry_attack_factor:-0.75';
+  const mod=mode==='low'?'army_infantry_attack_factor:-0.83':'army_infantry_attack_factor:-0.748';
   const lines=['WPO6 BEGIN schema=1 scenario=o6-two-point-probability-law-v1 mode='+mode+' gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial41 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier='+mod+' prepared=yes modifierPresent=yes'];
   let d=1;
   for(let h=0;h<=41;h++){

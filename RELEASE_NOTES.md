@@ -1,3 +1,28 @@
+# HOI4 War Planner 0.17.3 — Release Notes
+
+## Overview
+
+0.17.3 is a Division Designer structural-correctness patch following live 0.17.2 Regimental Support testing. It keeps the game target at **HOI4 1.19.3.0.c01a (checksum 5632)**.
+
+## Regimental Support / regiment eligibility fix
+
+- Re-audited all **14 Regimental Support** `allowed_battalion_groups` records; the supplied 1.19.3 compatibility matrix was already correct and is unchanged.
+- Found a separate structural leak: compact runtime records for Army-HQ-only line battalions had dropped `allow_in_army_hq` / `allow_in_non_army_hq`.
+- Excludes HQ-only line battalions from the ordinary Division Designer.
+- Normalizes saved/imported ordinary templates so invalid HQ-only battalions are removed deterministically.
+- Uses the source regiment-group resolver consistently for locked-regiment choices and Regimental Support filtering.
+- Adds an exhaustive regression covering all 14 Regimental Support choices across all six source regiment groups.
+
+## Evidence boundary
+
+The Regimental Support compatibility matrix remains **`game-file exact`** where retained from the supplied 1.19.3 source corpus.
+
+The missing HQ line eligibility fields are a bounded recovery from the public 1.19.3 source mirror `prisle123/hoi4-archive` at commit `228560dc3508a43c1eaef0774f1c0dcc3c954ada`. Because those specific fields were omitted from the compact certified runtime record, the recovery remains **`unvalidated`** rather than being silently promoted to `game-file exact`.
+
+No Oracle evidence or combat-formula classification is changed by this release.
+
+---
+
 # HOI4 War Planner 0.17.2 — Release Notes
 
 ## Overview

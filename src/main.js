@@ -6,8 +6,9 @@ import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSuppor
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
-import { battalionPickerGroups, supportCompanyPickerGroups, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection, assignRegimentalSupport } from './division-designer-options.js';
+import { battalionPickerGroups, normalDivisionBattalionIds, supportCompanyPickerGroups, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection, assignRegimentalSupport } from './division-designer-options.js';
 import { REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
+import { regimentGroupForUnit } from './regiment-groups.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, AIR_SLOT_MODULES, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus, airDesignOptions, airSlotLabel } from './air.js';
@@ -97,12 +98,13 @@ const importedRegimentalSupports=state.dataPack?importedRegimentalSupportIds(sup
 const importedDivisionalSupports=state.dataPack?importedDivisionalSupportIds(supports):[];
 const BASE_REGIMENTAL_SUPPORTS=importedRegimentalSupports.length?importedRegimentalSupports:LEGACY_REGIMENTAL_SUPPORTS;
 const BASE_DIVISIONAL_SUPPORTS=importedDivisionalSupports.length?importedDivisionalSupports:Object.keys(supports).filter(k=>!BASE_REGIMENTAL_SUPPORTS.includes(k)&&!(state.dataPack&&LEGACY_REGIMENTAL_SUPPORTS.includes(k)));
+const divisionBattalionIds=()=>normalDivisionBattalionIds(battalions);
 const LEGACY_REGIMENTAL_MAP={support_artillery:'field_guns',regimental_infantry_guns:'field_guns',support_at:'anti_tank_battery',regimental_at:'anti_tank_battery',support_aa:'anti_air_battery',regimental_aa:'anti_air_battery'};
 function ensureDesignerState(side){
   const key=side+'Grid';
-  if(!Array.isArray(state[key]))state[key]=countsToGrid(state[side],Object.keys(battalions),battalions);
-  else state[key]=normalizeGrid(state[key],Object.keys(battalions),battalions);
-  state[side]=gridToCounts(state[key],Object.keys(battalions));
+  if(!Array.isArray(state[key]))state[key]=countsToGrid(state[side],divisionBattalionIds(),battalions);
+  else state[key]=normalizeGrid(state[key],divisionBattalionIds(),battalions);
+  state[side]=gridToCounts(state[key],divisionBattalionIds());
   state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(state[side+'Supports'])?state[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);
   const regKey=side+'RegimentalSupports';
   state[regKey]=Array.isArray(state[regKey])?Array.from({length:DESIGNER_COLS},(_,i)=>{
@@ -161,7 +163,7 @@ function equipmentForSide(side='attacker'){
   return out;
 }
 function validRegimentalSupports(side){ensureDesignerState(side);return state[side+'RegimentalSupports'].filter((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c,key));}
-function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCounts(state[side+'Grid'],Object.keys(battalions));const regKey=side+'RegimentalSupports';state[regKey]=state[regKey].map((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c,key)?key:null);}
+function syncDesignerSide(side){ensureDesignerState(side);state[side]=gridToCounts(state[side+'Grid'],divisionBattalionIds());const regKey=side+'RegimentalSupports';state[regKey]=state[regKey].map((key,c)=>key&&filledInRegiment(state[side+'Grid'],c)>=3&&regimentalBaselineCompatible(side,c,key)?key:null);}
 function techData(side){
   const data=buildTechAdjustedData(battalions,supports,ensureTechState(side),{pack:state.dataPack,year:state.dataSnapshotYear});ensureTankState();ensureMioState();
   for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){const target=tankVariantTargets(family,role),raw=tankDesignFor(side,family,role);for(const u of target?.units||[]){const map=u.kind==='support'?data.supports:data.battalions;if(map[u.id])map[u.id]=applyTankDesignToBattalion(map[u.id],raw);}}
@@ -195,7 +197,7 @@ function clearScenarioShareParam(){
 function scenarioShareBaseline(){
   const base=structuredClone(defaults);
   for(const side of ['attacker','defender']){
-    base[side+'Grid']=countsToGrid(base[side],Object.keys(battalions),battalions);
+    base[side+'Grid']=countsToGrid(base[side],divisionBattalionIds(),battalions);
     base[side+'Tech']=normalizeTechProfile(base[side+'Tech']);
   }
   base.tankVariants={attacker:{},defender:{}};
@@ -244,7 +246,7 @@ function readJSON(file,cb){
   const r=new FileReader();r.onerror=()=>alert('Could not read that JSON file.');r.onload=()=>{try{cb(JSON.parse(r.result));}catch{alert('Invalid JSON file.');}};r.readAsText(file);
 }
 
-function division(side){ensureDesignerState(side);const data=techData(side),line=gridToCounts(state[side+'Grid'],Object.keys(battalions));return calcDivision(line,data.battalions,[...state[side+'Supports'],...validRegimentalSupports(side)],data.supports);}
+function division(side){ensureDesignerState(side);const data=techData(side),line=gridToCounts(state[side+'Grid'],divisionBattalionIds());return calcDivision(line,data.battalions,[...state[side+'Supports'],...validRegimentalSupports(side)],data.supports);}
 function aggregate(side){return aggregateDivision(division(side),state[side+'Divisions']);}
 function battleOpts(){const ag=techData('attacker').doctrineGlobal||{},dg=techData('defender').doctrineGlobal||{},airDoctrine=airDoctrineEffects(ensureTechState('attacker').airDoctrine,null,state.dataPack);return {...state.battlefield,entrench:(Number(state.battlefield.entrench)||0)*(1+(dg.entrenchment||0)),attackerNightAttackBonus:ag.nightAttack||0,defenderNightAttackBonus:dg.nightAttack||0,attackerGroundSupportBonus:airDoctrine.groundSupport||0,terrainData:terrain};}
 function replacementIC(losses,side='attacker'){const eq=equipmentForSide(side);return Object.entries(losses||{}).reduce((sum,[k,q])=>sum+(eq[k]?.cost||0)*(+q||0),0);}
@@ -395,7 +397,7 @@ function designerPicker(side){
     return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Regimental Support</h3><p class="muted">Regimental support is filtered from the audited 1.19.3 source catalog by the regiment's exact allowed_battalion_groups. Research, DLC and Special Project requirements remain informational only.</p></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-regimental-choice="" data-regimental-column="${column}">×<small>Empty slot</small></button>${BASE_REGIMENTAL_SUPPORTS.filter(k=>regimentalBaselineCompatible(side,column,k)).map(k=>{const info=requirementInfo(supports[k]);return `<button class="picker-choice tone-fire ${info?'prereq-info':''}" data-regimental-choice="${k}" data-regimental-column="${column}" title="${esc(info)}"><b>${supportCode(k)}</b><small>${esc(supports[k]?.name||k)}${info?' · ⓘ':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></div>`;
   }
   const lockedGroup=designerPick.fillRegiment?null:regimentGroup(side,designerPick.c,designerPick.r);
-  return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Change or add battalion</h3><p class="muted">${lockedGroup?`Regiment locked to ${lockedGroup.toUpperCase()} group. `:''}Shift-click a choice to replace the full regiment.</p></div><button class="btn" data-cancel-pick>Back</button></div>${Object.entries(battalionGroups).map(([name,ids])=>{const allowed=ids.filter(k=>battalions[k]&&(!lockedGroup||battalions[k].group===lockedGroup));return allowed.length?`<section class="picker-group"><h4>${name}</h4><div class="picker-grid">${allowed.map(k=>{const info=requirementInfo(battalions[k]);return `<button class="picker-choice tone-${battalionTone(k)} ${info?'prereq-info':''}" data-choice="${k}" title="${esc(info)}"><b>${battalionCode(k)}</b><small>${esc(battalions[k].name)}${info?' · ⓘ':''}</small>${pickerBattalionMeta(side,k)}</button>`;}).join('')}</div></section>`:'';}).join('')}<button class="picker-choice remove-choice wide" data-choice="">× <small>Remove battalion</small></button></div>`;
+  return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Change or add battalion</h3><p class="muted">${lockedGroup?`Regiment locked to ${lockedGroup.toUpperCase()} group. `:''}Shift-click a choice to replace the full regiment.</p></div><button class="btn" data-cancel-pick>Back</button></div>${Object.entries(battalionGroups).map(([name,ids])=>{const allowed=ids.filter(k=>battalions[k]&&(!lockedGroup||regimentGroupForUnit(k,battalions[k])===lockedGroup));return allowed.length?`<section class="picker-group"><h4>${name}</h4><div class="picker-grid">${allowed.map(k=>{const info=requirementInfo(battalions[k]);return `<button class="picker-choice tone-${battalionTone(k)} ${info?'prereq-info':''}" data-choice="${k}" title="${esc(info)}"><b>${battalionCode(k)}</b><small>${esc(battalions[k].name)}${info?' · ⓘ':''}</small>${pickerBattalionMeta(side,k)}</button>`;}).join('')}</div></section>`:'';}).join('')}<button class="picker-choice remove-choice wide" data-choice="">× <small>Remove battalion</small></button></div>`;
 }
 function renderDivisionDesigner(side){
   ensureDesignerState(side);const stats=division(side),other=side==='attacker'?'defender':'attacker';
@@ -427,7 +429,7 @@ function bindDivisionDesigner(side){
     const value=el.dataset.choice||null;
     if(designerPick?.kind==='battalion'){
       const fill=designerPick.fillRegiment||ev.shiftKey;
-      if(fill)state[side+'Grid']=fillRegiment(state[side+'Grid'],designerPick.c,value,Object.keys(battalions),battalions);
+      if(fill)state[side+'Grid']=fillRegiment(state[side+'Grid'],designerPick.c,value,divisionBattalionIds(),battalions);
       else if(canPlaceBattalion(state[side+'Grid'],designerPick.c,designerPick.r,value,battalions))state[side+'Grid'][designerPick.c][designerPick.r]=value;
     }
     if(designerPick?.kind==='support'){
@@ -441,8 +443,8 @@ function bindDivisionDesigner(side){
   });
   $('clearDesigner').onclick=()=>{state[side+'Grid']=blankGrid();state[side+'Supports']=[];state[side+'RegimentalSupports']=Array(DESIGNER_COLS).fill(null);syncDesignerSide(side);designerPick=null;save();shell();};
   $('copyDesigner').onclick=()=>{const other=side==='attacker'?'defender':'attacker';state[other+'Grid']=structuredClone(state[side+'Grid']);state[other+'Supports']=structuredClone(state[side+'Supports']);state[other+'RegimentalSupports']=structuredClone(state[side+'RegimentalSupports']);state[other+'Name']=`Copy of ${state[side+'Name']}`;syncDesignerSide(other);save();shell();};
-  $('exportDesigner').onclick=()=>downloadJSON(`${side}-division.json`,{name:state[side+'Name'],grid:state[side+'Grid'],battalions:gridToCounts(state[side+'Grid'],Object.keys(battalions)),supports:state[side+'Supports'],regimentalSupports:state[side+'RegimentalSupports']});
-  $('importDesigner').onchange=e=>{const f=e.target.files[0];if(!f)return;readJSON(f,x=>{state[side+'Grid']=Array.isArray(x.grid)?normalizeGrid(x.grid,Object.keys(battalions),battalions):countsToGrid(Array.isArray(x.battalions)?x.battalions:Array.isArray(x[side])?x[side]:[],Object.keys(battalions),battalions);state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(x.supports)?x.supports:Array.isArray(x[side+'Supports'])?x[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);state[side+'RegimentalSupports']=Array.isArray(x.regimentalSupports)?Array.from({length:DESIGNER_COLS},(_,i)=>{const raw=x.regimentalSupports[i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;}):Array(DESIGNER_COLS).fill(null);if(x.name)state[side+'Name']=String(x.name).slice(0,80);syncDesignerSide(side);save();shell();});};
+  $('exportDesigner').onclick=()=>downloadJSON(`${side}-division.json`,{name:state[side+'Name'],grid:state[side+'Grid'],battalions:gridToCounts(state[side+'Grid'],divisionBattalionIds()),supports:state[side+'Supports'],regimentalSupports:state[side+'RegimentalSupports']});
+  $('importDesigner').onchange=e=>{const f=e.target.files[0];if(!f)return;readJSON(f,x=>{state[side+'Grid']=Array.isArray(x.grid)?normalizeGrid(x.grid,divisionBattalionIds(),battalions):countsToGrid(Array.isArray(x.battalions)?x.battalions:Array.isArray(x[side])?x[side]:[],divisionBattalionIds(),battalions);state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(x.supports)?x.supports:Array.isArray(x[side+'Supports'])?x[side+'Supports']:[],supports,BASE_DIVISIONAL_SUPPORTS,5);state[side+'RegimentalSupports']=Array.isArray(x.regimentalSupports)?Array.from({length:DESIGNER_COLS},(_,i)=>{const raw=x.regimentalSupports[i],mapped=LEGACY_REGIMENTAL_MAP[raw]||raw;return BASE_REGIMENTAL_SUPPORTS.includes(mapped)?mapped:null;}):Array(DESIGNER_COLS).fill(null);if(x.name)state[side+'Name']=String(x.name).slice(0,80);syncDesignerSide(side);save();shell();});};
 }
 
 function techTierOptions(levels,current){return levels.map(x=>`<option value="${x.value}" ${+current===x.value?'selected':''}>${esc(x.label)}</option>`).join('');}

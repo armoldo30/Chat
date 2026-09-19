@@ -25,6 +25,7 @@ import technologyEffects01 from './builtin1193/technology-effects-exact-1193-01.
 import technologyEffects02 from './builtin1193/technology-effects-exact-1193-02.js';
 import technologyEffects03 from './builtin1193/technology-effects-exact-1193-03.js';
 import SOURCE_CERTIFICATION_1193 from './builtin1193/source-certification-1193.js';
+import { HQ_LINE_ELIGIBILITY_1193, HQ_LINE_ELIGIBILITY_1193_META } from './builtin1193/hq-line-eligibility-1193.js';
 import { resolveMIOs } from './parser.js';
 
 const clone=value=>structuredClone(value);
@@ -60,6 +61,18 @@ export const BUILTIN_1193=clone(BUILTIN_1192);
 // audited as identical; executable-only behavior remains separately classified.
 BUILTIN_1193.subUnits=overlay(BUILTIN_1193.subUnits||{},landSubUnitsA,landSubUnitsB,landSubUnitsC,landSubUnitsD);
 supportAuditRecovery(BUILTIN_1193.subUnits,supportSubUnitsA1193,supportSubUnitsB1193);
+
+// The compact runtime also dropped Army-HQ eligibility from the HQ line
+// battalions. Recover only those omitted structural fields; do not overwrite
+// retained source values and do not promote this mirror-backed recovery to
+// game-file exact.
+for(const [id,recovery] of Object.entries(HQ_LINE_ELIGIBILITY_1193)){
+  const retained=BUILTIN_1193.subUnits?.[id];
+  if(!retained)continue;
+  if(retained.allowInArmyHq===undefined)retained.allowInArmyHq=recovery.allowInArmyHq;
+  if(retained.allowInNonArmyHq===undefined)retained.allowInNonArmyHq=recovery.allowInNonArmyHq;
+  retained.hqEligibilityRecoverySource='public-1.19.3-source-mirror-cross-check';
+}
 BUILTIN_1193.equipment=overlay(BUILTIN_1193.equipment||{},landEquipment1193);
 BUILTIN_1193.modules=overlay(BUILTIN_1193.modules||{},tankModules1193);
 BUILTIN_1193.doctrines=overlay(BUILTIN_1193.doctrines||{},doctrines01,doctrines02,doctrines03,doctrines04,doctrines05,doctrines06,doctrines07,doctrines08);
@@ -128,6 +141,7 @@ BUILTIN_1193.meta={
   auditedSupportSubUnitCount:Object.keys({...supportSubUnitsA1193,...supportSubUnitsB1193}).length,
   auditedSupportSource:'retained-certified-records-with-bounded-public-1.19.3-cross-check-recovery',
   auditedSupportRecoveryPrecedence:'certified-retained-values-win',
+  hqLineEligibilityRecovery:clone(HQ_LINE_ELIGIBILITY_1193_META),
   executableValidation:'pending-1.19.3-oracle',
   executableEvidenceBase:'1.19.2-executable-inferred'
 };

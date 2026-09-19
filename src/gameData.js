@@ -17,6 +17,7 @@ const EQUIPMENT_ALIAS={
   light_tank_equipment:'light_tank',medium_tank_equipment:'medium_tank',heavy_tank_equipment:'heavy_tank'
 };
 const COMBAT_KEYS={soft:'soft',hard:'hard',def:'def',breakthrough:'breakthrough',piercing:'piercing',airAttack:'airAttack'};
+const SOURCE_REGIMENT_GROUPS=new Set(['infantry','combat_support','mobile','mobile_combat_support','armor','armor_combat_support']);
 
 const humanize=id=>String(id||'').replace(/^unit_/,'').replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase());
 const n=v=>Number.isFinite(Number(v))?Number(v):undefined;
@@ -48,9 +49,16 @@ export function classifySubUnit(u){
 
 function normalizedGroup(u){
   const text=words(u),g=String(u?.group||'').toLowerCase();
-  if(g==='armor'||/category_all_armor|\barmor\b|\btank\b/.test(text))return 'armor';
-  if(g==='mobile'||/motor|mechanized|mobile/.test(text))return 'mobile';
+  // Preserve the game's exact regiment-group identity whenever source retained it.
+  // Regimental Support allowed_battalion_groups is keyed to these six groups, so
+  // collapsing combat-support groups to infantry/mobile/armor during hydration
+  // makes picker compatibility depend on a later browser repair pass.
+  if(SOURCE_REGIMENT_GROUPS.has(g))return g;
   if(g==='support')return 'support';
+  if(/category_self_propelled_artillery|category_self_propelled_anti_air|category_tank_destroyers/.test(text))return 'armor_combat_support';
+  if(/category_line_artillery/.test(text))return /motor|mechanized|mobile/.test(text)?'mobile_combat_support':'combat_support';
+  if(/category_all_armor|\barmor\b|\btank\b/.test(text))return 'armor';
+  if(/motor|mechanized|mobile|cavalry/.test(text))return 'mobile';
   return 'infantry';
 }
 

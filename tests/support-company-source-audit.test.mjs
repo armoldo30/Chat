@@ -22,6 +22,15 @@ const EXPECTED_REGIMENTAL=[
   'mot_fire_support','rocket_battery'
 ].sort();
 
+const SUPPORT_RUNTIME_ALIAS=Object.freeze({
+  anti_air:'support_aa',
+  anti_tank:'support_at',
+  artillery:'support_artillery',
+  logistics_company:'logistics',
+  maintenance_company:'maintenance',
+  signal_company:'signal'
+});
+
 const EXPECTED_DIVISIONAL=[
   'airborne_light_armor','anti_air','anti_tank','armored_car_recon','armored_engineer',
   'armored_maintenance','armored_signal','artillery','assault_engineer',
@@ -51,7 +60,8 @@ hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940}
 applyRegimentalSupportCompatibilityFallback(supports);
 
 assert.deepEqual(importedRegimentalSupportIds(supports).sort(),EXPECTED_REGIMENTAL);
-assert.deepEqual(importedDivisionalSupportIds(supports).sort(),EXPECTED_DIVISIONAL);
+const EXPECTED_RUNTIME_DIVISIONAL=EXPECTED_DIVISIONAL.map(id=>SUPPORT_RUNTIME_ALIAS[id]||id).sort();
+assert.deepEqual(importedDivisionalSupportIds(supports).sort(),EXPECTED_RUNTIME_DIVISIONAL);
 for(const id of HQ_SUPPORT_IDS_1193){
   assert.ok(supports[id],`HQ support ${id} should still exist in hydrated data`);
   assert.equal(isDivisionDesignerSupport1193(id,supports[id]),false,`${id} must not leak into a normal division support slot`);

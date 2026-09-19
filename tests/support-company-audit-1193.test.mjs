@@ -66,6 +66,8 @@ assert.equal(supportCompaniesConflict('recon',supports.recon,'mot_recon',support
 assert.equal(supportCompaniesConflict('engineer',supports.engineer,'armored_engineer',supports.armored_engineer),true,'engineer variants share the source same_support_type');
 assert.equal(supportCompaniesConflict('logistics',supports.logistics,'helicopter_transport',supports.helicopter_transport),true,'helicopter transport conflicts with ordinary logistics by source same_support_type');
 assert.equal(supportCompaniesConflict('artillery',supports.artillery,'anti_air',supports.anti_air),false);
+assert.equal(supportCompaniesConflict('base',{id:'base',sameSupportType:[]},'variant',{id:'variant',sameSupportType:['base']}),true,'one-sided source same_support_type must match the other record identity');
+assert.equal(supportCompaniesConflict('variant',{id:'variant',sameSupportType:['base']},'base',{id:'base',sameSupportType:[]}),true,'support-type conflict must remain symmetric even when only one source record names the family');
 assert.equal(supportCompanyAllowedWithSelection('mot_recon',supports,['engineer','recon'],-1),false);
 assert.deepEqual(normalizeSupportCompanySelection(['recon','mot_recon','engineer','armored_engineer','support_artillery'],supports,runtimeDiv,5),['recon','engineer','support_artillery']);
 

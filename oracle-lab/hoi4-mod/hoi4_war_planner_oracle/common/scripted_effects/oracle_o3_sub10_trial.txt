@@ -6,14 +6,12 @@
 # 2. run d_oracle_o3_prepare;
 # 3. run built-in random_seed;
 # 4. issue the same GER attack while paused;
-# 5. while still paused, capture the battle panel;
-# 6. accept only if displayed GER Soft Attack is 7 or 8 and remains at least
-#    10 points below POL Defense; breakthrough/other controls stay unchanged;
-# 7. run d_oracle_o3_trial6;
-# 8. unpause through 17:00. Cleanup is automatic at hour 6.
-#
-# Primary O3 metric is binary per run: did POL take any measurable strength
-# damage after the Oracle-validated one-hour startup interval?
+# 5. run d_oracle_o3_trial6 while still paused; this records h0;
+# 6. unpause only until the battle instantiates, then pause immediately during
+#    the Oracle-validated h0->h1 no-damage startup interval;
+# 7. capture the battle panel and accept only if displayed GER Soft Attack is
+#    7 or 8 and remains at least 10 points below POL Defense;
+# 8. resume through 17:00. Cleanup is automatic at hour 6.
 
 oracle_o3_log_attacker_divisions = {
     every_country_division = {

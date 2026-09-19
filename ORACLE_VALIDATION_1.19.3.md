@@ -1399,6 +1399,88 @@ Because the tooltip shows the target is missed by only about 0.1 effective Soft 
 The low-mode result, O6 sample size, diagnostic define bundle, fixed-damage classifier, and all O6 decision rules remain unchanged. The next high-mode attempt must still display Soft Attack exactly 18 before it is accepted.
 
 
+#### O6 high run 001 — UNEXPECTED 1/2/3 MULTIPLICITY / ORIGINAL O6 ACCEPTANCE FAILED
+
+The retuned high-mode run hit the predeclared panel target exactly:
+
+- GER Soft Attack: **18**
+- POL Defense: **255**
+
+The WPO6 trace is structurally clean:
+
+- exact h0..h41 sampling;
+- h0→h1 unchanged;
+- attacker and defender strength unchanged for the complete trace;
+- fixed-damage diagnostic define bundle declared active;
+- all 40 post-startup intervals show measurable POL organization loss;
+- successful automatic modifier cleanup at h41.
+
+The defender organization-loss magnitudes separate into **three** stable integer-like levels:
+
+- one-hit-like cluster: **17 intervals**, mean approximately **0.08718 pp**
+- two-hit-like cluster: **20 intervals**, mean approximately **0.17713 pp**
+- three-hit-like cluster: **3 intervals**, mean approximately **0.26833 pp**
+
+Ratios:
+
+- two/one mean ratio ≈ **2.03**
+- three/one mean ratio ≈ **3.08**
+
+The three ~0.268–0.269 pp intervals violate the original O6 acceptance condition that only the expected one-hit/two-hit multiplicities appear. Therefore the high run, like the low run, is **not** fed into the original O6 probability-gradient pass/fail rule.
+
+Persisted summary:
+
+- `oracle-lab/captures/o6-high-001-summary.json`
+
+#### O6 combined conclusion — NARROW INTEGERIZATION DIVERGENCE
+
+The two predeclared O6 modes now provide complementary structural counterexamples to the planner's current exact attack-point integerization:
+
+Current planner implementation:
+
+`stochasticRound(totalAttack * 0.1)`
+
+At displayed Soft Attack 12 with the retained ±1 display sensitivity, that implementation can produce only **1 or 2** attack points per firing hour.
+
+Observed low-mode multiplicities:
+
+- 0x: **9**
+- 1x: **20**
+- 2x: **11**
+
+At displayed Soft Attack 18 with the retained ±1 display sensitivity, the same implementation can again produce only **1 or 2** attack points.
+
+Observed high-mode multiplicities:
+
+- 1x: **17**
+- 2x: **20**
+- 3x: **3**
+
+Thus O6 contains both kinds of impossible support under the current planner mechanism:
+
+1. zero multiplicity below the planner's minimum support;
+2. three multiplicity above the planner's maximum support.
+
+The fixed-damage diagnostic controls strongly localize this discrepancy:
+
+- defended avoid chance is overridden to zero;
+- organization die size is fixed to one;
+- strength damage is zero and strength remains unchanged;
+- night attack penalty is zero;
+- neutral tactics remain active;
+- the observed damage magnitudes form clean approximately 1x / 2x / 3x multiples.
+
+Therefore the **specific current planner mechanism `stochasticRound(totalAttack * 0.1)` is classified `oracle-divergent` at the controlled O6 fixed-damage boundary**.
+
+This does **not** imply that the `/10` mean scale is wrong. In fact, the empirical mean multiplicity changes from approximately **1.05** at Soft Attack 12 to **1.65** at Soft Attack 18: a difference of **0.60** for a six-point attack increase, exactly a 0.10 mean-gradient per Soft Attack point. The likely error is therefore the **shape/width of executable random integerization**, not necessarily the mean combat-point scale.
+
+The broad hit/damage resolver remains `unvalidated`. O7 should test a predeclared wider random-rounding candidate before the planner implementation is changed.
+
+Persisted combined assessment:
+
+- `oracle-lab/captures/o6-combined-assessment.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

@@ -734,6 +734,54 @@ Confirmatory stage:
 O3 is not a validation criterion for the entire hit/damage resolver. Its purpose is to eliminate or retain one high-value class of integerization/transmission behavior with substantially more information per user-run than repeating O1 or O2.
 
 
+#### O3 smoke 001 — EARLY POSITIVE INCIDENCE / STOP
+
+The first executable O3 smoke satisfied the intended sub-10 displayed-attack regime:
+
+- GER Soft Attack: **7**
+- GER Hard Attack: **1**
+- GER Breakthrough: **35**
+- POL Soft Attack: **69**
+- POL Hard Attack: **11**
+- POL Defense: **255**
+- one division per side
+- width 18 per side
+- no commanders
+- zero reserves
+
+The WPO3 trace was complete and machine-clean:
+
+- prepared attenuator present;
+- exact samples h0..h6;
+- h0→h1 unchanged on both sides;
+- END at hour 6;
+- attenuator removed;
+- cleanupFailure=no.
+
+POL defender strength remained unchanged through h5, then showed a strict bound-separated loss at h6:
+
+- h1 defender strength bounds: **0.99993–1.00000**
+- h6 defender strength bounds: **0.99975–0.99981**
+- strict lower-vs-upper separation: **0.012 percentage points**
+- midpoint h0→h6 defender strength loss: **0.0185 pp**
+
+Therefore the predeclared O3 binary incidence metric is positive on run 1.
+
+Machine interpretation:
+
+`stop-floor-zero-hypothesis-contradicted`
+
+This is a high-information result. With displayed GER Soft Attack 7 and the full ±1 display sensitivity remaining below 10, a simple `floor(SoftAttack/10)` gate predicts zero GER combat points and therefore zero POL strength damage. The executable produced measurable POL strength damage, so that simple zero-transmission floor hypothesis is contradicted at the controlled O3 boundary.
+
+Under the predeclared stopping rule, **do not collect O3 runs 2–6 or 7–10**. O3 remains `unvalidated`; this positive result does **not** uniquely establish the planner's stochastic-rounding implementation and does not validate the broad hit/damage resolver.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o3-sub10-smoke-001-wpo3.log.txt`
+- `oracle-lab/captures/o3-sub10-smoke-001-summary.json`
+- `oracle-lab/captures/o3-sub10-smoke-001-assessment.json`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

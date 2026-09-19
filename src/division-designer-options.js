@@ -91,3 +91,14 @@ export function supportCompanyAllowedWithSelection(candidateId,supportMap={},sel
     return !supportCompaniesConflict(candidateId,candidate,id,supportMap?.[id]);
   });
 }
+
+
+export function normalizeSupportCompanySelection(selectedIds=[],supportMap={},allowedIds=null,max=5){
+  const allowed=allowedIds?new Set(allowedIds):null,out=[];
+  for(const raw of selectedIds||[]){
+    const id=String(raw||'');if(!id||!supportMap?.[id]||(allowed&&!allowed.has(id)))continue;
+    if(!supportCompanyAllowedWithSelection(id,supportMap,out,-1))continue;
+    out.push(id);if(out.length>=Math.max(0,Math.floor(Number(max)||0)))break;
+  }
+  return out;
+}

@@ -5,7 +5,7 @@ import {fileURLToPath} from 'node:url';
 export const O4_HOURS=Object.freeze(Array.from({length:7},(_,i)=>i));
 export const O4_SCENARIO='o4-sub10-undefended-incidence-v1';
 export const O4_ATTACK_ATTENUATOR='army_infantry_attack_factor:-0.97';
-export const O4_DEFENSE_SUPPRESSOR='army_infantry_defence_factor:-1.0';
+export const O4_DEFENSE_SUPPRESSOR='army_infantry_defence_factor:-1.04';
 export const O4_GAME_VERSION='1.19.3.0.c01a';
 export const O4_BASE_CHECKSUM='5632';
 export const O4_CHECKSUM_SCOPE='base-game-reference';

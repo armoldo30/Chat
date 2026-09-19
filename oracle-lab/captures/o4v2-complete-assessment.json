@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o4-guaranteed-hit-sub10-v2",
+  "evidenceStatus": "unvalidated",
+  "stage": "complete",
+  "control": {
+    "attackerSoft": 11,
+    "defenderDefense": 255,
+    "positiveIntervals": 5,
+    "totalIntervals": 5
+  },
+  "probe": {
+    "attackerSoft": 2,
+    "defenderDefense": 255,
+    "positiveIntervals": 1,
+    "totalIntervals": 5
+  },
+  "action": "minimum-one-hypothesis-contradicted",
+  "plannerContext": {
+    "displayedSoftAttack": 2,
+    "displayHalfWidth": 1,
+    "trueSoftSensitivity": [
+      1,
+      2,
+      3
+    ],
+    "expectedPositiveIntervalProbability": [
+      0.1,
+      0.2,
+      0.3
+    ],
+    "observedK": 1,
+    "note": "K=1 is compatible with the current planner probability envelope but interval-count inclusion is not a validation criterion."
+  },
+  "interpretation": "The control establishes that the diagnostic 100% defended-hit intervention is active. The probe contains four zero-damage firing intervals, contradicting the predeclared minimum-one/ceiling-style sub-10 attack-point hypothesis. The exact stochastic-rounding planner remains unvalidated."
+}

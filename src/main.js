@@ -6,7 +6,7 @@ import { hydrateGameData, importedRegimentalSupportIds, prerequisiteText } from 
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
-import { battalionPickerGroups, assignRegimentalSupport } from './division-designer-options.js';
+import { battalionPickerGroups, supportCompanyPickerGroups, assignRegimentalSupport } from './division-designer-options.js';
 import { applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
@@ -377,8 +377,8 @@ function designerPicker(side){
   if(!designerPick||designerPick.side!==side)return '';
   const battalionGroups=battalionPickerGroups(battalions);
   if(designerPick.kind==='support'){
-    const current=state[side+'Supports'][designerPick.i],used=new Set(state[side+'Supports'].filter(Boolean));
-    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3></div><button class="btn" data-cancel-pick>Back</button></div><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button>${BASE_DIVISIONAL_SUPPORTS.map(k=>[k,supports[k]]).map(([k,v])=>{const info=requirementInfo(v);return `<button class="picker-choice ${info?'prereq-info':''}" data-choice="${k}" ${used.has(k)&&k!==current?'disabled':''} title="${esc(info)}"><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(v.name)}${info?' · ⓘ':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></div>`;
+    const current=state[side+'Supports'][designerPick.i],used=new Set(state[side+'Supports'].filter(Boolean)),groups=supportCompanyPickerGroups(supports,BASE_DIVISIONAL_SUPPORTS);
+    return `<div class="hoi-picker"><div class="picker-head"><div><span class="eyebrow">MAKE A SELECTION</span><h3>Support Companies</h3><p class="muted">Grouped by battlefield role and alphabetized within each group.</p></div><button class="btn" data-cancel-pick>Back</button></div><section class="picker-group"><div class="picker-grid"><button class="picker-choice remove-choice" data-choice="">×<small>Empty slot</small></button></div></section>${Object.entries(groups).map(([name,ids])=>`<section class="picker-group"><h4>${esc(name)}</h4><div class="picker-grid">${ids.map(k=>{const v=supports[k],info=requirementInfo(v);return `<button class="picker-choice ${info?'prereq-info':''}" data-choice="${k}" ${used.has(k)&&k!==current?'disabled':''} title="${esc(info)}"><b>${SUPPORT_CODES[k]||'SUP'}</b><small>${esc(v.name)}${info?' · ⓘ':''}</small>${pickerSupportMeta(side,k)}</button>`;}).join('')}</div></section>`).join('')}</div>`;
   }
   if(designerPick.kind==='regimental'){
     const column=designerPick.c;

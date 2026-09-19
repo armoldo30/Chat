@@ -1,9 +1,15 @@
-# HOI4 War Planner — 0.17.2
+# HOI4 War Planner — 0.17.3
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.3 release focus
+
+0.17.3 fixes an ordinary-Division-Designer eligibility leak discovered during live Regimental Support testing. Army-HQ-only line battalions whose compact runtime records had lost `allow_in_non_army_hq = no` are now excluded from normal division templates, including saved/imported templates, so invalid HQ regiment groups can no longer drive Regimental Support choices.
+
+The 14 Regimental Support `allowed_battalion_groups` records were re-audited and remain unchanged because they already match the supplied 1.19.3 source structure. A new regression locks all 14 choices across the six regiment groups. The omitted HQ eligibility fields are recovered by a bounded public 1.19.3 source-mirror cross-check and remain labeled `unvalidated`, not silently promoted to `game-file exact`.
 
 ## 0.17.2 release focus
 

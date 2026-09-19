@@ -1307,7 +1307,7 @@ Target panel:
 
 Target modifier:
 
-`army_infantry_attack_factor = -0.75`
+`army_infantry_attack_factor = -0.748`
 
 With ±1 displayed-stat uncertainty, true effective Soft Attack is conservatively 17–19. Under the same current planner hypothesis, the probability of a two-hit/high-loss interval is **0.70–0.90**.
 
@@ -1379,6 +1379,24 @@ The second O6 high-mode run was already predeclared before this result existed. 
 Persisted summary:
 
 - `oracle-lab/captures/o6-low-001-summary.json`
+
+
+#### O6 high tuning smoke 001 — REJECTED / RETUNE ONLY
+
+The first O6 high-mode tuning attempt did not meet the predeclared displayed-panel target:
+
+- displayed GER Soft Attack: **17**
+- tooltip/effective value: approximately **17.9**
+- POL Defense: **255**
+
+No O6 high statistical interpretation is taken from this tuning attempt. The predeclared acceptance target remains displayed Soft Attack **exactly 18** with POL Defense at least 200.
+
+Because the tooltip shows the target is missed by only about 0.1 effective Soft Attack, only the high-mode attack modifier is retuned:
+
+- previous high modifier: `army_infantry_attack_factor = -0.75`
+- retuned high modifier: `army_infantry_attack_factor = -0.748`
+
+The low-mode result, O6 sample size, diagnostic define bundle, fixed-damage classifier, and all O6 decision rules remain unchanged. The next high-mode attempt must still display Soft Attack exactly 18 before it is accepted.
 
 
 ## Promotion rule

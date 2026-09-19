@@ -1,0 +1,7 @@
+# O7 integer-centered wide-rounding probe.
+# Target displayed Soft Attack exactly 20 with tooltip/effective 19.8-20.2.
+
+oracle_o7_attack_target = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.721
+}

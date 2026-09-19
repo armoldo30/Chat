@@ -180,4 +180,4 @@ The new support audit regression requires:
 
 This audit is isolated from production on `fix/support-company-audit-0172`.
 
-Production remains 0.17.1 until the audit branch passes the full release-candidate gate and is deliberately promoted.
+This branch is the **0.17.2 release candidate**. Production remains 0.17.1 until the exact 0.17.2 head passes the full release-candidate gate and is deliberately promoted.

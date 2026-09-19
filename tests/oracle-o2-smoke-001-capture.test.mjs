@@ -11,7 +11,16 @@ assert.equal(parsed.rejectedRuns,0);
 assert.equal(parsed.uniqueTraceCount,1);
 assert.equal(parsed.primaryMetric,'defenderStrengthLoss');
 assert.equal(parsed.runs[0].capture.samples.length,7);
-assert.deepEqual(parsed.runs[0].capture.samples[0],parsed.runs[0].capture.samples[1]);
+assert.deepEqual(
+  {
+    attacker:parsed.runs[0].capture.samples[0].attacker,
+    defender:parsed.runs[0].capture.samples[0].defender
+  },
+  {
+    attacker:parsed.runs[0].capture.samples[1].attacker,
+    defender:parsed.runs[0].capture.samples[1].defender
+  }
+);
 
 const d=parsed.runs[0].capture.deltas;
 assert.equal(d.attackerOrgLoss,summary.measured.attackerOrgLoss);

@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o2-defended-amplified-v1",
+  "evidenceStatus": "unvalidated",
+  "executableClassification": "executable inferred",
+  "plannerClassification": "planner analytical",
+  "observedCombatPanel": {
+    "attackerSoftAttack": 215,
+    "attackerBreakthrough": 35,
+    "defenderSoftAttack": 69,
+    "defenderDefense": 255,
+    "defendedMargin": 40
+  },
+  "visualControls": {
+    "screenshotsReviewed": 6,
+    "attackerDivisions": 1,
+    "defenderDivisions": 1,
+    "attackerWidth": 18,
+    "defenderWidth": 18,
+    "attackerCommander": "none",
+    "defenderCommander": "none",
+    "attackerReserves": 0,
+    "defenderReserves": 0,
+    "terrain": "plains"
+  },
+  "machineAcceptance": {
+    "totalUniqueRuns": 6,
+    "rejectedRuns": 0,
+    "duplicateTraceGroups": [],
+    "startupNoDamageAllRuns": true,
+    "cleanupConfirmedAllRuns": true
+  },
+  "runs": [
+    {
+      "run": 1,
+      "attackerOrgLoss": 1.9665,
+      "attackerStrengthLoss": 0.4525,
+      "defenderOrgLoss": 2.7595,
+      "defenderStrengthLoss": 0.3605
+    },
+    {
+      "run": 2,
+      "attackerOrgLoss": 1.2835,
+      "attackerStrengthLoss": 0.2145,
+      "defenderOrgLoss": 2.1795,
+      "defenderStrengthLoss": 0.3185
+    },
+    {
+      "run": 3,
+      "attackerOrgLoss": 2.5705,
+      "attackerStrengthLoss": 0.3065,
+      "defenderOrgLoss": 2.8695,
+      "defenderStrengthLoss": 0.4155
+    },
+    {
+      "run": 4,
+      "attackerOrgLoss": 2.1915,
+      "attackerStrengthLoss": 0.4035,
+      "defenderOrgLoss": 2.3195,
+      "defenderStrengthLoss": 0.4585
+    },
+    {
+      "run": 5,
+      "attackerOrgLoss": 1.7405,
+      "attackerStrengthLoss": 0.3545,
+      "defenderOrgLoss": 2.3315,
+      "defenderStrengthLoss": 0.4095
+    },
+    {
+      "run": 6,
+      "attackerOrgLoss": 2.5705,
+      "attackerStrengthLoss": 0.4525,
+      "defenderOrgLoss": 2.8265,
+      "defenderStrengthLoss": 0.4585
+    }
+  ],
+  "aggregate": {
+    "attackerOrgLoss": {
+      "mean": 2.0538333333333334,
+      "sd": 0.5004116971721051,
+      "min": 1.2835,
+      "max": 2.5705
+    },
+    "attackerStrengthLoss": {
+      "mean": 0.364,
+      "sd": 0.09270544752062848,
+      "min": 0.2145,
+      "max": 0.4525
+    },
+    "defenderOrgLoss": {
+      "mean": 2.5476666666666667,
+      "sd": 0.3034906368682016,
+      "min": 2.1795,
+      "max": 2.8695
+    },
+    "defenderStrengthLoss": {
+      "mean": 0.4035,
+      "sd": 0.055324497286464346,
+      "min": 0.3185,
+      "max": 0.4585
+    }
+  },
+  "sourceNote": "Run 1 from smoke-001 capture; runs 2-6 from user game(20260918-235938).log. All six combat-panel screenshots show the same 215/35 versus 69/255 controlled regime.",
+  "interpretation": "Exactly six unique accepted O2 runs. Apply the predeclared preliminary 95% decision rule; interval inclusion is not validation and interval miss only triggers collection to 12."
+}

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import BUILTIN_1193 from '../src/builtin1193.js';
 import { hydrateGameData, importedDivisionalSupportIds, importedRegimentalSupportIds } from '../src/gameData.js';
 import {
@@ -105,6 +106,16 @@ for(const family of ['light','medium','heavy','modern']){
   assert.equal(spaa.equipmentModifiers.hard,-.66);
   assert.equal(spaa.equipmentModifiers.def,-.5);
   assert.equal(spaa.equipmentModifiers.airAttack,-.25);
+}
+
+
+
+const mainSource=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+for(const stale of ['regimental_infantry_guns','regimental_at','regimental_aa']){
+  assert.ok(!mainSource.includes(stale),`stale placeholder support id ${stale} must not remain in runtime mappings`);
+}
+for(const current of ['fire_support','mot_fire_support','field_guns','anti_tank_battery','anti_air_battery']){
+  assert.match(mainSource,new RegExp(`s:\\[[^\\]]*['"]${current}['"]`),`MIO equipment-family mapping should include ${current}`);
 }
 
 console.log('HOI4 1.19.3 support-company source catalog audit passed: 43 divisional, 14 regimental, 11 HQ-only.');

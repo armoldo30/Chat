@@ -3,10 +3,10 @@ import {parseO4Batch,O4_HOURS,O4_GAME_VERSION,O4_BASE_CHECKSUM,O4_CHECKSUM_SCOPE
 import {buildO4Reference} from '../scripts/oracle-o4-reference.mjs';
 
 function bounds(center){
-  return {low:(center-0.00003).toFixed(5),high:(center+0.00003).toFixed(5)};
+  return {low:Math.max(0,center-0.00003).toFixed(5),high:Math.min(1,center+0.00003).toFixed(5)};
 }
 function run(positiveIntervals=[],variant=0){
-  const lines=[`WPO4 BEGIN schema=1 scenario=o4-sub10-undefended-incidence-v1 gameVersion=${O4_GAME_VERSION} checksum=${O4_BASE_CHECKSUM} checksumScope=${O4_CHECKSUM_SCOPE} method=${O4_METHOD} runMode=trial6 tacticMode=neutral-basic-only attackAttenuator=army_infantry_attack_factor:-0.97 defenseSuppressor=army_infantry_defence_factor:-1.0 prepared=yes attackAttenuatorPresent=yes defenseSuppressorPresent=yes`];
+  const lines=[`WPO4 BEGIN schema=1 scenario=o4-sub10-undefended-incidence-v1 gameVersion=${O4_GAME_VERSION} checksum=${O4_BASE_CHECKSUM} checksumScope=${O4_CHECKSUM_SCOPE} method=${O4_METHOD} runMode=trial6 tacticMode=neutral-basic-only attackAttenuator=army_infantry_attack_factor:-0.97 defenseSuppressor=army_infantry_defence_factor:-1.04 prepared=yes attackAttenuatorPresent=yes defenseSuppressorPresent=yes`];
   let d=1;
   for(const hour of O4_HOURS){
     if(hour>=2 && positiveIntervals.includes(hour-1))d-=0.00025;

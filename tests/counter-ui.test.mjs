@@ -81,6 +81,8 @@ assert.match(searchView,/still below 50%/,'a large improvement must be allowed t
 assert.match(searchView,/Recommendations are improvements, not promises of victory/,'UI must state that recommendations do not guarantee a win');
 assert.match(searchView,/Combat width, organization, armor\/piercing thresholds, hardness-sensitive attack/,'UI must disclose that matchup-relevant structural stats feed the battle simulation');
 assert.match(searchView,/production capacity is only secondary context/,'UI must keep production as secondary context rather than the primary counter objective');
+assert.match(searchView,/equal win-rate results are separated by modeled strength-loss exchange/,'UI must disclose the battle-only tie-break used for saturated outcomes');
+assert.match(searchView,/Strength loss: own/,'headline counter cards must expose the modeled strength-loss exchange');
 assert.match(searchView,/does not infer province-level supply satisfaction/,'UI must preserve the supply-capacity evidence boundary');
 assert.match(searchView,/No meaningful local \$\{sideLabel\(side\)\} counter found/,'hopeless matchups must produce an explicit bounded-search diagnosis');
 assert.match(searchView,/BEST TESTED ATTEMPT · BELOW THRESHOLD/,'hopeless matchups should expose the strongest near-miss without calling it a qualifying counter');

@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { counterSnapshot } from '../src/counter-state-model.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
+import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
 import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups } from '../src/counter-search.js';
+hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
 const started=Date.now();
 const r=runCounterSearch(s);
@@ -24,10 +30,13 @@ for(const item of r.ranked){
   assert.ok(!(item.changeKinds||[]).includes('equipment-tech'));
   assert.ok(item.practicality&&typeof item.practicality.majorRetooling==='boolean','ranked counters must carry production-practicality metadata');
   assert.ok(item.operationalBurden&&Number.isFinite(item.operationalBurden.supplyPct),'ranked counters must carry explicit supply-use practicality metadata');
+  assert.ok(item.battleQuality&&Number.isFinite(item.battleQuality.casualtyExchange),'ranked counters must retain battle-derived strength-loss exchange for saturated win-rate ties');
 }
 const recommendationKeys=(r.recommendations||[]).map(group=>group.item.key);
 assert.equal(new Set(recommendationKeys).size,recommendationKeys.length,'headline recommendations must never repeat the same candidate');
 assert.ok((r.recommendations||[]).length<=3);
+assert.ok(r.coverage&&r.coverage.line>0&&r.coverage.support>0,'search result must expose structural candidate coverage');
+assert.ok(r.coverage.softAttackImprovement>0&&r.coverage.survivalImprovement>0,'search result must expose matchup-stat coverage');
 
 const defenderRun=runCounterSearch(s,{side:'defender',runs:50,firstStepLimit:6,beamWidth:1,secondPerSeedLimit:1,secondStepLimit:0});
 assert.equal(defenderRun.side,'defender','the same search engine must optimize the defending division when requested');

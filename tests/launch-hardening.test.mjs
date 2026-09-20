@@ -8,9 +8,9 @@ const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,bro
 ]);
 const pkg=JSON.parse(pkgText);
 
-assert.equal(pkg.version,'0.17.6','release candidate must use 0.17.6 package version');
-assert.match(data,/appVersion:\s*'0\.17\.6'/,'visible planner version must match package version');
-assert.match(data,/updated:\s*'2026-09-19'/,'model metadata must carry the release-candidate update date');
+assert.equal(pkg.version,'0.17.7','release candidate must use 0.17.7 package version');
+assert.match(data,/appVersion:\s*'0\.17\.7'/,'visible planner version must match package version');
+assert.match(data,/updated:\s*'2026-09-20'/,'model metadata must carry the release-candidate update date');
 
 assert.match(main,/function serializableState\(\)/,'scenario persistence must share one serialization path');
 assert.match(main,/let saveFailureShown=false/,'local persistence failures must be throttled instead of repeatedly interrupting users');
@@ -23,6 +23,11 @@ assert.match(main,/downloadJSON\('war-planner-scenario\.json',serializableState\
 assert.match(main,/\$\('app'\)\.innerHTML=/,'the SPA must render inside the permanent #app mount');
 assert.doesNotMatch(main,/document\.body\.innerHTML=/,'app rendering must not delete the privacy footer or enhancement script nodes');
 assert.doesNotMatch(main,/0\.15\.0 model/,'visible scenario copy must not describe the release as 0.15.0');
+assert.doesNotMatch(main,/bundled vanilla 1\.19\.2 baseline/i,'generic bundled-baseline copy must follow MODEL_META.gameVersion');
+assert.doesNotMatch(main,/Bundled vanilla 1\.19\.2 data active/,'Data Pack status must not advertise the retired baseline');
+assert.doesNotMatch(main,/0\.16\.0 model/,'Scenario version-lock copy must not advertise the launch-era model');
+assert.match(main,/1\.19\.2 energy model/,'intentional 1.19.2 production-formula provenance must remain visible');
+assert.match(main,/recovered 1\.19\.2 mission-stat corpus/,'intentional 1.19.2 air-corpus provenance must remain visible');
 
 assert.match(index,/<html lang="en">/);assert.match(index,/id="app"/);assert.match(index,/class="site-legal-footer"/);assert.match(index,/name="viewport"/);assert.match(index,/href="\.\/privacy\.html"/);assert.match(index,/Not affiliated with Paradox Interactive/);
 assert.match(polish,/:focus-visible/,'keyboard focus must remain visible');
@@ -34,6 +39,9 @@ assert.match(mainWorkflow,/if: github\.ref == 'refs\/heads\/main'/,'Pages deploy
 assert.match(mainWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'production deployment must be gated by the served-browser route audit');
 assert.match(releaseWorkflow,/permissions:\n  contents: read/,'release-candidate validation must remain read-only');
 assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR validation must use the same served-browser audit as production');
+assert.match(releaseWorkflow,/VERSION="\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/,'release-surface validation must derive the version from package.json');
+assert.match(releaseWorkflow,/grep -Fq "appVersion: '\$VERSION'" dist\/src\/data\.js/,'release-surface validation must compare built MODEL_META against the package version');
+assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
 assert.match(browserSmoke,/battle counter gauntlet tank air data scenario/,'browser smoke must crawl every current desktop planner route including Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air scenario gauntlet/,'browser smoke must render Counter Analysis at phone size too');
 assert.doesNotMatch(browserSmoke,/battle gauntlet tank air production data scenario/,'retired Industry must not remain a supported planner route');

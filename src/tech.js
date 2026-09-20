@@ -193,9 +193,9 @@ export function techAvailable(kind,key,rawProfile){
     return true;
   }
   if(kind==='support'){
-    if(['support_artillery','regimental_infantry_guns'].includes(key))return p.artillery>0;
-    if(['support_at','regimental_at'].includes(key))return p.antiTank>0;
-    if(['support_aa','regimental_aa'].includes(key))return p.antiAir>0;
+    if(['support_artillery','field_guns','regimental_infantry_guns'].includes(key))return p.artillery>0;
+    if(['support_at','anti_tank_battery','regimental_at'].includes(key))return p.antiTank>0;
+    if(['support_aa','anti_air_battery','regimental_aa'].includes(key))return p.antiAir>0;
     if(key==='engineer')return p.unlocks.engineer;
     if(key==='recon')return p.unlocks.recon;
     if(key==='logistics')return p.unlocks.logistics;

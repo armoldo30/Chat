@@ -4,7 +4,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { battalions, supports, equipment, terrain } from '../src/data.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
-import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups } from '../src/counter-search.js';
+import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates } from '../src/counter-search.js';
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
@@ -12,10 +12,23 @@ const started=Date.now();
 const r=runCounterSearch(s);
 const elapsed=Date.now()-started;
 assert.deepEqual(COUNTER_SEARCH_DEFAULTS,{runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4});
+assert.deepEqual(COUNTER_DEEP_SEARCH_DEFAULTS,{deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6});
+const tinyDiverse=selectDiverseCounterCandidates([
+  {key:'line',kind:'add-line',label:'Line',previewScore:4},
+  {key:'support',kind:'add-support',label:'Support',previewScore:3},
+  {key:'regimental',kind:'add-regimental-support',label:'Regimental',previewScore:2},
+  {key:'tank',kind:'tank-design',label:'Tank',previewScore:1}
+],2);
+assert.equal(tinyDiverse.length,2,'diversity reservations must never exceed an explicit candidate limit');
 assert.equal(r.side,'attacker');
 assert.equal(r.maxDepth,2);
 assert.ok(r.oneChangeCount>0);
 assert.ok(r.multiChangeCount>0);
+assert.equal(r.twoChangeCount,r.multiChangeCount,'normal search multi-change accounting should still be entirely second-step');
+assert.equal(r.threeChangeCount,0,'normal search must never pay the deep-redesign cost');
+const exhaustedDeep=runCounterSearch(s,{deep:true,firstStepLimit:0,secondStepLimit:0,thirdStepLimit:2});
+assert.equal(exhaustedDeep.maxDepth,3,'a deep attempt must remain identified as depth three even when no third-step candidate survives screening');
+assert.equal(exhaustedDeep.threeChangeCount,0,'deep-attempt metadata must allow an explicitly empty third-step result');
 assert.equal(r.testedCount,r.oneChangeCount+r.multiChangeCount);
 assert.ok(r.testedCount<=COUNTER_SEARCH_DEFAULTS.firstStepLimit+COUNTER_SEARCH_DEFAULTS.secondStepLimit,'default search must stay inside the browser-safe candidate budget');
 assert.ok(Number.isFinite(r.baseline.winRate));

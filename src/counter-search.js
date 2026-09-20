@@ -12,6 +12,7 @@ import { regimentalSupportAllowed } from './regimental-support-1193.js';
 const isForceKind=kind=>kind==='tank-design';
 const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-support','add-regimental-support','replace-regimental-support'].includes(kind);
 const SAFE_DEFAULTS={runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4};
+const DEEP_DEFAULTS={deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6};
 const MIN_MEANINGFUL_GAIN=2;
 const ARMOR_FAMILIES={light_armor:'light',medium_armor:'medium',heavy_armor:'heavy'};
 const ARMOR_EQUIPMENT={light:'light_tank',medium:'medium_tank',heavy:'heavy_tank'};
@@ -93,8 +94,9 @@ export function selectDiverseCounterCandidates(items,limit,scoreFn=item=>Number(
   const ranked=[...(items||[])].sort((a,b)=>scoreFn(b)-scoreFn(a)||String(a.label||'').localeCompare(String(b.label||'')));if(ranked.length<=max)return ranked;
   const buckets=['line','support','regimental','tank'],reserve=max>=16?2:1,out=[],used=new Set();
   for(const bucket of buckets){
+    if(out.length>=max)break;
     let taken=0;
-    for(const item of ranked){const key=recommendationKey(item);if(taken>=reserve)break;if(candidateBucket(item)!==bucket||used.has(key))continue;out.push(item);used.add(key);taken++;}
+    for(const item of ranked){const key=recommendationKey(item);if(taken>=reserve||out.length>=max)break;if(candidateBucket(item)!==bucket||used.has(key))continue;out.push(item);used.add(key);taken++;}
   }
   for(const item of ranked){if(out.length>=max)break;const key=recommendationKey(item);if(used.has(key))continue;out.push(item);used.add(key);}
   return out;
@@ -138,9 +140,9 @@ function simulateCandidate(snapshot,opponent,baseOptions,runs,item,side){
   const battleQuality={ownCasualtyRate,enemyCasualtyRate,casualtyExchange:enemyCasualtyRate-ownCasualtyRate,ownHitsPerHour,enemyHitsPerHour,hitExchange:ownHitsPerHour-enemyHitsPerHour,avgHours:result.avgHours};
   return {...item,winRate:side==='attacker'?result.attackerWinRate:result.defenderWinRate,battleQuality};
 }
-function finish(snapshot,side,runs,baselineWin,firstTested,secondTested){
-  const baseIC=snapshot[side+'IC'],base=snapshot[side],target=snapshot[otherSide(side)],tested=[...firstTested,...secondTested],scored=score(tested,baselineWin,baseIC,snapshot,side).sort(compareCounterCombat),ranked=rank([...scored]),highlights=chooseCounterHighlights(ranked),forceDesignCount=tested.filter(item=>(item.changeKinds||[item.kind]).some(isForceKind)).length;
-  const mixedForceCount=secondTested.filter(item=>{const kinds=item.changeKinds||[];return kinds.some(isForceKind)&&kinds.some(isTemplateKind);}).length;
+function finish(snapshot,side,runs,baselineWin,firstTested,secondTested,thirdTested=[],deepAttempted=false){
+  const baseIC=snapshot[side+'IC'],base=snapshot[side],target=snapshot[otherSide(side)],tested=[...firstTested,...secondTested,...thirdTested],scored=score(tested,baselineWin,baseIC,snapshot,side).sort(compareCounterCombat),ranked=rank([...scored]),highlights=chooseCounterHighlights(ranked),forceDesignCount=tested.filter(item=>(item.changeKinds||[item.kind]).some(isForceKind)).length,multiTested=[...secondTested,...thirdTested];
+  const mixedForceCount=multiTested.filter(item=>{const kinds=item.changeKinds||[];return kinds.some(isForceKind)&&kinds.some(isTemplateKind);}).length;
   const coverage={
     line:tested.filter(item=>(item.changeKinds||[item.kind]).some(kind=>kind.includes('line'))).length,
     support:tested.filter(item=>(item.changeKinds||[item.kind]).some(kind=>kind.includes('support')&&!kind.includes('regimental'))).length,
@@ -153,39 +155,51 @@ function finish(snapshot,side,runs,baselineWin,firstTested,secondTested){
     airAttackImprovement:tested.filter(item=>(Number(item.stats?.airAttack)||0)>(Number(base.airAttack)||0)+1e-9).length,
     survivalImprovement:tested.filter(item=>(Number(item.stats?.[side==='defender'?'def':'breakthrough'])||0)>(Number(base[side==='defender'?'def':'breakthrough'])||0)+1e-9).length
   };
-  return {fingerprint:snapshot.fingerprint,side,runs,baseline:{winRate:baselineWin,ic:baseIC},ranked,highlights,recommendations:buildCounterRecommendationGroups(highlights,ranked),bestTested:scored[0]||null,bestEfforts:scored.slice(0,5),coverage,meaningfulThreshold:MIN_MEANINGFUL_GAIN,testedCount:tested.length,oneChangeCount:firstTested.length,multiChangeCount:secondTested.length,forceDesignCount,mixedForceCount,maxDepth:2};
+  return {fingerprint:snapshot.fingerprint,side,runs,baseline:{winRate:baselineWin,ic:baseIC},ranked,highlights,recommendations:buildCounterRecommendationGroups(highlights,ranked),bestTested:scored[0]||null,bestEfforts:scored.slice(0,5),coverage,meaningfulThreshold:MIN_MEANINGFUL_GAIN,testedCount:tested.length,oneChangeCount:firstTested.length,twoChangeCount:secondTested.length,threeChangeCount:thirdTested.length,multiChangeCount:secondTested.length+thirdTested.length,forceDesignCount,mixedForceCount,maxDepth:deepAttempted?3:2};
 }
-function normalizedOptions(options={}){return {...SAFE_DEFAULTS,...options,side:normalizeSide(options.side)};}
+function normalizedOptions(options={}){return {...SAFE_DEFAULTS,...DEEP_DEFAULTS,...options,side:normalizeSide(options.side)};}
+function beamScore(snapshot,item,side){return item.winRate+combatTieMargin(item)*.05+heuristic(snapshot,item,side)*.08;}
+function hasMeaningfulTested(snapshot,side,baselineWin,items){return score(items,baselineWin,snapshot[side+'IC'],snapshot,side).some(isMeaningfulCounterImprovement);}
 function yieldControl(){return new Promise(resolve=>setTimeout(resolve,0));}
 function abortIfNeeded(cancelled){if(cancelled?.()){const error=new Error('Counter search cancelled');error.name='AbortError';throw error;}}
 
 export function runCounterSearch(snapshot,options={}){
-  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier}=normalizedOptions(options),{state,attacker,defender}=snapshot;
+  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier,deep,thirdBeamWidth,thirdPerSeedLimit,thirdStepLimit}=normalizedOptions(options),{state,attacker,defender}=snapshot;
   const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v9:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate,opponent=side==='attacker'?defenderForce:attackerForce;
   const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit*previewMultiplier}),firstPreview=firstRaw.map(candidate=>enrichCandidate(snapshot,candidate,side,state)),firstEnriched=selectDiverseCounterCandidates(firstPreview,firstStepLimit,item=>heuristic(snapshot,item,side)),firstTested=firstEnriched.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
-  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>item.winRate+combatTieMargin(item)*.05+heuristic(snapshot,item,side)*.08),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
+  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>beamScore(snapshot,item,side)),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
   for(const seed of beam){
     const seedState=seed.state||state;
     for(const candidate of candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier})){
       const enriched=enrichCandidate(snapshot,candidate,side,seedState);if(seen.has(enriched.key))continue;seen.add(enriched.key);secondPool.push(enriched);
     }
   }
-  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
-  return finish(snapshot,side,runs,baselineWin,firstTested,secondTested);
+  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side)),thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
+  if(deepAttempted){
+    const thirdSeeds=selectDiverseCounterCandidates(secondTested,Math.max(1,thirdBeamWidth),item=>beamScore(snapshot,item,side));
+    for(const seed of thirdSeeds){
+      const seedState=seed.state||state;
+      for(const candidate of candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:thirdPerSeedLimit*previewMultiplier})){
+        const enriched=enrichCandidate(snapshot,candidate,side,seedState);if(seen.has(enriched.key))continue;seen.add(enriched.key);thirdPool.push(enriched);
+      }
+    }
+  }
+  const thirdSelected=selectDiverseCounterCandidates(thirdPool,Math.max(0,thirdStepLimit),item=>heuristic(snapshot,item,side)),thirdTested=thirdSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
+  return finish(snapshot,side,runs,baselineWin,firstTested,secondTested,thirdTested,deepAttempted);
 }
 
 export async function runCounterSearchResponsive(snapshot,options={}){
-  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier,onProgress,cancelled}=normalizedOptions(options),{state,attacker,defender}=snapshot;
+  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier,deep,thirdBeamWidth,thirdPerSeedLimit,thirdStepLimit,onProgress,cancelled}=normalizedOptions(options),{state,attacker,defender}=snapshot;
   const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v9:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),opponent=side==='attacker'?defenderForce:attackerForce;
-  abortIfNeeded(cancelled);onProgress?.({phase:'screening',completed:0,total:firstStepLimit+secondStepLimit});
+  const requestedTotal=firstStepLimit+secondStepLimit+(deep?thirdStepLimit:0);abortIfNeeded(cancelled);onProgress?.({phase:'screening',completed:0,total:requestedTotal});
   const baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate;await yieldControl();abortIfNeeded(cancelled);
   const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit*previewMultiplier}),firstPreview=[];
   for(let i=0;i<firstRaw.length;i++){firstPreview.push(enrichCandidate(snapshot,firstRaw[i],side,state));if(i%8===7){await yieldControl();abortIfNeeded(cancelled);}}
   const firstEnriched=selectDiverseCounterCandidates(firstPreview,firstStepLimit,item=>heuristic(snapshot,item,side)),firstTested=[];
   for(let i=0;i<firstEnriched.length;i++){
-    firstTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,firstEnriched[i],side));onProgress?.({phase:'first',completed:i+1,total:firstEnriched.length+secondStepLimit});await yieldControl();abortIfNeeded(cancelled);
+    firstTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,firstEnriched[i],side));onProgress?.({phase:'first',completed:i+1,total:requestedTotal});await yieldControl();abortIfNeeded(cancelled);
   }
-  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>item.winRate+combatTieMargin(item)*.05+heuristic(snapshot,item,side)*.08),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
+  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>beamScore(snapshot,item,side)),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
   for(const seed of beam){
     const seedState=seed.state||state,raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier});
     for(let i=0;i<raw.length;i++){
@@ -195,9 +209,25 @@ export async function runCounterSearchResponsive(snapshot,options={}){
   }
   const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=[];
   for(let i=0;i<secondSelected.length;i++){
-    secondTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,secondSelected[i],side));onProgress?.({phase:'second',completed:firstTested.length+i+1,total:firstTested.length+secondSelected.length});await yieldControl();abortIfNeeded(cancelled);
+    secondTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,secondSelected[i],side));onProgress?.({phase:'second',completed:firstTested.length+i+1,total:requestedTotal});await yieldControl();abortIfNeeded(cancelled);
   }
-  return finish(snapshot,side,runs,baselineWin,firstTested,secondTested);
+  const thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
+  if(deepAttempted){
+    const thirdSeeds=selectDiverseCounterCandidates(secondTested,Math.max(1,thirdBeamWidth),item=>beamScore(snapshot,item,side));
+    for(const seed of thirdSeeds){
+      const seedState=seed.state||state,raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:thirdPerSeedLimit*previewMultiplier});
+      for(let i=0;i<raw.length;i++){
+        const enriched=enrichCandidate(snapshot,raw[i],side,seedState);if(!seen.has(enriched.key)){seen.add(enriched.key);thirdPool.push(enriched);}
+        if(i%10===9){await yieldControl();abortIfNeeded(cancelled);}
+      }
+    }
+  }
+  const thirdSelected=selectDiverseCounterCandidates(thirdPool,Math.max(0,thirdStepLimit),item=>heuristic(snapshot,item,side)),thirdTested=[];
+  for(let i=0;i<thirdSelected.length;i++){
+    thirdTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,thirdSelected[i],side));onProgress?.({phase:'third',completed:firstTested.length+secondTested.length+i+1,total:firstTested.length+secondTested.length+thirdSelected.length});await yieldControl();abortIfNeeded(cancelled);
+  }
+  return finish(snapshot,side,runs,baselineWin,firstTested,secondTested,thirdTested,deepAttempted);
 }
 
 export const COUNTER_SEARCH_DEFAULTS={...SAFE_DEFAULTS};
+export const COUNTER_DEEP_SEARCH_DEFAULTS={...DEEP_DEFAULTS};

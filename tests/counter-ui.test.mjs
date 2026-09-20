@@ -58,6 +58,10 @@ assert.match(search,/supplyValuePenalty/,'Best Value must price increased supply
 assert.match(search,/isMeaningfulCounterImprovement/,'recommendations must qualify on improvement rather than requiring a winning final result');
 assert.match(search,/runCounterSearchResponsive/,'live Counter Analysis must expose a yielding search path');
 assert.match(search,/SAFE_DEFAULTS=\{runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4\}/,'default live search must remain browser-bounded while screening a broader pool');
+assert.match(search,/DEEP_DEFAULTS=\{deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6\}/,'deep redesign must add only a small bounded third-step budget');
+assert.match(search,/!hasMeaningfulTested\(snapshot,side,baselineWin,\[\.\.\.firstTested,\.\.\.secondTested\]\)/,'third-step search must execute only when the normal search still has no meaningful counter');
+assert.match(search,/thirdSeeds=selectDiverseCounterCandidates/,'deep redesign must seed from a diverse subset of two-change attempts');
+assert.match(search,/threeChangeCount:thirdTested\.length/,'search results must report third-step candidate counts explicitly');
 assert.match(search,/yieldControl/,'responsive search must yield control between candidate simulations');
 assert.match(search,/buildCounterRecommendationGroups/,'headline recommendations must collapse duplicate category winners');
 assert.match(search,/bestTested/,'search must preserve the strongest tested attempt for hopeless matchups');
@@ -71,8 +75,13 @@ assert.match(search,/minimalPool=local\.length\?local:ranked/,'Smallest Effectiv
 assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive search rather than the blocking search');
 assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
 assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\),lastSide\);\}/,'Counter settings refresh must contain snapshot/render failures locally');
-assert.match(searchView,/ANALYZING \$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress');
+assert.match(searchView,/deep\?'REDESIGN':'ANALYZING'/,'UI must distinguish normal and deep-search progress labels');
+assert.match(searchView,/\$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress counts');
 assert.match(searchView,/MATCHUP-DRIVEN TWO-STEP SEARCH/);
+assert.match(searchView,/TRY DEEP REDESIGN/,'failed normal search must offer an explicit larger-redesign fallback');
+assert.match(searchView,/BOUNDED THREE-STEP DEEP REDESIGN/,'deep results must be visibly distinguished from the normal search');
+assert.match(searchView,/detail:\{side,deep:true\}/,'deep redesign must require an explicit user action instead of silently expanding every search');
+assert.match(searchView,/The normal search is capped at two changes/,'UI must disclose that depth three is an optional bounded fallback rather than the normal search');
 assert.match(searchView,/fixed matchup context/);
 assert.doesNotMatch(searchView,/equipment-tier upgrades|transition cost not priced|excluded from Best Value/);
 assert.match(searchView,/Why it works/);

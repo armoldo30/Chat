@@ -1,9 +1,19 @@
-# HOI4 War Planner — 0.17.7
+# HOI4 War Planner — 0.17.8
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.8 release focus
+
+0.17.8 adds an optional **bounded Counter deep redesign** for matchups where the normal local search cannot find a meaningful one- or two-change improvement.
+
+The normal Counter path is unchanged at **20 first-step + 10 second-step battle tests**. Only after that bounded local search fails does the UI offer **TRY DEEP REDESIGN**. The optional deep pass re-evaluates the same matchup, seeds from a small diverse set of strong two-change attempts, and battle-tests at most **6 third-step candidates**.
+
+Deep redesign remains responsive through the same yielding/cancellation path used by the normal Counter search, reports first/second/third-step test counts explicitly, and labels the result as a bounded three-step analysis. It is **not** an exhaustive template search.
+
+The third-step search and its escalation policy are **planner analytical**. 0.17.8 does not add or promote any combat formula, executable behavior, Oracle result, or game-file evidence class. Best Raw remains combat-pure, while production, supply, IC and retooling remain secondary context for efficiency and disruption-oriented recommendations.
 
 ## 0.17.7 release focus
 

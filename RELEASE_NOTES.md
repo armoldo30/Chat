@@ -1,3 +1,35 @@
+# HOI4 War Planner 0.17.8 — Release Notes
+
+## Overview
+
+0.17.8 adds an optional **bounded three-step Counter deep redesign** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Deep-redesign fallback
+
+- Leaves the normal Counter search unchanged at **20 first-step + 10 second-step battle tests**.
+- Offers **TRY DEEP REDESIGN** only when the normal one/two-change search still fails the meaningful-improvement threshold.
+- Reuses the same current 1.19.3 structural candidate universe rather than introducing a separate hand-maintained catalog.
+- Seeds the third step from up to **3** diverse strong two-change attempts.
+- Battle-tests at most **6** third-step candidates.
+- Does not impose third-step cost on normal searches that already find a meaningful counter.
+- Reports first-, second-, and third-step counts explicitly and visibly labels deep results as a bounded three-step analysis.
+- Keeps the responsive yielding/cancellation path so the browser remains usable during the larger search.
+- Makes no exhaustive-search claim; three changes remain a deliberately bounded fallback, not arbitrary division enumeration.
+
+## Recommendation boundary
+
+- **Best Raw Counter** remains combat-pure.
+- Production, supply, IC and retooling remain secondary context for **Best Efficient Counter**, **Smallest Effective Change**, and explanatory warnings.
+- Deep redesign does not turn production-plan optimization into the Counter objective.
+
+## Evidence boundary
+
+The third-step candidate selection, seed diversity, escalation threshold, and recommendation behavior remain **planner analytical**.
+
+0.17.8 introduces no new combat formula, executable classification, Oracle validation, support-runtime formula, or game-file evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.7 — Release Notes
 
 ## Overview

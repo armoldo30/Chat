@@ -53,7 +53,7 @@ function ensureMioState(state){
 function tankDesignFor(state,side,family,role='armor'){
   return state.tankVariants[side][family]?.[role]||state.tankVariants[side][family]?.[tankRolesForFamily(family)[0]]||defaultTankDesign(family,role);
 }
-function mioEffectFor(state,side,family){return mioEffects(mioCatalog(state.dataPack),state.mioSelections[side][family]);}
+function mioEffectFor(state,side,family,equipmentFamily=family){return mioEffects(mioCatalog(state.dataPack),state.mioSelections[side][family],{equipmentFamily});}
 function applyFamilyMioToData(state,data,side){
   for(const [family,map] of Object.entries(LAND_MIO_FAMILY_MAP)){
     const effect=mioEffectFor(state,side,family);
@@ -61,8 +61,11 @@ function applyFamilyMioToData(state,data,side){
     for(const id of map.supports)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],effect.equipmentBonus);
   }
   for(const family of ['light','medium','heavy']){
-    const mio=tankMioFamily(family),effect=mioEffectFor(state,side,mio);
-    for(const role of tankRolesForFamily(family))for(const unit of tankVariantTargets(family,role)?.units||[]){const map=unit.kind==='support'?data.supports:data.battalions;if(map[unit.id])map[unit.id]=applyMioEquipmentBonus(map[unit.id],effect.equipmentBonus);}
+    const mio=tankMioFamily(family);
+    for(const role of tankRolesForFamily(family)){
+      const target=tankVariantTargets(family,role),effect=mioEffectFor(state,side,mio,target?.equipmentKey||mio);
+      for(const unit of target?.units||[]){const map=unit.kind==='support'?data.supports:data.battalions;if(map[unit.id])map[unit.id]=applyMioEquipmentBonus(map[unit.id],effect.equipmentBonus);}
+    }
   }
   return data;
 }
@@ -104,7 +107,7 @@ export function counterEquipment(state,side){
   const out=structuredClone(equipment);
   for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(state,side,family));
   for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){
-    const target=tankVariantTargets(family,role),raw=tankDesignFor(state,side,family,role),base=buildTankDesign(raw),mio=tankMioFamily(family),effect=mio?mioEffectFor(state,side,mio):null,design=mio?applyMioToVariant(base,effect):base;
+    const target=tankVariantTargets(family,role),raw=tankDesignFor(state,side,family,role),base=buildTankDesign(raw),mio=tankMioFamily(family),effect=mio?mioEffectFor(state,side,mio,target?.equipmentKey||mio):null,design=mio?applyMioToVariant(base,effect):base;
     for(const key of [target?.equipmentKey,...(target?.aliases||[])].filter(Boolean))if(out[key]){out[key]=mio?applyMioToEquipmentRecord(tankEquipmentRecord(out[key],raw),effect):tankEquipmentRecord(out[key],raw);out[key].designStats=design;}
   }
   cache.equipment[side]=out;return out;

@@ -1,6 +1,6 @@
 {
   "name": "hoi4-war-planner",
-  "version": "0.17.6",
+  "version": "0.17.7",
   "private": true,
   "type": "module",
   "scripts": {

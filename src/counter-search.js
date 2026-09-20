@@ -39,6 +39,7 @@ export function counterOperationalBurden(base,item){
   return {supplyDelta,supplyPct,supplyValuePenalty:Math.max(0,supplyPct)*1.5};
 }
 export const isMeaningfulCounterImprovement=item=>(Number(item?.gain)||0)>=MIN_MEANINGFUL_GAIN;
+export function canReachMeaningfulCounterGain(baselineWin){const value=Number(baselineWin);return Number.isFinite(value)&&100-value+1e-9>=MIN_MEANINGFUL_GAIN;}
 function score(items,baseWin,baseIC,snapshot,side){
   const base=snapshot[side];
   return items.map(item=>{
@@ -155,7 +156,7 @@ function finish(snapshot,side,runs,baselineWin,firstTested,secondTested,thirdTes
     airAttackImprovement:tested.filter(item=>(Number(item.stats?.airAttack)||0)>(Number(base.airAttack)||0)+1e-9).length,
     survivalImprovement:tested.filter(item=>(Number(item.stats?.[side==='defender'?'def':'breakthrough'])||0)>(Number(base[side==='defender'?'def':'breakthrough'])||0)+1e-9).length
   };
-  return {fingerprint:snapshot.fingerprint,side,runs,baseline:{winRate:baselineWin,ic:baseIC},ranked,highlights,recommendations:buildCounterRecommendationGroups(highlights,ranked),bestTested:scored[0]||null,bestEfforts:scored.slice(0,5),coverage,meaningfulThreshold:MIN_MEANINGFUL_GAIN,testedCount:tested.length,oneChangeCount:firstTested.length,twoChangeCount:secondTested.length,threeChangeCount:thirdTested.length,multiChangeCount:secondTested.length+thirdTested.length,forceDesignCount,mixedForceCount,maxDepth:deepAttempted?3:2};
+  return {fingerprint:snapshot.fingerprint,side,runs,baseline:{winRate:baselineWin,ic:baseIC},ranked,highlights,recommendations:buildCounterRecommendationGroups(highlights,ranked),bestTested:scored[0]||null,bestEfforts:scored.slice(0,5),coverage,meaningfulThreshold:MIN_MEANINGFUL_GAIN,meaningfulGainReachable:canReachMeaningfulCounterGain(baselineWin),testedCount:tested.length,oneChangeCount:firstTested.length,twoChangeCount:secondTested.length,threeChangeCount:thirdTested.length,multiChangeCount:secondTested.length+thirdTested.length,forceDesignCount,mixedForceCount,maxDepth:deepAttempted?3:2};
 }
 function normalizedOptions(options={}){return {...SAFE_DEFAULTS,...DEEP_DEFAULTS,...options,side:normalizeSide(options.side)};}
 function beamScore(snapshot,item,side){return item.winRate+combatTieMargin(item)*.05+heuristic(snapshot,item,side)*.08;}
@@ -174,7 +175,7 @@ export function runCounterSearch(snapshot,options={}){
       const enriched=enrichCandidate(snapshot,candidate,side,seedState);if(seen.has(enriched.key))continue;seen.add(enriched.key);secondPool.push(enriched);
     }
   }
-  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side)),thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
+  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side)),thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&canReachMeaningfulCounterGain(baselineWin)&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
   if(deepAttempted){
     const thirdSeeds=selectDiverseCounterCandidates(secondTested,Math.max(1,thirdBeamWidth),item=>beamScore(snapshot,item,side));
     for(const seed of thirdSeeds){
@@ -211,7 +212,7 @@ export async function runCounterSearchResponsive(snapshot,options={}){
   for(let i=0;i<secondSelected.length;i++){
     secondTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,secondSelected[i],side));onProgress?.({phase:'second',completed:firstTested.length+i+1,total:requestedTotal});await yieldControl();abortIfNeeded(cancelled);
   }
-  const thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
+  const thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&canReachMeaningfulCounterGain(baselineWin)&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
   if(deepAttempted){
     const thirdSeeds=selectDiverseCounterCandidates(secondTested,Math.max(1,thirdBeamWidth),item=>beamScore(snapshot,item,side));
     for(const seed of thirdSeeds){

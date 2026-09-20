@@ -48,7 +48,7 @@ function inspect(name,snapshot,{side='attacker'}={}){
   assert.equal(result.testedCount,30,name+': quality audit should exercise the normal 20+10 battle-test budget');
   assert.ok(result.bestTested&&Number.isFinite(result.bestTested.gain),name+': search must return a strongest tested result');
   assert.ok(top.length>0,name+': audit must retain observable top candidates');
-  return {diagnosis,result,top};
+  return {diagnosis,result,top,snapshot};
 }
 
 const soft=inspect('soft-infantry',makeSnapshot({
@@ -76,7 +76,7 @@ const hardArmor=inspect('armor-vs-hard-armor',makeSnapshot({
 }));
 assert.ok(hardArmor.diagnosis.hardness>=.6,'hard-armor fixture must actually be at least 60% hard');
 assert.ok(hardArmor.diagnosis.priorities.includes('hard-attack'),'hard armor target should prioritize hard attack');
-assert.ok([...hardArmor.result.ranked,...hardArmor.result.bestEfforts].some(item=>item.stats.hard>hardArmor.result.bestTested.state.attackerGrid?0:-Infinity)||hardArmor.result.bestTested,'hard-armor audit must retain a tested answer');
+assert.ok([...hardArmor.result.ranked,...hardArmor.result.bestEfforts].some(item=>item.stats.hard>hardArmor.snapshot.attacker.hard),'hard-armor search should battle-test at least one answer that raises hard attack');
 
 const air=inspect('cas-pressure',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],

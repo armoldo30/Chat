@@ -4,7 +4,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { battalions, supports, equipment, terrain } from '../src/data.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
-import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates } from '../src/counter-search.js';
+import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates, canReachMeaningfulCounterGain } from '../src/counter-search.js';
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
@@ -13,6 +13,9 @@ const r=runCounterSearch(s);
 const elapsed=Date.now()-started;
 assert.deepEqual(COUNTER_SEARCH_DEFAULTS,{runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4});
 assert.deepEqual(COUNTER_DEEP_SEARCH_DEFAULTS,{deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6});
+assert.equal(canReachMeaningfulCounterGain(98),true,'a baseline at 98% can still reach the +2 pp meaningful threshold');
+assert.equal(canReachMeaningfulCounterGain(98.01),false,'a baseline above 98% cannot reach the +2 pp threshold under a 100% win-rate ceiling');
+assert.equal(canReachMeaningfulCounterGain(100),false,'a saturated 100% baseline must never escalate into deep redesign');
 const tinyDiverse=selectDiverseCounterCandidates([
   {key:'line',kind:'add-line',label:'Line',previewScore:4},
   {key:'support',kind:'add-support',label:'Support',previewScore:3},

@@ -59,7 +59,7 @@ assert.match(search,/isMeaningfulCounterImprovement/,'recommendations must quali
 assert.match(search,/runCounterSearchResponsive/,'live Counter Analysis must expose a yielding search path');
 assert.match(search,/SAFE_DEFAULTS=\{runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4\}/,'default live search must remain browser-bounded while screening a broader pool');
 assert.match(search,/DEEP_DEFAULTS=\{deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6\}/,'deep redesign must add only a small bounded third-step budget');
-assert.match(search,/!hasMeaningfulTested\(snapshot,side,baselineWin,\[\.\.\.firstTested,\.\.\.secondTested\]\)/,'third-step search must execute only when the normal search still has no meaningful counter');
+assert.match(search,/canReachMeaningfulCounterGain\(baselineWin\).*?!hasMeaningfulTested\(snapshot,side,baselineWin,\[\.\.\.firstTested,\.\.\.secondTested\]\)/,'third-step search must require both win-rate headroom and normal-search failure');
 assert.match(search,/thirdSeeds=selectDiverseCounterCandidates/,'deep redesign must seed from a diverse subset of two-change attempts');
 assert.match(search,/threeChangeCount:thirdTested\.length/,'search results must report third-step candidate counts explicitly');
 assert.match(search,/yieldControl/,'responsive search must yield control between candidate simulations');
@@ -79,6 +79,9 @@ assert.match(searchView,/deep\?'REDESIGN':'ANALYZING'/,'UI must distinguish norm
 assert.match(searchView,/\$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress counts');
 assert.match(searchView,/MATCHUP-DRIVEN TWO-STEP SEARCH/);
 assert.match(searchView,/TRY DEEP REDESIGN/,'failed normal search must offer an explicit larger-redesign fallback');
+assert.match(searchView,/deepEligible=search\.meaningfulGainReachable!==false/,'UI must detect when the +2 pp recommendation threshold cannot fit below the 100% win-rate ceiling');
+assert.match(searchView,/deepAction=!deep&&deepEligible/,'UI must not offer a deep redesign that is mathematically unable to qualify');
+assert.match(searchView,/modeled win rate is capped at 100%/,'ceiling-limited searches must explain why deep redesign is suppressed');
 assert.match(searchView,/BOUNDED THREE-STEP DEEP REDESIGN/,'deep results must be visibly distinguished from the normal search');
 assert.match(searchView,/detail:\{side,deep:true\}/,'deep redesign must require an explicit user action instead of silently expanding every search');
 assert.match(searchView,/The normal search is capped at two changes/,'UI must disclose that depth three is an optional bounded fallback rather than the normal search');

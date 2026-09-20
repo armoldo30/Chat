@@ -1,3 +1,24 @@
+# HOI4 War Planner 0.17.10 — Release Notes
+
+## Overview
+
+0.17.10 is a focused **Counter Analysis deep-redesign guard** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Saturated-win-rate deep-search guard
+
+- Preserves the existing **+2 pp** meaningful-improvement threshold.
+- Treats exactly **98%** baseline win rate as still eligible for deep redesign because 100% can meet the threshold.
+- Suppresses third-step escalation above 98%, where the 100% modeled win-rate ceiling makes a qualifying +2 pp improvement impossible.
+- Suppresses the **TRY DEEP REDESIGN** UI action in the same ceiling-limited cases.
+- Explains the ceiling explicitly instead of spending additional battle-test budget on a search that cannot qualify.
+- Leaves the normal 20+10 Counter search, optional third-step limits, candidate universe, and battle resolver unchanged.
+
+## Evidence boundary
+
+This is a **planner analytical** search-control and UI correction. 0.17.10 introduces no new combat formula, executable classification, Oracle validation, support-runtime formula, or game-file evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.9 — Release Notes
 
 ## Overview

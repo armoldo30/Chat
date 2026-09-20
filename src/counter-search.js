@@ -94,8 +94,9 @@ export function selectDiverseCounterCandidates(items,limit,scoreFn=item=>Number(
   const ranked=[...(items||[])].sort((a,b)=>scoreFn(b)-scoreFn(a)||String(a.label||'').localeCompare(String(b.label||'')));if(ranked.length<=max)return ranked;
   const buckets=['line','support','regimental','tank'],reserve=max>=16?2:1,out=[],used=new Set();
   for(const bucket of buckets){
+    if(out.length>=max)break;
     let taken=0;
-    for(const item of ranked){const key=recommendationKey(item);if(taken>=reserve)break;if(candidateBucket(item)!==bucket||used.has(key))continue;out.push(item);used.add(key);taken++;}
+    for(const item of ranked){const key=recommendationKey(item);if(taken>=reserve||out.length>=max)break;if(candidateBucket(item)!==bucket||used.has(key))continue;out.push(item);used.add(key);taken++;}
   }
   for(const item of ranked){if(out.length>=max)break;const key=recommendationKey(item);if(used.has(key))continue;out.push(item);used.add(key);}
   return out;

@@ -164,11 +164,11 @@ export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gam
     const at=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiTank)?.mult??1;
     const aa=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiAir)?.mult??1;
     for(const key of ['artillery'])multiply(b[key],['soft','hard','piercing'],art||1);
-    for(const key of ['support_artillery','regimental_infantry_guns'])multiply(s[key],['soft','hard','piercing'],art||1);
+    for(const key of ['support_artillery','field_guns','regimental_infantry_guns'])multiply(s[key],['soft','hard','piercing'],art||1);
     for(const key of ['anti_tank'])multiply(b[key],['soft','hard','piercing'],at||1);
-    for(const key of ['support_at','regimental_at'])multiply(s[key],['soft','hard','piercing'],at||1);
+    for(const key of ['support_at','anti_tank_battery','regimental_at'])multiply(s[key],['soft','hard','piercing'],at||1);
     for(const key of ['anti_air'])multiply(b[key],['soft','hard','piercing','airAttack'],aa||1);
-    for(const key of ['support_aa','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
+    for(const key of ['support_aa','anti_air_battery','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
   }
 
   const technologyEffects=pack?.technologies?applySelectedTechnologyEffects(b,s,pack,profile.technologies):{selected:[],appliedTechnologies:[],unknownTechnologies:[],appliedModifierCount:0,appliedTerrainModifierCount:0,skippedEffectFields:0,classification:'not-applied'};
@@ -193,9 +193,9 @@ export function techAvailable(kind,key,rawProfile){
     return true;
   }
   if(kind==='support'){
-    if(['support_artillery','regimental_infantry_guns'].includes(key))return p.artillery>0;
-    if(['support_at','regimental_at'].includes(key))return p.antiTank>0;
-    if(['support_aa','regimental_aa'].includes(key))return p.antiAir>0;
+    if(['support_artillery','field_guns','regimental_infantry_guns'].includes(key))return p.artillery>0;
+    if(['support_at','anti_tank_battery','regimental_at'].includes(key))return p.antiTank>0;
+    if(['support_aa','anti_air_battery','regimental_aa'].includes(key))return p.antiAir>0;
     if(key==='engineer')return p.unlocks.engineer;
     if(key==='recon')return p.unlocks.recon;
     if(key==='logistics')return p.unlocks.logistics;

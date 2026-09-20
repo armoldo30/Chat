@@ -5,8 +5,11 @@ import { explainCounter } from '../src/counter-explanations.js';
 import { buildCounterCandidates } from '../src/counter-candidates.js';
 import { buildForceDesignCandidates } from '../src/counter-force-candidates.js';
 import { buildCounterRecommendationGroups, counterOperationalBurden, isMeaningfulCounterImprovement } from '../src/counter-search.js';
-import { counterSnapshot, counterDivision } from '../src/counter-state-model.js';
+import { counterSnapshot, counterDivision, counterTechData } from '../src/counter-state-model.js';
 import { blankGrid } from '../src/designer.js';
+import { techAvailable } from '../src/tech.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
 
 const yours={soft:300,hard:80,breakthrough:180,armor:55,piercing:50,hardness:.25,org:50,width:20,supply:1.2,def:220};
 const target={soft:240,hard:120,def:350,breakthrough:130,armor:70,piercing:60,hardness:.7,org:55,width:24,supply:1.4};
@@ -58,6 +61,42 @@ assert.ok(second.some(item=>item.label.includes(' + ')),'multi-change labels mus
 assert.ok(second.every(item=>item.changeKinds?.length===2),'multi-step template candidates must preserve change categories');
 
 const baseSnapshot=counterSnapshot();
+
+hydrateGameData(baseSnapshot.state.dataPack,{battalions,supports,equipment,terrain},{year:baseSnapshot.state.dataSnapshotYear});
+const mioBaseState=structuredClone(baseSnapshot.state);
+const baseTechData=counterTechData(mioBaseState,'attacker');
+const mioState=structuredClone(mioBaseState);
+mioState.dataPack=structuredClone(baseSnapshot.state.dataPack);
+mioState.dataPack.meta={...(mioState.dataPack.meta||{}),mioInheritance:'materialized'};
+mioState.dataPack.mios={...(mioState.dataPack.mios||{}),
+  TEST_COUNTER_ARTILLERY:{id:'TEST_COUNTER_ARTILLERY',name:'Counter Artillery Test',equipmentTypes:['artillery'],initial:{equipmentBonus:{soft_attack:.10},productionBonus:{}},traits:{}},
+  TEST_COUNTER_AT:{id:'TEST_COUNTER_AT',name:'Counter AT Test',equipmentTypes:['anti_tank'],initial:{equipmentBonus:{hard_attack:.10},productionBonus:{}},traits:{}},
+  TEST_COUNTER_AA:{id:'TEST_COUNTER_AA',name:'Counter AA Test',equipmentTypes:['anti_air'],initial:{equipmentBonus:{air_attack:.10},productionBonus:{}},traits:{}}
+};
+mioState.mioSelections=structuredClone(baseSnapshot.state.mioSelections);
+mioState.mioSelections.attacker={...mioState.mioSelections.attacker,
+  artillery:{organization:'TEST_COUNTER_ARTILLERY',traits:[]},
+  anti_tank:{organization:'TEST_COUNTER_AT',traits:[]},
+  anti_air:{organization:'TEST_COUNTER_AA',traits:[]}
+};
+const mioTechData=counterTechData(mioState,'attacker');
+const sameTenPercent=(next,base,label)=>{
+  assert.ok(Number(base)>0,`${label} baseline must be positive for the MIO propagation fixture`);
+  assert.ok(Math.abs(Number(next)/Number(base)-1.10)<1e-9,`${label} must receive the selected family MIO's 10% equipment bonus`);
+};
+sameTenPercent(mioTechData.supports.support_artillery.soft,baseTechData.supports.support_artillery.soft,'divisional support artillery');
+sameTenPercent(mioTechData.supports.field_guns.soft,baseTechData.supports.field_guns.soft,'1.19.3 field guns');
+sameTenPercent(mioTechData.supports.support_at.hard,baseTechData.supports.support_at.hard,'divisional support anti-tank');
+sameTenPercent(mioTechData.supports.anti_tank_battery.hard,baseTechData.supports.anti_tank_battery.hard,'1.19.3 anti-tank battery');
+sameTenPercent(mioTechData.supports.support_aa.airAttack,baseTechData.supports.support_aa.airAttack,'divisional support anti-air');
+sameTenPercent(mioTechData.supports.anti_air_battery.airAttack,baseTechData.supports.anti_air_battery.airAttack,'1.19.3 anti-air battery');
+
+assert.equal(techAvailable('support','field_guns',{artillery:0}),false,'current field guns must follow the artillery coarse availability alias');
+assert.equal(techAvailable('support','anti_tank_battery',{antiTank:0}),false,'current anti-tank battery must follow the AT coarse availability alias');
+assert.equal(techAvailable('support','anti_air_battery',{antiAir:0}),false,'current anti-air battery must follow the AA coarse availability alias');
+assert.equal(techAvailable('support','regimental_infantry_guns',{artillery:0}),false,'legacy regimental artillery alias must remain supported');
+assert.equal(techAvailable('support','regimental_at',{antiTank:0}),false,'legacy regimental AT alias must remain supported');
+assert.equal(techAvailable('support','regimental_aa',{antiAir:0}),false,'legacy regimental AA alias must remain supported');
 const defenderCandidates=buildCounterCandidates(baseSnapshot,{side:'defender',limit:8});
 assert.ok(defenderCandidates.length>0&&defenderCandidates.every(item=>item.side==='defender'),'template search must be able to mutate the defender independently');
 const fixedContextCandidates=buildForceDesignCandidates(baseSnapshot,{limit:18});

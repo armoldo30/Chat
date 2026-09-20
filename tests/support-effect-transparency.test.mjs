@@ -22,7 +22,6 @@ const sample={
 };
 
 const effects=supportSourceEffects(sample);
-const byField=new Map(effects.map(x=>[x.field,(byField.get(x.field)||[]).concat(x)]));
 for(const field of ['recon','entrenchment','initiative','reliabilityFactor','equipmentCaptureFactor','supplyConsumptionFactor','fuelConsumptionFactor','casualtyTrickleback','experienceLossFactor','suppression','suppressionFactor','maximumSpeed','battalionMult','deployedLeaderModifiers','enableAbility']){
   assert.ok(effects.some(x=>x.field===field),`source-effect transparency should expose ${field}`);
 }

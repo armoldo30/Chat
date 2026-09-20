@@ -34,14 +34,14 @@ export function counterRegimentalSupportIds(supportMap=supports){
   return REGIMENTAL_SUPPORT_IDS_1193.filter(id=>supportMap?.[id]);
 }
 
-function unitPreviewScore(record={},snapshot,side='attacker'){
+export function counterUnitPreviewScore(record={},snapshot,side='attacker'){
   const target=snapshot?.[otherSide(side)]||{},base=snapshot?.[side]||{},hardness=Math.max(0,Math.min(1,num(target.hardness))),battlefield=snapshot?.state?.battlefield||{};
   const attack=num(record.soft)*(1-hardness)+num(record.hard)*hardness,survival=side==='defender'?num(record.def):num(record.breakthrough);
   let score=attack+survival*.28+num(record.org)*.08+num(record.hp)*.12+num(record.piercing)*.06+num(record.armor)*.04;
   if(num(base.piercing)<num(target.armor))score+=num(record.piercing)>=num(target.armor)?85:Math.min(num(record.piercing),num(target.armor))*.15;
   if(num(base.armor)<=num(target.piercing))score+=num(record.armor)>num(target.piercing)?65:Math.min(num(record.armor),num(target.piercing))*.08;
-  const airThreat=Math.abs(num(battlefield.air))>1e-9||Math.abs(num(battlefield.cas))>1e-9;
-  score+=num(record.airAttack)*(airThreat?.7:.04);
+  const air=num(battlefield.air),enemyAirSuperiority=side==='attacker'?air< -1e-9:air>1e-9;
+  score+=num(record.airAttack)*(enemyAirSuperiority?.7:.04);
   score-=Math.max(0,num(record.supply))*2.5;
   return score;
 }
@@ -51,7 +51,7 @@ function battalionShortlist(snapshot,side,battalionMap,grid){
   for(const id of counterBattalionCandidateIds(battalionMap)){
     const group=regimentGroupForUnit(id,battalionMap[id]);if(!group)continue;
     if(!buckets.has(group))buckets.set(group,[]);
-    buckets.get(group).push({id,score:unitPreviewScore(battalionMap[id],snapshot,side)});
+    buckets.get(group).push({id,score:counterUnitPreviewScore(battalionMap[id],snapshot,side)});
   }
   const selected=new Set((grid||[]).flat().filter(Boolean));
   for(const rows of buckets.values())for(const row of rows.sort((a,b)=>b.score-a.score||unitName(battalionMap,a.id).localeCompare(unitName(battalionMap,b.id))).slice(0,BATTALION_TYPES_PER_GROUP))selected.add(row.id);
@@ -59,7 +59,7 @@ function battalionShortlist(snapshot,side,battalionMap,grid){
 }
 
 function supportShortlist(snapshot,side,supportMap,selectedSupports){
-  const current=new Set(selectedSupports||[]),ranked=counterDivisionalSupportIds(supportMap).map(id=>({id,score:unitPreviewScore(supportMap[id],snapshot,side)})).sort((a,b)=>b.score-a.score||unitName(supportMap,a.id).localeCompare(unitName(supportMap,b.id)));
+  const current=new Set(selectedSupports||[]),ranked=counterDivisionalSupportIds(supportMap).map(id=>({id,score:counterUnitPreviewScore(supportMap[id],snapshot,side)})).sort((a,b)=>b.score-a.score||unitName(supportMap,a.id).localeCompare(unitName(supportMap,b.id)));
   const out=new Set([...current,...ranked.slice(0,SUPPORT_TYPE_LIMIT).map(x=>x.id)]);
   return [...out].filter(id=>supportMap?.[id]&&!supportMap[id].regimentalSupport);
 }
@@ -87,27 +87,27 @@ export function buildCounterCandidates(snapshot,{side='attacker',state=snapshot.
   const lineTypes=battalionShortlist(snapshot,side,battalionMap,baseGrid);
   for(const type of lineTypes)for(let column=0;column<DESIGNER_COLS;column++){
     const row=baseGrid[column].findIndex(value=>!value);if(row<0||!canPlaceBattalion(baseGrid,column,row,type,battalionMap))continue;
-    const next=structuredClone(baseGrid);next[column][row]=type;add(next,baseSupports,`Add ${unitName(battalionMap,type)}`,'add-line',unitPreviewScore(battalionMap[type],snapshot,side),'line');
+    const next=structuredClone(baseGrid);next[column][row]=type;add(next,baseSupports,`Add ${unitName(battalionMap,type)}`,'add-line',counterUnitPreviewScore(battalionMap[type],snapshot,side),'line');
   }
   for(let column=0;column<DESIGNER_COLS;column++)for(let row=0;row<DESIGNER_ROWS;row++){
     const current=baseGrid[column][row];if(!current)continue;
-    const currentScore=unitPreviewScore(battalionMap[current],snapshot,side);
+    const currentScore=counterUnitPreviewScore(battalionMap[current],snapshot,side);
     for(const type of lineTypes){
       if(type===current||!canPlaceBattalion(baseGrid,column,row,type,battalionMap))continue;
       const next=structuredClone(baseGrid);next[column][row]=type;
-      add(next,baseSupports,`Replace ${unitName(battalionMap,current)} with ${unitName(battalionMap,type)}`,'replace-line',unitPreviewScore(battalionMap[type],snapshot,side)-currentScore*.65,'line');
+      add(next,baseSupports,`Replace ${unitName(battalionMap,current)} with ${unitName(battalionMap,type)}`,'replace-line',counterUnitPreviewScore(battalionMap[type],snapshot,side)-currentScore*.65,'line');
     }
   }
 
   const supportTypes=supportShortlist(snapshot,side,supportMap,baseSupports);
   for(const type of supportTypes){
     if(baseSupports.includes(type))continue;
-    const nextScore=unitPreviewScore(supportMap[type],snapshot,side);
+    const nextScore=counterUnitPreviewScore(supportMap[type],snapshot,side);
     if(baseSupports.length<5&&supportCompanyAllowedWithSelection(type,supportMap,baseSupports,-1))add(baseGrid,[...baseSupports,type],`Add ${unitName(supportMap,type)}`,'add-support',nextScore,'support');
     for(let index=0;index<baseSupports.length;index++){
       const current=baseSupports[index];if(!current||!supportCompanyAllowedWithSelection(type,supportMap,baseSupports,index))continue;
       const next=[...baseSupports];next[index]=type;
-      add(baseGrid,next,`Replace ${unitName(supportMap,current)} with ${unitName(supportMap,type)}`,'replace-support',nextScore-unitPreviewScore(supportMap[current],snapshot,side)*.65,'support');
+      add(baseGrid,next,`Replace ${unitName(supportMap,current)} with ${unitName(supportMap,type)}`,'replace-support',nextScore-counterUnitPreviewScore(supportMap[current],snapshot,side)*.65,'support');
     }
   }
 
@@ -119,7 +119,7 @@ export function buildCounterCandidates(snapshot,{side='attacker',state=snapshot.
       if(type===current||!regimentalSupportAllowed(type,supportMap[type],group))continue;
       const nextRegimental=[...baseRegimental];nextRegimental[column]=type;
       const nextState={...state,[regKey]:nextRegimental},verb=current?'Replace':'Add',description=current?`${verb} ${unitName(supportMap,current)} with ${unitName(supportMap,type)} in regiment ${column+1}`:`${verb} ${unitName(supportMap,type)} to regiment ${column+1}`;
-      add(baseGrid,baseSupports,description,current?'replace-regimental-support':'add-regimental-support',unitPreviewScore(supportMap[type],snapshot,side)-unitPreviewScore(supportMap[current],snapshot,side)*.65,'regimental',nextState);
+      add(baseGrid,baseSupports,description,current?'replace-regimental-support':'add-regimental-support',counterUnitPreviewScore(supportMap[type],snapshot,side)-counterUnitPreviewScore(supportMap[current],snapshot,side)*.65,'regimental',nextState);
     }
   }
 

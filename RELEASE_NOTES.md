@@ -1,3 +1,49 @@
+# HOI4 War Planner 0.17.7 — Release Notes
+
+## Overview
+
+0.17.7 is a **Counter recommendation-quality hardening release** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Recommendation-quality audit
+
+- Adds a permanent hydrated 1.19.3 scenario matrix covering soft targets, reachable armor thresholds, high-hardness armor, enemy air superiority, defender-side optimization and Regimental Support.
+- Runs those scenarios through the real bounded Counter search rather than only checking that candidate IDs exist.
+- Exposes per-search coverage for line, divisional-support, Regimental Support and tank-design candidates, plus piercing-threshold, hard/soft attack, air-attack and defense/breakthrough improvements.
+- Keeps the certification matrix compact while the existing Counter smoke still protects the full live 20-first-step + 10-second-step browser budget.
+
+## Saturated-outcome tie-breaking
+
+- Keeps modeled win-rate improvement as the primary Best Raw combat criterion.
+- When candidates have equal modeled win-rate gain, uses modeled enemy-versus-own strength-loss exchange as the next combat-only discriminator.
+- Retains enemy casualty rate, own casualty rate, change count and IC only as later deterministic tie-breakers.
+- Shows the modeled strength-loss exchange in recommendation cards and ranked alternatives so the tie-break is not hidden from the user.
+
+## Air-threat diagnosis boundary
+
+- Makes anti-air prioritization side-aware: AA receives extra priority only when the side being improved is suffering the modeled enemy-air-superiority penalty.
+- Removes the previous absolute-air check that could boost AA under friendly air superiority.
+- Does not infer direct AA-versus-CAS mitigation from CAS alone because the current resolver does not execute direct AA/CAS damage interaction.
+- Surfaces that CAS boundary explicitly in diagnosis copy.
+
+## Runtime-path certification
+
+- Counter quality and smoke tests now hydrate the same bundled 1.19.3 runtime data path used by the live planner before evaluating recommendations.
+- This closes a test blind spot where standalone Counter tests could exercise legacy seed maps instead of the hydrated 1.19.3 catalog.
+- Regimental Support is verified at the battle-tested search layer, not only at raw candidate construction.
+
+## Baseline copy cleanup
+
+- Generic active-baseline UI copy now follows `MODEL_META.gameVersion` instead of stale 1.19.2 / 0.16.0 wording.
+- Evidence-specific 1.19.2 references remain where they describe retained provenance, including the production energy model and recovered air mission-stat corpus.
+
+## Evidence boundary
+
+Counter diagnosis, candidate screening, search coverage, recommendation ranking and the quality matrix remain **planner analytical**.
+
+No combat resolver formula, executable classification, Oracle finding, support-effect runtime classification, or game-file evidence class is promoted by 0.17.7.
+
+---
+
 # HOI4 War Planner 0.17.6 — Release Notes
 
 ## Overview

@@ -18,6 +18,10 @@ assert.equal(mioAvailable({id:'debug',staticDisabled:true},'GER','medium_tank'),
 // Exact source equipment-group restrictions are structural, and trait bonuses do not leak to incompatible equipment.
 assert.equal(mioEquipmentCompatible(['mio_cat_eq_all_medium_plane'],'medium_airframe'),true);
 assert.equal(mioEquipmentCompatible(['mio_cat_eq_all_medium_plane'],'small_airframe'),false);
+assert.equal(mioEquipmentCompatible(['medium_tank_destroyer_chassis'],'medium_tank_chassis'),false,'exact TD restriction must not match a normal medium tank chassis');
+assert.equal(mioEquipmentCompatible(['medium_tank_chassis'],'medium_tank_destroyer_chassis'),false,'normal tank restriction must not match a medium TD chassis');
+assert.equal(mioEquipmentCompatible(['medium_tank'],'medium_tank_chassis'),true,'family token should still match its chassis by direct identity containment');
+assert.equal(mioEquipmentCompatible(['armor'],'medium_tank_destroyer_chassis'),true,'source broad armor restriction must remain compatible with tank equipment');
 const scopedCatalog={scoped:{id:'scoped',traits:{restricted:{id:'restricted',equipmentTypes:['mio_cat_eq_all_medium_plane'],equipmentBonus:{air_attack:.5},productionBonus:{},organizationModifier:{}}}}};
 const compatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'medium_airframe'});
 const incompatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'small_airframe'});

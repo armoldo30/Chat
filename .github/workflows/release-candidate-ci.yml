@@ -38,7 +38,7 @@ jobs:
           test -f dist/src/gauntlet.js
           test -f dist/src/gauntlet-ui.js
           test -f dist/src/gauntlet.css
-          grep -q "appVersion: '0.17.4'" dist/src/data.js
+          grep -q "appVersion: '0.17.5'" dist/src/data.js
           grep -q "enabled:false" dist/src/ad-config.js
           grep -q "Division Gauntlet" dist/src/main.js
           test ! -e .mio-stage

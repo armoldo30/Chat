@@ -9,6 +9,7 @@
 - Passes an explicit equipment context into the existing `mioEffects(..., context)` restriction path in both Division Lab and Counter Analysis.
 - Prevents equipment-restricted artillery and anti-tank traits from leaking across sibling land-equipment families.
 - Evaluates light / medium / heavy tank MIO effects against each role's exact target equipment key, preventing armor, tank-destroyer, SP-artillery, and SP-AA restrictions from cross-applying inside one chassis family.
+- Tightens direct tank compatibility so exact chassis restrictions stay exact; only the explicit broad `armor` source category keeps the prior any-tank behavior.
 - Applies the same equipment-scoped effects to division-stat propagation, tank design stats, and equipment/production records.
 - Adds a controlled runtime fixture with simultaneously selected artillery-only and AT-only traits plus armor-only and TD-only medium-tank traits.
 - Anchors the audit to the bundled 1.19.3 Vickers-Ruwolt source restrictions.

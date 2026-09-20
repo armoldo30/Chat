@@ -8,6 +8,7 @@ import { ordinaryDivisionBattalionIds } from '../src/division-designer-options.j
 import { divisionEquipmentIC } from '../src/engine.js';
 import { counterSnapshot, counterDivision, counterEquipment } from '../src/counter-state-model.js';
 import { diagnoseMatchup } from '../src/counter-diagnosis.js';
+import { counterUnitPreviewScore } from '../src/counter-candidates.js';
 import { runCounterSearch } from '../src/counter-search.js';
 
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
@@ -89,6 +90,15 @@ assert.equal(deepArmor.maxDepth,3,'hopeless hard-armor fixture should exercise t
 assert.ok(deepArmor.threeChangeCount>0&&deepArmor.threeChangeCount<=2,'deep redesign must stay inside its explicit third-step battle-test cap');
 assert.equal(deepArmor.testedCount,deepArmor.oneChangeCount+deepArmor.twoChangeCount+deepArmor.threeChangeCount,'deep search accounting must separate all three depths');
 assert.ok(deepArmor.bestEfforts.some(item=>item.changeCount===3)||deepArmor.ranked.some(item=>item.changeCount===3),'deep redesign must retain at least one actual three-change candidate');
+
+const aaPreview=(side,battlefield)=>counterUnitPreviewScore({airAttack:10},{attacker:{},defender:{},state:{battlefield}},side);
+const attackerNeutralAa=aaPreview('attacker',{air:0,cas:0});
+assert.ok(aaPreview('attacker',{air:-1,cas:0})>attackerNeutralAa,'attacker AA preview should rise only when the attacker suffers enemy air superiority');
+assert.equal(aaPreview('attacker',{air:1,cas:0}),attackerNeutralAa,'friendly attacker air superiority must not boost AA candidate screening');
+assert.equal(aaPreview('attacker',{air:0,cas:.5}),attackerNeutralAa,'CAS alone must not boost AA candidate screening without modeled direct AA-vs-CAS mitigation');
+const defenderNeutralAa=aaPreview('defender',{air:0,cas:0});
+assert.ok(aaPreview('defender',{air:1,cas:0})>defenderNeutralAa,'defender AA preview should rise only when the defender suffers enemy air superiority');
+assert.equal(aaPreview('defender',{air:-1,cas:0}),defenderNeutralAa,'friendly defender air superiority must not boost AA candidate screening');
 
 const air=inspect('enemy-air-superiority',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],

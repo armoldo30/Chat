@@ -1,9 +1,17 @@
-# HOI4 War Planner — 0.17.8
+# HOI4 War Planner — 0.17.9
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.9 release focus
+
+0.17.9 corrects an early **Counter Analysis anti-air screening** inconsistency found during the post-0.17.8 recommendation audit. The cheap candidate preview now gives AA its elevated screening weight only when the side being improved is actually suffering modeled enemy air superiority.
+
+Friendly air superiority no longer biases AA into the limited candidate shortlist, and CAS-only contexts remain at ordinary background AA weight because the current resolver does not execute direct AA-versus-CAS damage or mitigation. This aligns the early shortlist with the side-aware diagnosis and preserves more of the bounded battle-test budget for matchup-relevant candidates.
+
+Regression coverage now checks attacker and defender air-superiority sign handling plus the CAS-only evidence boundary. This is a **planner analytical** screening correction only; it does not change a combat formula, Oracle classification, or game-file evidence status.
 
 ## 0.17.8 release focus
 

@@ -1,9 +1,19 @@
-# HOI4 War Planner — 0.17.5
+# HOI4 War Planner — 0.17.6
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.6 release focus
+
+0.17.6 upgrades **Counter Analysis** around the matchup itself. Counter now screens the current 1.19.3 ordinary battalion, divisional-support and Regimental Support catalogs instead of the old hardcoded battalion/support whitelists, while preserving the Division Designer's HQ-only exclusions and support-structure rules.
+
+Candidate screening is now matchup-driven before the expensive battle simulation. It prioritizes armor/piercing thresholds, target hardness, attacker breakthrough or defender defense, organization and relevant anti-air value, then preserves line/support/Regimental/tank-design diversity inside the browser-safe simulation budget. Two-step search also uses a diversified beam so one candidate family cannot crowd out every combination path.
+
+Best Raw remains combat-pure. Best Efficient balances combat gain against IC, supply and change complexity; production burden remains secondary context rather than a hard gate. Smallest Effective Change continues to favor the least disruptive meaningful answer.
+
+This release changes **planner-analytical search strategy only**. It does not promote any new combat formula, executable behavior, or Oracle evidence.
 
 ## 0.17.5 release focus
 

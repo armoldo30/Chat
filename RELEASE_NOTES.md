@@ -1,3 +1,24 @@
+# HOI4 War Planner 0.17.9 — Release Notes
+
+## Overview
+
+0.17.9 is a focused **Counter Analysis candidate-screening correction** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Side-aware anti-air screening
+
+- Fixes the cheap candidate preview that previously treated any nonzero air-superiority or CAS input as an AA threat.
+- Gives AA its elevated preview weight only when the side being optimized is suffering modeled **enemy air superiority**.
+- Keeps friendly air superiority at ordinary background AA weight instead of spending shortlist budget on a false AA priority.
+- Keeps CAS-only contexts at ordinary background AA weight because the current resolver does not execute direct AA-versus-CAS damage or mitigation.
+- Covers both attacker and defender air-superiority sign handling with permanent regression checks.
+- Leaves the 20+10 normal Counter search, optional bounded third step, recommendation threshold, and battle resolver unchanged.
+
+## Evidence boundary
+
+This is a **planner analytical** candidate-screening correction. 0.17.9 introduces no new combat formula, executable classification, Oracle validation, support-runtime formula, or game-file evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.8 — Release Notes
 
 ## Overview

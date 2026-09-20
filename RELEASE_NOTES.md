@@ -1,3 +1,27 @@
+# HOI4 War Planner 0.17.5 — Release Notes
+
+## Overview
+
+0.17.5 is an evidence-transparency release for support-specific mechanics on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Support source-effect transparency
+
+- Adds a canonical support-effect presentation layer backed by the existing #46 runtime coverage ledger.
+- Expands picker metadata beyond the earlier partial subset.
+- Adds a persistent Source effects drawer for selected divisional and Regimental Support companies.
+- Exposes retained recon, entrenchment, initiative, recovery, reliability/capture, supply/fuel factors, casualty trickleback, experience loss, suppression, maximum-speed fields, `battalion_mult`, deployed-leader modifiers and enabled abilities.
+- Shows each retained effect with its current runtime state so source presence is not confused with planner execution.
+
+## Evidence boundary
+
+This release deliberately does **not** apply new support-specific combat formulas. The repository still lacks sufficient evidence to certify the executable aggregation/order for the remaining #46 mechanics.
+
+Effects marked `source-retained-not-executed` remain informational. Initiative remains retained and aggregated but unused downstream by the battle resolver.
+
+No Oracle evidence, combat formula, or executable-validation classification is promoted by 0.17.5.
+
+---
+
 # HOI4 War Planner 0.17.4 — Release Notes
 
 ## Overview

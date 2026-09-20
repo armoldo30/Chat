@@ -2,15 +2,16 @@ import { aggregateDivision, simulateBattle, divisionEquipmentIC, calcDivision } 
 import { counterEquipment, counterBattleOptions, counterTechData } from './counter-state-model.js';
 import { buildCounterCandidates } from './counter-candidates.js';
 import { buildForceDesignCandidates, counterForceKey } from './counter-force-candidates.js';
-import { effectiveAttack } from './counter-diagnosis.js';
+import { matchupPriorityScore } from './counter-diagnosis.js';
 import { counterProductionBurden } from './counter-production-burden.js';
 import { battalions, supports, equipment } from './data.js';
-import { gridToCounts, filledInRegiment } from './designer.js';
+import { gridToCounts, filledInRegiment, regimentGroup as gridRegimentGroup } from './designer.js';
+import { ordinaryDivisionBattalionIds } from './division-designer-options.js';
+import { regimentalSupportAllowed } from './regimental-support-1193.js';
 
 const isForceKind=kind=>kind==='tank-design';
-const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-support'].includes(kind);
-const BATTALION_IDS=Object.keys(battalions);
-const SAFE_DEFAULTS={runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8};
+const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-support','add-regimental-support','replace-regimental-support'].includes(kind);
+const SAFE_DEFAULTS={runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4};
 const MIN_MEANINGFUL_GAIN=2;
 const ARMOR_FAMILIES={light_armor:'light',medium_armor:'medium',heavy_armor:'heavy'};
 const ARMOR_EQUIPMENT={light:'light_tank',medium:'medium_tank',heavy:'heavy_tank'};
@@ -22,7 +23,7 @@ const normalizeSide=side=>side==='defender'?'defender':'attacker';
 const otherSide=side=>side==='defender'?'attacker':'defender';
 
 function armorFamiliesIn(grid){
-  const counts=new Map(gridToCounts(grid,BATTALION_IDS).map(row=>[row.type,row.count]));
+  const counts=new Map(gridToCounts(grid,ordinaryDivisionBattalionIds(battalions)).map(row=>[row.type,row.count]));
   return new Set(Object.entries(ARMOR_FAMILIES).filter(([type])=>(counts.get(type)||0)>0).map(([,family])=>family));
 }
 export function counterProductionPracticality(snapshot,item,side='attacker'){
@@ -41,7 +42,7 @@ function score(items,baseWin,baseIC,snapshot,side){
   const base=snapshot[side];
   return items.map(item=>{
     const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1),practicality=item.practicality||counterProductionPracticality(snapshot,item,side),operationalBurden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
-    const denominator=Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(practicality.valuePenalty||0)+(operationalBurden.supplyValuePenalty||0)+(productionBurden.capacityPenalty||0);
+    const denominator=Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(practicality.valuePenalty||0)+(operationalBurden.supplyValuePenalty||0)+(productionBurden.capacityPenalty||0)*.15;
     return {...item,practicality,operationalBurden,productionBurden,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/Math.max(1,denominator)};
   });
 }
@@ -50,8 +51,7 @@ function rank(scored){
 }
 export function chooseCounterHighlights(ranked){
   if(!ranked.length)return {best:null,value:null,minimal:null};
-  const best=ranked[0],local=ranked.filter(item=>!item.practicality?.majorRetooling),practical=local.length?local:ranked;
-  const value=[...practical].sort((a,b)=>b.value-a.value||b.gain-a.gain)[0],practicalBest=Math.max(...practical.map(item=>item.gain)),meaningful=practical.filter(item=>item.gain>=Math.max(5,practicalBest*.35)),minimalSource=meaningful.length?meaningful:practical;
+  const best=ranked[0],value=[...ranked].sort((a,b)=>b.value-a.value||b.gain-a.gain||a.changeCount-b.changeCount)[0],local=ranked.filter(item=>!item.practicality?.majorRetooling),minimalPool=local.length?local:ranked,practicalBest=Math.max(...minimalPool.map(item=>item.gain)),meaningful=minimalPool.filter(item=>item.gain>=Math.max(5,practicalBest*.35)),minimalSource=meaningful.length?meaningful:minimalPool;
   return {best,value,minimal:[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain)[0]};
 }
 function recommendationKey(item){return item?.key||`${item?.label||''}|${(item?.changes||[]).join('|')}`;}
@@ -63,19 +63,40 @@ export function buildCounterRecommendationGroups(highlights,ranked,maxCards=3){
     if(existing)existing.roles.push(role);
     else{const group={item,roles:[role],alternative:false};groups.push(group);byKey.set(key,group);}
   }
-  const used=new Set(groups.map(group=>recommendationKey(group.item))),fillOrder=[...(ranked||[]).filter(item=>!item.practicality?.majorRetooling),...(ranked||[]).filter(item=>item.practicality?.majorRetooling)];
-  for(const item of fillOrder){
+  const used=new Set(groups.map(group=>recommendationKey(group.item)));
+  for(const item of ranked||[]){
     if(groups.length>=maxCards)break;
     const key=recommendationKey(item);if(used.has(key))continue;
     groups.push({item,roles:['DISTINCT ALTERNATIVE'],alternative:true});used.add(key);
   }
   return groups.slice(0,Math.max(0,maxCards));
 }
-function candidatePool(snapshot,{side='attacker',state=snapshot.state,grid=state[side+'Grid'],supportKeys=state[side+'Supports'],priorChanges=[],priorKinds=[],limit=SAFE_DEFAULTS.firstStepLimit}={}){
+function candidateBucket(item){
+  const kind=item?.kind||item?.changeKinds?.at?.(-1)||'';
+  if(kind==='tank-design')return 'tank';
+  if(kind.includes('regimental-support'))return 'regimental';
+  if(kind.includes('support'))return 'support';
+  if(kind.includes('line'))return 'line';
+  return 'other';
+}
+export function selectDiverseCounterCandidates(items,limit,scoreFn=item=>Number(item?.previewScore)||0){
+  const max=Math.max(0,Math.floor(Number(limit)||0));if(!max)return [];
+  const ranked=[...(items||[])].sort((a,b)=>scoreFn(b)-scoreFn(a)||String(a.label||'').localeCompare(String(b.label||'')));if(ranked.length<=max)return ranked;
+  const buckets=['line','support','regimental','tank'],reserve=max>=16?2:1,out=[],used=new Set();
+  for(const bucket of buckets){
+    let taken=0;
+    for(const item of ranked){const key=recommendationKey(item);if(taken>=reserve)break;if(candidateBucket(item)!==bucket||used.has(key))continue;out.push(item);used.add(key);taken++;}
+  }
+  for(const item of ranked){if(out.length>=max)break;const key=recommendationKey(item);if(used.has(key))continue;out.push(item);used.add(key);}
+  return out;
+}
+function candidatePool(snapshot,{side='attacker',state=snapshot.state,grid=state[side+'Grid'],supportKeys=state[side+'Supports'],priorChanges=[],priorKinds=[],limit=SAFE_DEFAULTS.firstStepLimit*SAFE_DEFAULTS.previewMultiplier}={}){
   side=normalizeSide(side);
-  const forceBudget=Math.min(5,Math.max(1,Math.round(limit*.2))),force=buildForceDesignCandidates(snapshot,{side,state,grid,supportKeys,priorChanges,priorKinds,limit:forceBudget}).filter(candidate=>candidate.kind==='tank-design');
-  const templateBudget=Math.max(1,limit-force.length),templates=buildCounterCandidates(snapshot,{side,grid,supportKeys,priorChanges,priorKinds,limit:templateBudget});
-  return [...force,...templates].slice(0,Math.max(1,limit));
+  const previewLimit=Math.max(20,Math.floor(Number(limit)||20)),data=derivedFor(state,side).tech;
+  const templates=buildCounterCandidates(snapshot,{side,state,grid,supportKeys,priorChanges,priorKinds,limit:Math.max(20,Math.ceil(previewLimit*.85)),battalionMap:data.battalions,supportMap:data.supports});
+  const force=buildForceDesignCandidates(snapshot,{side,state,grid,supportKeys,priorChanges,priorKinds,limit:Math.max(8,Math.ceil(previewLimit*.35))}).filter(candidate=>candidate.kind==='tank-design');
+  const seen=new Set(),combined=[];for(const item of [...templates,...force]){if(seen.has(item.key))continue;seen.add(item.key);combined.push(item);}
+  return selectDiverseCounterCandidates(combined,previewLimit,item=>Number(item.previewScore)||0);
 }
 function derivedFor(state,side){
   let cached=derivedCache.get(state);if(!cached){cached={};derivedCache.set(state,cached);}
@@ -83,7 +104,7 @@ function derivedFor(state,side){
   return cached[side];
 }
 function divisionFor(state,side,grid,supportKeys){
-  const data=derivedFor(state,side).tech,line=gridToCounts(grid,BATTALION_IDS),regimental=(state[side+'RegimentalSupports']||[]).filter((key,column)=>key&&supports[key]&&filledInRegiment(grid,column)>=3);
+  const data=derivedFor(state,side).tech,line=gridToCounts(grid,ordinaryDivisionBattalionIds(data.battalions)),regimental=(state[side+'RegimentalSupports']||[]).filter((key,column)=>key&&data.supports[key]&&filledInRegiment(grid,column)>=3&&regimentalSupportAllowed(key,data.supports[key],gridRegimentGroup(grid,column,data.battalions)));
   return calcDivision(line,data.battalions,[...(supportKeys||[]),...regimental],data.supports);
 }
 function enrichCandidate(snapshot,candidate,side,contextState=snapshot.state){
@@ -91,18 +112,14 @@ function enrichCandidate(snapshot,candidate,side,contextState=snapshot.state){
   return {...candidate,side,state,changeKinds,practicality,key:counterForceKey(candidate.grid,candidate.supportKeys,state,side),stats:division,ic,pierces:division.piercing>=target.armor,holdsArmor:division.armor>target.piercing};
 }
 function heuristic(snapshot,item,side){
-  const base=snapshot[side],target=snapshot[otherSide(side)],basePressure=effectiveAttack(base,target),pressureGain=effectiveAttack(item.stats,target)-basePressure,survivalGain=side==='defender'?item.stats.def-base.def:item.stats.breakthrough-base.breakthrough,burden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
-  let score=pressureGain*.12+survivalGain*.035+(item.stats.org-base.org)*.08;
-  if(base.piercing<target.armor&&item.pierces)score+=120;
-  else if(base.piercing<target.armor)score+=(item.stats.piercing-base.piercing)*.8;
-  if(base.armor<=target.piercing&&item.holdsArmor)score+=90;
-  if(base.armor>target.piercing&&!item.holdsArmor)score-=75;
+  const base=snapshot[side],burden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
+  let score=matchupPriorityScore(base,item.stats,snapshot[otherSide(side)],{side,battlefield:snapshot.state.battlefield});
   score-=Math.max(0,item.ic-snapshot[side+'IC'])*.003;
   score-=Math.max(0,burden.supplyPct)*.08;
-  score-=Math.max(0,productionBurden.factoryShortfall)*1.5;
-  score-=Math.max(0,productionBurden.constrainedResources?.length||0)*2;
+  score-=Math.max(0,productionBurden.factoryShortfall)*.5;
+  score-=Math.max(0,productionBurden.constrainedResources?.length||0);
   score-=Math.max(0,(item.changeCount||1)-1)*2;
-  score-=item.practicality?.searchPenalty||0;
+  score-=(item.practicality?.searchPenalty||0)*.65;
   return score;
 }
 function simulateCandidate(snapshot,opponent,baseOptions,runs,item,side){
@@ -120,44 +137,40 @@ function yieldControl(){return new Promise(resolve=>setTimeout(resolve,0));}
 function abortIfNeeded(cancelled){if(cancelled?.()){const error=new Error('Counter search cancelled');error.name='AbortError';throw error;}}
 
 export function runCounterSearch(snapshot,options={}){
-  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit}=normalizedOptions(options),{state,attacker,defender}=snapshot;
-  const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v7:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate,opponent=side==='attacker'?defenderForce:attackerForce;
-  const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit}),firstEnriched=firstRaw.map(candidate=>enrichCandidate(snapshot,candidate,side,state));
-  const firstTested=firstEnriched.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
-  const beam=[...firstTested].sort((a,b)=>(b.winRate+heuristic(snapshot,b,side)*.08)-(a.winRate+heuristic(snapshot,a,side)*.08)||a.ic-b.ic).slice(0,Math.max(1,beamWidth));
-  const seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstEnriched.map(item=>item.key)]),secondPool=[];
+  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier}=normalizedOptions(options),{state,attacker,defender}=snapshot;
+  const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v9:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate,opponent=side==='attacker'?defenderForce:attackerForce;
+  const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit*previewMultiplier}),firstPreview=firstRaw.map(candidate=>enrichCandidate(snapshot,candidate,side,state)),firstEnriched=selectDiverseCounterCandidates(firstPreview,firstStepLimit,item=>heuristic(snapshot,item,side)),firstTested=firstEnriched.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
+  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>item.winRate+heuristic(snapshot,item,side)*.08),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
   for(const seed of beam){
     const seedState=seed.state||state;
-    for(const candidate of candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit})){
+    for(const candidate of candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier})){
       const enriched=enrichCandidate(snapshot,candidate,side,seedState);if(seen.has(enriched.key))continue;seen.add(enriched.key);secondPool.push(enriched);
     }
   }
-  const secondSelected=[...secondPool].sort((a,b)=>heuristic(snapshot,b,side)-heuristic(snapshot,a,side)||a.ic-b.ic).slice(0,Math.max(0,secondStepLimit));
-  const secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
+  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=secondSelected.map(item=>simulateCandidate(snapshot,opponent,battleOptions,runs,item,side));
   return finish(snapshot,side,runs,baselineWin,firstTested,secondTested);
 }
 
 export async function runCounterSearchResponsive(snapshot,options={}){
-  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,onProgress,cancelled}=normalizedOptions(options),{state,attacker,defender}=snapshot;
-  const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v7:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),opponent=side==='attacker'?defenderForce:attackerForce;
-  abortIfNeeded(cancelled);onProgress?.({phase:'baseline',completed:0,total:firstStepLimit+secondStepLimit});
+  const {side,runs,firstStepLimit,beamWidth,secondPerSeedLimit,secondStepLimit,previewMultiplier,onProgress,cancelled}=normalizedOptions(options),{state,attacker,defender}=snapshot;
+  const battleOptions={...counterBattleOptions(state),seed:`${state.battlefield.seed??1944}:counter-v9:${side}`},attackerForce=aggregateDivision(attacker,state.attackerDivisions),defenderForce=aggregateDivision(defender,state.defenderDivisions),opponent=side==='attacker'?defenderForce:attackerForce;
+  abortIfNeeded(cancelled);onProgress?.({phase:'screening',completed:0,total:firstStepLimit+secondStepLimit});
   const baseline=simulateBattle(attackerForce,defenderForce,battleOptions,runs),baselineWin=side==='attacker'?baseline.attackerWinRate:baseline.defenderWinRate;await yieldControl();abortIfNeeded(cancelled);
-  const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit}),firstEnriched=[];
-  for(let i=0;i<firstRaw.length;i++){firstEnriched.push(enrichCandidate(snapshot,firstRaw[i],side,state));if(i%3===2){await yieldControl();abortIfNeeded(cancelled);}}
-  const firstTested=[];
+  const firstRaw=candidatePool(snapshot,{side,limit:firstStepLimit*previewMultiplier}),firstPreview=[];
+  for(let i=0;i<firstRaw.length;i++){firstPreview.push(enrichCandidate(snapshot,firstRaw[i],side,state));if(i%8===7){await yieldControl();abortIfNeeded(cancelled);}}
+  const firstEnriched=selectDiverseCounterCandidates(firstPreview,firstStepLimit,item=>heuristic(snapshot,item,side)),firstTested=[];
   for(let i=0;i<firstEnriched.length;i++){
     firstTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,firstEnriched[i],side));onProgress?.({phase:'first',completed:i+1,total:firstEnriched.length+secondStepLimit});await yieldControl();abortIfNeeded(cancelled);
   }
-  const beam=[...firstTested].sort((a,b)=>(b.winRate+heuristic(snapshot,b,side)*.08)-(a.winRate+heuristic(snapshot,a,side)*.08)||a.ic-b.ic).slice(0,Math.max(1,beamWidth));
-  const seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstEnriched.map(item=>item.key)]),secondPool=[];
+  const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>item.winRate+heuristic(snapshot,item,side)*.08),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
   for(const seed of beam){
-    const seedState=seed.state||state;
-    for(const candidate of candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit})){
-      const enriched=enrichCandidate(snapshot,candidate,side,seedState);if(seen.has(enriched.key))continue;seen.add(enriched.key);secondPool.push(enriched);
+    const seedState=seed.state||state,raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier});
+    for(let i=0;i<raw.length;i++){
+      const enriched=enrichCandidate(snapshot,raw[i],side,seedState);if(!seen.has(enriched.key)){seen.add(enriched.key);secondPool.push(enriched);}
+      if(i%10===9){await yieldControl();abortIfNeeded(cancelled);}
     }
-    await yieldControl();abortIfNeeded(cancelled);
   }
-  const secondSelected=[...secondPool].sort((a,b)=>heuristic(snapshot,b,side)-heuristic(snapshot,a,side)||a.ic-b.ic).slice(0,Math.max(0,secondStepLimit)),secondTested=[];
+  const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=[];
   for(let i=0;i<secondSelected.length;i++){
     secondTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,secondSelected[i],side));onProgress?.({phase:'second',completed:firstTested.length+i+1,total:firstTested.length+secondSelected.length});await yieldControl();abortIfNeeded(cancelled);
   }

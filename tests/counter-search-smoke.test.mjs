@@ -5,7 +5,7 @@ const s=counterSnapshot();
 const started=Date.now();
 const r=runCounterSearch(s);
 const elapsed=Date.now()-started;
-assert.deepEqual(COUNTER_SEARCH_DEFAULTS,{runs:50,firstStepLimit:18,beamWidth:3,secondPerSeedLimit:10,secondStepLimit:8});
+assert.deepEqual(COUNTER_SEARCH_DEFAULTS,{runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4});
 assert.equal(r.side,'attacker');
 assert.equal(r.maxDepth,2);
 assert.ok(r.oneChangeCount>0);
@@ -48,9 +48,9 @@ assert.ok(heavyPracticality.searchPenalty>0&&heavyPracticality.valuePenalty>0,'n
 const heavy={key:'heavy',label:'Add Heavy Armor',gain:20,value:.5,changeCount:1,deltaIC:500,practicality:{majorRetooling:true}},at={key:'at',label:'Add Support Anti-Tank',gain:9,value:.2,changeCount:1,deltaIC:50,practicality:{majorRetooling:false}},support={key:'support',label:'Swap Support Company',gain:6,value:.15,changeCount:1,deltaIC:20,practicality:{majorRetooling:false}};
 const picks=chooseCounterHighlights([heavy,at,support]);
 assert.equal(picks.best.key,'heavy','Best Raw may still expose the strongest theoretical armored answer');
-assert.equal(picks.value.key,'at','Best Value must prefer a meaningful local counter over a new armor production chain');
+assert.equal(picks.value.key,'heavy','Best Efficient must not hard-exclude the strongest value result merely because it opens an armor production chain');
 assert.equal(picks.minimal.key,'support','Smallest Change must prefer a meaningful local edit over major retooling');
 const practicalGroups=buildCounterRecommendationGroups(picks,[heavy,at,support]);
-assert.deepEqual(practicalGroups.map(group=>group.item.key),['heavy','at','support'],'headline cards should retain raw strength while filling practical categories with local counters');
+assert.deepEqual(practicalGroups.map(group=>group.item.key),['heavy','support','at'],'headline cards should deduplicate a dominant raw/value winner and still surface distinct alternatives');
 
 console.log(`Counter search runtime smoke passed: ${r.testedCount} attacker candidates + ${defenderRun.testedCount} defender candidates in ${Date.now()-started} ms.`);

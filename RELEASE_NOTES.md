@@ -1,3 +1,42 @@
+# HOI4 War Planner 0.17.6 — Release Notes
+
+## Overview
+
+0.17.6 is a **Counter Analysis search upgrade** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Counter candidate universe
+
+- Replaces the old hardcoded nine-line-battalion and seven-support-company Counter whitelists with the same structural 1.19.3 ordinary-division battalion and divisional-support catalogs used by the Division Designer.
+- Preserves Army-HQ-only line/support exclusions.
+- Applies divisional support conflict rules during candidate construction.
+- Adds source-valid 1.19.3 Regimental Support edits when the regiment has at least three battalions and the exact allowed battalion-group relationship permits that support.
+- Adds Regimental Support layout to candidate identity so structurally different templates cannot collapse to one Counter key.
+- Moves the Counter fallback pack from stale 1.19.2 to the current 1.19.3 bundle.
+
+## Matchup-driven bounded search
+
+- Screens a broader candidate pool cheaply before full battle simulation.
+- Prioritizes the exact target's hardness, armor/piercing thresholds, attacker breakthrough or defender defense, organization and battlefield-relevant anti-air value.
+- Preserves line, divisional-support, Regimental Support and active tank-design diversity in the limited battle-test budget.
+- Expands the default battle-tested budget modestly to 20 first-step and 10 second-step candidates while screening up to four times that many candidates first.
+- Uses a diversified four-seed second-step beam so combinations are less dependent on one candidate family winning the first pass.
+- Keeps the responsive yielding/cancellation path.
+
+## Recommendation policy
+
+- **Best Raw Counter** remains the strongest battle result.
+- **Best Efficient Counter** considers the full meaningful counter set and balances combat gain against IC, supply and change complexity instead of hard-excluding a new armor family.
+- **Smallest Effective Change** still prefers a local edit when a meaningful one exists.
+- Production/retooling burden remains visible but is secondary context rather than the primary counter objective.
+
+## Evidence boundary
+
+The broader catalog is source/structure-backed where already certified, but the **candidate screening, diversity selection, beam search and recommendation policy remain planner analytical**.
+
+No combat resolver formula, executable classification, Oracle finding, support-effect runtime classification or game-file evidence class is promoted by 0.17.6.
+
+---
+
 # HOI4 War Planner 0.17.5 — Release Notes
 
 ## Overview

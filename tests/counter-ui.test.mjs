@@ -37,10 +37,13 @@ assert.match(model,/Object\.entries\(LAND_MIO_FAMILY_MAP\)/,'Counter MIO propaga
 assert.doesNotMatch(main,/const maps=\{infantry_equipment/,'Division Lab must not retain a private land-MIO mapping that can drift from Counter');
 assert.doesNotMatch(model,/const maps=\{infantry_equipment/,'Counter must not retain a private land-MIO mapping that can drift from Division Lab');
 for(const id of ['field_guns','anti_tank_battery','anti_air_battery','regimental_infantry_guns','regimental_at','regimental_aa'])assert.match(landMioMap,new RegExp(`['\"]${id}['\"]`),`shared land-MIO map must retain ${id}`);
-assert.match(main,/function mioEffectFor\(side,family,equipmentFamily=family\)[^{]*\{[^}]*mioEffects\([^\n]*\{equipmentFamily\}\)/,'Division Lab must pass an equipment context into MIO effect filtering');
-assert.match(model,/function mioEffectFor\(state,side,family,equipmentFamily=family\)[^{]*\{[^}]*mioEffects\([^\n]*\{equipmentFamily\}\)/,'Counter must pass an equipment context into MIO effect filtering');
+assert.match(main,/function mioEffectFor\(side,family,equipmentFamily=null\)[^{]*\{[^}]*mioEffects\([^\n]*\{equipmentFamily\}\)/,'Division Lab MIO helper must accept an explicit equipment context without changing unaudited callers');
+assert.match(model,/function mioEffectFor\(state,side,family,equipmentFamily=null\)[^{]*\{[^}]*mioEffects\([^\n]*\{equipmentFamily\}\)/,'Counter MIO helper must accept an explicit equipment context');
 assert.match(main,/target\?\.equipmentKey\|\|mio/,'Division Lab tank roles must filter MIO effects by the exact target equipment key');
 assert.match(model,/target\?\.equipmentKey\|\|mio/,'Counter tank roles must filter MIO effects by the exact target equipment key');
+assert.match(main,/mioEffectFor\(side,family,family\)/,'Division Lab land families must explicitly request family-scoped MIO filtering');
+assert.match(model,/mioEffectFor\(state,side,family,family\)/,'Counter land families must explicitly request family-scoped MIO filtering');
+assert.match(main,/adjustedAirDesign[\s\S]*mioEffectFor\(side,family\)/,'unaudited air MIO behavior must remain on the prior unscoped path in this release');
 assert.match(candidates,/canPlaceBattalion/);
 assert.match(candidates,/side='attacker'/,'template candidate generation must be side-aware');
 assert.match(candidates,/state\[side\+'Grid'\]/,'template candidate generation must read the selected side grid');

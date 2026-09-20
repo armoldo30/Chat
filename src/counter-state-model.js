@@ -54,7 +54,7 @@ function tankDesignFor(state,side,family,role='armor'){
 }
 function mioEffectFor(state,side,family){return mioEffects(mioCatalog(state.dataPack),state.mioSelections[side][family]);}
 function applyFamilyMioToData(state,data,side){
-  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','regimental_aa']}};
+  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','field_guns','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','anti_tank_battery','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','anti_air_battery','regimental_aa']}};
   for(const [family,map] of Object.entries(maps)){
     const effect=mioEffectFor(state,side,family);
     for(const id of map.b)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],effect.equipmentBonus);

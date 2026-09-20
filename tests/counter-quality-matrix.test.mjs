@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { battalions } from '../src/data.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
+import { hydrateGameData } from '../src/gameData.js';
+import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
 import { countsToGrid } from '../src/designer.js';
 import { ordinaryDivisionBattalionIds } from '../src/division-designer-options.js';
 import { divisionEquipmentIC } from '../src/engine.js';
@@ -7,6 +10,8 @@ import { counterSnapshot, counterDivision, counterEquipment } from '../src/count
 import { diagnoseMatchup } from '../src/counter-diagnosis.js';
 import { runCounterSearch } from '../src/counter-search.js';
 
+hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+applyRegimentalSupportCompatibilityFallback(supports);
 const base=counterSnapshot();
 const valid=ordinaryDivisionBattalionIds(battalions);
 

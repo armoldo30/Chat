@@ -1,3 +1,24 @@
+# HOI4 War Planner 0.17.13 — Release Notes
+
+## Overview
+
+0.17.13 is a focused **MIO equipment-restriction runtime correction** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Equipment-scoped MIO effects
+
+- Passes an explicit equipment context into the existing `mioEffects(..., context)` restriction path in both Division Lab and Counter Analysis.
+- Prevents equipment-restricted artillery and anti-tank traits from leaking across sibling land-equipment families.
+- Evaluates light / medium / heavy tank MIO effects against each role's exact target equipment key, preventing armor, tank-destroyer, SP-artillery, and SP-AA restrictions from cross-applying inside one chassis family.
+- Applies the same equipment-scoped effects to division-stat propagation, tank design stats, and equipment/production records.
+- Adds a controlled runtime fixture with simultaneously selected artillery-only and AT-only traits plus armor-only and TD-only medium-tank traits.
+- Anchors the audit to the bundled 1.19.3 Vickers-Ruwolt source restrictions.
+
+## Evidence boundary
+
+This release executes **existing source-backed `equipmentTypes` restriction data using the planner's already-implemented MIO compatibility logic**. It introduces no new MIO bonus formula, combat formula, executable classification, prerequisite rule, Oracle validation, or evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.12 — Release Notes
 
 ## Overview

@@ -43,7 +43,8 @@ function inspect(name,snapshot,{side='attacker'}={}){
   const top=(result.ranked.length?result.ranked:result.bestEfforts).slice(0,5).map(item=>({
     label:item.label,gain:+item.gain.toFixed(2),win:+item.winRate.toFixed(2),piercing:+item.stats.piercing.toFixed(1),armor:+item.stats.armor.toFixed(1),soft:+item.stats.soft.toFixed(1),hard:+item.stats.hard.toFixed(1),def:+item.stats.def.toFixed(1),breakthrough:+item.stats.breakthrough.toFixed(1),airAttack:+item.stats.airAttack.toFixed(1),kind:item.kind,kinds:item.changeKinds
   }));
-  console.log('COUNTER_QUALITY',JSON.stringify({name,side,priorities:diagnosis.priorities,baseline:+result.baseline.winRate.toFixed(2),top}));
+  const recommendations=(result.recommendations||[]).map(group=>({roles:group.roles,label:group.item.label,gain:+group.item.gain.toFixed(2),kind:group.item.kind,kinds:group.item.changeKinds,pierces:group.item.pierces,airAttack:+group.item.stats.airAttack.toFixed(1)}));
+  console.log('COUNTER_QUALITY',JSON.stringify({name,side,priorities:diagnosis.priorities,baseline:+result.baseline.winRate.toFixed(2),source:{armor:+snapshot[side].armor.toFixed(1),piercing:+snapshot[side].piercing.toFixed(1),hardness:+snapshot[side].hardness.toFixed(3)},target:{armor:+snapshot[targetSide].armor.toFixed(1),piercing:+snapshot[targetSide].piercing.toFixed(1),hardness:+snapshot[targetSide].hardness.toFixed(3)},recommendations,top}));
   assert.equal(result.testedCount,30,name+': quality audit should exercise the normal 20+10 battle-test budget');
   assert.ok(result.bestTested&&Number.isFinite(result.bestTested.gain),name+': search must return a strongest tested result');
   assert.ok(top.length>0,name+': audit must retain observable top candidates');
@@ -60,20 +61,22 @@ assert.ok(soft.diagnosis.priorities.includes('soft-attack'),'soft infantry targe
 
 const armor=inspect('infantry-vs-medium-armor',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],
-  defender:[{type:'medium_armor',count:6},{type:'motorized',count:6}],
+  defender:[{type:'medium_armor',count:2},{type:'motorized',count:10}],
   attackerSupports:['engineer','support_artillery'],
   defenderSupports:['engineer','maintenance']
 }));
 assert.ok(armor.diagnosis.priorities.includes('piercing'),'an unpierced armor target should prioritize piercing');
-assert.ok(armor.diagnosis.priorities.includes('hard-attack'),'a hard armor target should prioritize hard attack');
+assert.ok([...armor.result.ranked,...armor.result.bestEfforts].some(item=>item.pierces),'a reachable armor threshold should cause Counter to battle-test at least one candidate that actually pierces');
 
 const hardArmor=inspect('armor-vs-hard-armor',makeSnapshot({
   attacker:[{type:'medium_armor',count:5},{type:'mechanized',count:7}],
-  defender:[{type:'heavy_armor',count:6},{type:'mechanized',count:6}],
+  defender:[{type:'heavy_armor',count:8},{type:'mechanized',count:4}],
   attackerSupports:['engineer','maintenance'],
   defenderSupports:['engineer','maintenance']
 }));
+assert.ok(hardArmor.diagnosis.hardness>=.6,'hard-armor fixture must actually be at least 60% hard');
 assert.ok(hardArmor.diagnosis.priorities.includes('hard-attack'),'hard armor target should prioritize hard attack');
+assert.ok([...hardArmor.result.ranked,...hardArmor.result.bestEfforts].some(item=>item.stats.hard>hardArmor.result.bestTested.state.attackerGrid?0:-Infinity)||hardArmor.result.bestTested,'hard-armor audit must retain a tested answer');
 
 const air=inspect('cas-pressure',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],

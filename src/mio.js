@@ -62,8 +62,7 @@ function normalizedEquipmentId(value){
 function directEquipmentMatch(type,equipment){
   const t=normalizedEquipmentId(type),e=normalizedEquipmentId(equipment);if(!t||!e)return false;
   if(e===t||e.includes(t)||t.includes(e))return true;
-  const isTank=e.includes('tank');
-  if(isTank&&(t.includes('tank')||t.includes('armor')))return true;
+  if(e.includes('tank')&&t==='armor')return true;
   if(e.includes('small_plane_airframe')&&(t.includes('small_plane')||t.includes('light_aircraft')||t.includes('all_aircraft')))return true;
   if(e.includes('medium_plane_airframe')&&(t.includes('medium_plane')||t.includes('medium_aircraft')||t.includes('all_aircraft')))return true;
   if(e.includes('large_plane_airframe')&&(t.includes('large_plane')||t.includes('heavy_aircraft')||t.includes('all_aircraft')))return true;

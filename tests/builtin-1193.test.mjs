@@ -4,7 +4,7 @@ import { MODEL_META } from '../src/data.js';
 import { REGIMENTAL_SUPPORT_COMPATIBILITY_META, supportAllowedBattalionGroups } from '../src/regimental-support-1193.js';
 import { BUILTIN_ENGLISH_LOCALIZATION_1193, BUILTIN_ENGLISH_LOCALIZATION_1193_META } from '../src/builtin1193/localization-english-1193.js';
 
-assert.equal(MODEL_META.appVersion,'0.17.7');
+assert.equal(MODEL_META.appVersion,'0.17.8');
 assert.equal(MODEL_META.gameVersion,'1.19.3');
 assert.equal(pack.meta.gameVersion,'1.19.3');
 assert.equal(pack.meta.gameBuild,'1.19.3.0.c01a');

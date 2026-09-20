@@ -1,9 +1,19 @@
-# HOI4 War Planner — 0.17.9
+# HOI4 War Planner — 0.17.10
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.10 release focus
+
+0.17.10 hardens the optional **Counter deep redesign** against a saturated-win-rate edge case found during the post-release behavior audit.
+
+Counter recommendations require at least a **+2 percentage-point modeled win-rate improvement**. When the selected side is already above 98%, that threshold cannot fit below the model's 100% win-rate ceiling. The previous UI could still offer **TRY DEEP REDESIGN**, even though no third-step candidate could mathematically qualify.
+
+The search engine now blocks that impossible third-step escalation, the UI suppresses the deep-redesign action in ceiling-limited cases, and the diagnosis explains why. A baseline of exactly 98% remains eligible because a 100% result can still reach the +2 pp threshold.
+
+This changes only **planner-analytical search control and UI behavior**. It does not change the battle resolver, recommendation threshold, candidate universe, combat formulas, Oracle status, or game-file evidence.
 
 ## 0.17.9 release focus
 

@@ -16,8 +16,12 @@ assert.ok(Math.abs(doctrine.battalions.infantry.org-battalions.infantry.org*1.10
 assert.ok(Math.abs(doctrine.battalions.artillery.soft-battalions.artillery.soft*1.20)<1e-9);
 assert.ok(Math.abs(doctrine.battalions.medium_armor.breakthrough-battalions.medium_armor.breakthrough*1.15)<1e-9);
 
-const fallbackLow=buildTechAdjustedData(battalions,supports,{...base,artillery:1,antiTank:1,antiAir:1});
-const fallbackHigh=buildTechAdjustedData(battalions,supports,{...base,artillery:3,antiTank:3,antiAir:3});
+const fallbackSupports=structuredClone(supports);
+fallbackSupports.field_guns={...structuredClone(supports.support_artillery),id:'field_guns',gameId:'field_guns'};
+fallbackSupports.anti_tank_battery={...structuredClone(supports.support_at),id:'anti_tank_battery',gameId:'anti_tank_battery'};
+fallbackSupports.anti_air_battery={...structuredClone(supports.support_aa),id:'anti_air_battery',gameId:'anti_air_battery'};
+const fallbackLow=buildTechAdjustedData(battalions,fallbackSupports,{...base,artillery:1,antiTank:1,antiAir:1});
+const fallbackHigh=buildTechAdjustedData(battalions,fallbackSupports,{...base,artillery:3,antiTank:3,antiAir:3});
 assert.ok(fallbackHigh.supports.field_guns.soft>fallbackLow.supports.field_guns.soft,'packless fallback artillery tiers must include current Infantry Guns');
 assert.ok(fallbackHigh.supports.anti_tank_battery.hard>fallbackLow.supports.anti_tank_battery.hard,'packless fallback anti-tank tiers must include current Anti-Tank Battery');
 assert.ok(fallbackHigh.supports.anti_air_battery.airAttack>fallbackLow.supports.anti_air_battery.airAttack,'packless fallback anti-air tiers must include current Anti-Air Battery');

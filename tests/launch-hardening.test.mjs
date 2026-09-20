@@ -39,6 +39,9 @@ assert.match(mainWorkflow,/if: github\.ref == 'refs\/heads\/main'/,'Pages deploy
 assert.match(mainWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'production deployment must be gated by the served-browser route audit');
 assert.match(releaseWorkflow,/permissions:\n  contents: read/,'release-candidate validation must remain read-only');
 assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR validation must use the same served-browser audit as production');
+assert.match(releaseWorkflow,/VERSION="\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/,'release-surface validation must derive the version from package.json');
+assert.match(releaseWorkflow,/grep -Fq "appVersion: '\$VERSION'" dist\/src\/data\.js/,'release-surface validation must compare built MODEL_META against the package version');
+assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
 assert.match(browserSmoke,/battle counter gauntlet tank air data scenario/,'browser smoke must crawl every current desktop planner route including Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air scenario gauntlet/,'browser smoke must render Counter Analysis at phone size too');
 assert.doesNotMatch(browserSmoke,/battle gauntlet tank air production data scenario/,'retired Industry must not remain a supported planner route');

@@ -13,6 +13,8 @@ The MIO runtime already retained and understood organization/trait `equipmentTyp
 
 Both runtimes now pass the equipment context into the existing MIO compatibility logic. Artillery / anti-tank / anti-air families are filtered by their selected family identity, while tank variants are filtered by each role's exact target equipment key. The 1.19.3 Vickers-Ruwolt source record provides the audit fixture: its anti-tank improvements are restricted to `anti_tank_equipment`, while its defensive-emplacement trait is restricted to artillery / rocket-artillery equipment.
 
+The compatibility matcher is also tightened so an exact tank restriction such as `medium_tank_destroyer_chassis` no longer matches every other tank chassis merely because both contain the word `tank`; the intentionally broad source category `armor` remains broad.
+
 Regression coverage proves that sibling artillery and anti-tank traits no longer cross-apply, and that medium-tank armor- and tank-destroyer-only traits stay on their correct role.
 
 This executes **already source-backed restriction data through the planner's existing MIO compatibility interpretation**. It adds no new combat formula, MIO bonus formula, Oracle result, or evidence promotion.

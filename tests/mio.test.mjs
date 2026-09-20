@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import {BUILTIN_MIOS,mioEffects,mioAvailable,mioEligibility,mioEquipmentCompatible,traitSelectable,applyMioEquipmentBonus,mioProductionAdjustments,applyMioToVariant} from '../src/mio.js';
+import {BUILTIN_MIOS,mioCatalog,mioEffects,mioAvailable,mioEligibility,mioEquipmentCompatible,traitSelectable,applyMioEquipmentBonus,mioProductionAdjustments,applyMioToVariant} from '../src/mio.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
 const org=BUILTIN_MIOS.GER_porsche_tank;
 assert.equal(mioAvailable(org,'GER','medium_tank'),true);
 assert.equal(mioAvailable(org,'USA','medium_tank'),true,'country requirements are informational in theorycraft mode');
@@ -17,12 +18,25 @@ assert.equal(mioAvailable({id:'debug',staticDisabled:true},'GER','medium_tank'),
 // Exact source equipment-group restrictions are structural, and trait bonuses do not leak to incompatible equipment.
 assert.equal(mioEquipmentCompatible(['mio_cat_eq_all_medium_plane'],'medium_airframe'),true);
 assert.equal(mioEquipmentCompatible(['mio_cat_eq_all_medium_plane'],'small_airframe'),false);
+assert.equal(mioEquipmentCompatible(['medium_tank_destroyer_chassis'],'medium_tank_chassis'),false,'exact TD restriction must not match a normal medium tank chassis');
+assert.equal(mioEquipmentCompatible(['medium_tank_chassis'],'medium_tank_destroyer_chassis'),false,'normal tank restriction must not match a medium TD chassis');
+assert.equal(mioEquipmentCompatible(['medium_tank'],'medium_tank_chassis'),true,'family token should still match its chassis by direct identity containment');
+assert.equal(mioEquipmentCompatible(['armor'],'medium_tank_destroyer_chassis'),true,'source broad armor restriction must remain compatible with tank equipment');
 const scopedCatalog={scoped:{id:'scoped',traits:{restricted:{id:'restricted',equipmentTypes:['mio_cat_eq_all_medium_plane'],equipmentBonus:{air_attack:.5},productionBonus:{},organizationModifier:{}}}}};
 const compatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'medium_airframe'});
 const incompatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'small_airframe'});
 assert.equal(compatible.equipmentBonus.air_attack,.5);
 assert.equal(incompatible.equipmentBonus.air_attack,undefined);
 assert.deepEqual(incompatible.equipmentFilteredTraits,['restricted']);
+
+const vickers=mioCatalog(BUILTIN_1193)['AST_vickers-ruwolt_organization'];
+assert.ok(vickers,'1.19.3 Vickers-Ruwolt artillery MIO fixture must exist');
+assert.deepEqual(vickers.traits.AST_mio_trait_anti_tank_improvements.equipmentTypes,['anti_tank_equipment'],'1.19.3 source retains the AT-only restriction');
+assert.deepEqual(vickers.traits.AST_mio_trait_defensive_emplacements.equipmentTypes,['artillery_equipment','rocket_artillery_equipment'],'1.19.3 source retains the artillery/rocket-only restriction');
+assert.equal(mioEquipmentCompatible(vickers.traits.AST_mio_trait_anti_tank_improvements.equipmentTypes,'anti_tank'),true);
+assert.equal(mioEquipmentCompatible(vickers.traits.AST_mio_trait_anti_tank_improvements.equipmentTypes,'artillery'),false);
+assert.equal(mioEquipmentCompatible(vickers.traits.AST_mio_trait_defensive_emplacements.equipmentTypes,'artillery'),true);
+assert.equal(mioEquipmentCompatible(vickers.traits.AST_mio_trait_defensive_emplacements.equipmentTypes,'anti_tank'),false);
 
 // Air MIO regression: imported/synthetic aircraft organizations must affect both combat stats and manufacturing economics.
 const airCatalog={...BUILTIN_MIOS,USA_air_test:{id:'USA_air_test',name:'Air Test Works',countries:['USA'],equipmentTypes:['small_airframe'],initial:{equipmentBonus:{air_attack:.05,air_agility:.04},productionBonus:{production_cost_factor:-.08}},traits:{streamlined_airframe:{id:'streamlined_airframe',name:'Streamlined Airframe',equipmentBonus:{maximum_speed:.03},productionBonus:{production_efficiency_gain_factor:.10},parents:[]}}}};

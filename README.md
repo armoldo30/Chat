@@ -1,9 +1,23 @@
-# HOI4 War Planner — 0.17.12
+# HOI4 War Planner — 0.17.13
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.13 release focus
+
+0.17.13 fixes a **source-backed MIO equipment-restriction leak** found during the Counter audit.
+
+The MIO runtime already retained and understood organization/trait `equipmentTypes` restrictions, but Division Lab and Counter previously requested one aggregate family effect without an equipment context. A selected trait restricted to anti-tank equipment could therefore leak into artillery-family calculations, and tank-role restrictions could leak between armor, tank destroyer, SP artillery, and SP anti-air variants inside the same chassis family.
+
+Both runtimes now pass the equipment context into the existing MIO compatibility logic. Artillery / anti-tank / anti-air families are filtered by their selected family identity, while tank variants are filtered by each role's exact target equipment key. The 1.19.3 Vickers-Ruwolt source record provides the audit fixture: its anti-tank improvements are restricted to `anti_tank_equipment`, while its defensive-emplacement trait is restricted to artillery / rocket-artillery equipment.
+
+The compatibility matcher is also tightened so an exact tank restriction such as `medium_tank_destroyer_chassis` no longer matches every other tank chassis merely because both contain the word `tank`; the intentionally broad source category `armor` remains broad.
+
+Regression coverage proves that sibling artillery and anti-tank traits no longer cross-apply, and that medium-tank armor- and tank-destroyer-only traits stay on their correct role.
+
+This executes **already source-backed restriction data through the planner's existing MIO compatibility interpretation**. It adds no new combat formula, MIO bonus formula, Oracle result, or evidence promotion.
 
 ## 0.17.12 release focus
 

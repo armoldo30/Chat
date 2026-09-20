@@ -66,7 +66,7 @@ const syntheticMios={
   COUNTER_TEST_AT:{id:'COUNTER_TEST_AT',name:'Counter AT Test',countries:[],equipmentTypes:['anti_tank'],initial:{equipmentBonus:{hard_attack:.20},productionBonus:{},organizationModifier:{}},traits:{}},
   COUNTER_TEST_AA:{id:'COUNTER_TEST_AA',name:'Counter AA Test',countries:[],equipmentTypes:['anti_air'],initial:{equipmentBonus:{air_attack:.30},productionBonus:{},organizationModifier:{}},traits:{}}
 };
-mioBaselineState.dataPack={...BUILTIN_1193,mios:{...BUILTIN_1193.mios,...syntheticMios}};
+mioBaselineState.dataPack={...BUILTIN_1193,meta:{...(BUILTIN_1193.meta||{}),mioInheritance:'materialized'},mios:{...BUILTIN_1193.mios,...syntheticMios}};
 const mioBaseData=counterTechData(mioBaselineState,'attacker');
 const mioSelectedState=structuredClone(mioBaselineState);
 mioSelectedState.mioSelections.attacker.artillery={organization:'COUNTER_TEST_ARTILLERY',traits:[]};

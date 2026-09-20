@@ -75,7 +75,8 @@ assert.match(search,/minimalPool=local\.length\?local:ranked/,'Smallest Effectiv
 assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive search rather than the blocking search');
 assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
 assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\),lastSide\);\}/,'Counter settings refresh must contain snapshot/render failures locally');
-assert.match(searchView,/ANALYZING \$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress');
+assert.match(searchView,/deep\?'REDESIGN':'ANALYZING'/,'UI must distinguish normal and deep-search progress labels');
+assert.match(searchView,/\$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress counts');
 assert.match(searchView,/MATCHUP-DRIVEN TWO-STEP SEARCH/);
 assert.match(searchView,/TRY DEEP REDESIGN/,'failed normal search must offer an explicit larger-redesign fallback');
 assert.match(searchView,/BOUNDED THREE-STEP DEEP REDESIGN/,'deep results must be visibly distinguished from the normal search');

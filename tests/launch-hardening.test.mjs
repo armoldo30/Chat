@@ -23,6 +23,11 @@ assert.match(main,/downloadJSON\('war-planner-scenario\.json',serializableState\
 assert.match(main,/\$\('app'\)\.innerHTML=/,'the SPA must render inside the permanent #app mount');
 assert.doesNotMatch(main,/document\.body\.innerHTML=/,'app rendering must not delete the privacy footer or enhancement script nodes');
 assert.doesNotMatch(main,/0\.15\.0 model/,'visible scenario copy must not describe the release as 0.15.0');
+assert.doesNotMatch(main,/bundled vanilla 1\.19\.2 baseline/i,'generic bundled-baseline copy must follow MODEL_META.gameVersion');
+assert.doesNotMatch(main,/Bundled vanilla 1\.19\.2 data active/,'Data Pack status must not advertise the retired baseline');
+assert.doesNotMatch(main,/0\.16\.0 model/,'Scenario version-lock copy must not advertise the launch-era model');
+assert.match(main,/1\.19\.2 energy model/,'intentional 1.19.2 production-formula provenance must remain visible');
+assert.match(main,/recovered 1\.19\.2 mission-stat corpus/,'intentional 1.19.2 air-corpus provenance must remain visible');
 
 assert.match(index,/<html lang="en">/);assert.match(index,/id="app"/);assert.match(index,/class="site-legal-footer"/);assert.match(index,/name="viewport"/);assert.match(index,/href="\.\/privacy\.html"/);assert.match(index,/Not affiliated with Paradox Interactive/);
 assert.match(polish,/:focus-visible/,'keyboard focus must remain visible');

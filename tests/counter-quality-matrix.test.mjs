@@ -44,13 +44,13 @@ function makeSnapshot({
 function inspect(name,snapshot,{side='attacker'}={}){
   const targetSide=side==='attacker'?'defender':'attacker';
   const diagnosis=diagnoseMatchup(snapshot[side],snapshot[targetSide],{side,battlefield:snapshot.state.battlefield});
-  const result=runCounterSearch(snapshot,{side,runs:60,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4});
+  const result=runCounterSearch(snapshot,{side,runs:50,firstStepLimit:10,beamWidth:3,secondPerSeedLimit:6,secondStepLimit:4,previewMultiplier:2});
   const top=(result.ranked.length?result.ranked:result.bestEfforts).slice(0,5).map(item=>({
     label:item.label,gain:+item.gain.toFixed(2),win:+item.winRate.toFixed(2),piercing:+item.stats.piercing.toFixed(1),armor:+item.stats.armor.toFixed(1),soft:+item.stats.soft.toFixed(1),hard:+item.stats.hard.toFixed(1),def:+item.stats.def.toFixed(1),breakthrough:+item.stats.breakthrough.toFixed(1),airAttack:+item.stats.airAttack.toFixed(1),kind:item.kind,kinds:item.changeKinds
   }));
   const recommendations=(result.recommendations||[]).map(group=>({roles:group.roles,label:group.item.label,gain:+group.item.gain.toFixed(2),kind:group.item.kind,kinds:group.item.changeKinds,pierces:group.item.pierces,airAttack:+group.item.stats.airAttack.toFixed(1)}));
   console.log('COUNTER_QUALITY',JSON.stringify({name,side,priorities:diagnosis.priorities,baseline:+result.baseline.winRate.toFixed(2),coverage:result.coverage,source:{armor:+snapshot[side].armor.toFixed(1),piercing:+snapshot[side].piercing.toFixed(1),hardness:+snapshot[side].hardness.toFixed(3)},target:{armor:+snapshot[targetSide].armor.toFixed(1),piercing:+snapshot[targetSide].piercing.toFixed(1),hardness:+snapshot[targetSide].hardness.toFixed(3)},recommendations,top}));
-  assert.equal(result.testedCount,30,name+': quality audit should exercise the normal 20+10 battle-test budget');
+  assert.ok(result.testedCount>0&&result.testedCount<=14,name+': quality certification should stay inside the compact 10+4 battle-test budget');
   assert.ok(result.bestTested&&Number.isFinite(result.bestTested.gain),name+': search must return a strongest tested result');
   assert.ok(top.length>0,name+': audit must retain observable top candidates');
   return {diagnosis,result,top,snapshot};

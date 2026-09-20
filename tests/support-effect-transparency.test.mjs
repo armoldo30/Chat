@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { supportSourceEffects, supportEffectSummary } from '../src/support-effect-transparency.js';
 
 const sample={
@@ -36,5 +37,10 @@ assert.equal(effects.find(x=>x.field==='enableAbility').display,'Extra Medics');
 const summary=supportEffectSummary([sample,{id:'plain',name:'Plain'}]);
 assert.equal(summary.length,1,'companies without retained specialist effects should not create empty summary rows');
 assert.equal(summary[0].name,'Audit Sample');
+
+const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+assert.match(main,/supportSourceEffects\(u\)/,'support picker metadata should use the canonical source-effect ledger');
+assert.match(main,/selectedSupportEffectPanel\(side\)/,'selected templates should expose retained support source effects');
+assert.match(main,/source-retained-not-executed/,'Division Designer must explicitly say unexecuted support effects are not folded into combat math');
 
 console.log('Support-effect transparency regression checks passed.');

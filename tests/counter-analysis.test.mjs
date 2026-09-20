@@ -8,6 +8,8 @@ import { buildCounterRecommendationGroups, counterOperationalBurden, isMeaningfu
 import { counterSnapshot, counterDivision, counterTechData } from '../src/counter-state-model.js';
 import { blankGrid } from '../src/designer.js';
 import { techAvailable } from '../src/tech.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
 
 const yours={soft:300,hard:80,breakthrough:180,armor:55,piercing:50,hardness:.25,org:50,width:20,supply:1.2,def:220};
 const target={soft:240,hard:120,def:350,breakthrough:130,armor:70,piercing:60,hardness:.7,org:55,width:24,supply:1.4};
@@ -60,8 +62,10 @@ assert.ok(second.every(item=>item.changeKinds?.length===2),'multi-step template 
 
 const baseSnapshot=counterSnapshot();
 
-const baseTechData=counterTechData(baseSnapshot.state,'attacker');
-const mioState=structuredClone(baseSnapshot.state);
+hydrateGameData(baseSnapshot.state.dataPack,{battalions,supports,equipment,terrain},{year:baseSnapshot.state.dataSnapshotYear});
+const mioBaseState=structuredClone(baseSnapshot.state);
+const baseTechData=counterTechData(mioBaseState,'attacker');
+const mioState=structuredClone(mioBaseState);
 mioState.dataPack=structuredClone(baseSnapshot.state.dataPack);
 mioState.dataPack.meta={...(mioState.dataPack.meta||{}),mioInheritance:'materialized'};
 mioState.dataPack.mios={...(mioState.dataPack.mios||{}),

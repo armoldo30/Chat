@@ -6,6 +6,7 @@ import { importedDivisionalSupportIds } from './gameData.js';
 import { REGIMENTAL_SUPPORT_IDS_1193, regimentalSupportAllowed } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData } from './tech.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioEffects, applyMioEquipmentBonus, applyMioToEquipmentRecord, applyMioToVariant } from './mio.js';
+import { LAND_MIO_FAMILY_MAP } from './land-mio-family-map.js';
 import { TANK_FAMILIES, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankRolesForFamily, tankVariantTargets, tankMioFamily } from './tank.js';
 import { airDoctrineEffects } from './doctrine.js';
 import BUILTIN_1193 from './builtin1193.js';
@@ -54,11 +55,10 @@ function tankDesignFor(state,side,family,role='armor'){
 }
 function mioEffectFor(state,side,family){return mioEffects(mioCatalog(state.dataPack),state.mioSelections[side][family]);}
 function applyFamilyMioToData(state,data,side){
-  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','field_guns','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','anti_tank_battery','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','anti_air_battery','regimental_aa']}};
-  for(const [family,map] of Object.entries(maps)){
+  for(const [family,map] of Object.entries(LAND_MIO_FAMILY_MAP)){
     const effect=mioEffectFor(state,side,family);
-    for(const id of map.b)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],effect.equipmentBonus);
-    for(const id of map.s)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],effect.equipmentBonus);
+    for(const id of map.battalions)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],effect.equipmentBonus);
+    for(const id of map.supports)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],effect.equipmentBonus);
   }
   for(const family of ['light','medium','heavy']){
     const mio=tankMioFamily(family),effect=mioEffectFor(state,side,mio);

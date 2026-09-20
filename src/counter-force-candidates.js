@@ -25,7 +25,7 @@ function withTankVariant(state,side,family,role,design){
   return {...state,tankVariants:{...(state.tankVariants||{}),[side]:sideVariants}};
 }
 function tierFingerprint(state,side){return TECH_FIELDS.map(field=>Number(state[side+'Tech']?.[field])||0);}
-export function counterForceKey(grid,supportKeys,state,side='attacker'){return JSON.stringify([side,counterTemplateKey(grid,supportKeys),state.tankVariants?.[side]||{},tierFingerprint(state,side)]);}
+export function counterForceKey(grid,supportKeys,state,side='attacker'){return JSON.stringify([side,counterTemplateKey(grid,supportKeys,state?.[side+'RegimentalSupports']||[]),state.tankVariants?.[side]||{},tierFingerprint(state,side)]);}
 
 function quickDesignScore(snapshot,before,after,side){
   const target=snapshot[otherSide(side)],hardness=Math.max(0,Math.min(1,Number(target?.hardness)||0));
@@ -49,7 +49,7 @@ function designMutationCandidates(snapshot,side,state,grid,supportKeys,priorChan
       const normalized=normalizeTankDesign(nextRaw,family,role);if(JSON.stringify(normalized)===JSON.stringify(raw))return;
       const forcedGunChange=component==='turret'&&normalized.gun!==raw.gun,finalDescription=forcedGunChange?`${description}; gun ${moduleName(TANK_GUNS,raw.gun)} → ${moduleName(TANK_GUNS,normalized.gun)}`:description,finalComponent=forcedGunChange?'turret/gun package':component;
       const after=buildTankDesign(normalized),nextState=withTankVariant(state,side,family,role,normalized),changes=[...priorChanges,finalDescription];
-      mutations.push({side,state:nextState,grid,supportKeys,changes,changeKinds:[...priorKinds,'tank-design'],label:changeLabel(changes),kind:'tank-design',changeCount:priorChanges.length+1,designChange:{family,role,variant:name,component:finalComponent,before,after,forcedGunChange},previewScore:quickDesignScore(snapshot,before,after,side),key:counterForceKey(grid,supportKeys,nextState,side)});
+      mutations.push({side,state:nextState,grid,supportKeys,changes,changeKinds:[...priorKinds,'tank-design'],label:changeLabel(changes),kind:'tank-design',changeCount:priorChanges.length+1,designChange:{family,role,variant:name,component:finalComponent,before,after,forcedGunChange},previewScore:quickDesignScore(snapshot,before,after,side),counterRole:'tank',key:counterForceKey(grid,supportKeys,nextState,side)});
     };
     for(const id of options.guns||[])if(id!==raw.gun)push({...raw,gun:id},`${name}: gun ${moduleName(TANK_GUNS,raw.gun)} → ${moduleName(TANK_GUNS,id)}`,'gun');
     for(const id of options.turrets||[])if(id!==raw.turret)push({...raw,turret:id},`${name}: turret ${moduleName(TANK_TURRETS,raw.turret)} → ${moduleName(TANK_TURRETS,id)}`,'turret');

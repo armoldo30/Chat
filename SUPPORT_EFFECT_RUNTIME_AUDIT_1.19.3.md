@@ -2,7 +2,7 @@
 
 Date: 2026-09-19  
 Target: HOI4 1.19.3.0.c01a  
-Production baseline: 0.17.2  
+Production baseline: 0.17.4  
 Tracking issue: #46
 
 ## Purpose
@@ -101,6 +101,21 @@ The remaining support-effect work should be done in this order:
 2. **Planner-only regression second** — implement only effects whose semantics are adequately supported and lock them with exact source fixtures.
 3. **Executable testing only where necessary** — reserve new Oracle/manual tests for effects whose result materially changes combat and whose ordering cannot be established from source/runtime evidence.
 4. **No broad promotion** — validating one support mechanic does not validate the full combat resolver.
+
+## 0.17.5 transparency implementation
+
+The static-semantics pass did not identify any remaining support-only mechanic that can be promoted into new combat math without making an unsupported assumption about executable aggregation or ordering.
+
+0.17.5 therefore adds **presentation, not execution**:
+
+- the support picker reads specialist-effect state from the canonical runtime coverage ledger;
+- selected templates expose a persistent Source effects summary;
+- recon, entrenchment, initiative, recovery, reliability/capture, supply/fuel factors, casualty trickleback, experience loss, suppression, maximum-speed fields, `battalion_mult`, deployed-leader modifiers and enabled abilities are visible when retained by the selected support records;
+- every displayed specialist effect carries its current runtime state;
+- `source-retained-not-executed` effects are explicitly described as not folded into combat math;
+- initiative remains `aggregated-not-used-downstream`.
+
+This improves auditability without changing any resolver formula or evidence classification.
 
 ## Current conclusion
 

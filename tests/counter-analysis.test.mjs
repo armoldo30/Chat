@@ -6,8 +6,9 @@ import { buildCounterCandidates } from '../src/counter-candidates.js';
 import { buildForceDesignCandidates } from '../src/counter-force-candidates.js';
 import { buildCounterRecommendationGroups, counterOperationalBurden, isMeaningfulCounterImprovement } from '../src/counter-search.js';
 import { counterSnapshot, counterDivision, counterTechData } from '../src/counter-state-model.js';
-import BUILTIN_1193 from '../src/builtin1193.js';
 import { blankGrid } from '../src/designer.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
 
 const yours={soft:300,hard:80,breakthrough:180,armor:55,piercing:50,hardness:.25,org:50,width:20,supply:1.2,def:220};
 const target={soft:240,hard:120,def:350,breakthrough:130,armor:70,piercing:60,hardness:.7,org:55,width:24,supply:1.4};
@@ -60,13 +61,16 @@ assert.ok(second.every(item=>item.changeKinds?.length===2),'multi-step template 
 
 const baseSnapshot=counterSnapshot();
 
+hydrateGameData(baseSnapshot.state.dataPack,{battalions,supports,equipment,terrain},{year:baseSnapshot.state.dataSnapshotYear});
 const mioBaselineState=structuredClone(baseSnapshot.state);
 const syntheticMios={
   COUNTER_TEST_ARTILLERY:{id:'COUNTER_TEST_ARTILLERY',name:'Counter Artillery Test',countries:[],equipmentTypes:['artillery'],initial:{equipmentBonus:{soft_attack:.25},productionBonus:{},organizationModifier:{}},traits:{}},
   COUNTER_TEST_AT:{id:'COUNTER_TEST_AT',name:'Counter AT Test',countries:[],equipmentTypes:['anti_tank'],initial:{equipmentBonus:{hard_attack:.20},productionBonus:{},organizationModifier:{}},traits:{}},
   COUNTER_TEST_AA:{id:'COUNTER_TEST_AA',name:'Counter AA Test',countries:[],equipmentTypes:['anti_air'],initial:{equipmentBonus:{air_attack:.30},productionBonus:{},organizationModifier:{}},traits:{}}
 };
-mioBaselineState.dataPack={...BUILTIN_1193,meta:{...(BUILTIN_1193.meta||{}),mioInheritance:'materialized'},mios:{...BUILTIN_1193.mios,...syntheticMios}};
+mioBaselineState.dataPack=structuredClone(baseSnapshot.state.dataPack);
+mioBaselineState.dataPack.meta={...(mioBaselineState.dataPack.meta||{}),mioInheritance:'materialized'};
+mioBaselineState.dataPack.mios={...(mioBaselineState.dataPack.mios||{}),...syntheticMios};
 const mioBaseData=counterTechData(mioBaselineState,'attacker');
 const mioSelectedState=structuredClone(mioBaselineState);
 mioSelectedState.mioSelections.attacker.artillery={organization:'COUNTER_TEST_ARTILLERY',traits:[]};

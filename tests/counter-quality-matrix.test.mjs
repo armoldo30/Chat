@@ -84,6 +84,11 @@ assert.ok(hardArmor.diagnosis.hardness>=.6,'hard-armor fixture must actually be 
 assert.ok(hardArmor.diagnosis.priorities.includes('hard-attack'),'hard armor target should prioritize hard attack');
 assert.ok(hardArmor.result.coverage.hardAttackImprovement>0,'hard-armor search should battle-test at least one answer that raises hard attack');
 assert.ok(hardArmor.result.bestEfforts.some(item=>item.stats.hard>hardArmor.snapshot.attacker.hard),'when no local counter wins, the retained best-effort set should still include a hard-attack improvement');
+const deepArmor=runCounterSearch(hardArmor.snapshot,{side:'attacker',deep:true,runs:50,firstStepLimit:6,beamWidth:2,secondPerSeedLimit:4,secondStepLimit:3,previewMultiplier:2,thirdBeamWidth:2,thirdPerSeedLimit:4,thirdStepLimit:2});
+assert.equal(deepArmor.maxDepth,3,'hopeless hard-armor fixture should exercise the explicit third-step redesign path');
+assert.ok(deepArmor.threeChangeCount>0&&deepArmor.threeChangeCount<=2,'deep redesign must stay inside its explicit third-step battle-test cap');
+assert.equal(deepArmor.testedCount,deepArmor.oneChangeCount+deepArmor.twoChangeCount+deepArmor.threeChangeCount,'deep search accounting must separate all three depths');
+assert.ok(deepArmor.bestEfforts.some(item=>item.changeCount===3)||deepArmor.ranked.some(item=>item.changeCount===3),'deep redesign must retain at least one actual three-change candidate');
 
 const air=inspect('enemy-air-superiority',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],

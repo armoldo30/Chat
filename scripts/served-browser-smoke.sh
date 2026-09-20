@@ -115,7 +115,7 @@ run_counter_interaction(){
   python3 scripts/audit-rendered-dom.py "$dom" "$label/counter-interaction"
   grep -q 'IMPROVE ATTACKER' "$dom"
   grep -q 'IMPROVE DEFENDER' "$dom"
-  grep -q 'Recommended attacker improvements' "$dom"
+  grep -q 'Recommended attacker counters' "$dom"
   if grep -q 'data-runtime-error="1"' "$dom"; then
     echo "Global planner recovery appeared during $label Counter Analysis interaction." >&2
     return 1

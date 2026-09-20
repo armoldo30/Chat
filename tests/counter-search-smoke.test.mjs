@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { counterSnapshot } from '../src/counter-state-model.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
+import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
 import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups } from '../src/counter-search.js';
+hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
 const started=Date.now();
 const r=runCounterSearch(s);

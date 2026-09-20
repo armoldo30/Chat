@@ -1,3 +1,23 @@
+# HOI4 War Planner 0.17.11 — Release Notes
+
+## Overview
+
+0.17.11 is a focused **Counter Analysis MIO-context correction** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Current Regimental Support MIO propagation
+
+- Adds current 1.19.3 `field_guns`, `anti_tank_battery`, and `anti_air_battery` to Counter's existing artillery / anti-tank / anti-air MIO family propagation.
+- Retains `regimental_infantry_guns`, `regimental_at`, and `regimental_aa` aliases for backward compatibility.
+- Adds runtime regression checks proving each current battery receives the same selected MIO percentage factor as its divisional support counterpart.
+- Aligns the packless fallback equipment-tier mappings and coarse tech-availability checks to the same current IDs.
+- Does not broaden technology prerequisites beyond the already-supported coarse theorycraft semantics.
+
+## Evidence boundary
+
+This is a **mapping/current-ID correction**. 0.17.11 introduces no new MIO formula, combat formula, executable classification, Oracle validation, or game-file evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.10 — Release Notes
 
 ## Overview

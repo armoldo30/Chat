@@ -16,14 +16,17 @@ assert.ok(Math.abs(doctrine.battalions.infantry.org-battalions.infantry.org*1.10
 assert.ok(Math.abs(doctrine.battalions.artillery.soft-battalions.artillery.soft*1.20)<1e-9);
 assert.ok(Math.abs(doctrine.battalions.medium_armor.breakthrough-battalions.medium_armor.breakthrough*1.15)<1e-9);
 
-const locked={...base,artillery:0,antiTank:0,unlocks:{...base.unlocks,mechanized:false,signal:false}};
+const locked={...base,artillery:0,antiTank:0,antiAir:0,unlocks:{...base.unlocks,mechanized:false,signal:false}};
 assert.equal(techAvailable('battalion','artillery',locked),false);
 assert.equal(techAvailable('battalion','mechanized',locked),false);
 assert.equal(techAvailable('support','support_at',locked),false);
+assert.equal(techAvailable('support','field_guns',locked),false);
+assert.equal(techAvailable('support','anti_tank_battery',locked),false);
+assert.equal(techAvailable('support','anti_air_battery',locked),false);
 assert.equal(techAvailable('support','signal',locked),false);
 assert.equal(techAvailable('battalion','infantry',locked),true);
 const grid=[[ 'infantry','artillery',null,null,null ],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null],[null,null,null,null,null]];
-const issues=techIssues(grid,['signal'],[null,'regimental_at',null,null,null],locked);
-assert.deepEqual(new Set(issues),new Set(['artillery','signal','regimental_at']));
+const issues=techIssues(grid,['signal'],['field_guns','anti_tank_battery','anti_air_battery','regimental_at',null],locked);
+assert.deepEqual(new Set(issues),new Set(['artillery','signal','field_guns','anti_tank_battery','anti_air_battery','regimental_at']));
 
 console.log('Tech-profile regression tests passed.');

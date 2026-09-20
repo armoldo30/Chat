@@ -1,9 +1,17 @@
-# HOI4 War Planner — 0.17.4
+# HOI4 War Planner — 0.17.5
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.5 release focus
+
+0.17.5 advances the support-effects audit without inventing new combat formulas. The Division Designer now exposes retained 1.19.3 support-specific source effects through an evidence-bounded summary for selected divisional and Regimental Support companies.
+
+The summary covers recon, entrenchment, initiative, recovery, reliability/capture, supply/fuel factors, casualty trickleback, experience loss, suppression, speed fields, battalion_mult blocks, deployed-leader modifiers and enabled abilities. Each item carries its current runtime state. Effects that remain `source-retained-not-executed` are explicitly shown as informational rather than silently applied.
+
+No Oracle evidence or combat resolver formula is promoted by this release.
 
 ## 0.17.4 release focus
 

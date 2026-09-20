@@ -15,7 +15,8 @@ export function matchupPriorityScore(base,candidate,target,{side='attacker',batt
   else if(num(base?.piercing)<num(target?.armor))score+=(num(candidate?.piercing)-num(base?.piercing))*.8;
   if(num(base?.armor)<=num(target?.piercing)&&num(candidate?.armor)>num(target?.piercing))score+=90;
   if(num(base?.armor)>num(target?.piercing)&&num(candidate?.armor)<=num(target?.piercing))score-=75;
-  if(Math.abs(num(battlefield?.air))>1e-9||Math.abs(num(battlefield?.cas))>1e-9)score+=airGain*.35;
+  const air=num(battlefield?.air),enemyAirSuperiority=side==='attacker'?air< -1e-9:air>1e-9;
+  if(enemyAirSuperiority)score+=airGain*.35;
   score-=Math.max(0,num(candidate?.supply)-num(base?.supply))*.6;
   return score;
 }
@@ -32,7 +33,9 @@ export function diagnoseMatchup(yours,target,{side='attacker',battlefield={}}={}
   else {notes.push({tone:'warn',title:'Use a mixed damage profile',detail:`The target is ${Math.round(hardness*100)}% hard, so both soft and hard attack contribute materially.`});priorities.push('mixed-attack');}
   const survivalKey=side==='defender'?'def':'breakthrough',survival=num(yours?.[survivalKey]),incoming=effectiveAttack(target,yours);
   if(incoming>survival*1.05){const label=side==='defender'?'defense':'breakthrough';notes.push({tone:'warn',title:`More ${label} can matter`,detail:`Target effective attack is about ${round(incoming)} against ${round(survival)} ${label}. Counter search will value edits that improve staying power as well as damage.`});priorities.push(label);}
-  const airThreat=Math.abs(num(battlefield?.air))>1e-9||Math.abs(num(battlefield?.cas))>1e-9;
-  if(airThreat){notes.push({tone:'warn',title:'Air attack has direct matchup value',detail:'The selected battlefield includes enemy air/CAS pressure, so Counter search will give anti-air edits additional priority instead of treating AA as generic utility.'});priorities.push('air-attack');}
+  const air=num(battlefield?.air),enemyAirSuperiority=side==='attacker'?air< -1e-9:air>1e-9;
+  if(enemyAirSuperiority){notes.push({tone:'warn',title:'Enemy air superiority makes AA relevant',detail:'The selected side is suffering the modeled enemy-air-superiority penalty, so Counter search gives air-attack improvements additional priority.'});priorities.push('air-attack');}
+  const enemyCas=side==='defender'&&num(battlefield?.cas)>1e-9;
+  if(enemyCas)notes.push({tone:'warn',title:'Enemy CAS support is active',detail:'CAS boosts the attacker in this resolver, but direct AA-versus-CAS damage or mitigation is not executed here. Counter does not prioritize AA from CAS alone.'});
   return {yourPierces:yourPiercing>=targetArmor,targetPierces:targetPiercing>=yourArmor,hardness,yourPressure:effectiveAttack(yours,target),targetPressure:effectiveAttack(target,yours),priorities:[...new Set(priorities)],notes:notes.slice(0,6)};
 }

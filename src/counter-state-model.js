@@ -1,14 +1,19 @@
 import { battalions, supports, equipment, terrain, COMBAT_CONSTANTS } from './data.js';
 import { calcDivision, divisionEquipmentIC } from './engine.js';
-import { countsToGrid, normalizeGrid, gridToCounts, filledInRegiment, DESIGNER_COLS } from './designer.js';
+import { countsToGrid, normalizeGrid, gridToCounts, filledInRegiment, DESIGNER_COLS, regimentGroup as gridRegimentGroup } from './designer.js';
+import { ordinaryDivisionBattalionIds, normalizeSupportCompanySelection } from './division-designer-options.js';
+import { importedDivisionalSupportIds } from './gameData.js';
+import { REGIMENTAL_SUPPORT_IDS_1193, regimentalSupportAllowed } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData } from './tech.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioEffects, applyMioEquipmentBonus, applyMioToEquipmentRecord, applyMioToVariant } from './mio.js';
 import { TANK_FAMILIES, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankRolesForFamily, tankVariantTargets, tankMioFamily } from './tank.js';
 import { airDoctrineEffects } from './doctrine.js';
-import BUILTIN_1192 from './builtin1192.js';
+import BUILTIN_1193 from './builtin1193.js';
 
 const STORAGE='hoi4-war-planner-v7';
 const MIO_FAMILIES=['infantry_equipment','artillery','anti_tank','anti_air','light_tank','medium_tank','heavy_tank','small_airframe','medium_airframe','large_airframe'];
+const LEGACY_REGIMENTAL_SUPPORT_IDS=new Set(['regimental_infantry_guns','regimental_at','regimental_aa']);
+const LEGACY_REGIMENTAL_MAP={regimental_infantry_guns:'field_guns',regimental_at:'anti_tank_battery',regimental_aa:'anti_air_battery'};
 const DEFAULT_FORCE={
   attacker:{line:[{type:'infantry',count:9},{type:'artillery',count:1}],supports:['engineer','support_artillery','support_aa'],divisions:3,name:'Assault Division'},
   defender:{line:[{type:'infantry',count:10}],supports:['engineer','support_artillery'],divisions:3,name:'Defensive Division'}
@@ -62,15 +67,20 @@ function applyFamilyMioToData(state,data,side){
   return data;
 }
 
+function divisionalSupportIds(){
+  const regimental=new Set([...REGIMENTAL_SUPPORT_IDS_1193,...LEGACY_REGIMENTAL_SUPPORT_IDS]);
+  return importedDivisionalSupportIds(supports).filter(id=>!regimental.has(id)&&supports[id]?.allowInNonArmyHq!==false&&supports[id]?.divisional!==false);
+}
+
 export function loadCounterState(){
   let raw={};try{raw=JSON.parse(localStorage.getItem(STORAGE)||'{}')||{};}catch{}
-  const state={...raw};state.dataPack=state.dataPack||BUILTIN_1192;state.dataSnapshotYear=Number(state.dataSnapshotYear)||1940;
-  const valid=Object.keys(battalions);
+  const state={...raw};state.dataPack=state.dataPack||BUILTIN_1193;state.dataSnapshotYear=Number(state.dataSnapshotYear)||1940;
+  const valid=ordinaryDivisionBattalionIds(battalions),allowedSupports=divisionalSupportIds(),regimentalIds=new Set(REGIMENTAL_SUPPORT_IDS_1193.filter(id=>supports[id]));
   for(const side of ['attacker','defender']){
     const fallback=DEFAULT_FORCE[side],savedLine=Array.isArray(state[side])?state[side]:fallback.line;
     state[side+'Name']=String(state[side+'Name']||fallback.name);
-    state[side+'Supports']=Array.isArray(state[side+'Supports'])?state[side+'Supports'].filter(id=>supports[id]).slice(0,5):[...fallback.supports];
-    state[side+'RegimentalSupports']=Array.isArray(state[side+'RegimentalSupports'])?Array.from({length:DESIGNER_COLS},(_,i)=>state[side+'RegimentalSupports'][i]||null):Array(DESIGNER_COLS).fill(null);
+    state[side+'Supports']=normalizeSupportCompanySelection(Array.isArray(state[side+'Supports'])?state[side+'Supports']:fallback.supports,supports,allowedSupports,5);
+    state[side+'RegimentalSupports']=Array.from({length:DESIGNER_COLS},(_,i)=>{const rawId=state[side+'RegimentalSupports']?.[i],id=LEGACY_REGIMENTAL_MAP[rawId]||rawId;return id&&regimentalIds.has(id)?id:null;});
     state[side+'Grid']=Array.isArray(state[side+'Grid'])?normalizeGrid(state[side+'Grid'],valid,battalions):countsToGrid(savedLine,valid,battalions);
     state[side+'Divisions']=Math.max(1,Number(state[side+'Divisions']??fallback.divisions)||fallback.divisions);
     state[side+'Tech']=normalizeTechProfile(state[side+'Tech']||structuredClone(DEFAULT_TECH_PROFILE));
@@ -101,8 +111,11 @@ export function counterEquipment(state,side){
 }
 
 export function counterDivision(state,side,grid=state[side+'Grid'],supportKeys=state[side+'Supports']){
-  const data=counterTechData(state,side),line=gridToCounts(grid,Object.keys(battalions));
-  const regimental=state[side+'RegimentalSupports'].filter((key,column)=>key&&supports[key]&&filledInRegiment(grid,column)>=3);
+  const data=counterTechData(state,side),line=gridToCounts(grid,ordinaryDivisionBattalionIds(data.battalions));
+  const regimental=(state[side+'RegimentalSupports']||[]).filter((key,column)=>{
+    if(!key||!data.supports[key]||filledInRegiment(grid,column)<3)return false;
+    return regimentalSupportAllowed(key,data.supports[key],gridRegimentGroup(grid,column,data.battalions));
+  });
   return calcDivision(line,data.battalions,[...supportKeys,...regimental],data.supports);
 }
 

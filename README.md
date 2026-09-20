@@ -1,9 +1,17 @@
-# HOI4 War Planner — 0.17.10
+# HOI4 War Planner — 0.17.11
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.11 release focus
+
+0.17.11 fixes a **Counter Analysis MIO-context mapping drift** introduced by the 1.19.3 Regimental Support ID migration.
+
+The current 1.19.3 **Infantry Guns** (`field_guns`), **Anti-Tank Battery** (`anti_tank_battery`), and **Anti-Air Battery** (`anti_air_battery`) now receive the same selected artillery / anti-tank / anti-air MIO equipment bonuses as their divisional support counterparts. The retained predecessor IDs remain supported for older saved scenarios.
+
+The adjacent packless coarse equipment-tier and availability aliases are aligned to the same current IDs so the fallback path no longer treats legacy and current Regimental Support differently. This is a **mapping/current-ID correction** only: it adds no new MIO formula, prerequisite execution, combat formula, Oracle result, or evidence promotion.
 
 ## 0.17.10 release focus
 

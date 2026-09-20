@@ -1,11 +1,26 @@
-# HOI4 War Planner — 0.17.6
+# HOI4 War Planner — 0.17.7
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
 
+## 0.17.7 release focus
+
+0.17.7 hardens **Counter Analysis recommendation quality** after the 0.17.6 candidate-universe expansion. A permanent hydrated 1.19.3 quality matrix now checks representative soft-target, armor-threshold, high-hardness, enemy-air-superiority, defender and Regimental Support matchups against the real bounded Counter search.
+
+When candidates tie on modeled win-rate improvement, Counter now uses the modeled **strength-loss exchange** as a combat-only secondary discriminator before non-combat tie-breakers, and exposes that exchange in the result UI. This prevents saturated 0%/100% matchups from falling through to arbitrary ordering while keeping Best Raw combat-pure.
+
+Air-threat diagnosis is now side-aware. Anti-air is prioritized when the side being improved is actually suffering the modeled enemy-air-superiority penalty; CAS alone no longer claims direct AA mitigation because direct AA-versus-CAS damage/mitigation is not executed by the current resolver.
+
+The quality matrix also exposes search coverage for line, divisional-support, Regimental Support and tank-design candidates plus piercing, hard/soft attack, air-attack and survival improvements. Counter smoke and quality tests now hydrate the same bundled 1.19.3 runtime data path used by the live app.
+
+This release also removes stale generic 1.19.2 / 0.16.0 active-baseline UI wording while deliberately preserving evidence-specific 1.19.2 provenance for retained production/combat/air-source work.
+
+All recommendation ranking, coverage accounting and quality-matrix expectations remain **planner analytical**. No new combat formula, executable behavior, Oracle evidence, or game-file evidence class is promoted.
+
 ## 0.17.6 release focus
+
 
 0.17.6 upgrades **Counter Analysis** around the matchup itself. Counter now screens the current 1.19.3 ordinary battalion, divisional-support and Regimental Support catalogs instead of the old hardcoded battalion/support whitelists, while preserving the Division Designer's HQ-only exclusions and support-structure rules.
 

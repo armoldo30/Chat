@@ -91,6 +91,48 @@ sameTenPercent(mioTechData.supports.anti_tank_battery.hard,baseTechData.supports
 sameTenPercent(mioTechData.supports.support_aa.airAttack,baseTechData.supports.support_aa.airAttack,'divisional support anti-air');
 sameTenPercent(mioTechData.supports.anti_air_battery.airAttack,baseTechData.supports.anti_air_battery.airAttack,'1.19.3 anti-air battery');
 
+const scopedState=structuredClone(mioBaseState);
+scopedState.dataPack=structuredClone(mioBaseState.dataPack);
+scopedState.dataPack.meta={...(scopedState.dataPack.meta||{}),mioInheritance:'materialized'};
+scopedState.dataPack.mios={...(scopedState.dataPack.mios||{}),
+  TEST_COUNTER_SCOPED_ARTILLERY:{
+    id:'TEST_COUNTER_SCOPED_ARTILLERY',name:'Scoped Artillery Test',equipmentTypes:['artillery','anti_tank'],
+    initial:{equipmentBonus:{},productionBonus:{}},
+    traits:{
+      ART_ONLY:{id:'ART_ONLY',equipmentTypes:['artillery_equipment'],equipmentBonus:{soft_attack:.04},productionBonus:{},organizationModifier:{},parents:[]},
+      AT_ONLY:{id:'AT_ONLY',equipmentTypes:['anti_tank_equipment'],equipmentBonus:{hard_attack:.06},productionBonus:{},organizationModifier:{},parents:[]}
+    }
+  },
+  TEST_COUNTER_SCOPED_TANK:{
+    id:'TEST_COUNTER_SCOPED_TANK',name:'Scoped Tank Test',equipmentTypes:['medium_tank'],
+    initial:{equipmentBonus:{},productionBonus:{}},
+    traits:{
+      ARMOR_ONLY:{id:'ARMOR_ONLY',equipmentTypes:['medium_tank_chassis'],equipmentBonus:{armor_value:.08},productionBonus:{},organizationModifier:{},parents:[]},
+      TD_ONLY:{id:'TD_ONLY',equipmentTypes:['medium_tank_destroyer_chassis'],equipmentBonus:{hard_attack:.09},productionBonus:{},organizationModifier:{},parents:[]}
+    }
+  }
+};
+scopedState.mioSelections=structuredClone(mioBaseState.mioSelections);
+scopedState.mioSelections.attacker={...scopedState.mioSelections.attacker,
+  artillery:{organization:'TEST_COUNTER_SCOPED_ARTILLERY',traits:['ART_ONLY','AT_ONLY']},
+  anti_tank:{organization:'TEST_COUNTER_SCOPED_ARTILLERY',traits:['ART_ONLY','AT_ONLY']},
+  medium_tank:{organization:'TEST_COUNTER_SCOPED_TANK',traits:['ARMOR_ONLY','TD_ONLY']}
+};
+const scopedTechData=counterTechData(scopedState,'attacker');
+const near=(a,b,msg)=>assert.ok(Math.abs(Number(a)-Number(b))<1e-9,msg);
+near(scopedTechData.supports.support_artillery.soft/baseTechData.supports.support_artillery.soft,1.04,'artillery-only trait must apply to divisional support artillery');
+near(scopedTechData.supports.field_guns.soft/baseTechData.supports.field_guns.soft,1.04,'artillery-only trait must apply to current Infantry Guns');
+near(scopedTechData.supports.support_artillery.hard,baseTechData.supports.support_artillery.hard,'anti-tank-only trait must not leak into artillery support');
+near(scopedTechData.supports.field_guns.hard,baseTechData.supports.field_guns.hard,'anti-tank-only trait must not leak into current Infantry Guns');
+near(scopedTechData.supports.support_at.hard/baseTechData.supports.support_at.hard,1.06,'anti-tank-only trait must apply to divisional support AT');
+near(scopedTechData.supports.anti_tank_battery.hard/baseTechData.supports.anti_tank_battery.hard,1.06,'anti-tank-only trait must apply to current Anti-Tank Battery');
+near(scopedTechData.supports.support_at.soft,baseTechData.supports.support_at.soft,'artillery-only trait must not leak into divisional support AT');
+near(scopedTechData.supports.anti_tank_battery.soft,baseTechData.supports.anti_tank_battery.soft,'artillery-only trait must not leak into current Anti-Tank Battery');
+near(scopedTechData.battalions.medium_armor.armor/baseTechData.battalions.medium_armor.armor,1.08,'armor-only medium-tank trait must apply to the armor chassis role');
+near(scopedTechData.battalions.medium_armor.hard,baseTechData.battalions.medium_armor.hard,'tank-destroyer-only trait must not leak into the armor chassis role');
+near(scopedTechData.battalions.medium_tank_destroyer_brigade.hard/baseTechData.battalions.medium_tank_destroyer_brigade.hard,1.09,'tank-destroyer-only trait must apply to the TD chassis role');
+near(scopedTechData.battalions.medium_tank_destroyer_brigade.armor,baseTechData.battalions.medium_tank_destroyer_brigade.armor,'armor-chassis-only trait must not leak into the TD role');
+
 assert.equal(techAvailable('support','field_guns',{artillery:0}),false,'current field guns must follow the artillery coarse availability alias');
 assert.equal(techAvailable('support','anti_tank_battery',{antiTank:0}),false,'current anti-tank battery must follow the AT coarse availability alias');
 assert.equal(techAvailable('support','anti_air_battery',{antiAir:0}),false,'current anti-air battery must follow the AA coarse availability alias');

@@ -8,6 +8,7 @@ import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable,
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
 import { ordinaryDivisionBattalionIds, battalionPickerGroups, supportCompanyPickerGroups, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection, assignRegimentalSupport } from './division-designer-options.js';
 import { REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
+import { supportSourceEffects, supportEffectSummary } from './support-effect-transparency.js';
 import { DEFAULT_TECH_PROFILE, INFANTRY_EQUIPMENT_LEVELS, WEAPON_TIER_LEVELS, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from './tech.js';
 import { TANK_CHASSIS, TANK_GUNS, TANK_TURRETS, TANK_SUSPENSIONS, TANK_ARMOR_TYPES, TANK_ENGINES, TANK_SPECIALS, TANK_SLOT_MODULES, TANK_FAMILIES, TANK_ROLE_LABELS, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, configureTankDataPack, tankDataStatus, tankDesignOptions, tankRolesForFamily, tankVariantTargets, tankMioFamily, tankFamilyLabel } from './tank.js';
 import { AIRFRAMES, AIR_ENGINES, AIR_WEAPONS, AIR_DEFENSE_MODULES, AIR_SPECIALS, AIR_SLOT_MODULES, defaultAirDesign, normalizeAirDesign, buildAirDesign, compareAirDesigns, compareBuiltAirDesigns, airMissionEfficiency, airMissionEfficiencyBuilt, configureAirDataPack, airDataStatus, airDesignOptions, airSlotLabel } from './air.js';
@@ -355,12 +356,17 @@ function pickerBattalionMeta(side,key){
   return `<span class="picker-meta"><em>${fmt(u.width,0)}w</em><em>${fmt(u.org,0)} org</em><em>${fmt(u.soft,0)} SA</em>${u.armor?`<em>${fmt(u.armor,0)} arm</em>`:''}${u.piercing?`<em>${fmt(u.piercing,0)} pierce</em>`:''}<em>${fmt(ic,0)} IC</em>${requirementBadge(u)}</span>`;
 }
 function supportSourceEffectMeta(u={}){
-  const items=[];
-  const pctItem=(label,value)=>{const n=Number(value);if(Number.isFinite(n)&&n!==0)items.push(`<em title="Source-defined support effect; downstream executable formula coverage may be partial">${label} ${n>0?'+':''}${fmt(n*100,0)}%</em>`);};
-  const flatItem=(label,value,d=1)=>{const n=Number(value);if(Number.isFinite(n)&&n!==0)items.push(`<em title="Source-defined support effect; downstream executable formula coverage may be partial">${label} ${n>0?'+':''}${fmt(n,d)}</em>`);};
-  flatItem('REC',u.recon,1);flatItem('ENT',u.entrenchment,1);pctItem('INIT',u.initiative);pctItem('SUP',u.supplyConsumptionFactor);pctItem('REL',u.reliabilityFactor);pctItem('TRICKLE',u.casualtyTrickleback);pctItem('XP LOSS',u.experienceLossFactor);
-  if(Array.isArray(u.battalionMult)&&u.battalionMult.length)items.push(`<em title="This company has source battalion_mult effects. They are preserved for audit but not all are applied by the current planner resolver.">Battalion effect</em>`);
+  const effects=supportSourceEffects(u),shown=effects.slice(0,4);
+  const items=shown.map(x=>`<em title="${esc(x.runtimeEvidence)} · ${esc(x.state)}">${esc(x.label)} ${esc(x.display)}</em>`);
+  if(effects.length>shown.length)items.push(`<em title="Additional retained source effects are shown in the selected-template Source effects summary">+${effects.length-shown.length} more</em>`);
   return items.join('');
+}
+function selectedSupportEffectPanel(side){
+  const ids=[...new Set([...(state[side+'Supports']||[]),...validRegimentalSupports(side)].filter(Boolean))];
+  const summary=supportEffectSummary(ids.map(id=>supports[id]).filter(Boolean));
+  if(!summary.length)return '';
+  const rows=summary.map(company=>`<article class="support-effect-row"><b>${esc(company.name)}</b><div class="equipment-mini">${company.effects.map(x=>`<span title="${esc(x.runtimeEvidence)} · ${esc(x.state)}"><strong>${esc(x.label)}</strong><em>${esc(x.display)}</em><small>${esc(x.state)}</small></span>`).join('')}</div></article>`).join('');
+  return `<details class="equipment-drawer support-effect-drawer"><summary><span>SOURCE EFFECTS</span><b>${summary.length} selected support compan${summary.length===1?'y':'ies'}</b><em>Evidence-bounded</em></summary><div class="drawer-body"><p class="muted">These are retained 1.19.3 source effects. Items marked source-retained-not-executed are shown for transparency and are not folded into combat math. Initiative is aggregated but still unused by the battle resolver.</p>${rows}</div></details>`;
 }
 function pickerSupportMeta(side,key){
   const u=techData(side).supports[key];if(!u)return '';
@@ -405,7 +411,7 @@ function renderDivisionDesigner(side){
     <div class="hoi-designer-layout">
       <div class="regiment-board"><div class="board-label"><span>COMBAT BATTALIONS</span><small>5 regiments · 5 battalions each · Shift-click a slot to fill its regiment</small></div>${designerMainStrip(stats)}<div class="regiment-grid">${Array.from({length:5},(_,c)=>regimentColumn(side,c)).join('')}</div><div class="regimental-label"><span>REGIMENTAL SUPPORT</span><small>1.19 structure · requires 3 battalions in the regiment</small></div>${designerCostBand(stats,side)}</div>
       <aside class="support-rail"><div class="rail-title">DIVISION SUPPORT</div>${Array.from({length:5},(_,i)=>supportSlot(side,i)).join('')}</aside>
-      <aside class="designer-stats"><div class="stats-title">DIVISION STATS</div>${designerStatGroups(stats)}<section class="hoi-stat-section equipment-cost"><h4>EQUIPMENT DETAIL</h4><div class="equipment-mini">${equipmentSummary(stats,side)}</div></section></aside>
+      <aside class="designer-stats"><div class="stats-title">DIVISION STATS</div>${designerStatGroups(stats)}<section class="hoi-stat-section equipment-cost"><h4>EQUIPMENT DETAIL</h4><div class="equipment-mini">${equipmentSummary(stats,side)}</div></section>${selectedSupportEffectPanel(side)}</aside>
     </div>
     ${designerPick?`<div class="picker-overlay" data-picker-overlay>${designerPicker(side)}</div>`:''}
     <div class="designer-footer"><div class="template-facts"><span><b>${fmt(stats.width,0)}</b> width</span><span><b>${fmt(stats.org,1)}</b> org</span><span><b>${fmt(stats.manpower,0)}</b> manpower</span></div><div class="actions"><button class="btn" id="clearDesigner">Reset</button><button class="btn" id="copyDesigner">Copy → ${other}</button><button class="btn" id="exportDesigner">Export</button><label class="btn file">Import<input id="importDesigner" type="file" accept="application/json" hidden></label></div></div>

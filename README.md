@@ -1,9 +1,19 @@
-# HOI4 War Planner — 0.17.11
+# HOI4 War Planner — 0.17.12
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.12 release focus
+
+0.17.12 eliminates the **Division Lab / Counter MIO identity-map drift** exposed by the 0.17.11 audit.
+
+Division Lab, Counter Analysis, and the legacy coarse equipment-tier / availability fallback now consume one shared land-MIO family map. That shared map contains the current 1.19.3 Regimental Support IDs (`field_guns`, `anti_tank_battery`, `anti_air_battery`) alongside the retained predecessor aliases, so the three runtime paths cannot silently diverge on artillery / anti-tank / anti-air family membership.
+
+Regression coverage now requires both Division Lab and Counter to import and iterate the shared map, forbids reintroducing their former private maps, and checks current plus legacy support aliases through the fallback/availability path.
+
+This is a **runtime consistency and identity-mapping refactor**. It adds no new MIO formula, combat formula, prerequisite execution rule, Oracle result, or evidence promotion.
 
 ## 0.17.11 release focus
 

@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [index,direction,runtimeGuard,mode,baseView,model,candidates,forceCandidates,search,searchView,explanations]=await Promise.all([
-  read('index.html'),read('src/product-direction-runtime.js'),read('src/runtime-guard.js'),read('src/counter-analysis-ui.js'),read('src/counter-base-view.js'),read('src/counter-state-model.js'),read('src/counter-candidates.js'),read('src/counter-force-candidates.js'),read('src/counter-search.js'),read('src/counter-search-view.js'),read('src/counter-explanations.js')
+const [index,direction,runtimeGuard,mode,baseView,model,candidates,forceCandidates,search,searchView,explanations,main,landMioMap]=await Promise.all([
+  read('index.html'),read('src/product-direction-runtime.js'),read('src/runtime-guard.js'),read('src/counter-analysis-ui.js'),read('src/counter-base-view.js'),read('src/counter-state-model.js'),read('src/counter-candidates.js'),read('src/counter-force-candidates.js'),read('src/counter-search.js'),read('src/counter-search-view.js'),read('src/counter-explanations.js'),read('src/main.js'),read('src/land-mio-family-map.js')
 ]);
 assert.match(index,/Counter Analysis/);
 assert.match(index,/counter-analysis\.css/);
@@ -30,6 +30,13 @@ assert.match(model,/derivedCache=new WeakMap/,'Counter Analysis must cache expen
 assert.match(model,/BUILTIN_1193/,'Counter state fallback must use the current 1.19.3 pack');
 assert.doesNotMatch(model,/BUILTIN_1192/,'Counter must not retain the stale 1.19.2 fallback pack');
 assert.match(model,/ordinaryDivisionBattalionIds/,'Counter state normalization must share the Division Designer ordinary-battalion allowlist');
+assert.match(main,/import \{ LAND_MIO_FAMILY_MAP \} from '.\/land-mio-family-map\.js'/,'Division Lab must consume the shared land-MIO identity map');
+assert.match(model,/import \{ LAND_MIO_FAMILY_MAP \} from '.\/land-mio-family-map\.js'/,'Counter must consume the same shared land-MIO identity map');
+assert.match(main,/Object\.entries\(LAND_MIO_FAMILY_MAP\)/,'Division Lab MIO propagation must iterate the shared map');
+assert.match(model,/Object\.entries\(LAND_MIO_FAMILY_MAP\)/,'Counter MIO propagation must iterate the shared map');
+assert.doesNotMatch(main,/const maps=\{infantry_equipment/,'Division Lab must not retain a private land-MIO mapping that can drift from Counter');
+assert.doesNotMatch(model,/const maps=\{infantry_equipment/,'Counter must not retain a private land-MIO mapping that can drift from Division Lab');
+for(const id of ['field_guns','anti_tank_battery','anti_air_battery','regimental_infantry_guns','regimental_at','regimental_aa'])assert.match(landMioMap,new RegExp(`['\"]${id}['\"]`),`shared land-MIO map must retain ${id}`);
 assert.match(candidates,/canPlaceBattalion/);
 assert.match(candidates,/side='attacker'/,'template candidate generation must be side-aware');
 assert.match(candidates,/state\[side\+'Grid'\]/,'template candidate generation must read the selected side grid');

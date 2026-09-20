@@ -5,6 +5,7 @@ import { buildExtendedDataPack } from './gameDataParser.js';
 import { hydrateGameData, importedRegimentalSupportIds, importedDivisionalSupportIds, prerequisiteText } from './gameData.js';
 import { LAND_DOCTRINE_TRACKS, GRAND_DOCTRINES, AIR_DOCTRINE_TRACKS, AIR_GRAND_DOCTRINES, normalizeLandDoctrine, normalizeAirDoctrine, doctrineSummary, applyAirDoctrineToVariant, airDoctrineEffects } from './doctrine.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioAvailable, mioEffects, traitSelectable, applyMioEquipmentBonus, applyMioToVariant, applyMioToEquipmentRecord } from './mio.js';
+import { LAND_MIO_FAMILY_MAP } from './land-mio-family-map.js';
 import { DESIGNER_COLS, DESIGNER_ROWS, blankGrid, normalizeGrid, countsToGrid, gridToCounts, filledInRegiment, fillRegiment, regimentGroup as gridRegimentGroup, canPlaceBattalion } from './designer.js';
 import { ordinaryDivisionBattalionIds, battalionPickerGroups, supportCompanyPickerGroups, supportCompanyAllowedWithSelection, normalizeSupportCompanySelection, assignRegimentalSupport } from './division-designer-options.js';
 import { REGIMENTAL_SUPPORT_ABBREVIATIONS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed, supportAllowedBattalionGroups } from './regimental-support-1193.js';
@@ -146,8 +147,7 @@ function ensureMioState(){
 function currentMioCatalog(){return mioCatalog(state.dataPack);}
 function mioEffectFor(side,family){ensureMioState();return mioEffects(currentMioCatalog(),state.mioSelections[side][family]);}
 function applyFamilyMioToData(data,side){
-  const maps={infantry_equipment:{b:['infantry','motorized','mechanized','cavalry'],s:[]},artillery:{b:['artillery'],s:['support_artillery','regimental_infantry_guns']},anti_tank:{b:['anti_tank'],s:['support_at','regimental_at']},anti_air:{b:['anti_air'],s:['support_aa','regimental_aa']}};
-  for(const [family,m] of Object.entries(maps)){const eff=mioEffectFor(side,family);for(const id of m.b)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],eff.equipmentBonus);for(const id of m.s)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],eff.equipmentBonus);}
+  for(const [family,m] of Object.entries(LAND_MIO_FAMILY_MAP)){const eff=mioEffectFor(side,family);for(const id of m.battalions)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],eff.equipmentBonus);for(const id of m.supports)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],eff.equipmentBonus);}
   for(const family of ['light','medium','heavy']){const mio=tankMioFamily(family),eff=mioEffectFor(side,mio);for(const role of tankRolesForFamily(family)){const target=tankVariantTargets(family,role);for(const u of target?.units||[]){const map=u.kind==='support'?data.supports:data.battalions;if(map[u.id])map[u.id]=applyMioEquipmentBonus(map[u.id],eff.equipmentBonus);}}}
   return data;
 }

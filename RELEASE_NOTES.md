@@ -1,3 +1,23 @@
+# HOI4 War Planner 0.17.12 — Release Notes
+
+## Overview
+
+0.17.12 is a focused **Division Lab / Counter MIO-context parity hardening release** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Shared land-MIO family identity
+
+- Centralizes infantry-equipment, artillery, anti-tank and anti-air land-unit identity in one shared runtime map.
+- Makes both Division Lab and Counter Analysis consume that same map when applying selected family MIO equipment bonuses.
+- Makes the packless coarse equipment-tier and availability fallback consume the same current/legacy support aliases.
+- Keeps current 1.19.3 `field_guns`, `anti_tank_battery`, and `anti_air_battery` together with their retained predecessor aliases for saved-state compatibility.
+- Adds regressions that reject private duplicate maps in Division Lab or Counter and certify current plus legacy fallback aliases.
+
+## Evidence boundary
+
+This is a **runtime consistency / ID-mapping refactor**. 0.17.12 introduces no new MIO formula, combat formula, executable classification, prerequisite execution rule, Oracle validation, or game-file evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.11 — Release Notes
 
 ## Overview

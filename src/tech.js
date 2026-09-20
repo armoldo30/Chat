@@ -1,5 +1,6 @@
 import { DEFAULT_LAND_DOCTRINE, DEFAULT_AIR_DOCTRINE, normalizeLandDoctrine, normalizeAirDoctrine, applyLandDoctrineToData } from './doctrine.js';
 import { resolveSubUnitFromPack } from './gameData.js';
+import { LAND_MIO_FAMILY_MAP, landMioSupportFamily } from './land-mio-family-map.js';
 const clone=x=>structuredClone(x);
 
 // Fallback labels/deltas are retained only for sessions without an imported game-data pack.
@@ -159,16 +160,16 @@ export function buildTechAdjustedData(baseBattalions,baseSupports,rawProfile,gam
     applyImportedEquipmentTier(s,pack,profile,year);
   }else{
     const inf=INFANTRY_EQUIPMENT_LEVELS.find(x=>x.value===profile.infantryEquipment)||INFANTRY_EQUIPMENT_LEVELS[1];
-    for(const key of ['infantry','motorized','mechanized','cavalry'])addDelta(b[key],inf.delta);
+    for(const key of LAND_MIO_FAMILY_MAP.infantry_equipment.battalions)addDelta(b[key],inf.delta);
     const art=WEAPON_TIER_LEVELS.find(x=>x.value===profile.artillery)?.mult??1;
     const at=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiTank)?.mult??1;
     const aa=WEAPON_TIER_LEVELS.find(x=>x.value===profile.antiAir)?.mult??1;
-    for(const key of ['artillery'])multiply(b[key],['soft','hard','piercing'],art||1);
-    for(const key of ['support_artillery','field_guns','regimental_infantry_guns'])multiply(s[key],['soft','hard','piercing'],art||1);
-    for(const key of ['anti_tank'])multiply(b[key],['soft','hard','piercing'],at||1);
-    for(const key of ['support_at','anti_tank_battery','regimental_at'])multiply(s[key],['soft','hard','piercing'],at||1);
-    for(const key of ['anti_air'])multiply(b[key],['soft','hard','piercing','airAttack'],aa||1);
-    for(const key of ['support_aa','anti_air_battery','regimental_aa'])multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
+    for(const key of LAND_MIO_FAMILY_MAP.artillery.battalions)multiply(b[key],['soft','hard','piercing'],art||1);
+    for(const key of LAND_MIO_FAMILY_MAP.artillery.supports)multiply(s[key],['soft','hard','piercing'],art||1);
+    for(const key of LAND_MIO_FAMILY_MAP.anti_tank.battalions)multiply(b[key],['soft','hard','piercing'],at||1);
+    for(const key of LAND_MIO_FAMILY_MAP.anti_tank.supports)multiply(s[key],['soft','hard','piercing'],at||1);
+    for(const key of LAND_MIO_FAMILY_MAP.anti_air.battalions)multiply(b[key],['soft','hard','piercing','airAttack'],aa||1);
+    for(const key of LAND_MIO_FAMILY_MAP.anti_air.supports)multiply(s[key],['soft','hard','piercing','airAttack'],aa||1);
   }
 
   const technologyEffects=pack?.technologies?applySelectedTechnologyEffects(b,s,pack,profile.technologies):{selected:[],appliedTechnologies:[],unknownTechnologies:[],appliedModifierCount:0,appliedTerrainModifierCount:0,skippedEffectFields:0,classification:'not-applied'};
@@ -193,9 +194,10 @@ export function techAvailable(kind,key,rawProfile){
     return true;
   }
   if(kind==='support'){
-    if(['support_artillery','field_guns','regimental_infantry_guns'].includes(key))return p.artillery>0;
-    if(['support_at','anti_tank_battery','regimental_at'].includes(key))return p.antiTank>0;
-    if(['support_aa','anti_air_battery','regimental_aa'].includes(key))return p.antiAir>0;
+    const family=landMioSupportFamily(key);
+    if(family==='artillery')return p.artillery>0;
+    if(family==='anti_tank')return p.antiTank>0;
+    if(family==='anti_air')return p.antiAir>0;
     if(key==='engineer')return p.unlocks.engineer;
     if(key==='recon')return p.unlocks.recon;
     if(key==='logistics')return p.unlocks.logistics;

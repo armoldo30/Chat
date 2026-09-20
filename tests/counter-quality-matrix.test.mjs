@@ -44,7 +44,7 @@ function inspect(name,snapshot,{side='attacker'}={}){
     label:item.label,gain:+item.gain.toFixed(2),win:+item.winRate.toFixed(2),piercing:+item.stats.piercing.toFixed(1),armor:+item.stats.armor.toFixed(1),soft:+item.stats.soft.toFixed(1),hard:+item.stats.hard.toFixed(1),def:+item.stats.def.toFixed(1),breakthrough:+item.stats.breakthrough.toFixed(1),airAttack:+item.stats.airAttack.toFixed(1),kind:item.kind,kinds:item.changeKinds
   }));
   const recommendations=(result.recommendations||[]).map(group=>({roles:group.roles,label:group.item.label,gain:+group.item.gain.toFixed(2),kind:group.item.kind,kinds:group.item.changeKinds,pierces:group.item.pierces,airAttack:+group.item.stats.airAttack.toFixed(1)}));
-  console.log('COUNTER_QUALITY',JSON.stringify({name,side,priorities:diagnosis.priorities,baseline:+result.baseline.winRate.toFixed(2),source:{armor:+snapshot[side].armor.toFixed(1),piercing:+snapshot[side].piercing.toFixed(1),hardness:+snapshot[side].hardness.toFixed(3)},target:{armor:+snapshot[targetSide].armor.toFixed(1),piercing:+snapshot[targetSide].piercing.toFixed(1),hardness:+snapshot[targetSide].hardness.toFixed(3)},recommendations,top}));
+  console.log('COUNTER_QUALITY',JSON.stringify({name,side,priorities:diagnosis.priorities,baseline:+result.baseline.winRate.toFixed(2),coverage:result.coverage,source:{armor:+snapshot[side].armor.toFixed(1),piercing:+snapshot[side].piercing.toFixed(1),hardness:+snapshot[side].hardness.toFixed(3)},target:{armor:+snapshot[targetSide].armor.toFixed(1),piercing:+snapshot[targetSide].piercing.toFixed(1),hardness:+snapshot[targetSide].hardness.toFixed(3)},recommendations,top}));
   assert.equal(result.testedCount,30,name+': quality audit should exercise the normal 20+10 battle-test budget');
   assert.ok(result.bestTested&&Number.isFinite(result.bestTested.gain),name+': search must return a strongest tested result');
   assert.ok(top.length>0,name+': audit must retain observable top candidates');
@@ -58,6 +58,7 @@ const soft=inspect('soft-infantry',makeSnapshot({
   defenderSupports:['engineer']
 }));
 assert.ok(soft.diagnosis.priorities.includes('soft-attack'),'soft infantry target should prioritize soft attack');
+assert.ok(soft.result.coverage.softAttackImprovement>0,'soft-target search must battle-test at least one soft-attack improvement');
 
 const armor=inspect('infantry-vs-medium-armor',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],
@@ -66,7 +67,7 @@ const armor=inspect('infantry-vs-medium-armor',makeSnapshot({
   defenderSupports:['engineer','maintenance']
 }));
 assert.ok(armor.diagnosis.priorities.includes('piercing'),'an unpierced armor target should prioritize piercing');
-assert.ok([...armor.result.ranked,...armor.result.bestEfforts].some(item=>item.pierces),'a reachable armor threshold should cause Counter to battle-test at least one candidate that actually pierces');
+assert.ok(armor.result.coverage.piercingThreshold>0,'a reachable armor threshold should cause Counter to battle-test at least one candidate that actually pierces');
 
 const hardArmor=inspect('armor-vs-hard-armor',makeSnapshot({
   attacker:[{type:'medium_armor',count:5},{type:'mechanized',count:7}],
@@ -76,24 +77,34 @@ const hardArmor=inspect('armor-vs-hard-armor',makeSnapshot({
 }));
 assert.ok(hardArmor.diagnosis.hardness>=.6,'hard-armor fixture must actually be at least 60% hard');
 assert.ok(hardArmor.diagnosis.priorities.includes('hard-attack'),'hard armor target should prioritize hard attack');
-assert.ok([...hardArmor.result.ranked,...hardArmor.result.bestEfforts].some(item=>item.stats.hard>hardArmor.snapshot.attacker.hard),'hard-armor search should battle-test at least one answer that raises hard attack');
+assert.ok(hardArmor.result.coverage.hardAttackImprovement>0,'hard-armor search should battle-test at least one answer that raises hard attack');
+assert.ok(hardArmor.result.bestEfforts.some(item=>item.stats.hard>hardArmor.snapshot.attacker.hard),'when no local counter wins, the retained best-effort set should still include a hard-attack improvement');
 
-const air=inspect('cas-pressure',makeSnapshot({
+const air=inspect('enemy-air-superiority',makeSnapshot({
   attacker:[{type:'infantry',count:9},{type:'artillery',count:1}],
   defender:[{type:'infantry',count:10}],
   attackerSupports:['engineer','support_artillery'],
   defenderSupports:['engineer','support_artillery'],
-  battlefield:{air:-60,cas:40}
+  battlefield:{air:-1,cas:0}
 }));
-assert.ok(air.diagnosis.priorities.includes('air-attack'),'enemy air/CAS pressure should prioritize air attack');
+assert.ok(air.diagnosis.priorities.includes('air-attack'),'enemy air superiority should prioritize air attack');
+assert.ok(air.result.coverage.airAttackImprovement>0,'enemy-air-superiority search must battle-test at least one AA improvement');
+const friendlyAir=diagnoseMatchup(air.snapshot.attacker,air.snapshot.defender,{side:'attacker',battlefield:{...air.snapshot.state.battlefield,air:1,cas:0}});
+assert.ok(!friendlyAir.priorities.includes('air-attack'),'friendly air superiority must not create a false AA priority');
+const casOnly=diagnoseMatchup(air.snapshot.defender,air.snapshot.attacker,{side:'defender',battlefield:{...air.snapshot.state.battlefield,air:0,cas:.5}});
+assert.ok(!casOnly.priorities.includes('air-attack'),'CAS alone must not claim direct AA mitigation that the resolver does not execute');
+assert.ok(casOnly.notes.some(note=>/AA-versus-CAS/i.test(note.detail)),'CAS-only diagnosis must disclose the current AA/CAS evidence boundary');
 
-const defense=inspect('defender-staying-power',makeSnapshot({
+const defense=inspect('defender-counter-search',makeSnapshot({
   attacker:[{type:'infantry',count:7},{type:'artillery',count:3}],
   defender:[{type:'infantry',count:8}],
   attackerSupports:['engineer','support_artillery'],
   defenderSupports:['engineer']
 }),{side:'defender'});
-assert.ok(defense.diagnosis.priorities.includes('defense')||defense.result.baseline.winRate>=65,'defender search should flag defense when incoming pressure exceeds current staying power');
+assert.equal(defense.result.bestTested.side,'defender','defender quality search must preserve defender-side identity');
+assert.ok(defense.result.coverage.survivalImprovement>0,'defender search must battle-test at least one defense improvement');
+const defensePressure=diagnoseMatchup({soft:20,hard:5,hardness:0,def:40,breakthrough:10,org:40,armor:0,piercing:5},{soft:120,hard:20,hardness:0,def:100,breakthrough:80,org:50,armor:0,piercing:10},{side:'defender',battlefield:{air:0,cas:0}});
+assert.ok(defensePressure.priorities.includes('defense'),'defender diagnosis must prioritize defense when incoming effective attack exceeds defense');
 
 const regimental=inspect('regimental-small-change',makeSnapshot({
   attacker:[{type:'infantry',count:3}],
@@ -101,6 +112,6 @@ const regimental=inspect('regimental-small-change',makeSnapshot({
   attackerSupports:['engineer','recon','logistics','signal','support_artillery'],
   defenderSupports:['engineer']
 }));
-assert.ok(regimental.result.bestEfforts.some(item=>(item.changeKinds||[]).some(kind=>kind.includes('regimental-support')))||regimental.result.ranked.some(item=>(item.changeKinds||[]).some(kind=>kind.includes('regimental-support'))),'eligible full-support template should battle-test at least one Regimental Support answer');
+assert.ok(regimental.result.coverage.regimental>0,'eligible full-support template should battle-test at least one Regimental Support answer');
 
 console.log('Counter recommendation-quality matrix audit completed.');

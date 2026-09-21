@@ -22,8 +22,10 @@ assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.allowedBattalionGroups.runti
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.sameSupportType.runtimeEvidence,'game-file exact');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.hqEligibility.runtimeEvidence,'game-file exact');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.initiative.state,'aggregated-not-used-downstream');
-assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.runtimeEvidence,'unvalidated');
-assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.casualtyTrickleback.runtimeEvidence,'unvalidated');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.runtimeEvidence,'executable inferred');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.state,'consumed-bounded-core-stats');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.supplyConsumptionFactor.runtimeEvidence,'executable inferred');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.casualtyTrickleback.runtimeEvidence,'executable inferred');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.specialist.enableAbility.runtimeEvidence,'unvalidated');
 
 const source={...supportA,...supportB},values=Object.values(source);

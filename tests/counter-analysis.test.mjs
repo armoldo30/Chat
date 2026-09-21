@@ -24,7 +24,7 @@ assert.equal(burden.baselineIC,1000);
 assert.equal(burden.candidateIC,1200);
 assert.equal(burden.delta,200);
 assert.equal(Math.round(burden.pct),20);
-assert.equal('extraFactories' in burden,false,'Counter IC comparison must not infer factory requirements from the user's production setup');
+assert.equal('extraFactories' in burden,false,"Counter IC comparison must not infer factory requirements from the user's production setup");
 
 assert.equal(isMeaningfulCounterImprovement({gain:15,winRate:45}),true,'a large improvement must qualify even when the modeled win rate remains below 50%');
 assert.equal(isMeaningfulCounterImprovement({gain:1.9,winRate:90}),false,'qualification is based on improvement over the baseline, not whether the candidate happens to win most runs');

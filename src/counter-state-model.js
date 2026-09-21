@@ -6,7 +6,7 @@ import { importedDivisionalSupportIds } from './gameData.js';
 import { REGIMENTAL_SUPPORT_IDS_1193, regimentalSupportAllowed } from './regimental-support-1193.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData } from './tech.js';
 import { DEFAULT_MIO_SELECTION, normalizeMioSelection, mioCatalog, mioEffects, applyMioEquipmentBonus, applyMioToEquipmentRecord, applyMioToVariant } from './mio.js';
-import { LAND_MIO_FAMILY_MAP } from './land-mio-family-map.js';
+import { landMioTargetsForUnit, landMioTargetForEquipment } from './land-mio-family-map.js';
 import { TANK_FAMILIES, defaultTankDesign, normalizeTankDesign, buildTankDesign, applyTankDesignToBattalion, tankEquipmentRecord, tankRolesForFamily, tankVariantTargets, tankMioFamily } from './tank.js';
 import { airDoctrineEffects } from './doctrine.js';
 import BUILTIN_1193 from './builtin1193.js';
@@ -55,10 +55,10 @@ function tankDesignFor(state,side,family,role='armor'){
 }
 function mioEffectFor(state,side,family,equipmentFamily=null){return mioEffects(mioCatalog(state.dataPack),state.mioSelections[side][family],{equipmentFamily});}
 function applyFamilyMioToData(state,data,side){
-  for(const [family,map] of Object.entries(LAND_MIO_FAMILY_MAP)){
-    const effect=mioEffectFor(state,side,family,family);
-    for(const id of map.battalions)if(data.battalions[id])data.battalions[id]=applyMioEquipmentBonus(data.battalions[id],effect.equipmentBonus);
-    for(const id of map.supports)if(data.supports[id])data.supports[id]=applyMioEquipmentBonus(data.supports[id],effect.equipmentBonus);
+  for(const map of [data.battalions,data.supports])for(const [id,record] of Object.entries(map||{})){
+    let next=record;
+    for(const target of landMioTargetsForUnit(record))next=applyMioEquipmentBonus(next,mioEffectFor(state,side,target.family,target.equipmentFamily).equipmentBonus);
+    map[id]=next;
   }
   for(const family of ['light','medium','heavy']){
     const mio=tankMioFamily(family);
@@ -105,7 +105,7 @@ export function counterTechData(state,side){
 export function counterEquipment(state,side){
   const cache=cacheFor(state);if(cache.equipment[side])return cache.equipment[side];
   const out=structuredClone(equipment);
-  for(const family of ['infantry_equipment','artillery','anti_tank','anti_air'])if(out[family])out[family]=applyMioToEquipmentRecord(out[family],mioEffectFor(state,side,family,family));
+  for(const [id,record] of Object.entries(out)){const target=landMioTargetForEquipment(id,record);if(target)out[id]=applyMioToEquipmentRecord(record,mioEffectFor(state,side,target.family,target.equipmentFamily));}
   for(const family of TANK_FAMILIES)for(const role of tankRolesForFamily(family)){
     const target=tankVariantTargets(family,role),raw=tankDesignFor(state,side,family,role),base=buildTankDesign(raw),mio=tankMioFamily(family),effect=mio?mioEffectFor(state,side,mio,target?.equipmentKey||mio):null,design=mio?applyMioToVariant(base,effect):base;
     for(const key of [target?.equipmentKey,...(target?.aliases||[])].filter(Boolean))if(out[key]){out[key]=mio?applyMioToEquipmentRecord(tankEquipmentRecord(out[key],raw),effect):tankEquipmentRecord(out[key],raw);out[key].designStats=design;}

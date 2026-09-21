@@ -25,10 +25,10 @@ assert.equal(dualSupport.need.artillery,supportedInf.need.artillery+4,'regimenta
 
 const supportEffectBattalion={soft:100,hard:20,def:40,breakthrough:10,hp:25,org:60,supply:.06,categories:['category_artillery','category_all_infantry']};
 const factorAdjusted=applySupportBattalionMult(supportEffectBattalion,[{battalionMult:[{category:'category_artillery',soft_attack:.10},{category:'category_all_infantry',max_strength:.10}]}]);
-assert.equal(factorAdjusted.soft,110,'support battalion_mult must apply percentage modifiers to matching source categories');
-assert.equal(factorAdjusted.hp,27.5,'field-hospital-style max_strength battalion_mult must scale matching infantry HP');
+assert.ok(Math.abs(factorAdjusted.soft-110)<1e-9,'support battalion_mult must apply percentage modifiers to matching source categories');
+assert.ok(Math.abs(factorAdjusted.hp-27.5)<1e-9,'field-hospital-style max_strength battalion_mult must scale matching infantry HP');
 const additiveAdjusted=applySupportBattalionMult({hp:2,categories:['category_all_armor']},[{battalionMult:[{category:'category_all_armor',max_strength:.1,add:true}]}]);
-assert.equal(additiveAdjusted.hp,2.1,'battalion_mult add=yes must remain a flat sub-unit adjustment');
+assert.ok(Math.abs(additiveAdjusted.hp-2.1)<1e-9,'battalion_mult add=yes must remain a flat sub-unit adjustment');
 const noCategoryLeak=applySupportBattalionMult(supportEffectBattalion,[{battalionMult:[{category:'category_all_armor',hard_attack:.5}]}]);
 assert.equal(noCategoryLeak.hard,20,'support battalion_mult must not leak across source categories');
 

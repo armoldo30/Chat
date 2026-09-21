@@ -1,9 +1,38 @@
-# HOI4 War Planner — 0.17.14
+# HOI4 War Planner — 0.17.15
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.15 release focus
+
+0.17.15 closes the remaining **support-specific runtime-effects audit** at a bounded evidence boundary and simplifies Counter production context.
+
+### Support runtime effects
+
+The 1.19.3 support catalog already retained specialist source fields but intentionally did not execute fields whose aggregation semantics were not yet defensible. This release promotes only the subset that maps cleanly onto existing planner concepts:
+
+- source `battalion_mult` now applies category-scoped modifiers for planner-consumed battalion stats such as soft/hard attack, defense, breakthrough, armor/piercing, HP, organization and supply use;
+- `add = yes` blocks are treated as flat sub-unit adjustments, while other supported battalion modifiers use the same additive-then-factor convention as the audited technology runtime;
+- support `supply_consumption_factor` now adjusts the resolved division's total supply use;
+- `casualty_trickleback` now reduces reported permanent manpower losses without altering combat strength damage or equipment losses.
+
+Current 1.19.3 regression fixtures cover Recon's artillery soft-attack multiplier, Field Hospital infantry HP/trickleback, and Logistics Company supply reduction.
+
+Recon/tactic selection, entrenchment state, recovery, reliability/attrition, equipment capture, fuel, experience loss, suppression, deployed-leader modifiers and specialist abilities remain retained and visible but not executed because their downstream systems or exact aggregation/order are outside the certified runtime.
+
+The source values remain **game-file exact**. The newly executed aggregation is **executable inferred**, not Oracle-validated.
+
+### Counter IC context
+
+Counter no longer consumes saved production lines, spare factory capacity, strategic-resource availability or armor-family retooling heuristics to accept, reject, screen or rank proposed counters. Production feasibility is deliberately not inferred.
+
+Recommendation cards now show the direct per-division equipment cost comparison:
+
+`current IC/div → proposed IC/div`
+
+plus the absolute and percentage change. Best Raw remains combat-pure; Best Efficient may use the direct IC delta, supply burden and change complexity, but not the user's live production plan.
 
 ## 0.17.14 release focus
 

@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import supportA from '../src/builtin1193/support-subunits-complete-a.js';
 import supportB from '../src/builtin1193/support-subunits-complete-b.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
+import { calcDivision } from '../src/engine.js';
 import { SUPPORT_EFFECT_RUNTIME_1193, SUPPORT_EFFECT_RUNTIME_1193_META } from '../src/builtin1193/support-effects-certification-1193.js';
 
 const CANONICAL=new Set(['game-file exact','executable inferred','planner analytical','oracle-validated','oracle-divergent','unvalidated']);
@@ -49,5 +53,16 @@ for(const [field,isPresent] of Object.entries(present))assert.equal(isPresent,tr
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.gameVersion,'1.19.3');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.broadResolverPromotion,false);
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.followupIssue,46);
+
+hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+const artilleryBase=calcDivision([{type:'artillery',count:1}],battalions,[],supports);
+const artilleryRecon=calcDivision([{type:'artillery',count:1}],battalions,['recon'],supports);
+assert.ok(Math.abs(artilleryRecon.soft/artilleryBase.soft-1.10)<1e-9,'1.19.3 recon battalion_mult must give matching artillery +10% soft attack');
+const infantryBase=calcDivision([{type:'infantry',count:1}],battalions,[],supports);
+const infantryHospital=calcDivision([{type:'infantry',count:1}],battalions,['field_hospital'],supports);
+assert.ok(infantryHospital.hp>infantryBase.hp,'1.19.3 field hospital battalion_mult must increase matching infantry HP');
+assert.equal(infantryHospital.casualtyTrickleback,.2,'1.19.3 field hospital must expose its 20% casualty trickleback to combat-loss reporting');
+const logistics=calcDivision([{type:'infantry',count:1}],battalions,['logistics'],supports);
+assert.ok(logistics.supply<infantryBase.supply+supports.logistics.supply,'1.19.3 logistics supply factor must reduce the combined division supply-use total');
 
 console.log('Support-effect runtime evidence-boundary audit passed.');

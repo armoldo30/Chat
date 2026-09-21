@@ -13,6 +13,9 @@ const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-sup
 const SAFE_DEFAULTS={runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4};
 const DEEP_DEFAULTS={deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6};
 const MIN_MEANINGFUL_GAIN=2;
+const derivedCache=new WeakMap();
+const normalizeSide=side=>side==='defender'?'defender':'attacker';
+const otherSide=side=>side==='defender'?'attacker':'defender';
 export function counterOperationalBurden(base,item){
   const baseSupply=Math.max(0,Number(base?.supply)||0),nextSupply=Math.max(0,Number(item?.stats?.supply)||0),supplyDelta=nextSupply-baseSupply,supplyPct=baseSupply>0?supplyDelta/baseSupply*100:0;
   return {supplyDelta,supplyPct,supplyValuePenalty:Math.max(0,supplyPct)*1.5};

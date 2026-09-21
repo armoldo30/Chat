@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { battalions, supports, terrain, equipment } from '../src/data.js';
-import { calcDivision, aggregateDivision, battleContext, evaluateProduction, efficiencyProjection, piercingDamageFactor, simulateOnce, simulateBattle, divisionEquipmentIC, optimizeForceProduction } from '../src/engine.js';
+import { calcDivision, aggregateDivision, battleContext, evaluateProduction, efficiencyProjection, piercingDamageFactor, simulateOnce, simulateBattle, divisionEquipmentIC, optimizeForceProduction, applySupportBattalionMult } from '../src/engine.js';
 
 const opts={terrain:'plains',terrainData:terrain,directions:0,entrench:0,fort:0,river:0,asupply:1,dsupply:1,air:0,cas:0,planning:0,night:0};
 const softAttacker=aggregateDivision(calcDivision([{type:'artillery',count:4}],battalions,[],supports),1);
@@ -22,6 +22,21 @@ assert.ok(supportedInf.org<plainInf.org,'zero-org support artillery must lower a
 const dualSupport=calcDivision([{type:'infantry',count:10}],battalions,['support_artillery','regimental_infantry_guns'],supports);
 assert.ok(dualSupport.soft>supportedInf.soft,'divisional and regimental artillery support must coexist as distinct support records');
 assert.equal(dualSupport.need.artillery,supportedInf.need.artillery+4,'regimental infantry guns must add their own equipment requirement instead of replacing divisional support artillery');
+
+const supportEffectBattalion={soft:100,hard:20,def:40,breakthrough:10,hp:25,org:60,supply:.06,categories:['category_artillery','category_all_infantry']};
+const factorAdjusted=applySupportBattalionMult(supportEffectBattalion,[{battalionMult:[{category:'category_artillery',soft_attack:.10},{category:'category_all_infantry',max_strength:.10}]}]);
+assert.equal(factorAdjusted.soft,110,'support battalion_mult must apply percentage modifiers to matching source categories');
+assert.equal(factorAdjusted.hp,27.5,'field-hospital-style max_strength battalion_mult must scale matching infantry HP');
+const additiveAdjusted=applySupportBattalionMult({hp:2,categories:['category_all_armor']},[{battalionMult:[{category:'category_all_armor',max_strength:.1,add:true}]}]);
+assert.equal(additiveAdjusted.hp,2.1,'battalion_mult add=yes must remain a flat sub-unit adjustment');
+const noCategoryLeak=applySupportBattalionMult(supportEffectBattalion,[{battalionMult:[{category:'category_all_armor',hard_attack:.5}]}]);
+assert.equal(noCategoryLeak.hard,20,'support battalion_mult must not leak across source categories');
+
+const syntheticBattalions={inf:{...supportEffectBattalion,manpower:1000,width:2,hardness:0,armor:0,piercing:1,airAttack:0,need:{}}};
+const syntheticSupports={log:{manpower:0,hp:0,org:0,supply:.04,soft:0,hard:0,def:0,breakthrough:0,airAttack:0,armor:0,piercing:0,initiative:0,supplyConsumptionFactor:-.10,casualtyTrickleback:.20,need:{},battalionMult:[]}};
+const supportRuntimeDivision=calcDivision([{type:'inf',count:1}],syntheticBattalions,['log'],syntheticSupports);
+assert.ok(Math.abs(supportRuntimeDivision.supply-.09)<1e-9,'support supply_consumption_factor must modify the full division supply-use total');
+assert.equal(supportRuntimeDivision.casualtyTrickleback,.20,'support casualty trickleback must be retained on the resolved division');
 
 const spaceMarine=calcDivision([{type:'medium_armor',count:1},{type:'infantry',count:9}],battalions,[],supports);
 assert.ok(Math.abs(spaceMarine.armor-27.6)<1e-9,'armor should be weighted max + average, not max-only');
@@ -91,6 +106,10 @@ assert.deepEqual(
 assert.ok(seededA.winRateLow<=seededA.winRate && seededA.winRateHigh>=seededA.winRate,'simulation should report a confidence interval around win rate');
 
 const one=simulateOnce(softAttacker,softTarget,opts);
+const lossNoHospital=simulateOnce({...softAttacker,casualtyTrickleback:0},softTarget,{...opts,seed:991});
+const lossHospital=simulateOnce({...softAttacker,casualtyTrickleback:.2},softTarget,{...opts,seed:991});
+assert.ok(Math.abs(lossHospital.attackerManpowerLoss-lossNoHospital.attackerManpowerLoss*.8)<1e-6,'20% casualty trickleback must reduce permanent manpower loss by 20% without changing the strength-loss trace');
+assert.equal(lossHospital.attackerCasualtyRate,lossNoHospital.attackerCasualtyRate,'trickleback must not alter modeled combat strength damage');
 assert.ok(one.hours>=4,'land combat should respect the minimum combat duration baseline');
 assert.ok(Object.keys(one.attackerEquipmentLosses).length>0,'battle results should estimate equipment replacement losses');
 

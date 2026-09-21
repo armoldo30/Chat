@@ -1,3 +1,32 @@
+# HOI4 War Planner 0.17.15 — Release Notes
+
+## Overview
+
+0.17.15 completes the bounded **support-specific runtime-effects audit** and replaces Counter's saved-production feasibility assumptions with a direct per-division IC comparison on the **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Support-specific runtime execution
+
+- Executes source-retained `battalion_mult` for category-matched battalions when the affected stat is already represented by the planner.
+- Supports percentage-style battalion factors and source `add = yes` flat adjustments.
+- Applies selected support-company `supply_consumption_factor` to total division supply use.
+- Applies `casualty_trickleback` to permanent manpower-loss reporting while leaving modeled strength damage and equipment losses unchanged.
+- Adds current 1.19.3 fixtures for Recon → artillery soft attack, Field Hospital → infantry HP/trickleback, and Logistics → division supply use.
+- Keeps recon/tactic selection, entrenchment state, recovery, reliability/attrition, equipment capture, fuel, experience loss, suppression, leader modifiers and enabled abilities source-retained but unexecuted.
+
+## Counter cost simplification
+
+- Removes saved production-line, spare-MIC, resource-shortfall and retooling feasibility from Counter screening and recommendation ranking.
+- Removes the production-capacity projection runtime used only by Counter.
+- Displays current and proposed equipment IC cost directly as X → Y IC per division, with absolute and percentage change.
+- Keeps Best Raw combat-pure.
+- Keeps Best Efficient limited to direct IC delta, modeled supply burden and edit complexity rather than live industrial assumptions.
+
+## Evidence boundary
+
+Support field values and categories are **game-file exact**. The newly executed support aggregation is **executable inferred** and remains pending Oracle validation. Counter IC comparison is descriptive/planner analytical. No bit-for-bit `hoi4.exe` parity is claimed.
+
+---
+
 # HOI4 War Planner 0.17.14 — Release Notes
 
 ## Overview

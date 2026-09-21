@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { battalions, supports } from '../src/data.js';
 import { DEFAULT_TECH_PROFILE, normalizeTechProfile, buildTechAdjustedData, techAvailable, techIssues } from '../src/tech.js';
-import { LAND_MIO_FAMILY_MAP, landMioSupportFamily } from '../src/land-mio-family-map.js';
+import { LAND_MIO_FAMILY_MAP, landMioSupportFamily, landMioTargetsForUnit, landMioTargetForEquipment } from '../src/land-mio-family-map.js';
 
 const base=normalizeTechProfile(DEFAULT_TECH_PROFILE);
 assert.equal(base.infantryEquipment,1);
@@ -11,6 +11,13 @@ assert.deepEqual([...LAND_MIO_FAMILY_MAP.anti_air.supports],['support_aa','anti_
 assert.equal(landMioSupportFamily('field_guns'),'artillery');
 assert.equal(landMioSupportFamily('anti_tank_battery'),'anti_tank');
 assert.equal(landMioSupportFamily('anti_air_battery'),'anti_air');
+assert.deepEqual(landMioTargetsForUnit({need:{artillery:24,motorized_equipment:36}}),[{family:'artillery',equipmentFamily:'artillery_equipment'}],'motorized artillery must derive its MIO target from artillery equipment need');
+assert.deepEqual(landMioTargetsForUnit({need:{anti_tank:36,motorized_equipment:36}}),[{family:'anti_tank',equipmentFamily:'anti_tank_equipment'}],'motorized AT must derive its MIO target from anti-tank equipment need');
+assert.deepEqual(landMioTargetsForUnit({need:{anti_air:36,motorized_equipment:36}}),[{family:'anti_air',equipmentFamily:'anti_air_equipment'}],'motorized AA must derive its MIO target from anti-air equipment need');
+assert.deepEqual(landMioTargetsForUnit({need:{rocket_artillery_equipment:24,motorized_equipment:36}}),[{family:'artillery',equipmentFamily:'rocket_artillery_equipment'}],'rocket artillery must retain a rocket-specific MIO context');
+assert.deepEqual(landMioTargetsForUnit({need:{motorized_rocket_equipment:16,motorized_equipment:16}}),[{family:'artillery',equipmentFamily:'motorized_rocket_equipment'}],'motorized rocket equipment must retain its distinct MIO context');
+assert.deepEqual(landMioTargetsForUnit({need:{infantry_equipment:40,support_equipment:10}}),[{family:'infantry_equipment',equipmentFamily:'infantry_equipment'}],'infantry-equipment support units must participate in infantry-equipment MIO propagation');
+assert.deepEqual(landMioTargetForEquipment('rocket_artillery_equipment',{family:'rocket_artillery_equipment'}),{family:'artillery',equipmentFamily:'rocket_artillery_equipment'});
 
 const basic=buildTechAdjustedData(battalions,supports,{...base,infantryEquipment:0});
 const advanced=buildTechAdjustedData(battalions,supports,{...base,infantryEquipment:3});

@@ -106,8 +106,8 @@ assert.deepEqual(
 assert.ok(seededA.winRateLow<=seededA.winRate && seededA.winRateHigh>=seededA.winRate,'simulation should report a confidence interval around win rate');
 
 const one=simulateOnce(softAttacker,softTarget,opts);
-const lossNoHospital=simulateOnce({...softAttacker,casualtyTrickleback:0},softTarget,{...opts,seed:991});
-const lossHospital=simulateOnce({...softAttacker,casualtyTrickleback:.2},softTarget,{...opts,seed:991});
+const lossNoHospital=simulateBattle({...softAttacker,casualtyTrickleback:0},softTarget,{...opts,seed:991},60);
+const lossHospital=simulateBattle({...softAttacker,casualtyTrickleback:.2},softTarget,{...opts,seed:991},60);
 assert.ok(Math.abs(lossHospital.attackerManpowerLoss-lossNoHospital.attackerManpowerLoss*.8)<1e-6,'20% casualty trickleback must reduce permanent manpower loss by 20% without changing the strength-loss trace');
 assert.equal(lossHospital.attackerCasualtyRate,lossNoHospital.attackerCasualtyRate,'trickleback must not alter modeled combat strength damage');
 assert.ok(one.hours>=4,'land combat should respect the minimum combat duration baseline');

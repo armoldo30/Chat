@@ -60,8 +60,13 @@ function normalizedEquipmentId(value){
   return String(value||'').toLowerCase().replace('small_airframe','small_plane_airframe').replace('medium_airframe','medium_plane_airframe').replace('large_airframe','large_plane_airframe');
 }
 function directEquipmentMatch(type,equipment){
-  const t=normalizedEquipmentId(type),e=normalizedEquipmentId(equipment);if(!t||!e)return false;
-  if(e===t||e.includes(t)||t.includes(e))return true;
+  let t=normalizedEquipmentId(type),e=normalizedEquipmentId(equipment);if(!t||!e)return false;
+  const aliases={artillery:'artillery_equipment',anti_tank:'anti_tank_equipment',anti_air:'anti_air_equipment',light_tank:'light_tank_chassis',medium_tank:'medium_tank_chassis',heavy_tank:'heavy_tank_chassis'};
+  t=aliases[t]||t;e=aliases[e]||e;
+  if(e===t)return true;
+  const artilleryExact=new Set(['artillery_equipment','rocket_artillery_equipment','motorized_rocket_equipment']);
+  if(artilleryExact.has(t)||artilleryExact.has(e))return false;
+  if(e.includes(t)||t.includes(e))return true;
   if(e.includes('tank')&&t==='armor')return true;
   if(e.includes('small_plane_airframe')&&(t.includes('small_plane')||t.includes('light_aircraft')||t.includes('all_aircraft')))return true;
   if(e.includes('medium_plane_airframe')&&(t.includes('medium_plane')||t.includes('medium_aircraft')||t.includes('all_aircraft')))return true;

@@ -82,12 +82,11 @@ assert.match(search,/yieldControl/,'responsive search must yield control between
 assert.match(search,/buildCounterRecommendationGroups/,'headline recommendations must collapse duplicate category winners');
 assert.match(search,/bestTested/,'search must preserve the strongest tested attempt for hopeless matchups');
 assert.match(search,/bestEfforts/,'search must retain near-miss diagnostics without expanding the live search');
-assert.match(search,/counterProductionPracticality/,'Counter Analysis must classify new armor-family production commitments');
-assert.match(search,/SEARCH_RETOOLING_PENALTY/,'second-step exploration must account for new armor-family retooling burden');
 assert.match(search,/selectDiverseCounterCandidates/,'Counter must preserve line, support, Regimental Support and tank-design diversity during bounded search');
 assert.match(search,/matchupPriorityScore/,'candidate screening must be driven by the exact matchup rather than enumeration order');
-assert.match(search,/value=\[\.\.\.ranked\]/,'Best Efficient must rank the full meaningful counter set rather than hard-excluding major retooling');
-assert.match(search,/minimalPool=local\.length\?local:ranked/,'Smallest Effective Change may still prefer a local edit when one exists');
+assert.match(search,/value=\[\.\.\.ranked\]/,'Best Efficient must rank the full meaningful counter set');
+assert.doesNotMatch(search,/counterProductionBurden|productionGoals|unusedFactories|resourceShortfall/,'Counter recommendation ranking must not consume saved production-plan feasibility');
+assert.doesNotMatch(search,/SEARCH_RETOOLING_PENALTY|VALUE_RETOOLING_PENALTY/,'Counter search must not reject battlefield counters through production-retooling heuristics');
 assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive search rather than the blocking search');
 assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
 assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\),lastSide\);\}/,'Counter settings refresh must contain snapshot/render failures locally');

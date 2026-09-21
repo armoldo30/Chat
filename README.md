@@ -1,9 +1,21 @@
-# HOI4 War Planner — 0.17.13
+# HOI4 War Planner — 0.17.14
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.14 release focus
+
+0.17.14 completes the current **Counter land-MIO target-coverage audit** by replacing the source-backed runtime's remaining hand-picked artillery / AT / AA unit list with targets derived from each hydrated unit's actual equipment `need`.
+
+That makes MIO propagation follow the same 1.19.3 data that defines Counter's candidate universe. Motorized artillery, motorized anti-tank, motorized anti-air, infantry-equipment support units, and conventional / rocket-artillery variants no longer fall outside the runtime simply because they use a newer or more specific sub-unit ID.
+
+Rocket artillery keeps its actual `rocket_artillery_equipment` context, and `motorized_rocket_equipment` remains distinct. The equipment-compatibility matcher now prevents conventional `artillery_equipment` restrictions from matching rocket artillery merely through substring overlap.
+
+Division Lab and Counter share the same unit-target and equipment-target helpers, while the old static map remains only for the legacy packless coarse tech/availability fallback.
+
+This is **source-derived target coverage using existing MIO restriction and bonus semantics**. It adds no new MIO bonus formula, combat formula, Oracle result, prerequisite rule, or evidence promotion.
 
 ## 0.17.13 release focus
 

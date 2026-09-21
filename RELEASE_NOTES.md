@@ -1,3 +1,33 @@
+# HOI4 War Planner 0.17.14 — Release Notes
+
+## Overview
+
+0.17.14 is a focused **Counter / Division Lab land-MIO target-coverage correction** on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Source-derived land target coverage
+
+- Derives source-backed runtime MIO targets from each hydrated battalion/support record's actual equipment `need`.
+- Covers motorized artillery, motorized anti-tank and motorized anti-air without maintaining a parallel ID whitelist.
+- Covers conventional line/support/Regimental Support rocket artillery through the artillery MIO selection while preserving the exact `rocket_artillery_equipment` restriction context.
+- Keeps `motorized_rocket_equipment` distinct rather than silently treating it as towed rocket artillery.
+- Applies the same target derivation to equipment/production records.
+- Makes Division Lab and Counter consume the same unit/equipment target helpers.
+- Retains the compact static land-family map only for the legacy packless coarse tech/availability fallback.
+- Tightens conventional-vs-rocket artillery compatibility so `artillery_equipment` and `rocket_artillery_equipment` do not match solely through substring overlap.
+
+## Regression coverage
+
+- Motorized artillery / AT / AA receive the same selected-family MIO factor as their non-motorized counterparts when the source restriction is compatible.
+- Conventional artillery-only traits apply to conventional motorized artillery but not rocket artillery.
+- Rocket-only traits apply to line, motorized-towed, divisional-support and Regimental Support rocket artillery.
+- Distinct motorized-rocket equipment does not inherit conventional or towed-rocket-only restrictions.
+
+## Evidence boundary
+
+This release derives target identity from **game-file-backed hydrated equipment needs** and executes the planner's existing MIO compatibility/bonus logic. It introduces no new MIO bonus formula, combat formula, executable classification, prerequisite rule, Oracle validation, or evidence promotion.
+
+---
+
 # HOI4 War Planner 0.17.13 — Release Notes
 
 ## Overview

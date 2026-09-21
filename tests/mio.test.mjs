@@ -22,6 +22,11 @@ assert.equal(mioEquipmentCompatible(['medium_tank_destroyer_chassis'],'medium_ta
 assert.equal(mioEquipmentCompatible(['medium_tank_chassis'],'medium_tank_destroyer_chassis'),false,'normal tank restriction must not match a medium TD chassis');
 assert.equal(mioEquipmentCompatible(['medium_tank'],'medium_tank_chassis'),true,'family token should still match its chassis by direct identity containment');
 assert.equal(mioEquipmentCompatible(['armor'],'medium_tank_destroyer_chassis'),true,'source broad armor restriction must remain compatible with tank equipment');
+assert.equal(mioEquipmentCompatible(['artillery_equipment'],'artillery'),true,'planner artillery alias must match conventional artillery equipment');
+assert.equal(mioEquipmentCompatible(['artillery_equipment'],'rocket_artillery_equipment'),false,'conventional artillery restriction must not match rocket artillery equipment');
+assert.equal(mioEquipmentCompatible(['rocket_artillery_equipment'],'artillery'),false,'rocket-artillery restriction must not match conventional artillery');
+assert.equal(mioEquipmentCompatible(['rocket_artillery_equipment'],'rocket_artillery_equipment'),true,'rocket-artillery restriction must match its exact equipment family');
+assert.equal(mioEquipmentCompatible(['rocket_artillery_equipment'],'motorized_rocket_equipment'),false,'rocket-artillery equipment restriction must not silently include distinct motorized-rocket equipment');
 const scopedCatalog={scoped:{id:'scoped',traits:{restricted:{id:'restricted',equipmentTypes:['mio_cat_eq_all_medium_plane'],equipmentBonus:{air_attack:.5},productionBonus:{},organizationModifier:{}}}}};
 const compatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'medium_airframe'});
 const incompatible=mioEffects(scopedCatalog,{organization:'scoped',traits:['restricted']},{equipmentFamily:'small_airframe'});

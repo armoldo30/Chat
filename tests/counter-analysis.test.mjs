@@ -90,6 +90,9 @@ sameTenPercent(mioTechData.supports.support_at.hard,baseTechData.supports.suppor
 sameTenPercent(mioTechData.supports.anti_tank_battery.hard,baseTechData.supports.anti_tank_battery.hard,'1.19.3 anti-tank battery');
 sameTenPercent(mioTechData.supports.support_aa.airAttack,baseTechData.supports.support_aa.airAttack,'divisional support anti-air');
 sameTenPercent(mioTechData.supports.anti_air_battery.airAttack,baseTechData.supports.anti_air_battery.airAttack,'1.19.3 anti-air battery');
+sameTenPercent(mioTechData.battalions.mot_artillery_brigade.soft,baseTechData.battalions.mot_artillery_brigade.soft,'motorized artillery');
+sameTenPercent(mioTechData.battalions.mot_anti_tank_brigade.hard,baseTechData.battalions.mot_anti_tank_brigade.hard,'motorized anti-tank');
+sameTenPercent(mioTechData.battalions.mot_anti_air_brigade.airAttack,baseTechData.battalions.mot_anti_air_brigade.airAttack,'motorized anti-air');
 
 const scopedState=structuredClone(mioBaseState);
 scopedState.dataPack=structuredClone(mioBaseState.dataPack);
@@ -100,7 +103,8 @@ scopedState.dataPack.mios={...(scopedState.dataPack.mios||{}),
     initial:{equipmentBonus:{},productionBonus:{}},
     traits:{
       ART_ONLY:{id:'ART_ONLY',equipmentTypes:['artillery_equipment'],equipmentBonus:{soft_attack:.04},productionBonus:{},organizationModifier:{},parents:[]},
-      AT_ONLY:{id:'AT_ONLY',equipmentTypes:['anti_tank_equipment'],equipmentBonus:{hard_attack:.06},productionBonus:{},organizationModifier:{},parents:[]}
+      AT_ONLY:{id:'AT_ONLY',equipmentTypes:['anti_tank_equipment'],equipmentBonus:{hard_attack:.06},productionBonus:{},organizationModifier:{},parents:[]},
+      ROCKET_ONLY:{id:'ROCKET_ONLY',equipmentTypes:['rocket_artillery_equipment'],equipmentBonus:{soft_attack:.07},productionBonus:{},organizationModifier:{},parents:[]}
     }
   },
   TEST_COUNTER_SCOPED_TANK:{
@@ -114,7 +118,7 @@ scopedState.dataPack.mios={...(scopedState.dataPack.mios||{}),
 };
 scopedState.mioSelections=structuredClone(mioBaseState.mioSelections);
 scopedState.mioSelections.attacker={...scopedState.mioSelections.attacker,
-  artillery:{organization:'TEST_COUNTER_SCOPED_ARTILLERY',traits:['ART_ONLY','AT_ONLY']},
+  artillery:{organization:'TEST_COUNTER_SCOPED_ARTILLERY',traits:['ART_ONLY','AT_ONLY','ROCKET_ONLY']},
   anti_tank:{organization:'TEST_COUNTER_SCOPED_ARTILLERY',traits:['ART_ONLY','AT_ONLY']},
   medium_tank:{organization:'TEST_COUNTER_SCOPED_TANK',traits:['ARMOR_ONLY','TD_ONLY']}
 };
@@ -122,6 +126,12 @@ const scopedTechData=counterTechData(scopedState,'attacker');
 const near=(a,b,msg)=>assert.ok(Math.abs(Number(a)-Number(b))<1e-9,msg);
 near(scopedTechData.supports.support_artillery.soft/baseTechData.supports.support_artillery.soft,1.04,'artillery-only trait must apply to divisional support artillery');
 near(scopedTechData.supports.field_guns.soft/baseTechData.supports.field_guns.soft,1.04,'artillery-only trait must apply to current Infantry Guns');
+near(scopedTechData.battalions.mot_artillery_brigade.soft/baseTechData.battalions.mot_artillery_brigade.soft,1.04,'conventional artillery trait must apply to motorized artillery');
+near(scopedTechData.battalions.rocket_artillery_brigade.soft/baseTechData.battalions.rocket_artillery_brigade.soft,1.07,'rocket-only trait must apply to line rocket artillery');
+near(scopedTechData.battalions.mot_rocket_artillery_brigade.soft/baseTechData.battalions.mot_rocket_artillery_brigade.soft,1.07,'rocket-only trait must apply to motorized-towed rocket artillery');
+near(scopedTechData.supports.rocket_artillery.soft/baseTechData.supports.rocket_artillery.soft,1.07,'rocket-only trait must apply to divisional support rocket artillery');
+near(scopedTechData.supports.rocket_battery.soft/baseTechData.supports.rocket_battery.soft,1.07,'rocket-only trait must apply to Regimental Support rocket battery');
+near(scopedTechData.battalions.motorized_rocket_brigade.soft,baseTechData.battalions.motorized_rocket_brigade.soft,'distinct motorized-rocket equipment must not inherit conventional or towed-rocket-only traits');
 near(scopedTechData.supports.support_artillery.hard,baseTechData.supports.support_artillery.hard,'anti-tank-only trait must not leak into artillery support');
 near(scopedTechData.supports.field_guns.hard,baseTechData.supports.field_guns.hard,'anti-tank-only trait must not leak into current Infantry Guns');
 near(scopedTechData.supports.support_at.hard/baseTechData.supports.support_at.hard,1.06,'anti-tank-only trait must apply to divisional support AT');

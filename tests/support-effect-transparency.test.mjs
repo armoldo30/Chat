@@ -27,7 +27,9 @@ for(const field of ['recon','entrenchment','initiative','reliabilityFactor','equ
   assert.ok(effects.some(x=>x.field===field),`source-effect transparency should expose ${field}`);
 }
 assert.equal(effects.find(x=>x.field==='initiative').state,'aggregated-not-used-downstream');
-assert.equal(effects.find(x=>x.field==='supplyConsumptionFactor').state,'source-retained-not-executed');
+assert.equal(effects.find(x=>x.field==='supplyConsumptionFactor').state,'consumed-by-division-supply');
+assert.equal(effects.find(x=>x.field==='casualtyTrickleback').state,'consumed-by-permanent-manpower-loss');
+assert.equal(effects.find(x=>x.field==='battalionMult').state,'consumed-bounded-core-stats');
 assert.equal(effects.find(x=>x.field==='enableAbility').runtimeEvidence,'unvalidated');
 assert.equal(effects.find(x=>x.field==='supplyConsumptionFactor').display,'-10%');
 assert.match(effects.find(x=>x.field==='battalionMult').label,/Artillery/);

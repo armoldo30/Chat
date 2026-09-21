@@ -34,7 +34,7 @@ assert.ok(supplyBurden.supplyDelta>0&&supplyBurden.supplyPct>0&&supplyBurden.sup
 const explanation=explainCounter({gain:12,ic:1200,changeCount:2,changes:['Add Anti-Tank','Add Engineers'],stats:{...yours,piercing:75,hard:110,breakthrough:200,org:52,width:22,supply:1.3}}, {attacker:yours,defender:target,attackerIC:1000,defenderIC:1100});
 assert.ok(explanation.reasons.some(reason=>/Crosses the target armor threshold/i.test(reason)));
 assert.ok(explanation.reasons.some(reason=>/hard attack/i.test(reason)));
-assert.ok(explanation.tradeoffs.some(reason=>/Equipment cost rises/i.test(reason)));
+assert.ok(explanation.tradeoffs.some(reason=>/Equipment IC: 1000 → 1200 per division/i.test(reason)),'Counter explanation must show the direct current-to-proposed IC cost');
 assert.equal(explanation.changeCount,2);
 
 const defenderExplanation=explainCounter({gain:11,ic:1250,changeCount:1,changes:['Add Infantry'],stats:{...target,def:385,org:57,width:26,supply:1.55}}, {attacker:yours,defender:target,attackerIC:1000,defenderIC:1100},'defender');

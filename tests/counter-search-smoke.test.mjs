@@ -4,7 +4,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { battalions, supports, equipment, terrain } from '../src/data.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
-import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, counterProductionPracticality, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates, canReachMeaningfulCounterGain } from '../src/counter-search.js';
+import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates, canReachMeaningfulCounterGain } from '../src/counter-search.js';
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
@@ -44,7 +44,8 @@ for(const item of r.ranked){
   assert.ok(Number.isFinite(item.winRate)&&Number.isFinite(item.ic));
   assert.equal(item.changeKinds?.length,item.changeCount);
   assert.ok(!(item.changeKinds||[]).includes('equipment-tech'));
-  assert.ok(item.practicality&&typeof item.practicality.majorRetooling==='boolean','ranked counters must carry production-practicality metadata');
+  assert.ok(Number.isFinite(item.deltaIC)&&Number.isFinite(item.deltaPct),'ranked counters must carry direct per-division IC delta metadata');
+  assert.equal('productionBurden' in item,false,'ranked counters must not carry saved-production feasibility metadata');
   assert.ok(item.operationalBurden&&Number.isFinite(item.operationalBurden.supplyPct),'ranked counters must carry explicit supply-use practicality metadata');
   assert.ok(item.battleQuality&&Number.isFinite(item.battleQuality.casualtyExchange),'ranked counters must retain battle-derived strength-loss exchange for saturated win-rate ties');
 }
@@ -60,21 +61,11 @@ assert.equal(defenderRun.multiChangeCount,0);
 assert.ok(defenderRun.oneChangeCount>0&&Number.isFinite(defenderRun.baseline.winRate));
 assert.ok(defenderRun.bestTested&&defenderRun.bestTested.side==='defender','defender candidate identity must survive full battle simulation and ranking');
 
-const heavyGrid=structuredClone(s.state.attackerGrid);
-let inserted=false;
-for(const column of heavyGrid){for(let row=0;row<column.length;row++){if(!column[row]){column[row]='heavy_armor';inserted=true;break;}}if(inserted)break;}
-assert.ok(inserted,'fixture must have room to introduce heavy armor');
-const heavyPracticality=counterProductionPracticality(s,{grid:heavyGrid});
-assert.equal(heavyPracticality.majorRetooling,true,'introducing a new heavy-armor family must be treated as major production retooling');
-assert.deepEqual(heavyPracticality.introducedArmorFamilies,['heavy']);
-assert.ok(heavyPracticality.resourceKeys.includes('chromium'),'heavy-armor retooling should surface the current chromium input baseline');
-assert.ok(heavyPracticality.searchPenalty>0&&heavyPracticality.valuePenalty>0,'new armor families must carry search and value practicality penalties');
-
-const heavy={key:'heavy',label:'Add Heavy Armor',gain:20,value:.5,changeCount:1,deltaIC:500,practicality:{majorRetooling:true}},at={key:'at',label:'Add Support Anti-Tank',gain:9,value:.2,changeCount:1,deltaIC:50,practicality:{majorRetooling:false}},support={key:'support',label:'Swap Support Company',gain:6,value:.15,changeCount:1,deltaIC:20,practicality:{majorRetooling:false}};
+const heavy={key:'heavy',label:'Add Heavy Armor',gain:20,value:.5,changeCount:1,deltaIC:500},at={key:'at',label:'Add Support Anti-Tank',gain:9,value:.2,changeCount:1,deltaIC:50},support={key:'support',label:'Swap Support Company',gain:8,value:.15,changeCount:1,deltaIC:20};
 const picks=chooseCounterHighlights([heavy,at,support]);
 assert.equal(picks.best.key,'heavy','Best Raw may still expose the strongest theoretical armored answer');
-assert.equal(picks.value.key,'heavy','Best Efficient must not hard-exclude the strongest value result merely because it opens an armor production chain');
-assert.equal(picks.minimal.key,'support','Smallest Change must prefer a meaningful local edit over major retooling');
+assert.equal(picks.value.key,'heavy','Best Efficient must use the scored value result without saved-production feasibility gating');
+assert.equal(picks.minimal.key,'support','Smallest Change must prefer the lower-IC meaningful one-change edit');
 const practicalGroups=buildCounterRecommendationGroups(picks,[heavy,at,support]);
 assert.deepEqual(practicalGroups.map(group=>group.item.key),['heavy','support','at'],'headline cards should deduplicate a dominant raw/value winner and still surface distinct alternatives');
 

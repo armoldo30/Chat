@@ -3,8 +3,7 @@ import { counterEquipment, counterBattleOptions, counterTechData } from './count
 import { buildCounterCandidates } from './counter-candidates.js';
 import { buildForceDesignCandidates, counterForceKey } from './counter-force-candidates.js';
 import { matchupPriorityScore } from './counter-diagnosis.js';
-import { counterProductionBurden } from './counter-production-burden.js';
-import { battalions, supports, equipment } from './data.js';
+import { battalions, supports } from './data.js';
 import { gridToCounts, filledInRegiment, regimentGroup as gridRegimentGroup } from './designer.js';
 import { ordinaryDivisionBattalionIds } from './division-designer-options.js';
 import { regimentalSupportAllowed } from './regimental-support-1193.js';
@@ -14,26 +13,9 @@ const isTemplateKind=kind=>['add-line','replace-line','add-support','replace-sup
 const SAFE_DEFAULTS={runs:50,firstStepLimit:20,beamWidth:4,secondPerSeedLimit:12,secondStepLimit:10,previewMultiplier:4};
 const DEEP_DEFAULTS={deep:false,thirdBeamWidth:3,thirdPerSeedLimit:8,thirdStepLimit:6};
 const MIN_MEANINGFUL_GAIN=2;
-const ARMOR_FAMILIES={light_armor:'light',medium_armor:'medium',heavy_armor:'heavy'};
-const ARMOR_EQUIPMENT={light:'light_tank',medium:'medium_tank',heavy:'heavy_tank'};
-const RETOOLING_WEIGHT={light:1,medium:2,heavy:3};
-const SEARCH_RETOOLING_PENALTY={light:24,medium:48,heavy:86};
-const VALUE_RETOOLING_PENALTY={light:180,medium:360,heavy:720};
 const derivedCache=new WeakMap();
 const normalizeSide=side=>side==='defender'?'defender':'attacker';
 const otherSide=side=>side==='defender'?'attacker':'defender';
-
-function armorFamiliesIn(grid){
-  const counts=new Map(gridToCounts(grid,ordinaryDivisionBattalionIds(battalions)).map(row=>[row.type,row.count]));
-  return new Set(Object.entries(ARMOR_FAMILIES).filter(([type])=>(counts.get(type)||0)>0).map(([,family])=>family));
-}
-export function counterProductionPracticality(snapshot,item,side='attacker'){
-  side=normalizeSide(side);
-  const baseGrid=snapshot.state[side+'Grid'],baseFamilies=armorFamiliesIn(baseGrid),nextFamilies=armorFamiliesIn(item.grid||baseGrid),introduced=[...nextFamilies].filter(family=>!baseFamilies.has(family));
-  if(!introduced.length)return {majorRetooling:false,introducedArmorFamilies:[],severity:0,searchPenalty:0,valuePenalty:0,resourceKeys:[]};
-  const severity=Math.max(...introduced.map(family=>RETOOLING_WEIGHT[family]||1)),resourceKeys=[...new Set(introduced.flatMap(family=>Object.keys(equipment[ARMOR_EQUIPMENT[family]]?.resources||{})))];
-  return {majorRetooling:true,introducedArmorFamilies:introduced,severity,searchPenalty:introduced.reduce((sum,family)=>sum+(SEARCH_RETOOLING_PENALTY[family]||20),0),valuePenalty:introduced.reduce((sum,family)=>sum+(VALUE_RETOOLING_PENALTY[family]||150),0),resourceKeys};
-}
 export function counterOperationalBurden(base,item){
   const baseSupply=Math.max(0,Number(base?.supply)||0),nextSupply=Math.max(0,Number(item?.stats?.supply)||0),supplyDelta=nextSupply-baseSupply,supplyPct=baseSupply>0?supplyDelta/baseSupply*100:0;
   return {supplyDelta,supplyPct,supplyValuePenalty:Math.max(0,supplyPct)*1.5};
@@ -43,9 +25,9 @@ export function canReachMeaningfulCounterGain(baselineWin){const value=Number(ba
 function score(items,baseWin,baseIC,snapshot,side){
   const base=snapshot[side];
   return items.map(item=>{
-    const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1),practicality=item.practicality||counterProductionPracticality(snapshot,item,side),operationalBurden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
-    const denominator=Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(practicality.valuePenalty||0)+(operationalBurden.supplyValuePenalty||0)+(productionBurden.capacityPenalty||0)*.15;
-    return {...item,practicality,operationalBurden,productionBurden,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/Math.max(1,denominator)};
+    const gain=item.winRate-baseWin,deltaIC=item.ic-baseIC,complexity=Math.max(1,item.changeCount||1),operationalBurden=counterOperationalBurden(base,item);
+    const denominator=Math.max(0,deltaIC)+Math.max(5,baseIC*.01)+complexity*2+(operationalBurden.supplyValuePenalty||0);
+    return {...item,operationalBurden,gain,deltaIC,deltaPct:baseIC>0?deltaIC/baseIC*100:0,value:gain/Math.max(1,denominator)};
   });
 }
 function combatTieMargin(item){return Number(item?.battleQuality?.casualtyExchange)||0;}
@@ -62,7 +44,7 @@ function rank(scored){
 }
 export function chooseCounterHighlights(ranked){
   if(!ranked.length)return {best:null,value:null,minimal:null};
-  const best=ranked[0],value=[...ranked].sort((a,b)=>b.value-a.value||b.gain-a.gain||combatTieMargin(b)-combatTieMargin(a)||a.changeCount-b.changeCount)[0],local=ranked.filter(item=>!item.practicality?.majorRetooling),minimalPool=local.length?local:ranked,practicalBest=Math.max(...minimalPool.map(item=>item.gain)),meaningful=minimalPool.filter(item=>item.gain>=Math.max(5,practicalBest*.35)),minimalSource=meaningful.length?meaningful:minimalPool;
+  const best=ranked[0],value=[...ranked].sort((a,b)=>b.value-a.value||b.gain-a.gain||combatTieMargin(b)-combatTieMargin(a)||a.changeCount-b.changeCount)[0],practicalBest=Math.max(...ranked.map(item=>item.gain)),meaningful=ranked.filter(item=>item.gain>=Math.max(5,practicalBest*.35)),minimalSource=meaningful.length?meaningful:ranked;
   return {best,value,minimal:[...minimalSource].sort((a,b)=>a.changeCount-b.changeCount||a.deltaIC-b.deltaIC||b.gain-a.gain||combatTieMargin(b)-combatTieMargin(a))[0]};
 }
 function recommendationKey(item){return item?.key||`${item?.label||''}|${(item?.changes||[]).join('|')}`;}
@@ -120,18 +102,15 @@ function divisionFor(state,side,grid,supportKeys){
   return calcDivision(line,data.battalions,[...(supportKeys||[]),...regimental],data.supports);
 }
 function enrichCandidate(snapshot,candidate,side,contextState=snapshot.state){
-  const state=candidate.state||contextState,target=snapshot[otherSide(side)],division=divisionFor(state,side,candidate.grid,candidate.supportKeys),equipmentData=derivedFor(state,side).equipment,ic=divisionEquipmentIC(division.need,equipmentData),changeKinds=candidate.changeKinds||[candidate.kind],practicality=counterProductionPracticality(snapshot,candidate,side);
-  return {...candidate,side,state,changeKinds,practicality,key:counterForceKey(candidate.grid,candidate.supportKeys,state,side),stats:division,ic,pierces:division.piercing>=target.armor,holdsArmor:division.armor>target.piercing};
+  const state=candidate.state||contextState,target=snapshot[otherSide(side)],division=divisionFor(state,side,candidate.grid,candidate.supportKeys),equipmentData=derivedFor(state,side).equipment,ic=divisionEquipmentIC(division.need,equipmentData),changeKinds=candidate.changeKinds||[candidate.kind];
+  return {...candidate,side,state,changeKinds,key:counterForceKey(candidate.grid,candidate.supportKeys,state,side),stats:division,ic,pierces:division.piercing>=target.armor,holdsArmor:division.armor>target.piercing};
 }
 function heuristic(snapshot,item,side){
-  const base=snapshot[side],burden=counterOperationalBurden(base,item),productionBurden=counterProductionBurden(snapshot,item,side);
+  const base=snapshot[side],burden=counterOperationalBurden(base,item);
   let score=matchupPriorityScore(base,item.stats,snapshot[otherSide(side)],{side,battlefield:snapshot.state.battlefield});
   score-=Math.max(0,item.ic-snapshot[side+'IC'])*.003;
   score-=Math.max(0,burden.supplyPct)*.08;
-  score-=Math.max(0,productionBurden.factoryShortfall)*.5;
-  score-=Math.max(0,productionBurden.constrainedResources?.length||0);
   score-=Math.max(0,(item.changeCount||1)-1)*2;
-  score-=(item.practicality?.searchPenalty||0)*.65;
   return score;
 }
 function simulateCandidate(snapshot,opponent,baseOptions,runs,item,side){

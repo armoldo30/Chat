@@ -56,17 +56,19 @@ export const SUPPORT_EFFECT_RUNTIME_1193=Object.freeze({
       state:'source-retained-not-executed'
     }),
     battalionMult:Object.freeze({
-      runtimeEvidence:'unvalidated',
-      state:'source-retained-not-executed',
-      note:'battalion_mult requires category matching plus executable stacking/order that is not yet certified.'
+      runtimeEvidence:'executable inferred',
+      state:'consumed-bounded-core-stats',
+      consumedFields:Object.freeze(['soft_attack','hard_attack','defence','defense','breakthrough','air_attack','ap_attack','armor_value','max_strength','max_organisation','supply_consumption']),
+      deferredFields:Object.freeze(['initiative','entrenchment','default_morale','suppression_factor']),
+      note:'Category matching uses retained source categories. add=yes is treated as a flat sub-unit adjustment; other supported fields use the same additive-then-factor convention already used by the audited technology runtime. Cross-system executable ordering remains unvalidated.'
     })
   }),
   logisticsAndLosses:Object.freeze({
     reliabilityFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
     equipmentCaptureFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
-    supplyConsumptionFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
+    supplyConsumptionFactor:Object.freeze({runtimeEvidence:'executable inferred',state:'consumed-by-division-supply',note:'Selected support factors are summed and applied to the division supply-use total; broader modifier-stack ordering remains unvalidated.'}),
     fuelConsumptionFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
-    casualtyTrickleback:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
+    casualtyTrickleback:Object.freeze({runtimeEvidence:'executable inferred',state:'consumed-by-permanent-manpower-loss',note:'Reduces reported permanent manpower loss after modeled strength loss; it does not change combat strength damage or equipment losses.'}),
     experienceLossFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
     suppression:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),
     suppressionFactor:Object.freeze({runtimeEvidence:'unvalidated',state:'source-retained-not-executed'}),

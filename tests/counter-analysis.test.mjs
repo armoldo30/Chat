@@ -19,11 +19,12 @@ assert.equal(diagnosis.targetPierces,true);
 assert.ok(diagnosis.notes.some(note=>/armor threshold/i.test(note.title)));
 assert.ok(diagnosis.notes.some(note=>/hard attack/i.test(note.title)));
 
-const burden=economicBurden(1000,1200,30,24);
+const burden=economicBurden(1000,1200);
+assert.equal(burden.baselineIC,1000);
+assert.equal(burden.candidateIC,1200);
 assert.equal(burden.delta,200);
 assert.equal(Math.round(burden.pct),20);
-assert.equal(burden.extraFactories,6);
-assert.equal(burden.totalDelta,4800);
+assert.equal('extraFactories' in burden,false,"Counter IC comparison must not infer factory requirements from the user's production setup");
 
 assert.equal(isMeaningfulCounterImprovement({gain:15,winRate:45}),true,'a large improvement must qualify even when the modeled win rate remains below 50%');
 assert.equal(isMeaningfulCounterImprovement({gain:1.9,winRate:90}),false,'qualification is based on improvement over the baseline, not whether the candidate happens to win most runs');
@@ -33,7 +34,7 @@ assert.ok(supplyBurden.supplyDelta>0&&supplyBurden.supplyPct>0&&supplyBurden.sup
 const explanation=explainCounter({gain:12,ic:1200,changeCount:2,changes:['Add Anti-Tank','Add Engineers'],stats:{...yours,piercing:75,hard:110,breakthrough:200,org:52,width:22,supply:1.3}}, {attacker:yours,defender:target,attackerIC:1000,defenderIC:1100});
 assert.ok(explanation.reasons.some(reason=>/Crosses the target armor threshold/i.test(reason)));
 assert.ok(explanation.reasons.some(reason=>/hard attack/i.test(reason)));
-assert.ok(explanation.tradeoffs.some(reason=>/Equipment cost rises/i.test(reason)));
+assert.ok(explanation.tradeoffs.some(reason=>/Equipment IC: 1000 → 1200 per division/i.test(reason)),'Counter explanation must show the direct current-to-proposed IC cost');
 assert.equal(explanation.changeCount,2);
 
 const defenderExplanation=explainCounter({gain:11,ic:1250,changeCount:1,changes:['Add Infantry'],stats:{...target,def:385,org:57,width:26,supply:1.55}}, {attacker:yours,defender:target,attackerIC:1000,defenderIC:1100},'defender');
@@ -45,10 +46,6 @@ const designExplanation=explainCounter({gain:8,ic:1180,changeCount:1,changes:['M
 assert.ok(designExplanation.reasons.some(reason=>/underlying variant/i.test(reason)),'tank-design explanations must describe the equipment-level mechanism');
 assert.ok(designExplanation.tradeoffs.some(reason=>/build cost rises/i.test(reason)),'tank-design explanations must report per-vehicle cost tradeoffs');
 
-const retoolExplanation=explainCounter({gain:14,ic:1550,changeCount:1,changes:['Add Heavy Armor'],practicality:{majorRetooling:true,introducedArmorFamilies:['heavy'],resourceKeys:['steel','chromium']},stats:{...yours,armor:76,piercing:72,hard:120,breakthrough:230,supply:1.5}}, {attacker:yours,defender:target,attackerIC:1000,defenderIC:1100});
-assert.ok(retoolExplanation.tradeoffs.some(reason=>/Major production retooling/i.test(reason)),'new armor families must be called out as major production retooling');
-assert.ok(retoolExplanation.tradeoffs.some(reason=>/Chromium/i.test(reason)),'retooling explanation should expose strategic-resource inputs from the current data baseline');
-assert.ok(retoolExplanation.tradeoffs.some(reason=>/campaign fuel/i.test(reason)),'retooling explanation must disclose that campaign fuel is not fully priced');
 
 const grid=blankGrid();grid[0][0]='infantry';grid[0][1]='infantry';grid[0][2]='infantry';
 const snapshot={state:{attackerGrid:grid,attackerSupports:['engineer','recon','logistics','signal','support_artillery']}};

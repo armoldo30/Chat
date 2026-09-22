@@ -225,6 +225,25 @@ function weightedMaxAverage(values,maxWeight=.4){
   return max*maxWeight+avg*(1-maxWeight);
 }
 
+const SUPPORT_BATTALION_MULT_FIELDS=Object.freeze({
+  soft_attack:'soft',hard_attack:'hard',defence:'def',defense:'def',breakthrough:'breakthrough',air_attack:'airAttack',
+  ap_attack:'piercing',armor_value:'armor',max_strength:'hp',max_organisation:'org',supply_consumption:'supply'
+});
+export function applySupportBattalionMult(unit,supportRecords=[]){
+  const out={...(unit||{})},additive={},factor={};
+  for(const support of supportRecords||[])for(const block of support?.battalionMult||[]){
+    if(!block||!block.category||!(unit?.categories||[]).includes(block.category))continue;
+    const bucket=block.add?additive:factor;
+    for(const [source,target] of Object.entries(SUPPORT_BATTALION_MULT_FIELDS)){
+      const amount=Number(block[source]);if(!Number.isFinite(amount))continue;
+      bucket[target]=(bucket[target]||0)+amount;
+    }
+  }
+  for(const [field,amount] of Object.entries(additive))out[field]=Math.max(0,(Number(out[field])||0)+amount);
+  for(const [field,amount] of Object.entries(factor))out[field]=Math.max(0,(Number(out[field])||0)*(1+amount));
+  return out;
+}
+
 function unitTerrainMaps(unit){
   const attack={},defense={},source=unit?.terrainModifiers&&typeof unit.terrainModifiers==='object'?unit.terrainModifiers:null;
   if(source&&Object.keys(source).length){
@@ -241,11 +260,12 @@ function unitTerrainMaps(unit){
 }
 
 export function calcDivision(side,battalions,supportKeys,supports){
-  const r={width:0,manpower:0,org:0,hp:0,supply:0,soft:0,hard:0,def:0,breakthrough:0,hardness:0,armor:0,piercing:0,airAttack:0,initiative:0,need:{},battalions:0,supportCount:0,terrainAttack:{},terrainDefense:{}};
+  const supportRecords=(supportKeys||[]).map(key=>supports?.[key]).filter(Boolean);
+  const r={width:0,manpower:0,org:0,hp:0,supply:0,soft:0,hard:0,def:0,breakthrough:0,hardness:0,armor:0,piercing:0,airAttack:0,initiative:0,supplyConsumptionFactor:0,casualtyTrickleback:0,need:{},battalions:0,supportCount:0,terrainAttack:{},terrainDefense:{}};
   let orgSum=0,hardnessSum=0,lineCount=0;
   const armorVals=[],piercingVals=[],lineTerrainAttack={},lineTerrainDefense={},supportTerrainAttack={},supportTerrainDefense={};
   for(const x of side||[]){
-    const u=battalions[x.type],n=Math.max(0,Math.floor(Number(x.count)||0)); if(!u||!n) continue;
+    const base=battalions[x.type],n=Math.max(0,Math.floor(Number(x.count)||0)); if(!base||!n) continue;const u=applySupportBattalionMult(base,supportRecords);
     lineCount+=n; r.battalions+=n; r.width+=u.width*n; r.manpower+=u.manpower*n; r.hp+=u.hp*n; r.supply+=u.supply*n;
     r.soft+=u.soft*n; r.hard+=u.hard*n; r.def+=u.def*n; r.breakthrough+=u.breakthrough*n; r.airAttack+=(u.airAttack||0)*n;
     orgSum+=u.org*n; hardnessSum+=u.hardness*n;
@@ -255,8 +275,8 @@ export function calcDivision(side,battalions,supportKeys,supports){
     for(const [k,v] of Object.entries(tm.attack))lineTerrainAttack[k]=(lineTerrainAttack[k]||0)+v*n;
     for(const [k,v] of Object.entries(tm.defense))lineTerrainDefense[k]=(lineTerrainDefense[k]||0)+v*n;
   }
-  for(const key of supportKeys||[]){
-    const u=supports[key]; if(!u) continue; r.supportCount++;
+  for(const u of supportRecords){
+    r.supportCount++;r.supplyConsumptionFactor+=Number(u.supplyConsumptionFactor)||0;r.casualtyTrickleback+=Number(u.casualtyTrickleback)||0;
     r.manpower+=u.manpower||0; r.hp+=u.hp||0; orgSum+=u.org||0;
     r.supply+=u.supply||0; r.soft+=u.soft||0; r.hard+=u.hard||0; r.def+=u.def||0; r.breakthrough+=u.breakthrough||0; r.airAttack+=u.airAttack||0; r.initiative+=u.initiative||0;
     armorVals.push(u.armor||0); piercingVals.push(u.piercing||0);
@@ -265,6 +285,7 @@ export function calcDivision(side,battalions,supportKeys,supports){
     for(const [k,v] of Object.entries(tm.attack))supportTerrainAttack[k]=(supportTerrainAttack[k]||0)+v;
     for(const [k,v] of Object.entries(tm.defense))supportTerrainDefense[k]=(supportTerrainDefense[k]||0)+v;
   }
+  r.supplyConsumptionFactor=Math.max(-1,r.supplyConsumptionFactor);r.supply=Math.max(0,r.supply*(1+r.supplyConsumptionFactor));r.casualtyTrickleback=clamp(r.casualtyTrickleback,0,1);
   const orgSlots=lineCount+r.supportCount;
   r.org=orgSlots?orgSum/orgSlots:0; r.hardness=lineCount?hardnessSum/lineCount:0;
   for(const [k,v] of Object.entries(lineTerrainAttack))r.terrainAttack[k]=v/Math.max(1,lineCount);
@@ -455,7 +476,8 @@ export function simulateOnce(a,d,opts,rngOverride){
   hours=Math.max(hours,COMBAT_CONSTANTS.combatMinimumHours);
   const attackerWin=do_<=0&&ao>0,defenderWin=ao<=0&&do_>0,draw=!attackerWin&&!defenderWin;
   const aCas=clamp((aHp0-Math.max(0,ahp))/aHp0,0,1),dCas=clamp((dHp0-Math.max(0,dhp))/dHp0,0,1);
-  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower,defenderManpowerLoss:dCas*d.manpower,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline,maxHours};
+  const aPermanentManpowerFactor=1-clamp(Number(a.casualtyTrickleback)||0,0,1),dPermanentManpowerFactor=1-clamp(Number(d.casualtyTrickleback)||0,0,1);
+  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower*aPermanentManpowerFactor,defenderManpowerLoss:dCas*d.manpower*dPermanentManpowerFactor,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline,maxHours};
 }
 
 function wilsonInterval(successes,n,z=1.96){

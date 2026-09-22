@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import supportA from '../src/builtin1193/support-subunits-complete-a.js';
 import supportB from '../src/builtin1193/support-subunits-complete-b.js';
+import BUILTIN_1193 from '../src/builtin1193.js';
+import { battalions, supports, equipment, terrain } from '../src/data.js';
+import { hydrateGameData } from '../src/gameData.js';
+import { calcDivision } from '../src/engine.js';
 import { SUPPORT_EFFECT_RUNTIME_1193, SUPPORT_EFFECT_RUNTIME_1193_META } from '../src/builtin1193/support-effects-certification-1193.js';
 
 const CANONICAL=new Set(['game-file exact','executable inferred','planner analytical','oracle-validated','oracle-divergent','unvalidated']);
@@ -22,8 +26,10 @@ assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.allowedBattalionGroups.runti
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.sameSupportType.runtimeEvidence,'game-file exact');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.structural.hqEligibility.runtimeEvidence,'game-file exact');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.initiative.state,'aggregated-not-used-downstream');
-assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.runtimeEvidence,'unvalidated');
-assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.casualtyTrickleback.runtimeEvidence,'unvalidated');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.runtimeEvidence,'executable inferred');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.combat.battalionMult.state,'consumed-bounded-core-stats');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.supplyConsumptionFactor.runtimeEvidence,'executable inferred');
+assert.equal(SUPPORT_EFFECT_RUNTIME_1193.logisticsAndLosses.casualtyTrickleback.runtimeEvidence,'executable inferred');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193.specialist.enableAbility.runtimeEvidence,'unvalidated');
 
 const source={...supportA,...supportB},values=Object.values(source);
@@ -47,5 +53,16 @@ for(const [field,isPresent] of Object.entries(present))assert.equal(isPresent,tr
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.gameVersion,'1.19.3');
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.broadResolverPromotion,false);
 assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.followupIssue,46);
+
+hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
+const artilleryBase=calcDivision([{type:'artillery',count:1}],battalions,[],supports);
+const artilleryRecon=calcDivision([{type:'artillery',count:1}],battalions,['recon'],supports);
+assert.ok(Math.abs((artilleryRecon.soft-(Number(supports.recon.soft)||0))/artilleryBase.soft-1.10)<1e-9,'1.19.3 recon battalion_mult must give matching artillery +10% soft attack in addition to Recon\'s own direct support stats');
+const infantryBase=calcDivision([{type:'infantry',count:1}],battalions,[],supports);
+const infantryHospital=calcDivision([{type:'infantry',count:1}],battalions,['field_hospital'],supports);
+assert.ok(infantryHospital.hp>infantryBase.hp,'1.19.3 field hospital battalion_mult must increase matching infantry HP');
+assert.equal(infantryHospital.casualtyTrickleback,.2,'1.19.3 field hospital must expose its 20% casualty trickleback to combat-loss reporting');
+const logistics=calcDivision([{type:'infantry',count:1}],battalions,['logistics'],supports);
+assert.ok(logistics.supply<infantryBase.supply+supports.logistics.supply,'1.19.3 logistics supply factor must reduce the combined division supply-use total');
 
 console.log('Support-effect runtime evidence-boundary audit passed.');

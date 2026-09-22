@@ -107,7 +107,8 @@ assert.match(searchView,/Tradeoffs/);
 assert.match(searchView,/still below 50%/,'a large improvement must be allowed to remain a losing matchup and be labeled honestly');
 assert.match(searchView,/Recommendations are improvements, not promises of victory/,'UI must state that recommendations do not guarantee a win');
 assert.match(searchView,/Combat width, organization, armor\/piercing thresholds, hardness-sensitive attack/,'UI must disclose that matchup-relevant structural stats feed the battle simulation');
-assert.match(searchView,/production capacity is only secondary context/,'UI must keep production as secondary context rather than the primary counter objective');
+assert.match(searchView,/saved production lines, factory capacity and resource plans do not accept, reject or rerank a counter/,'UI must disclose that saved production feasibility is not used to gate Counter recommendations');
+assert.match(searchView,/modeled IC\/div/,'headline counter cards must show direct per-division IC cost context');
 assert.match(searchView,/equal win-rate results are separated by modeled strength-loss exchange/,'UI must disclose the battle-only tie-break used for saturated outcomes');
 assert.match(searchView,/Strength loss: own/,'headline counter cards must expose the modeled strength-loss exchange');
 assert.match(searchView,/does not infer province-level supply satisfaction/,'UI must preserve the supply-capacity evidence boundary');
@@ -115,14 +116,14 @@ assert.match(searchView,/No meaningful local \$\{sideLabel\(side\)\} counter fou
 assert.match(searchView,/BEST TESTED ATTEMPT · BELOW THRESHOLD/,'hopeless matchups should expose the strongest near-miss without calling it a qualifying counter');
 assert.match(searchView,/DOMINANT PICK/,'one candidate winning several objectives must render once as a dominant pick');
 assert.match(searchView,/DISTINCT ALTERNATIVE/,'duplicate headline winners should make room for distinct qualifying alternatives');
-assert.match(searchView,/MAJOR RETOOLING/,'new armor-family recommendations must be visibly flagged');
-assert.match(searchView,/This is secondary context; the combat result is still tested normally/,'UI must keep major retooling visible without making it the primary counter gate');
 assert.match(explanations,/Crosses the target armor threshold/);
 assert.match(explanations,/Defense increases/,'defender explanations must reward defensive staying power');
 assert.match(explanations,/underlying variant/);
 assert.match(explanations,/Effective attack against this exact hardness profile/);
-assert.match(explanations,/Major production retooling/,'counter explanations must disclose new armor production-chain commitments');
 assert.match(baseView,/Regimental Support catalogs/,'Counter introduction should describe the expanded 1.19.3 candidate universe');
 assert.match(baseView,/final recommendations come from the full battle simulation/,'UI must distinguish heuristic screening from battle-tested recommendations');
 assert.doesNotMatch(index,/enemy uncertainty bands/i);
 console.log('Counter Analysis UI regression checks passed.');
+
+assert.doesNotMatch(searchView,/unused military factories|factory-days|strategic-resource capacity|MAJOR RETOOLING/,'Counter UI must not infer saved-production feasibility after the IC-only scope decision');
+assert.doesNotMatch(explanations,/factory-days|unused military factories|strategic-resource capacity|Major production retooling/,'Counter explanations must stay descriptive rather than production-feasibility gating');

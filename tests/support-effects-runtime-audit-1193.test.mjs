@@ -57,7 +57,7 @@ assert.equal(SUPPORT_EFFECT_RUNTIME_1193_META.followupIssue,46);
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 const artilleryBase=calcDivision([{type:'artillery',count:1}],battalions,[],supports);
 const artilleryRecon=calcDivision([{type:'artillery',count:1}],battalions,['recon'],supports);
-assert.ok(Math.abs(artilleryRecon.soft/artilleryBase.soft-1.10)<1e-9,'1.19.3 recon battalion_mult must give matching artillery +10% soft attack');
+assert.ok(Math.abs((artilleryRecon.soft-(Number(supports.recon.soft)||0))/artilleryBase.soft-1.10)<1e-9,'1.19.3 recon battalion_mult must give matching artillery +10% soft attack in addition to Recon\'s own direct support stats');
 const infantryBase=calcDivision([{type:'infantry',count:1}],battalions,[],supports);
 const infantryHospital=calcDivision([{type:'infantry',count:1}],battalions,['field_hospital'],supports);
 assert.ok(infantryHospital.hp>infantryBase.hp,'1.19.3 field hospital battalion_mult must increase matching infantry HP');

@@ -1622,7 +1622,112 @@ Persisted evidence:
 - `oracle-lab/captures/o7-wide-rounding-001-summary.json`
 - `oracle-lab/captures/o7-wide-rounding-001-assessment.json`
 
-Per the predeclared plan, O7 completes the manual attack-point integerization sequence. The next step is planner-side integration on the isolated Oracle branch and replay/regression against O1–O7 evidence, not an adaptive O8 experiment.
+Per the predeclared plan, O7 completes the manual **attack-point** integerization sequence. The next step is planner-side integration on the isolated Oracle branch and replay/regression against O1–O7 evidence. Any later Oracle experiment must target a different unresolved mechanism rather than adaptively extending attack-point rounding.
+
+
+### O8 defense-point integerization probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O7 validated the wider **attack-point** multiplicity distribution at its controlled fixed-damage boundary. The planner still integerizes defense points with the older single-Bernoulli mechanism:
+
+`stochasticRound(defense * 0.1)`
+
+O8 asks a separate question: **does defense-point integerization use the same wider random-rounding law?**
+
+Scenario:
+
+`o8-defense-wide-rounding-v1`
+
+Candidate defense approximation:
+
+`round(defense / 10 + U[-1,+1])`
+
+with negative values clamped to zero.
+
+This candidate is **executable inferred** until tested. O8 does not assume that attack and defense must share an implementation merely because that would be symmetrical.
+
+#### O8 diagnostic controls
+
+O8 retains the fixed-damage controls and changes the hit gates so that the defender's organization loss directly reveals the number of **undefended** attack points:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 100` → defended points never hit;
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 0` → undefended points always hit;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0;
+- neutral tactics.
+
+Target modifiers:
+
+- GER `army_infantry_attack_factor = -0.721`;
+- POL `army_defence_factor = -0.9607843137`.
+
+Panel acceptance:
+
+- GER displayed Soft Attack exactly **20**;
+- GER tooltip/effective Soft Attack exactly **20.0**;
+- POL displayed Defense exactly **10**;
+- POL tooltip/effective Defense exactly **10.0** if the executable exposes the decimal total;
+- one GER division vs one POL division;
+- width 18 each;
+- no commanders and zero reserves.
+
+If the POL modifier misses the exact Defense target, that run is **tuning only** and must not be interpreted. Only the defense modifier may be retuned; the sample size, attack target, hit-gate defines, classifier and decision rule remain fixed.
+
+#### Why this isolates defense-point integerization
+
+At Soft Attack 20.0, O7's supported wider attack-point law gives:
+
+- 1 attack point: 25%
+- 2 attack points: 50%
+- 3 attack points: 25%
+
+At Defense 10.0, the current planner's old Bernoulli defense law gives exactly **1 defense point** every interval. With defended points forced to miss and undefended points forced to hit, that old defense law predicts organization-loss multiplicities:
+
+- 0x: 25%
+- 1x: 50%
+- 2x: 25%
+- 3x: 0%
+
+The proposed wider defense law gives defense points 0/1/2 at 25%/50%/25%. Convolving that with the O7 attack-point distribution yields:
+
+- 0x: **31.25%**
+- 1x: **37.5%**
+- 2x: **25%**
+- 3x: **6.25%**
+
+Thus the 3x tail is a direct discriminator at the exact center: it is outside the old defense law's support but required by the wider candidate.
+
+#### O8 trace
+
+Collect exactly one h0..h81 trace:
+
+- h0→h1 startup;
+- exactly **80 firing intervals**;
+- exact strength invariance for both sides;
+- clean modifier removal at h81.
+
+Use the retained fixed-damage classifier:
+
+- 0x: no measurable defender organization loss;
+- 1x: positive loss < **0.13 pp**;
+- 2x: **0.13 ≤ loss < 0.225 pp**;
+- 3x: **0.225 ≤ loss < 0.315 pp**;
+- ≥4x: loss ≥ **0.315 pp**.
+
+#### O8 fixed decision rule
+
+For the one accepted 80-interval run:
+
+1. Any ≥4x interval triggers `wide-defense-candidate-mismatch`.
+2. Otherwise compute Pearson chi-square against **31.25% / 37.5% / 25% / 6.25%** for 0x/1x/2x/3x.
+3. Degrees of freedom = 3; predeclared significance level = **1%**; critical value = **11.34487**.
+4. If chi-square ≤ 11.34487 and at least one 3x interval is observed, action = `wide-defense-candidate-supported`.
+5. Otherwise action = `wide-defense-candidate-mismatch`.
+6. No adaptive extension is permitted. One accepted 80-interval run completes O8.
+
+At the wider candidate's exact-center 3x probability of 6.25%, the chance of observing no 3x interval in 80 trials is about **0.57%**. The 80-interval sample was chosen before executable data to make the outer-tail discriminator useful without creating another large manual batch.
+
+A supported O8 result would justify replacing the planner's defense-point Bernoulli integerization on the isolated Oracle branch and then replaying prior evidence. It would **not** validate defended/undefended hit-roll ordering, normal damage dice, tactic execution, or the complete resolver.
 
 
 ## Promotion rule

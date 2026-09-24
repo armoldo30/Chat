@@ -1481,7 +1481,7 @@ Persisted combined assessment:
 - `oracle-lab/captures/o6-combined-assessment.json`
 
 
-### O7 integer-centered wide-rounding probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O7 integer-centered wide-rounding probe — COMPLETE / CANDIDATE SUPPORTED
 
 O6 established a narrow `oracle-divergent` result for the planner's current single-Bernoulli attack-point integerization. The observed 0/1/2 pattern at Soft Attack 12 and 1/2/3 pattern at Soft Attack 18 suggest a wider discrete random-rounding law centered near the retained `attack / 10` mean scale.
 
@@ -1572,6 +1572,57 @@ For the 60 accepted firing intervals:
 A supported O7 result does not claim source-code identity. It would justify replacing the planner's currently divergent one-Bernoulli integerization with this empirically supported wider discrete law on the Oracle branch, followed by planner-only replay/regression against O1/O2/O3/O4/O5/O6 evidence before any production merge.
 
 O7 is intended to be the **final manual attack-point integerization experiment** unless it returns an unexpected pattern. If it supports the candidate, subsequent work should be planner-side integration and regression rather than additional O-number executable runs.
+
+
+#### O7 run 001 — PASS / WIDE-ROUNDING CANDIDATE SUPPORTED
+
+The single predeclared O7 run met the acceptance panel exactly:
+
+- GER displayed Soft Attack: **20**
+- GER tooltip/effective Soft Attack: **20.0**
+- POL Defense: **255**
+
+The WPO7 trace is structurally clean:
+
+- exact h0..h61 samples;
+- h0→h1 unchanged;
+- exactly 60 firing intervals;
+- attacker and defender strength unchanged throughout;
+- fixed-damage diagnostic define bundle active;
+- successful automatic modifier cleanup at h61.
+
+Observed multiplicities:
+
+- 0x: **0**
+- 1x: **18**
+- 2x: **33**
+- 3x: **9**
+- ≥4x: **0**
+
+At tooltip Soft Attack 20.0, the predeclared candidate
+
+`round(attack / 10 + U[-1,+1])`
+
+predicts probabilities **25% / 50% / 25%** for 1x / 2x / 3x, or expected counts **15 / 30 / 15** in 60 intervals.
+
+The observed Pearson chi-square statistic is **3.3**, below the predeclared 1% critical value **9.21034** with 2 degrees of freedom. Both required outer tails were observed, and no out-of-support 0x or ≥4x intervals occurred.
+
+Machine action:
+
+`wide-rounding-candidate-supported`
+
+Classification:
+
+- the prior planner mechanism `stochasticRound(totalAttack * 0.1)` remains **oracle-divergent** at the O6 fixed-damage boundary;
+- the predeclared wider attack-point distribution is **oracle-validated** at the controlled O7 fixed-damage distribution boundary;
+- using that law in the planner remains **executable inferred** rather than a claim of source-code identity.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o7-wide-rounding-001-summary.json`
+- `oracle-lab/captures/o7-wide-rounding-001-assessment.json`
+
+Per the predeclared plan, O7 completes the manual attack-point integerization sequence. The next step is planner-side integration on the isolated Oracle branch and replay/regression against O1–O7 evidence, not an adaptive O8 experiment.
 
 
 ## Promotion rule

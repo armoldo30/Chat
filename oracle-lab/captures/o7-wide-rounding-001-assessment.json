@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o7-wide-random-rounding-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "wide-rounding-candidate-supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "defenderDefense": 255
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 18,
+    "two": 33,
+    "three": 9,
+    "fourPlus": 0
+  },
+  "candidateProbabilities": {
+    "one": 0.25,
+    "two": 0.5,
+    "three": 0.25
+  },
+  "pearsonChiSquare": 3.3,
+  "criticalValue": 9.21034,
+  "decision": "supported",
+  "implementationEvidence": "executable inferred",
+  "boundary": "controlled O7 fixed-damage attack-point multiplicity distribution only",
+  "interpretation": "O7 supports the predeclared wider attack-point random-rounding approximation. It does not validate source-code identity, defense-point integerization, downstream hit ordering, damage dice, or the complete combat resolver."
+}

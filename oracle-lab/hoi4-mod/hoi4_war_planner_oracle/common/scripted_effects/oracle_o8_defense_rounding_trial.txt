@@ -70,7 +70,7 @@ d_oracle_o8_prepare = {
                 POL = { has_dynamic_modifier = { modifier = oracle_o8_defense_target } }
             }
             set_country_flag = oracle_o8_prepared
-            log = "WPO8 STATUS state=prepared scenario=o8-defense-wide-rounding-v1 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_defence_factor:-0.9607843137 modifiersPresent=yes expectedPanel=GER-soft-20-tooltip-20.0-POL-defense-10"
+            log = "WPO8 STATUS state=prepared scenario=o8-defense-wide-rounding-v1 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9607843137 modifiersPresent=yes expectedPanel=GER-soft-20-tooltip-20.0-POL-defense-10"
         }
         else = {
             log = "WPO8 STATUS state=prepare-failed"
@@ -125,7 +125,7 @@ oracle_o8_trial81_start = {
         set_country_flag = oracle_o8_running
         set_variable = { oracle_o8_hour = 0 }
 
-        log = "WPO8 BEGIN schema=1 scenario=o8-defense-wide-rounding-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial81 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_defence_factor:-0.9607843137 prepared=yes modifiersPresent=yes"
+        log = "WPO8 BEGIN schema=1 scenario=o8-defense-wide-rounding-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial81 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9607843137 prepared=yes modifiersPresent=yes"
         oracle_o8_capture_sample = yes
 
         country_event = { id = oracle_o8.1 hours = 1 }

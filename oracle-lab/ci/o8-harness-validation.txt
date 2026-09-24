@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O8 defense-point integerization harness.
+Source Oracle head: ddebeed93bea9618f617ffa1b8d1379eb1ebb42b
+Do not merge this launch-candidate branch.

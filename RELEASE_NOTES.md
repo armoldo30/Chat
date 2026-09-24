@@ -1,3 +1,25 @@
+# HOI4 War Planner 0.17.16 — Release Notes
+
+## Overview
+
+0.17.16 is a presentation-only pre-launch polish release on the existing **HOI4 1.19.3.0.c01a (checksum 5632)** baseline.
+
+## Player-facing cleanup
+
+- Shrinks the large AdSense-era homepage publisher introduction into a compact planner-first header.
+- Preserves the substantive public guides, methodology, About page, metadata and crawl paths.
+- Rewrites the homepage and tool guides in shorter, more natural HOI4-player language.
+- Removes stale public documentation that implied Counter still uses saved production lines, spare factories, resource shortfalls or retooling feasibility to gate recommendations.
+- Keeps Counter cost language aligned with 0.17.15: direct current IC/div → proposed IC/div plus absolute and percentage change.
+- Updates the methodology page to all six current evidence labels.
+- Corrects the About page public release number.
+
+## Evidence and runtime boundary
+
+This release changes presentation and documentation only. It does not change combat formulas, Counter search/ranking, equipment data, MIO behavior, support runtime effects, Gauntlet generation/grading, or Oracle classifications. Advertising remains disabled.
+
+---
+
 # HOI4 War Planner 0.17.15 — Release Notes
 
 ## Overview

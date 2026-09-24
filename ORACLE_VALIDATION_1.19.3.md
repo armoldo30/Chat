@@ -1659,7 +1659,7 @@ O8 retains the fixed-damage controls and changes the hit gates so that the defen
 Target modifiers:
 
 - GER `army_infantry_attack_factor = -0.721`;
-- POL `army_defence_factor = -0.9607843137`.
+- POL `army_infantry_defence_factor = -0.9607843137`.
 
 Panel acceptance:
 

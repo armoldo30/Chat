@@ -49,7 +49,7 @@ export function captureO8Run(run){
   if(b.gameVersion!=='1.19.3.0.c01a'||b.checksum!=='5632'||b.checksumScope!=='base-game-reference')throw new Error('bad version/checksum');
   if(b.method!=='bisection14'||b.runMode!=='trial81'||b.tacticMode!=='neutral-basic-only')throw new Error('bad method/run/tactics');
   if(b.defineOverrides!=='BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0')throw new Error('bad defines');
-  if(b.attackModifier!=='army_infantry_attack_factor:-0.721'||b.defenseModifier!=='army_defence_factor:-0.9607843137'||b.prepared!=='yes'||b.modifiersPresent!=='yes')throw new Error('bad modifiers/preparation');
+  if(b.attackModifier!=='army_infantry_attack_factor:-0.721'||b.defenseModifier!=='army_infantry_defence_factor:-0.9607843137'||b.prepared!=='yes'||b.modifiersPresent!=='yes')throw new Error('bad modifiers/preparation');
   if(run.end.reason!=='trial81-complete'||Number(run.end.hour)!==81||run.end.modifiersRemoved!=='yes'||run.end.cleanupFailure==='yes')throw new Error('bad END/cleanup');
   if(JSON.stringify(run.samples.map(s=>s.hour))!==JSON.stringify(O8_HOURS))throw new Error('expected hours 0..81');
   for(const s of run.samples){if(s.attackers.length!==1||s.defenders.length!==1)throw new Error(`hour ${s.hour}: expected one attacker and defender`);}

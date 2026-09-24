@@ -11,5 +11,5 @@ oracle_o8_defense_target = {
     enable = { always = yes }
     # 255 * (1 - 0.9607843137) ~= 10.0 in the controlled baseline.
     # Executable acceptance still requires the live panel target.
-    army_defence_factor = -0.9607843137
+    army_infantry_defence_factor = -0.9607843137
 }

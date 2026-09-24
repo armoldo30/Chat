@@ -1,9 +1,20 @@
-# HOI4 War Planner — 0.17.15
+# HOI4 War Planner — 0.17.16
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.16 release focus
+
+0.17.16 is a **pre-launch presentation and copy pass**. It does not change planner formulas, game data, Counter search behavior, Oracle evidence, or any combat result.
+
+- The large AdSense-oriented homepage intro is replaced with a compact player-first header.
+- Public guide copy is shorter, plainer, and written around the questions HOI4 players actually bring to the tool.
+- Existing crawlable guide, methodology, About, designer, Counter, and Gauntlet pages remain public rather than hiding publisher content from users.
+- Stale 0.17.0 release references are updated.
+- Counter documentation now matches the 0.17.15 product decision: show direct per-division IC change without pretending to reconstruct live production feasibility.
+- Advertising remains disabled.
 
 ## 0.17.15 release focus
 

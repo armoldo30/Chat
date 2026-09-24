@@ -4,10 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="index,follow">
-  <meta name="description" content="Use HOI4 War Planner's Division Lab and Counter Analysis to recreate Hearts of Iron IV 1.19.3 matchups, diagnose armor, piercing, attack, defense, width and cost tradeoffs, and test focused counters.">
+  <meta name="description" content="Build a HOI4 1.19.3 division matchup, see what is driving it, and test focused counters with direct IC-per-division cost context.">
   <link rel="canonical" href="https://hoioracle.com/division-counter.html">
   <meta property="og:title" content="HOI4 Division Lab & Counter Analysis · HOI4 War Planner">
-  <meta property="og:description" content="Recreate a HOI4 1.19.3 division matchup, identify the interaction that mattered, and test focused counters with equipment-cost context.">
+  <meta property="og:description" content="Recreate a HOI4 matchup, find the important interaction and battle-test focused counters against that exact enemy.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://hoioracle.com/division-counter.html">
   <meta name="twitter:card" content="summary">
@@ -19,31 +19,13 @@
 <body>
 <main class="content-page">
   <nav class="content-nav"><a href="./">Planner</a><a href="./guides.html">Guides</a><a href="./methodology.html">Methodology</a><a href="./about.html">About</a><a href="./privacy.html">Privacy</a></nav>
-  <header>
-    <p class="eyebrow">DIVISION LAB · COUNTER ANALYSIS · HOI4 1.19.3</p>
-    <h1>Recreate the matchup, then test the counter</h1>
-    <p class="lede">Division Lab is built for a specific Hearts of Iron IV matchup: your division against the division you actually expect to fight. Counter Analysis then tests focused structural changes against that exact target instead of recommending one universal template.</p>
-  </header>
-  <section>
-    <h2>What Division Lab compares</h2>
-    <p>Build the attacker and defender, then set the battlefield assumptions you want to examine. The planner puts armor and piercing thresholds, hardness, soft and hard attack, defense or breakthrough, organization, combat width, terrain effects and equipment assumptions in the same comparison so one headline stat does not hide the interaction that drove the result.</p>
-  </section>
-  <section>
-    <h2>What Counter Analysis changes</h2>
-    <p>Counter Analysis searches practical battalion, support-company and tank-design changes against the selected opponent. Recommendations are separated into raw performance, value, smallest change and distinct alternatives where appropriate. A recommendation does not need to cross an arbitrary win-rate threshold; it needs to produce a meaningful modeled improvement against the target.</p>
-  </section>
-  <section>
-    <h2>Combat gain is not the whole answer</h2>
-    <p>The counter view also estimates the incremental equipment IC and production burden of the suggested change. If the recommendation exceeds spare military-factory capacity or creates a strategic-resource shortfall under the current production scenario, the planner surfaces that tradeoff instead of treating combat strength as free.</p>
-  </section>
-  <section>
-    <h2>How to use the result</h2>
-    <p>Start by matching the opponent as closely as your scenario requires. Change one major assumption at a time, compare the result, and use the explanation panel to identify why the matchup moved. Then use Division Gauntlet when you want to know whether the improved design remains robust outside that one target.</p>
-  </section>
-  <section>
-    <h2>Accuracy boundary</h2>
-    <p>HOI4 War Planner separates game-file exact values from executable-inferred behavior and planner-analytical scoring. It is designed for reproducible theorycrafting and comparison; it does not claim bit-for-bit parity with <code>hoi4.exe</code>. The current evidence boundary is documented on the <a href="./methodology.html">methodology page</a>.</p>
-  </section>
+  <header><p class="eyebrow">DIVISION LAB · COUNTER ANALYSIS · HOI4 1.19.3</p><h1>Build the fight you actually want to solve</h1><p class="lede">Put your division on one side, the enemy on the other, and test the matchup directly. Counter then tries changes against that enemy instead of handing you a generic “best template.”</p></header>
+  <section><h2>Start with the matchup</h2><p>Build both templates and set the battlefield assumptions you care about. Division Lab lets you look at armor and piercing, hardness, soft and hard attack, defense or breakthrough, organization, width, terrain and equipment together. That is usually more useful than staring at one headline stat.</p></section>
+  <section><h2>What Counter actually searches</h2><p>The normal search tests bounded one- and two-change candidates from the current battalion, divisional-support, Regimental Support and active tank-design options. Candidates are screened for the selected enemy and the final recommendations are battle-simulated. If normal search finds no meaningful answer, an optional bounded third change can be tried when a +2 percentage-point improvement is still possible.</p></section>
+  <section><h2>How recommendations are different</h2><p><strong>Best Raw</strong> is the strongest combat result. <strong>Best Efficient</strong> balances improvement against direct IC per division, modeled supply use and change complexity. <strong>Smallest Effective Change</strong> looks for the least disruptive change that still clears the meaningful-improvement threshold. Duplicate headline winners are collapsed so you get distinct alternatives instead of the same answer three times.</p></section>
+  <section><h2>What the cost number means</h2><p>Counter shows the current division equipment cost and the recommended cost as <strong>X IC/div → Y IC/div</strong>, plus the absolute and percentage change. It deliberately does not use your saved production lines, spare military factories, resource plan or retooling assumptions to suppress a battlefield recommendation. Whether you can afford the change in a live campaign is left to you.</p></section>
+  <section><h2>Use the result, then widen the test</h2><p>If a recommendation helps, look at why: piercing threshold, hardness-sensitive attack, breakthrough, defense, organization, width, supply or some combination of them. Once the specific matchup makes sense, run <a href="./division-gauntlet.html">Division Gauntlet</a> to see whether the new design created a different weakness somewhere else.</p></section>
+  <section><h2>Accuracy boundary</h2><p>Counter search and recommendation ranking are <strong>planner analytical</strong>. The combat model underneath them has its own evidence labels. The project does not claim bit-for-bit parity with <code>hoi4.exe</code>; see the <a href="./methodology.html">methodology page</a> for the current boundary.</p></section>
   <div class="content-footer-links"><a href="./#battle">Open Division Lab</a><a href="./division-gauntlet.html">Division Gauntlet</a><a href="./guides.html">Planner guide</a></div>
 </main>
 </body>

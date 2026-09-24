@@ -2,14 +2,15 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { AD_CONFIG, adsReady, validAdSenseClient, validAdSenseSlot } from '../src/ad-config.js';
 
-const [index,ads,privacy,build,guides,methodology,about]=await Promise.all([
+const [index,ads,privacy,build,guides,methodology,about,pkg]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
   readFile(new URL('../src/ads.js',import.meta.url),'utf8'),
   readFile(new URL('../privacy.html',import.meta.url),'utf8'),
   readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8'),
   readFile(new URL('../guides.html',import.meta.url),'utf8'),
   readFile(new URL('../methodology.html',import.meta.url),'utf8'),
-  readFile(new URL('../about.html',import.meta.url),'utf8')
+  readFile(new URL('../about.html',import.meta.url),'utf8'),
+  readFile(new URL('../package.json',import.meta.url),'utf8')
 ]);
 
 assert.equal(AD_CONFIG.enabled,false,'ad serving must remain disabled during policy review');
@@ -19,7 +20,9 @@ assert.equal(validAdSenseClient('ca-pub-placeholder'),false);
 assert.equal(validAdSenseSlot('1234567890'),true);
 assert.equal(validAdSenseSlot('slot-name'),false);
 assert.match(index,/src\/ads\.js/);
-assert.match(index,/publisher-intro/,'homepage should expose substantial crawlable publisher content');
+assert.match(index,/publisher-intro/,'homepage should keep a crawlable publisher introduction');
+assert.match(index,/Build divisions\. Test counters\./,'homepage should lead with the compact player-facing value proposition');
+assert.doesNotMatch(index,/publisher-facts/,'homepage should not restore the oversized AdSense-era facts panel');
 assert.match(index,/guides\.html/);
 assert.match(index,/methodology\.html/);
 assert.match(index,/about\.html/);
@@ -39,4 +42,7 @@ for(const [name,page] of [['guides',guides],['methodology',methodology],['about'
   assert.match(page,/<h1>/,`${name} page should have a primary heading`);
   assert.ok(page.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().length>500,`${name} page should contain substantive publisher-written content`);
 }
+const packageVersion=JSON.parse(pkg).version;
+assert.ok(about.includes(`current public release is ${packageVersion}`),'About page release should match package version');
+assert.doesNotMatch(about,/Advertising integration is kept separate|site is being reviewed for policy compliance/i,'About page should not read like AdSense-review copy');
 console.log('Monetization readiness tests passed.');

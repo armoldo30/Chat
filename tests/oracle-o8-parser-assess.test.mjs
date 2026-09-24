@@ -31,7 +31,8 @@ assert.ok(a.pearsonChiSquare<1e-12);
 const oldShape=parseO8Batch(run({zero:20,one:40,two:20,three:0}));
 const b1=assessO8({batch:oldShape,panel:{displayedSoft:20,tooltipSoft:20,displayedDefense:10,tooltipDefense:10}});
 assert.equal(b1.action,'wide-defense-candidate-mismatch');
-assert.ok(b1.pearsonChiSquare>11.34487);
+assert.equal(b1.counts.three,0);
+assert.ok(b1.pearsonChiSquare<11.34487,'the explicit 3x-tail gate must reject the old exact-center shape even when omnibus chi-square alone does not');
 
 assert.throws(()=>assessO8({batch:good,panel:{displayedSoft:20,tooltipSoft:20,displayedDefense:10,tooltipDefense:10.1}}),/tooltip\/effective POL Defense/);
 console.log('Oracle O8 parser/assessment regression passed.');

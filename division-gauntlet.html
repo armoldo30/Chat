@@ -1,50 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="index,follow">
-  <meta name="description" content="Use HOI4 War Planner's Division Gauntlet to test a Hearts of Iron IV 1.19.3 division across deterministic opponent sets and terrain instead of judging it from a single matchup.">
-  <link rel="canonical" href="https://hoioracle.com/division-gauntlet.html">
-  <meta property="og:title" content="HOI4 Division Gauntlet · HOI4 War Planner">
-  <meta property="og:description" content="Stress-test a HOI4 1.19.3 division across deterministic opponent sets, attacking and defending, to find broad strengths and blind spots.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://hoioracle.com/division-gauntlet.html">
-  <meta name="twitter:card" content="summary">
-  <title>HOI4 Division Gauntlet · HOI4 War Planner</title>
-  <link rel="stylesheet" href="./src/style.css">
-  <link rel="stylesheet" href="./src/publisher-content.css">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="index,follow">
+  <meta name="description" content="Use HOI4 War Planner's Division Gauntlet to test a Hearts of Iron IV 1.19.3 division across deterministic opponent sets and terrain.">
+  <link rel="canonical" href="https://hoioracle.com/division-gauntlet.html"><meta property="og:title" content="HOI4 Division Gauntlet · HOI4 War Planner"><meta property="og:description" content="Stress-test a HOI4 1.19.3 division across deterministic opponents and terrain to find broad strengths and blind spots."><meta property="og:type" content="website"><meta property="og:url" content="https://hoioracle.com/division-gauntlet.html"><meta name="twitter:card" content="summary">
+  <title>HOI4 Division Gauntlet · HOI4 War Planner</title><link rel="stylesheet" href="./src/style.css"><link rel="stylesheet" href="./src/publisher-content.css">
   <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebPage","name":"HOI4 Division Gauntlet","url":"https://hoioracle.com/division-gauntlet.html","isPartOf":{"@type":"WebSite","name":"HOI4 War Planner","url":"https://hoioracle.com/"},"about":{"@type":"VideoGame","name":"Hearts of Iron IV"}}</script>
 </head>
-<body>
-<main class="content-page">
+<body><main class="content-page">
   <nav class="content-nav"><a href="./">Planner</a><a href="./guides.html">Guides</a><a href="./methodology.html">Methodology</a><a href="./about.html">About</a><a href="./privacy.html">Privacy</a></nav>
-  <header>
-    <p class="eyebrow">DIVISION GAUNTLET · HOI4 1.19.3</p>
-    <h1>Stress-test the division beyond one matchup</h1>
-    <p class="lede">Counter Analysis asks how to improve a design against one known opponent. Division Gauntlet asks a different question: whether the design remains broadly useful when the opponent and terrain change.</p>
-  </header>
-  <section>
-    <h2>Quick and full Gauntlet</h2>
-    <p>Quick Gauntlet samples roughly 500 opponent designs for a fast robustness check. Full Gauntlet expands to 10,000 deterministic opponent designs across eight terrain types while attacking and defending, producing 160,000 modeled matchup checks for the selected division.</p>
-  </section>
-  <section>
-    <h2>What the result is for</h2>
-    <p>The Gauntlet is useful for finding blind spots that a favorable single matchup can hide. A division may look excellent against one soft target yet become inefficient against armor, struggle while attacking, or lose much of its advantage in difficult terrain. The broader matrix helps expose those patterns.</p>
-  </section>
-  <section>
-    <h2>Deterministic means reproducible</h2>
-    <p>The opponent set and analytical checks are deterministic, so the same configuration can be compared consistently after a design change. That makes Gauntlet useful for A/B testing: save a baseline, change one important part of the division, then run the same broad evaluation again.</p>
-  </section>
-  <section>
-    <h2>Do not confuse broad robustness with one best template</h2>
-    <p>Gauntlet results are planner-analytical comparisons, not a universal tier list. Your actual production capacity, doctrine, technologies, expected enemies and terrain still determine what is useful in a campaign or multiplayer environment. Use the broad score to locate weaknesses, then return to Division Lab for the matchups that matter most.</p>
-  </section>
-  <section>
-    <h2>Accuracy boundary</h2>
-    <p>The matrix reuses the planner's certified data and bounded combat model. Its ranking and aggregation are planner analytical. See the <a href="./methodology.html">methodology page</a> for the current formula and evidence boundary.</p>
-  </section>
+  <header><p class="eyebrow">DIVISION GAUNTLET · HOI4 1.19.3</p><h1>Find out whether the division only wins its favorite matchup</h1><p class="lede">Counter Analysis is about one enemy. Gauntlet changes the opponents and terrain so you can see where a template starts falling apart.</p></header>
+  <section><h2>Quick or full</h2><p>Quick Gauntlet uses roughly 500 opponents for a faster check. Full Gauntlet uses 10,000 deterministic opponent designs across eight terrain types while attacking and defending, for 160,000 modeled matchup checks.</p></section>
+  <section><h2>Look for blind spots</h2><p>A template can crush soft infantry and still have a bad time against armor, attacking into rough terrain, or fighting something that hits a different part of its stat profile. Gauntlet is meant to expose those patterns.</p></section>
+  <section><h2>Use the same test twice</h2><p>The opponent set is deterministic. Save a baseline, change one important part of the division, and run it again. That gives you a clean A/B comparison instead of two unrelated samples.</p></section>
+  <section><h2>It is not a universal tier list</h2><p>Gauntlet grades and rankings are <strong>planner analytical</strong>. Your doctrine, technologies, production situation, likely enemies and terrain still decide what is useful in a real campaign. Use Gauntlet to find the weakness, then use Division Lab to dig into the matchups that matter.</p></section>
+  <section><h2>Accuracy boundary</h2><p>Gauntlet reuses the planner's data and combat model, but opponent generation, grading and aggregation are planner-created analysis. See <a href="./methodology.html">methodology</a> for the current evidence boundary.</p></section>
   <div class="content-footer-links"><a href="./#gauntlet">Open Division Gauntlet</a><a href="./division-counter.html">Division Lab & Counter Analysis</a><a href="./guides.html">Planner guide</a></div>
-</main>
-</body>
-</html>
+</main></body></html>

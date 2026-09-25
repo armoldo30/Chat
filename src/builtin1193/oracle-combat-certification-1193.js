@@ -137,7 +137,24 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'defended-hit-10pct-supported',
       interpretation:'At the O11 one-defended-point-per-interval boundary, the vanilla 90% defended avoid-chance produced 9 hits in 80 trials, inside the predeclared exact central 99% Binomial(80,0.10) region.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 validates the vanilla defended hit gate as 10% at the controlled one-defended-point boundary. The undefended 40% gate and normal damage dice remain separate validation targets.'
+    undefendedHitChanceEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O15 fixed-damage undefended-hit boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      trials:160,
+      hitCounts:Object.freeze({zero:102,one:55,two:3,threePlus:0}),
+      gameFileAvoidChance:0.60,
+      expectedHitProbability:0.40,
+      expectedProbabilities:Object.freeze({zero:0.64,one:0.32,two:0.04}),
+      pearsonChiSquare:2.08984375,
+      criticalValue1PctDf2:9.21034,
+      action:'undefended-hit-40pct-supported',
+      interpretation:'At the controlled 20/10 boundary, the observed 102/55/3 zero/one/two-hit distribution matches the validated point model with an independent 40% undefended hit gate.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 validates the vanilla defended hit gate as 10%, and O15 validates the vanilla undefended hit gate as 40%, at controlled fixed-damage boundaries. Normal organization and strength damage dice remain separate validation targets.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',

@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O10 zero-defense hit-gate control.
+Source Oracle head: 79491d71b69b4750262547ca838b8b000996510c
+Do not merge this launch-candidate branch.

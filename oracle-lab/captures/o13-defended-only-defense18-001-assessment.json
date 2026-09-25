@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o13-defended-only-defense18-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "single-Bernoulli-bounded-transports",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 18,
+    "tooltipDefense": 18.0
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 36,
+    "two": 44,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "candidateProbabilities": {
+    "one": 0.40,
+    "two": 0.60
+  },
+  "pearsonChiSquare": 0.8333333333,
+  "criticalValue": 6.634897,
+  "decision": "supported",
+  "boundary": "controlled O13 defended-only fixed-damage boundary at Soft Attack 20 and Defense 18",
+  "interpretation": "The O12-supported single-Bernoulli Defense/10 sampler bounded by total attack points transports to Defense 18."
+}

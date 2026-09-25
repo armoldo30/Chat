@@ -120,7 +120,24 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'single-Bernoulli-bounded-transports',
       interpretation:'The O12-supported single-Bernoulli Defense/10 sampler bounded by total attack points transports to the Defense-18 confirmation boundary.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows a real defense-present effect even at the executable minimum. O11 establishes exactly one defended point at Defense 10. O12 supports single-Bernoulli stochastic rounding of Defense/10 bounded by total attack points at Defense 12, and O13 confirms the same family at Defense 18. The planner point-partition structure is now narrowly Oracle-validated across the tested boundaries; normal hit probabilities and damage dice remain separate validation targets.'
+    defendedHitChanceEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O14 fixed-damage defended-hit boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      trials:80,
+      successfulHits:9,
+      misses:71,
+      multiHitIntervals:0,
+      gameFileAvoidChance:0.90,
+      expectedHitProbability:0.10,
+      exactCentral99Acceptance:Object.freeze({min:2,max:16}),
+      action:'defended-hit-10pct-supported',
+      interpretation:'At the O11 one-defended-point-per-interval boundary, the vanilla 90% defended avoid-chance produced 9 hits in 80 trials, inside the predeclared exact central 99% Binomial(80,0.10) region.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 validates the vanilla defended hit gate as 10% at the controlled one-defended-point boundary. The undefended 40% gate and normal damage dice remain separate validation targets.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',

@@ -1785,7 +1785,7 @@ Persisted evidence:
 O8 therefore closes the naive symmetry hypothesis. The next Oracle experiment should target the **defended-vs-undefended split itself**, not simply retry another defense-rounding law.
 
 
-### O9 all-hit transport control — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O9 all-hit transport control — COMPLETE / TRANSPORT SUPPORTED
 
 O8 strongly rejected the hypothesis that the executable independently wider-rounds attack and defense points and then simply subtracts them. Before probing a more complicated defended-vs-undefended split, O9 checks a necessary transport control:
 
@@ -1834,6 +1834,50 @@ Decision rule:
 7. No adaptive extension.
 
 If O9 supports transport, the O8 discrepancy is localized downstream of attack-point generation to the **defended-vs-undefended split or hit-resolution ordering**. If O9 fails, the attack-point law itself is context-sensitive across these diagnostic hit-gate states and must be investigated before any more specific defense model is proposed.
+
+
+#### O9 run 001 — PASS / O7 ATTACK LAW TRANSPORTS
+
+The accepted O9 run again hit the exact live-panel controls:
+
+- GER Soft Attack: **20.0**
+- POL Defense: **10.0**
+
+The WPO9 trace is structurally clean:
+
+- exact h0..h61 samples;
+- h0→h1 unchanged;
+- exactly **60 firing intervals**;
+- attacker and defender strength unchanged throughout;
+- both defended and undefended avoid chances forced to zero;
+- successful modifier cleanup at h61.
+
+Observed defender organization-loss multiplicities:
+
+- 0x: **0**
+- 1x: **16**
+- 2x: **32**
+- 3x: **12**
+- ≥4x: **0**
+
+The transported O7 prediction was **15 / 30 / 15** for 1x / 2x / 3x. Pearson chi-square = **0.8**, below the predeclared 1% critical value **9.21034** with 2 degrees of freedom, and both outer tails were observed.
+
+Machine action:
+
+`o7-attack-law-transports`
+
+Classification:
+
+- O7's wider total attack-point law is **oracle-validated** at the controlled O9 all-hit transport boundary;
+- O8's mismatch is now localized **downstream of total attack-point generation**;
+- the exact defended-vs-undefended split / hit-resolution ordering remains **unvalidated**.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o9-o8-all-hit-transport-001-summary.json`
+- `oracle-lab/captures/o9-o8-all-hit-transport-001-assessment.json`
+
+The next experiment should keep the O8 hit-gate bundle but remove defense entirely. That control can distinguish a genuine defense-split effect from any hidden coupling caused merely by setting `BASE_CHANCE_TO_AVOID_HIT = 100`.
 
 
 ## Promotion rule

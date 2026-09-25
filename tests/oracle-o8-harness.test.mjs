@@ -11,7 +11,7 @@ assert.match(defines,/LAND_COMBAT_ORG_DICE_SIZE\s*=\s*1/);
 assert.match(defines,/LAND_COMBAT_STR_DAMAGE_MODIFIER\s*=\s*0/);
 assert.match(defines,/BASE_NIGHT_ATTACK_PENALTY\s*=\s*0/);
 assert.match(mods,/army_infantry_attack_factor\s*=\s*-0\.721/);
-assert.match(mods,/army_infantry_defence_factor\s*=\s*-0\.9607843137/);
+assert.match(mods,/army_infantry_defence_factor\s*=\s*-0\.9923784016/);
 assert.match(effects,/d_oracle_o8_trial81\s*=\s*\{/);
 const queued=[...effects.matchAll(/country_event = \{ id = oracle_o8\.1 hours = (\d+) \}/g)].map(m=>Number(m[1]));
 assert.equal(queued.length,81);

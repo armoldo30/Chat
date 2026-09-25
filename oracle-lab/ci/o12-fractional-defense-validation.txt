@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O12 defended-only fractional-defense probe.
+Source Oracle head: 7f58bf80962d3d9c364067dc641a5c975cadee7a
+Do not merge this launch-candidate branch.

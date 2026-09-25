@@ -70,11 +70,30 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       criticalValue1PctDf2:9.21034,
       interpretation:'The executable minimum positive Defense already measurably changes the asymmetric-gate multiplicity distribution relative to the O7/O9 total attack-point reference. The exact split mechanism remains unvalidated.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows that even the executable minimum positive Defense measurably changes the asymmetric-gate distribution. The exact defended-vs-undefended split remains unvalidated.'
+    defendedOnlyEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O11 defended-only fixed-damage boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      multiplicityCounts:Object.freeze({zero:0,one:80,two:0,three:0,fourPlus:0}),
+      defendedMean:1,
+      defendedVariance:0,
+      frozenO8UndefendedMean:0.7625,
+      frozenO9TotalMean:1.9333333333333333,
+      partitionDelta:0.1708333333333334,
+      partitionStandardError:0.10966008881767925,
+      partitionZ:1.5578441999747121,
+      criticalValue1Pct:2.575829,
+      action:'partition-mean-compatible',
+      interpretation:'At Defense 10 the defended-only branch produced exactly one damage multiplicity in every accepted interval. Its mean is compatible at the predeclared 1% level with O8 undefended plus O11 defended partitioning O9 total damage in expectation.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows that even the executable minimum positive Defense measurably changes the asymmetric-gate distribution. O11 shows the defended-only branch at Defense 10 is exactly one multiplicity per interval and is compatible with the O8/O9 partition identity in expectation. The exact split law outside this boundary remains unvalidated.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
-    'does not identify the exact defended-vs-undefended split after O8/O9/O10v2 localized a real defense-present effect downstream of total attack-point generation',
+    'does not identify the exact defended-vs-undefended split outside the controlled O11 Defense-10 defended-only boundary',
     'does not validate hit-roll distribution',
     'does not validate organization/strength damage dice',
     'does not validate tactic execution outside the neutralized O1 harness',

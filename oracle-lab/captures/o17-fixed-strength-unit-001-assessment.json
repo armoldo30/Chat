@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o17-fixed-strength-unit-v1",
+  "evidenceStatus": "oracle-divergent",
+  "stage": "complete",
+  "action": "fixed-strength-unit-mismatch-or-feedback",
+  "decision": "naive-strength-scale-divergent",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "observed": {
+    "strictLossIntervals": 20,
+    "meanLossPp": 0.024125,
+    "minLossPp": 0.0185,
+    "maxLossPp": 0.025,
+    "cumulativeLossPp": 0.4825,
+    "outsidePredeclaredBand": 1
+  },
+  "naivePlannerCandidate": {
+    "formula": "0.060 / 225 * 100",
+    "perHitPp": 0.0266666667,
+    "cumulative20Pp": 0.5333333333
+  },
+  "postResultCandidate": {
+    "name": "additional 0.9 scalar",
+    "perHitPp": 0.024,
+    "cumulative20Pp": 0.48,
+    "status": "unvalidated"
+  },
+  "boundary": "controlled O17 fixed-strength-die one-defended-hit boundary at Soft Attack 20 and Defense 10"
+}

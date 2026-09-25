@@ -1880,6 +1880,50 @@ Persisted evidence:
 The next experiment should keep the O8 hit-gate bundle but remove defense entirely. That control can distinguish a genuine defense-split effect from any hidden coupling caused merely by setting `BASE_CHANCE_TO_AVOID_HIT = 100`.
 
 
+### O10 zero-defense O8-hit-gate control — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O9 established that the O7 total attack-point law still appears in the exact 20-attack / 10-defense matchup when both defended and undefended points are forced to hit. O10 now checks whether O8's unusual result was caused by the **presence of defense itself** or by some hidden coupling from the O8 diagnostic setting `BASE_CHANCE_TO_AVOID_HIT = 100`.
+
+Scenario:
+
+`o10-zero-defense-hit-gate-control-v1`
+
+O10 keeps:
+
+- GER Soft Attack target exactly **20.0**;
+- O8's hit gates: defended points forced to miss, undefended points forced to hit;
+- fixed organization die = 1;
+- strength damage = 0;
+- night penalty = 0;
+- neutral tactics.
+
+POL Defense is driven to exactly **0.0** with:
+
+`army_infantry_defence_factor = -1.0328836429`
+
+This modifier was precomputed from the two live O8 calibration observations. Exact executable panel values remain authoritative; if the panel is not 20.0 / 0.0, the run is tuning only and must not be interpreted.
+
+With Defense exactly zero, every generated GER attack point must take the undefended branch. Therefore, if the O8 hit-gate bundle itself does not distort total attack-point generation, the 60 firing intervals should again follow the O7/O9 distribution:
+
+- 1x: **25%**
+- 2x: **50%**
+- 3x: **25%**
+
+with no 0x or ≥4x intervals.
+
+#### O10 fixed decision rule
+
+1. One accepted h0..h61 trace only.
+2. Any 0x or ≥4x interval => `o8-hit-gate-bundle-alters-attack-transport`.
+3. Otherwise Pearson chi-square against 25% / 50% / 25%.
+4. Degrees of freedom = 2; significance level = **1%**; critical value = **9.21034**.
+5. If chi-square ≤ 9.21034 and both 1x and 3x are observed => `zero-defense-control-supported`.
+6. Otherwise => `o8-hit-gate-bundle-alters-attack-transport`.
+7. No adaptive extension.
+
+A supported O10 result would localize O8's discrepancy specifically to the **defense-present defended-vs-undefended split**, rather than to the diagnostic avoid-chance setting itself. It would justify designing the next experiment around the split function rather than revisiting total attack-point generation.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

@@ -2320,7 +2320,7 @@ Persisted evidence:
 - `oracle-lab/captures/o13-defended-only-defense18-001-summary.json`
 - `oracle-lab/captures/o13-defended-only-defense18-001-assessment.json`
 
-### O14 normal defended-hit probability probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O14 normal defended-hit probability probe — COMPLETE / 10% DEFENDED HIT SUPPORTED
 
 O14 leaves the now-constrained point partition in place and restores the vanilla **defended** hit gate while suppressing the undefended branch.
 
@@ -2371,6 +2371,91 @@ Decision:
 4. No adaptive extension.
 
 This test validates executable use of the vanilla defended avoid-chance define only at the controlled O14 boundary. It does not validate the undefended 40% hit gate or normal damage dice.
+
+
+#### O14 run 001 — PASS / VANILLA DEFENDED HIT GATE SUPPORTED
+
+The accepted O14 trace completed h0..h81 with unchanged strength and clean modifier removal.
+
+Observed defender fixed-damage outcomes across **80 firing intervals**:
+
+- 0x: **71**
+- 1x: **9**
+- ≥2x: **0**
+
+At the O11-controlled 20 Soft Attack / 10 Defense boundary there is exactly one defended attack point per firing interval. Therefore these 80 intervals are direct Bernoulli trials for the defended hit gate.
+
+The game-file exact define `BASE_CHANCE_TO_AVOID_HIT = 90` implies a defended hit probability of **10%**. The predeclared exact central 99% acceptance region for Binomial(80, 0.10) was **2 through 16 hits** inclusive.
+
+Observed successful hits: **9**
+
+Machine action:
+
+`defended-hit-10pct-supported`
+
+Classification:
+
+- executable use of the vanilla defended 90% avoid / 10% hit gate is narrowly **oracle-validated** at the controlled O14 boundary;
+- the undefended 40% hit gate remains a separate target;
+- normal organization and strength damage dice remain unvalidated.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o14-normal-defended-hit-001-summary.json`
+- `oracle-lab/captures/o14-normal-defended-hit-001-assessment.json`
+
+### O15 normal undefended-hit probability probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O15 validates the complementary vanilla undefended hit gate after O14 validated the defended 10% gate.
+
+Scenario:
+
+`o15-normal-undefended-hit-v1`
+
+Exact panel targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- same 1v1 baseline, no commanders, zero reserves, neutral tactics
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 100` → defended points always miss
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 60` → vanilla undefended hit probability **40%**
+- `LAND_COMBAT_ORG_DICE_SIZE = 1`
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 1`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0`
+- `BASE_NIGHT_ATTACK_PENALTY = 0`
+
+The O7/O11/O12/O13 point model at 20 / 10 gives:
+
+- total attack points A = 1 / 2 / 3 with probabilities 25% / 50% / 25%;
+- defense points D = 1 exactly at Defense 10;
+- undefended points U = max(A-D, 0) = 0 / 1 / 2 with probabilities 25% / 50% / 25%.
+
+Applying an independent 40% hit gate to each undefended point gives the predeclared hit-count distribution:
+
+- 0x: **64%**
+- 1x: **32%**
+- 2x: **4%**
+- ≥3x: **0%**
+
+O15 collects exactly one h0..h161 trace = **160 firing intervals**, giving expected counts:
+
+- 0x: **102.4**
+- 1x: **51.2**
+- 2x: **6.4**
+
+#### O15 fixed decision rule
+
+1. Any ≥3x interval => `undefended-hit-semantics-mismatch`.
+2. Otherwise Pearson chi-square against probabilities **0.64 / 0.32 / 0.04**.
+3. Degrees of freedom = 2; significance level = **1%**; critical value = **9.21034**.
+4. If chi-square ≤ 9.21034 and at least one 2x interval is observed => `undefended-hit-40pct-supported`.
+5. Otherwise => `undefended-hit-semantics-mismatch`.
+6. No adaptive extension.
+
+A passing O15 result will complete the fixed-damage validation of both vanilla hit gates at the controlled 20 / 10 boundary. The next Oracle stage should then restore normal organization damage dice while keeping strength damage suppressed.
 
 
 ## Promotion rule

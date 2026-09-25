@@ -1,0 +1,11 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const summary=JSON.parse(readFileSync(new URL('../oracle-lab/captures/o17-fixed-strength-unit-001-summary.json',import.meta.url),'utf8'));
+const assessment=JSON.parse(readFileSync(new URL('../oracle-lab/captures/o17-fixed-strength-unit-001-assessment.json',import.meta.url),'utf8'));
+assert.equal(summary.evidenceStatus,'oracle-divergent');
+assert.equal(summary.action,'fixed-strength-unit-mismatch-or-feedback');
+assert.equal(summary.observed.strictLossIntervals,20);
+assert.equal(summary.observed.outsidePredeclaredBand,1);
+assert.equal(assessment.decision,'naive-strength-scale-divergent');
+assert.equal(assessment.postResultCandidate.status,'unvalidated');
+console.log('Oracle O17 accepted executable evidence regression passed.');

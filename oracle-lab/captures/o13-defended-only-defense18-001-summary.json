@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o13-defended-only-defense18-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(6).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 18,
+    "defenderDefenseTooltip": 18.0,
+    "provenance": "accepted O13 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 36,
+    "two": 44,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "clusterStats": {
+    "one": {"count": 36, "meanPp": 0.0881944444, "minPp": 0.0850, "maxPp": 0.0920},
+    "two": {"count": 44, "meanPp": 0.1767159091, "minPp": 0.1705, "maxPp": 0.1825}
+  },
+  "candidate": {
+    "name": "single-Bernoulli Defense/10 rounding bounded by total attack points",
+    "probabilities": {"one": 0.40, "two": 0.60},
+    "expectedCounts": {"one": 32, "two": 48},
+    "pearsonChiSquare": 0.8333333333,
+    "degreesOfFreedom": 1,
+    "criticalValue1Pct": 6.634897
+  },
+  "action": "single-Bernoulli-bounded-transports",
+  "interpretation": "At Defense 18, the defended-only stream contains only 1x and 2x outcomes and matches the predeclared 40/60 prediction from stochasticRound(Defense/10) bounded by total attack points. Together with O11 and O12, this narrowly validates the planner defense-point sampler and bounding structure across integer-center and two fractional Defense boundaries."
+}

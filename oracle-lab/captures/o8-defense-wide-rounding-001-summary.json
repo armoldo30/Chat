@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o8-defense-wide-rounding-v1",
+  "evidenceStatus": "oracle-divergent",
+  "sourceLog": "user-uploaded game(1).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "user-confirmed live panel"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "zero": 25,
+    "one": 49,
+    "two": 6,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "clusterStats": {
+    "one": {"count": 49, "meanPp": 0.0882551020, "minPp": 0.0850, "maxPp": 0.0920},
+    "two": {"count": 6, "meanPp": 0.1766666667, "minPp": 0.1705, "maxPp": 0.1820}
+  },
+  "predeclaredCandidate": {
+    "formula": "independent round(attack/10 + U[-1,+1]) and round(defense/10 + U[-1,+1]), clamped at zero",
+    "probabilitiesAt20Attack10Defense": {"zero": 0.3125, "one": 0.375, "two": 0.25, "three": 0.0625},
+    "expectedCounts": {"zero": 25, "one": 30, "two": 20, "three": 5},
+    "pearsonChiSquare": 26.8333333333,
+    "degreesOfFreedom": 3,
+    "criticalValue1Pct": 11.34487,
+    "requiredThreeTailObserved": false
+  },
+  "action": "wide-defense-candidate-mismatch",
+  "interpretation": "The accepted 80-interval O8 trace strongly rejects the predeclared independent wider defense-point integerization candidate. The result does not identify the exact executable defense mechanism and does not validate the planner's prior Bernoulli defense-point sampler."
+}

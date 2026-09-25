@@ -2157,7 +2157,7 @@ Persisted evidence:
 - `oracle-lab/captures/o11-defended-only-001-summary.json`
 - `oracle-lab/captures/o11-defended-only-001-assessment.json`
 
-### O12 defended-only fractional-defense probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O12 defended-only fractional-defense probe — COMPLETE / SINGLE-BERNOULLI-BOUNDED SUPPORTED
 
 O11 established that Defense 10 produces exactly one defended multiplicity in every accepted interval. O12 moves the same defended-only diagnostic to a **non-integer defense/10 point** so competing integerization families separate.
 
@@ -2188,6 +2188,104 @@ O12 does **not** preselect a winning defense law. It discriminates these familie
 - deterministic ceiling-like behavior → far more 2x mass.
 
 Collect exactly one h0..h81 trace = **80 firing intervals**. The primary result is the observed defended-only multiplicity distribution itself; no post-hoc extension is permitted. O12 will be used to choose the smallest candidate family still compatible with O11 and O12 jointly.
+
+
+#### O12 run 001 — PASS / SINGLE-BERNOULLI-BOUNDED FAMILY SUPPORTED
+
+The accepted O12 trace used the exact 20.0 Soft Attack / 12.0 Defense target and completed h0..h81 with unchanged strength and clean modifier removal.
+
+Observed defended-only multiplicities across **80 firing intervals**:
+
+- 0x: **0**
+- 1x: **71**
+- 2x: **9**
+- 3x: **0**
+- ≥4x: **0**
+
+Predeclared candidate comparisons:
+
+- deterministic one-point defense: incompatible because 2x was observed;
+- single-Bernoulli stochastic rounding of Defense/10, bounded by total attack points:
+  - expected 1x / 2x = **68 / 12**
+  - chi-square = **0.88235**
+  - compatible at the predeclared 1% threshold;
+- wider independent defense rounding:
+  - chi-square = **31.11246**
+  - incompatible;
+- deterministic ceiling-like defense:
+  - chi-square = **173.4**
+  - incompatible.
+
+Machine action:
+
+`candidate-family-set-resolved`
+
+Compatible family:
+
+`singleBernoulliBounded`
+
+This is the first executable evidence that directly supports the planner's existing defense-side structure:
+
+`defensePoints = stochasticRound(Defense / 10)`
+
+followed by:
+
+`defendedPoints = min(totalAttackPoints, defensePoints)`
+
+The result is **oracle-validated only at the controlled O11/O12 defended-only boundaries**. It does not yet establish broad transport across arbitrary Defense values or normal hit probabilities.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o12-defended-only-defense12-001-summary.json`
+- `oracle-lab/captures/o12-defended-only-defense12-001-assessment.json`
+
+### O13 defended-only high-fraction confirmation — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O13 is the confirmation point for the O12-supported defense integerization family. It moves Defense/10 from **1.2** to **1.8**, where the single-Bernoulli and wider-rounding families predict materially different defended-only distributions.
+
+Scenario:
+
+`o13-defended-only-defense18-v1`
+
+Targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **18.0**
+- same 1v1 baseline, neutral tactics, no commanders, zero reserves
+- defended attacks forced to hit: `BASE_CHANCE_TO_AVOID_HIT = 0`
+- undefended attacks forced to miss: `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100`
+- org die = 1
+- strength damage = 0
+- night penalty = 0
+
+Precomputed POL modifier:
+
+`army_infantry_defence_factor = -0.9599742088`
+
+The executable panel remains authoritative. Anything other than exactly 18.0 Defense is tuning-only.
+
+Under the O12-supported single-Bernoulli-bounded family:
+
+- total attack points retain the O7 law: A=1/2/3 with 25% / 50% / 25%;
+- Defense 18 gives D=1 with 20% and D=2 with 80%;
+- defended multiplicity = min(A,D);
+- predicted defended-only distribution:
+  - 1x: **40%**
+  - 2x: **60%**
+  - 0x / 3x / ≥4x: **0%**
+
+Collect one accepted h0..h81 trace = **80 firing intervals**.
+
+#### O13 fixed decision rule
+
+1. Any 0x, 3x, or ≥4x interval => `single-Bernoulli-bounded-does-not-transport`.
+2. Otherwise Pearson chi-square against expected counts **32 / 48** for 1x / 2x.
+3. Degrees of freedom = 1; significance level = **1%**; critical value = **6.634897**.
+4. If chi-square ≤ 6.634897 and both 1x and 2x are observed => `single-Bernoulli-bounded-transports`.
+5. Otherwise => `single-Bernoulli-bounded-does-not-transport`.
+6. No adaptive extension.
+
+A passing O13 result will justify treating the current planner defense-point sampler and defended-count bounding as narrowly **oracle-validated across two fractional Defense points plus the integer-center O11 control**. The next Oracle work should then leave point partitioning and move to normal hit probabilities / damage generation.
 
 
 ## Promotion rule

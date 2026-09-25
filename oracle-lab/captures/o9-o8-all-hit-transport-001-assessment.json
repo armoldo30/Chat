@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o9-o8-all-hit-transport-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "o7-attack-law-transports",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 16,
+    "two": 32,
+    "three": 12,
+    "fourPlus": 0
+  },
+  "candidateProbabilities": {
+    "one": 0.25,
+    "two": 0.5,
+    "three": 0.25
+  },
+  "pearsonChiSquare": 0.8,
+  "criticalValue": 9.21034,
+  "decision": "supported",
+  "boundary": "controlled O9 all-hit transport at Soft Attack 20 and Defense 10",
+  "interpretation": "O9 supports transport of the O7 attack-point distribution into the low-defense O8 matchup when every point is forced to hit. O8's mismatch is therefore localized after total attack-point generation, most likely to the defended-vs-undefended split or its hit-resolution ordering."
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o14-normal-defended-hit-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(7).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O14 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:90,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "hitCounts": {
+    "miss": 71,
+    "oneHit": 9,
+    "twoPlus": 0
+  },
+  "reference": {
+    "name": "Binomial(n=80,p=0.10)",
+    "gameFileAvoidChance": 0.90,
+    "expectedHitProbability": 0.10,
+    "exactCentral99Acceptance": {
+      "minHitsInclusive": 2,
+      "maxHitsInclusive": 16
+    }
+  },
+  "action": "defended-hit-10pct-supported",
+  "interpretation": "With exactly one defended attack point per interval at the controlled 20/10 panel, 9 successful defended hits in 80 trials falls inside the predeclared exact central 99% Binomial(80,0.10) region. No multi-hit interval appeared. This narrowly validates executable use of BASE_CHANCE_TO_AVOID_HIT=90 as a 10% defended hit probability at the O14 boundary."
+}

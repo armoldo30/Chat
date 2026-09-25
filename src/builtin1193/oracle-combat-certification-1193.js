@@ -89,11 +89,28 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'partition-mean-compatible',
       interpretation:'At Defense 10 the defended-only branch produced exactly one damage multiplicity in every accepted interval. Its mean is compatible at the predeclared 1% level with O8 undefended plus O11 defended partitioning O9 total damage in expectation.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows that even the executable minimum positive Defense measurably changes the asymmetric-gate distribution. O11 shows the defended-only branch at Defense 10 is exactly one multiplicity per interval and is compatible with the O8/O9 partition identity in expectation. The exact split law outside this boundary remains unvalidated.'
+    fractionalDefenseEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O12 defended-only fixed-damage boundary at Soft Attack 20 and Defense 12',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:12,
+      tooltipDefense:12,
+      multiplicityCounts:Object.freeze({zero:0,one:71,two:9,three:0,fourPlus:0}),
+      defendedMean:1.1125,
+      compatibleFamily:'single-Bernoulli defense-point rounding bounded by total attack points',
+      candidateChiSquare:Object.freeze({
+        singleBernoulliBounded:0.8823529411764706,
+        widerIndependentBounded:31.112462006079028,
+        deterministicCeilingBounded:173.4
+      }),
+      interpretation:'At Defense 12, only the predeclared single-Bernoulli bounded defense-point family remains compatible at the controlled O12 boundary. This narrows defense integerization to stochastic rounding of Defense/10 before bounding by total attack points.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows a real defense-present effect even at the executable minimum. O11 establishes exactly one defended point at Defense 10. O12 supports single-Bernoulli stochastic rounding of Defense/10 bounded by total attack points at Defense 12. One additional fractional-defense confirmation remains prudent before promoting the split model more broadly.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
-    'does not identify the exact defended-vs-undefended split outside the controlled O11 Defense-10 defended-only boundary',
+    'does not establish the defense split outside the controlled O11/O12 Defense-10 and Defense-12 defended-only boundaries',
     'does not validate hit-roll distribution',
     'does not validate organization/strength damage dice',
     'does not validate tactic execution outside the neutralized O1 harness',

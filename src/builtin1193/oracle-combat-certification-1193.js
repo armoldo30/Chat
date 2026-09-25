@@ -54,11 +54,27 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       criticalValue1PctDf2:9.21034,
       interpretation:'The O7 total attack-point law transports to the exact O8 low-defense scenario when defended and undefended points are both forced to hit, localizing the O8 mismatch downstream of total attack-point generation.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider attack-point random-rounding distribution at its controlled boundary. O8 rejects the naive extension in which attack and defense points are independently wider-rounded and simply subtracted. The exact defended-vs-undefended split remains unvalidated.'
+    minimumDefenseEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O10v2 asymmetric-hit-gate boundary at Soft Attack 20 and executable-minimum Defense 1.9',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:1.9,
+      tooltipDefense:1.9,
+      defenderBaseDefense:198,
+      finalStatFloorPercent:1,
+      multiplicityCounts:Object.freeze({zero:1,one:18,two:37,three:4,fourPlus:0}),
+      multiplicityMean:1.7333333333,
+      referenceProbabilities:Object.freeze({one:0.25,two:0.5,three:0.25}),
+      pearsonChiSquareIgnoringSupportViolation:10.3,
+      criticalValue1PctDf2:9.21034,
+      interpretation:'The executable minimum positive Defense already measurably changes the asymmetric-gate multiplicity distribution relative to the O7/O9 total attack-point reference. The exact split mechanism remains unvalidated.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows that even the executable minimum positive Defense measurably changes the asymmetric-gate distribution. The exact defended-vs-undefended split remains unvalidated.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
-    'does not identify the exact defended-vs-undefended split after O8 rejected independent wider defense-point rounding and O9 localized the mismatch downstream of total attack-point generation',
+    'does not identify the exact defended-vs-undefended split after O8/O9/O10v2 localized a real defense-present effect downstream of total attack-point generation',
     'does not validate hit-roll distribution',
     'does not validate organization/strength damage dice',
     'does not validate tactic execution outside the neutralized O1 harness',

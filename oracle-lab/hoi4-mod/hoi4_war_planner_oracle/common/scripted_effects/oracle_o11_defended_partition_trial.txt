@@ -1,0 +1,198 @@
+# O11 defended-only partition probe.
+#
+# Acceptance:
+# - GER displayed/tooltip Soft Attack exactly 20.0
+# - POL displayed/tooltip Defense exactly 10.0
+# - one GER vs one POL 18-width division
+# - no commanders, zero reserves
+
+oracle_o11_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO11 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o11_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO11 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o11_capture_sample = {
+    log = "WPO11 SAMPLE hour=[?oracle_o11_hour]"
+    oracle_o11_log_attacker_divisions = yes
+    POL = { oracle_o11_log_defender_divisions = yes }
+}
+
+d_oracle_o11_prepare = {
+    GER = {
+        clr_country_flag = oracle_o11_prepared
+        clr_country_flag = oracle_o11_running
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o11_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o11_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o11_attack_target }
+        force_update_dynamic_modifier = yes
+    }
+
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o11_defense_target } }
+            remove_dynamic_modifier = { modifier = oracle_o11_defense_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o11_defense_target }
+        force_update_dynamic_modifier = yes
+    }
+
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = { modifier = oracle_o11_attack_target }
+                POL = { has_dynamic_modifier = { modifier = oracle_o11_defense_target } }
+            }
+            set_country_flag = oracle_o11_prepared
+            log = "WPO11 STATUS state=prepared scenario=o11-defended-only-partition-v1 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9923784016 modifiersPresent=yes expectedPanel=GER-soft-20-tooltip-20.0-POL-defense-10-tooltip-10.0"
+        }
+        else = { log = "WPO11 STATUS state=prepare-failed" }
+    }
+}
+
+d_oracle_o11_clear = {
+    GER = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o11_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o11_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        clr_country_flag = oracle_o11_prepared
+        clr_country_flag = oracle_o11_running
+    }
+
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o11_defense_target } }
+            remove_dynamic_modifier = { modifier = oracle_o11_defense_target }
+            force_update_dynamic_modifier = yes
+        }
+    }
+
+    GER = {
+        if = {
+            limit = {
+                OR = {
+                    has_dynamic_modifier = { modifier = oracle_o11_attack_target }
+                    POL = { has_dynamic_modifier = { modifier = oracle_o11_defense_target } }
+                }
+            }
+            log = "WPO11 STATUS state=clear-failed modifiersRemoved=no"
+        }
+        else = { log = "WPO11 STATUS state=cleared modifiersRemoved=yes" }
+    }
+}
+
+oracle_o11_trial81_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o11_prepared
+            has_dynamic_modifier = { modifier = oracle_o11_attack_target }
+            POL = { has_dynamic_modifier = { modifier = oracle_o11_defense_target } }
+        }
+
+        clr_country_flag = oracle_o11_running
+        set_country_flag = oracle_o11_running
+        set_variable = { oracle_o11_hour = 0 }
+
+        log = "WPO11 BEGIN schema=1 scenario=o11-defended-only-partition-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial81 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9923784016 prepared=yes modifiersPresent=yes"
+        oracle_o11_capture_sample = yes
+
+        country_event = { id = oracle_o11.1 hours = 1 }
+        country_event = { id = oracle_o11.1 hours = 2 }
+        country_event = { id = oracle_o11.1 hours = 3 }
+        country_event = { id = oracle_o11.1 hours = 4 }
+        country_event = { id = oracle_o11.1 hours = 5 }
+        country_event = { id = oracle_o11.1 hours = 6 }
+        country_event = { id = oracle_o11.1 hours = 7 }
+        country_event = { id = oracle_o11.1 hours = 8 }
+        country_event = { id = oracle_o11.1 hours = 9 }
+        country_event = { id = oracle_o11.1 hours = 10 }
+        country_event = { id = oracle_o11.1 hours = 11 }
+        country_event = { id = oracle_o11.1 hours = 12 }
+        country_event = { id = oracle_o11.1 hours = 13 }
+        country_event = { id = oracle_o11.1 hours = 14 }
+        country_event = { id = oracle_o11.1 hours = 15 }
+        country_event = { id = oracle_o11.1 hours = 16 }
+        country_event = { id = oracle_o11.1 hours = 17 }
+        country_event = { id = oracle_o11.1 hours = 18 }
+        country_event = { id = oracle_o11.1 hours = 19 }
+        country_event = { id = oracle_o11.1 hours = 20 }
+        country_event = { id = oracle_o11.1 hours = 21 }
+        country_event = { id = oracle_o11.1 hours = 22 }
+        country_event = { id = oracle_o11.1 hours = 23 }
+        country_event = { id = oracle_o11.1 hours = 24 }
+        country_event = { id = oracle_o11.1 hours = 25 }
+        country_event = { id = oracle_o11.1 hours = 26 }
+        country_event = { id = oracle_o11.1 hours = 27 }
+        country_event = { id = oracle_o11.1 hours = 28 }
+        country_event = { id = oracle_o11.1 hours = 29 }
+        country_event = { id = oracle_o11.1 hours = 30 }
+        country_event = { id = oracle_o11.1 hours = 31 }
+        country_event = { id = oracle_o11.1 hours = 32 }
+        country_event = { id = oracle_o11.1 hours = 33 }
+        country_event = { id = oracle_o11.1 hours = 34 }
+        country_event = { id = oracle_o11.1 hours = 35 }
+        country_event = { id = oracle_o11.1 hours = 36 }
+        country_event = { id = oracle_o11.1 hours = 37 }
+        country_event = { id = oracle_o11.1 hours = 38 }
+        country_event = { id = oracle_o11.1 hours = 39 }
+        country_event = { id = oracle_o11.1 hours = 40 }
+        country_event = { id = oracle_o11.1 hours = 41 }
+        country_event = { id = oracle_o11.1 hours = 42 }
+        country_event = { id = oracle_o11.1 hours = 43 }
+        country_event = { id = oracle_o11.1 hours = 44 }
+        country_event = { id = oracle_o11.1 hours = 45 }
+        country_event = { id = oracle_o11.1 hours = 46 }
+        country_event = { id = oracle_o11.1 hours = 47 }
+        country_event = { id = oracle_o11.1 hours = 48 }
+        country_event = { id = oracle_o11.1 hours = 49 }
+        country_event = { id = oracle_o11.1 hours = 50 }
+        country_event = { id = oracle_o11.1 hours = 51 }
+        country_event = { id = oracle_o11.1 hours = 52 }
+        country_event = { id = oracle_o11.1 hours = 53 }
+        country_event = { id = oracle_o11.1 hours = 54 }
+        country_event = { id = oracle_o11.1 hours = 55 }
+        country_event = { id = oracle_o11.1 hours = 56 }
+        country_event = { id = oracle_o11.1 hours = 57 }
+        country_event = { id = oracle_o11.1 hours = 58 }
+        country_event = { id = oracle_o11.1 hours = 59 }
+        country_event = { id = oracle_o11.1 hours = 60 }
+        country_event = { id = oracle_o11.1 hours = 61 }
+        country_event = { id = oracle_o11.1 hours = 62 }
+        country_event = { id = oracle_o11.1 hours = 63 }
+        country_event = { id = oracle_o11.1 hours = 64 }
+        country_event = { id = oracle_o11.1 hours = 65 }
+        country_event = { id = oracle_o11.1 hours = 66 }
+        country_event = { id = oracle_o11.1 hours = 67 }
+        country_event = { id = oracle_o11.1 hours = 68 }
+        country_event = { id = oracle_o11.1 hours = 69 }
+        country_event = { id = oracle_o11.1 hours = 70 }
+        country_event = { id = oracle_o11.1 hours = 71 }
+        country_event = { id = oracle_o11.1 hours = 72 }
+        country_event = { id = oracle_o11.1 hours = 73 }
+        country_event = { id = oracle_o11.1 hours = 74 }
+        country_event = { id = oracle_o11.1 hours = 75 }
+        country_event = { id = oracle_o11.1 hours = 76 }
+        country_event = { id = oracle_o11.1 hours = 77 }
+        country_event = { id = oracle_o11.1 hours = 78 }
+        country_event = { id = oracle_o11.1 hours = 79 }
+        country_event = { id = oracle_o11.1 hours = 80 }
+        country_event = { id = oracle_o11.1 hours = 81 }
+    }
+    else = { log = "WPO11 STATUS state=not-prepared action=run-d_oracle_o11_prepare-first" }
+}
+
+d_oracle_o11_trial81 = { GER = { oracle_o11_trial81_start = yes } }

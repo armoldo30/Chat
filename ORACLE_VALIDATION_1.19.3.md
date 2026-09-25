@@ -1880,7 +1880,7 @@ Persisted evidence:
 The next experiment should keep the O8 hit-gate bundle but remove defense entirely. That control can distinguish a genuine defense-split effect from any hidden coupling caused merely by setting `BASE_CHANCE_TO_AVOID_HIT = 100`.
 
 
-### O10 zero-defense O8-hit-gate control — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O10 zero-defense O8-hit-gate control — ABANDONED BEFORE EVIDENCE / EXECUTABLE 1% STAT FLOOR
 
 O9 established that the O7 total attack-point law still appears in the exact 20-attack / 10-defense matchup when both defended and undefended points are forced to hit. O10 now checks whether O8's unusual result was caused by the **presence of defense itself** or by some hidden coupling from the O8 diagnostic setting `BASE_CHANCE_TO_AVOID_HIT = 100`.
 
@@ -1921,7 +1921,74 @@ with no 0x or ≥4x intervals.
 6. Otherwise => `o8-hit-gate-bundle-alters-attack-transport`.
 7. No adaptive extension.
 
-A supported O10 result would localize O8's discrepancy specifically to the **defense-present defended-vs-undefended split**, rather than to the diagnostic avoid-chance setting itself. It would justify designing the next experiment around the split function rather than revisiting total attack-point generation.
+O10 could not reach its acceptance panel. The first live tuning attempt bottomed out at **POL Defense 1.9** even after pushing the country defense modifier below -100%. The combat tooltip exposed why: base Defense **198** was shown as **modified to 1.00%**, with experience +25% and country -100.94%. A further-more-negative retune left Defense at 1.9.
+
+Therefore the zero-defense acceptance state is not reachable through this modifier path because the executable applies a **1% minimum final stat multiplier** at this boundary. The zero-defense O10 protocol is abandoned before any evidence run; no O10 result is interpreted.
+
+This floor observation is itself a useful executable constraint. The replacement experiment is O10v2, which treats the **1.9 minimum Defense** as the controlled variable and asks whether that minimum nonzero defense measurably changes the O7/O9 attack-point distribution under O8's asymmetric hit gates.
+
+
+### O10v2 minimum-defense response probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+Scenario:
+
+`o10v2-minimum-defense-response-v1`
+
+O10v2 keeps the exact O8 asymmetric hit-gate diagnostic:
+
+- defended points forced to miss: `BASE_CHANCE_TO_AVOID_HIT = 100`;
+- undefended points forced to hit: `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 0`;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night penalty fixed at 0;
+- neutral tactics.
+
+It also keeps GER Soft Attack at exactly **20.0** and intentionally uses the executable's observed minimum reachable POL Defense:
+
+- POL base Defense: **198** in the accepted baseline;
+- final displayed/tooltip Defense: **1.9**;
+- country-defense modifier: `army_infantry_defence_factor = -1.0328836429`;
+- tooltip final-stat floor: **1.00%**.
+
+This is **not** treated as zero Defense.
+
+#### O10v2 question
+
+Does the executable's minimum nonzero Defense of 1.9 measurably alter the O7/O9 1x/2x/3x total-attack distribution when O8's defended/undefended gates are active?
+
+The no-detect reference is the already Oracle-supported O7/O9 attack law at Soft Attack 20.0:
+
+- 1x: **25%**
+- 2x: **50%**
+- 3x: **25%**
+- 0x / ≥4x: **0%**
+
+O10v2 does **not** assume any particular defense-point integerization law. It is a response-curve point only.
+
+#### O10v2 fixed decision rule
+
+Collect exactly one accepted h0..h61 trace, giving **60 firing intervals**.
+
+Acceptance panel:
+
+- GER Soft Attack displayed/tooltip exactly **20.0**;
+- POL Defense displayed/tooltip exactly **1.9**;
+- one division per side;
+- no commanders, zero reserves;
+- h0→h1 unchanged;
+- strength invariant;
+- clean modifier removal.
+
+Decision:
+
+1. Any 0x or ≥4x interval => `minimum-defense-effect-detected`.
+2. Otherwise compute Pearson chi-square against **25% / 50% / 25%** for 1x/2x/3x.
+3. Degrees of freedom = 2; significance level = **1%**; critical value = **9.21034**.
+4. If chi-square ≤ 9.21034 and both 1x and 3x occur => `minimum-defense-effect-not-detected`.
+5. Otherwise => `minimum-defense-effect-detected`.
+6. No adaptive extension.
+
+Neither outcome identifies the exact split algorithm. A detected effect means the defense response is already visible at the executable's 1% stat floor; a non-detected effect brackets the response between Defense 1.9 and the clearly divergent Defense 10 O8 point.
 
 
 ## Promotion rule

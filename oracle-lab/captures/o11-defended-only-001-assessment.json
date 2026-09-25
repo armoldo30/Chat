@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o11-defended-only-partition-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "partition-mean-compatible",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 80,
+    "two": 0,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "defendedMoments": {
+    "n": 80,
+    "mean": 1.0,
+    "variance": 0.0
+  },
+  "frozenO8Undefended": {
+    "n": 80,
+    "mean": 0.7625,
+    "variance": 0.33528481012658234
+  },
+  "frozenO9Total": {
+    "n": 60,
+    "mean": 1.9333333333333333,
+    "variance": 0.47005649717514125
+  },
+  "delta": 0.1708333333333334,
+  "standardError": 0.10966008881767925,
+  "zStatistic": 1.5578441999747121,
+  "criticalValue": 2.575829,
+  "decision": "compatible",
+  "boundary": "controlled O11 defended-only fixed-damage boundary at Soft Attack 20 and Defense 10",
+  "exactMechanismClassification": "unvalidated",
+  "interpretation": "O11 validates the defended-only distribution at Defense 10 as exactly one multiplicity in all 80 observed intervals and finds its mean compatible with the frozen O8/O9 partition identity. The exact split algorithm remains unvalidated."
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o14-normal-defended-hit-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "defended-hit-10pct-supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "hitCounts": {
+    "zero": 71,
+    "one": 9,
+    "twoPlus": 0
+  },
+  "expectedHitProbability": 0.10,
+  "exactCentral99Acceptance": {
+    "min": 2,
+    "max": 16
+  },
+  "decision": "supported",
+  "boundary": "controlled O14 fixed-damage defended-hit boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The vanilla 90% defended avoid-chance behaves as a 10% successful-hit gate at this controlled executable boundary."
+}

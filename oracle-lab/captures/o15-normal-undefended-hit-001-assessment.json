@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o15-normal-undefended-hit-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "undefended-hit-40pct-supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "hitCounts": {
+    "zero": 102,
+    "one": 55,
+    "two": 3,
+    "threePlus": 0
+  },
+  "expectedProbabilities": {
+    "zero": 0.64,
+    "one": 0.32,
+    "two": 0.04
+  },
+  "pearsonChiSquare": 2.08984375,
+  "criticalValue": 9.21034,
+  "decision": "supported",
+  "boundary": "controlled O15 fixed-damage undefended-hit boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The vanilla 60% undefended avoid-chance behaves as a 40% successful-hit gate at this controlled executable boundary."
+}

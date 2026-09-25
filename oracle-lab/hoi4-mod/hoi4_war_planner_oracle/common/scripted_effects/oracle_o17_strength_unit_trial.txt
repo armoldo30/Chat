@@ -1,0 +1,126 @@
+# O17 fixed strength-damage unit calibration.
+# Acceptance at combat start: GER Soft Attack 20.0 exactly; POL Defense 10.0 exactly.
+
+oracle_o17_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO17 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o17_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO17 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o17_capture_sample = {
+    log = "WPO17 SAMPLE hour=[?oracle_o17_hour]"
+    oracle_o17_log_attacker_divisions = yes
+    POL = { oracle_o17_log_defender_divisions = yes }
+}
+
+d_oracle_o17_prepare = {
+    GER = {
+        clr_country_flag = oracle_o17_prepared
+        clr_country_flag = oracle_o17_running
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o17_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o17_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o17_attack_target }
+        force_update_dynamic_modifier = yes
+    }
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o17_defense_target } }
+            remove_dynamic_modifier = { modifier = oracle_o17_defense_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o17_defense_target }
+        force_update_dynamic_modifier = yes
+    }
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = { modifier = oracle_o17_attack_target }
+                POL = { has_dynamic_modifier = { modifier = oracle_o17_defense_target } }
+            }
+            set_country_flag = oracle_o17_prepared
+            log = "WPO17 STATUS state=prepared scenario=o17-fixed-strength-unit-v1 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9923784016 modifiersPresent=yes expectedPanel=GER-soft-20-tooltip-20.0-POL-defense-10-tooltip-10.0"
+        }
+        else = { log = "WPO17 STATUS state=prepare-failed" }
+    }
+}
+
+d_oracle_o17_clear = {
+    GER = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o17_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o17_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        clr_country_flag = oracle_o17_prepared
+        clr_country_flag = oracle_o17_running
+    }
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o17_defense_target } }
+            remove_dynamic_modifier = { modifier = oracle_o17_defense_target }
+            force_update_dynamic_modifier = yes
+        }
+    }
+    GER = {
+        if = {
+            limit = {
+                OR = {
+                    has_dynamic_modifier = { modifier = oracle_o17_attack_target }
+                    POL = { has_dynamic_modifier = { modifier = oracle_o17_defense_target } }
+                }
+            }
+            log = "WPO17 STATUS state=clear-failed modifiersRemoved=no"
+        }
+        else = { log = "WPO17 STATUS state=cleared modifiersRemoved=yes" }
+    }
+}
+
+oracle_o17_trial21_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o17_prepared
+            has_dynamic_modifier = { modifier = oracle_o17_attack_target }
+            POL = { has_dynamic_modifier = { modifier = oracle_o17_defense_target } }
+        }
+        clr_country_flag = oracle_o17_running
+        set_country_flag = oracle_o17_running
+        set_variable = { oracle_o17_hour = 0 }
+        log = "WPO17 BEGIN schema=1 scenario=o17-fixed-strength-unit-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DAMAGE_MODIFIER:0,ORG_DICE:1,STR_DAMAGE_MODIFIER:0.060,STR_DICE:1,STR_ARMOR_SOFT_DICE:1,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9923784016 prepared=yes modifiersPresent=yes"
+        oracle_o17_capture_sample = yes
+        country_event = { id = oracle_o17.1 hours = 1 }
+        country_event = { id = oracle_o17.1 hours = 2 }
+        country_event = { id = oracle_o17.1 hours = 3 }
+        country_event = { id = oracle_o17.1 hours = 4 }
+        country_event = { id = oracle_o17.1 hours = 5 }
+        country_event = { id = oracle_o17.1 hours = 6 }
+        country_event = { id = oracle_o17.1 hours = 7 }
+        country_event = { id = oracle_o17.1 hours = 8 }
+        country_event = { id = oracle_o17.1 hours = 9 }
+        country_event = { id = oracle_o17.1 hours = 10 }
+        country_event = { id = oracle_o17.1 hours = 11 }
+        country_event = { id = oracle_o17.1 hours = 12 }
+        country_event = { id = oracle_o17.1 hours = 13 }
+        country_event = { id = oracle_o17.1 hours = 14 }
+        country_event = { id = oracle_o17.1 hours = 15 }
+        country_event = { id = oracle_o17.1 hours = 16 }
+        country_event = { id = oracle_o17.1 hours = 17 }
+        country_event = { id = oracle_o17.1 hours = 18 }
+        country_event = { id = oracle_o17.1 hours = 19 }
+        country_event = { id = oracle_o17.1 hours = 20 }
+        country_event = { id = oracle_o17.1 hours = 21 }
+    }
+    else = { log = "WPO17 STATUS state=not-prepared action=run-d_oracle_o17_prepare-first" }
+}
+
+d_oracle_o17_trial21 = { GER = { oracle_o17_trial21_start = yes } }

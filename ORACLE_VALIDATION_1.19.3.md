@@ -2575,7 +2575,7 @@ Persisted evidence:
 - `oracle-lab/captures/o16-normal-org-die-001-summary.json`
 - `oracle-lab/captures/o16-normal-org-die-001-assessment.json`
 
-### O17 fixed strength-damage unit calibration — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O17 fixed strength-damage unit calibration — COMPLETE / NAIVE SCALE REJECTED
 
 O17 isolates one guaranteed defended hit per firing interval and fixes the strength die to **1** so the executable's single strength-damage unit can be measured directly before testing the normal two-sided strength die.
 
@@ -2625,6 +2625,90 @@ Collect exactly one accepted h0..h21 trace = **20 firing intervals**. The short 
 7. No adaptive extension.
 
 A passing O17 result will establish the executable scale of one vanilla unarmored strength-damage unit on the exact HP-225 baseline. O18 can then restore `LAND_COMBAT_STR_DICE_SIZE = 2` and predeclare the 1x/2x strength-loss classifier from the O17 measurement rather than choosing a threshold after seeing O18.
+
+
+#### O17 run 001 — PREDECLARED RULE FAIL / HIDDEN SCALE CANDIDATE EXPOSED
+
+The accepted O17 trace completed h0..h21 with organization invariant and clean modifier removal. All **20 firing intervals** produced a strict defender strength loss.
+
+Observed defender strength-loss midpoints:
+
+- mean: **0.024125 pp**
+- minimum: **0.0185 pp**
+- maximum: **0.0250 pp**
+- cumulative h1→h21 loss: **0.4825 pp**
+
+The predeclared naive HP-only candidate was:
+
+`0.060 / 225 * 100 = 0.0266667 pp per hit`
+
+or **0.533333 pp** cumulatively across 20 one-hit intervals.
+
+O17's fixed rule fails because one interval midpoint (**0.0185 pp**) falls just below the frozen **0.0195 pp** lower bound. More importantly, the aggregate strength loss is materially below the naive HP-only prediction.
+
+Machine action:
+
+`fixed-strength-unit-mismatch-or-feedback`
+
+Narrow classification:
+
+- naive `strength damage = die * 0.060 / HP` is **oracle-divergent** at the controlled O17 boundary;
+- the observed cumulative result is extremely close to an additional **0.9 scalar**:
+  - candidate per-hit loss = **0.0240 pp**
+  - candidate cumulative 20-hit loss = **0.4800 pp**
+  - observed minus candidate = **+0.0025 pp**
+- the 0.9 scalar is a **post-result candidate only** and is not validated by O17.
+
+### O17v2 all-hit strength-scale confirmation — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O17v2 tests the newly exposed 0.9 candidate without relying on Defense rounding. Both defended and undefended attack points are forced to hit, organization damage is disabled, and the strength die remains fixed at 1.
+
+Scenario:
+
+`o17v2-all-hit-strength-scale-v1`
+
+Exact combat-start target:
+
+- GER Soft Attack exactly **20.0**
+- same baseline divisions and neutral tactics
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0`
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 0`
+- `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0.060`
+- `LAND_COMBAT_STR_DICE_SIZE = 1`
+- `LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE = 1`
+- night penalty = 0
+
+The O7/O9 attack law at Soft Attack 20 gives total attack-point multiplicity **1 / 2 / 3**. With every point hitting and the strength die fixed at 1, O17v2 classifies each defender strength-loss interval into 1x / 2x / 3x using broad predeclared support bands that separate the candidate clusters under either the naive or 0.9-scaled model:
+
+- 1x: **0.014–0.037 pp**
+- 2x: **0.037–0.064 pp**
+- 3x: **0.064–0.091 pp**
+- anything else: support violation
+
+Collect exactly one h0..h61 trace = **60 firing intervals**.
+
+For each accepted interval, divide measured loss by its classified multiplicity to estimate one executable strength-damage unit. Let the mean normalized unit be `u`.
+
+Predeclared candidate centers:
+
+- naive HP-only: **0.0266667 pp**
+- additional 0.9 scalar: **0.0240000 pp**
+
+#### O17v2 fixed decision rule
+
+1. Any zero-loss or out-of-support interval => `strength-scale-family-mismatch`.
+2. All three multiplicity classes 1x / 2x / 3x must occur.
+3. Compute the mean normalized unit `u` over all 60 intervals.
+4. If **0.0230 ≤ u ≤ 0.0250 pp**, action = `point-nine-strength-scale-supported`.
+5. If **0.0257 ≤ u ≤ 0.0277 pp**, action = `naive-hp-strength-scale-supported`.
+6. Otherwise action = `strength-scale-family-mismatch`.
+7. No adaptive extension.
+
+A passing 0.9 result would justify correcting the planner strength-damage scale before moving to the normal two-sided strength die.
 
 
 ## Promotion rule

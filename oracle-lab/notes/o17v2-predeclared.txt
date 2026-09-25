@@ -1,0 +1,1 @@
+O17v2 predeclared confirmation: all-hit fixed strength die, organization damage disabled, 60 firing intervals. This is Oracle test instrumentation only.

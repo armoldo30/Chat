@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O17 fixed strength-unit calibration.
+Source Oracle head: 1d8097cf41c66b752b763538478f84d6869ebb5d
+Do not merge this launch-candidate branch.

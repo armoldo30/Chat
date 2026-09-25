@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o12-defended-only-defense12-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "candidate-family-set-resolved",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 12,
+    "tooltipDefense": 12.0
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 71,
+    "two": 9,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "candidateChiSquare": {
+    "deterministicOne": null,
+    "singleBernoulliBounded": 0.8823529411764706,
+    "widerIndependentBounded": 31.112462006079028,
+    "deterministicCeilingBounded": 173.4
+  },
+  "compatibleFamilies": [
+    "singleBernoulliBounded"
+  ],
+  "decision": "single-Bernoulli-bounded-supported",
+  "boundary": "controlled O12 defended-only fixed-damage boundary at Soft Attack 20 and Defense 12",
+  "interpretation": "O12 supports stochastic rounding of Defense/10 from 1.2 to one or two defense points, with the defended count bounded by total attack points. Wider-independent, deterministic-one, and ceiling-like candidate families are incompatible at this boundary."
+}

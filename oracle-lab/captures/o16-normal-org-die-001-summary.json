@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o16-normal-org-die-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(9).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O16 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DAMAGE_MODIFIER:0.053,ORG_DICE:4,ORG_ARMOR_SOFT_DICE:6,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "dieCounts": {
+    "zero": 0,
+    "one": 19,
+    "two": 19,
+    "three": 23,
+    "four": 19,
+    "outOfRange": 0
+  },
+  "clusterStats": {
+    "one": {"count":19,"meanPp":0.0886842105,"minPp":0.0850,"maxPp":0.0920},
+    "two": {"count":19,"meanPp":0.1768157895,"minPp":0.1710,"maxPp":0.1780},
+    "three": {"count":23,"meanPp":0.2643043478,"minPp":0.2610,"maxPp":0.2690},
+    "four": {"count":19,"meanPp":0.3535789474,"minPp":0.3480,"maxPp":0.3590}
+  },
+  "reference": {
+    "name": "UniformInteger(1,4) organization damage die",
+    "probabilities": {"one":0.25,"two":0.25,"three":0.25,"four":0.25},
+    "expectedCountPerBin": 20,
+    "pearsonChiSquare": 0.6,
+    "degreesOfFreedom": 3,
+    "criticalValue1Pct": 11.34487
+  },
+  "action": "org-die-uniform-1-through-4-supported",
+  "interpretation": "At the controlled one-defended-hit boundary, all 80 organization-damage outcomes fall into the expected 1-through-4 support and the 19/19/23/19 distribution is compatible with a uniform four-sided integer die. This narrowly validates the vanilla unarmored organization die at O16."
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o16-normal-org-die-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "org-die-uniform-1-through-4-supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "dieCounts": {
+    "zero": 0,
+    "one": 19,
+    "two": 19,
+    "three": 23,
+    "four": 19,
+    "outOfRange": 0
+  },
+  "expectedProbabilities": {
+    "one": 0.25,
+    "two": 0.25,
+    "three": 0.25,
+    "four": 0.25
+  },
+  "pearsonChiSquare": 0.6,
+  "criticalValue": 11.34487,
+  "decision": "supported",
+  "boundary": "controlled O16 one-defended-hit organization-damage boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The vanilla unarmored organization damage die behaves as UniformInteger(1,4) at this controlled executable boundary."
+}

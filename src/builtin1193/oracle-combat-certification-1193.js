@@ -45,11 +45,20 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       criticalValue1PctDf3:11.34487,
       exactMechanism:'unvalidated'
     }),
+    attackTransportEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O9 all-hit transport at Soft Attack 20 and Defense 10',
+      multiplicityCounts:Object.freeze({zero:0,one:16,two:32,three:12,fourPlus:0}),
+      candidateProbabilities:Object.freeze({one:0.25,two:0.5,three:0.25}),
+      pearsonChiSquare:0.8,
+      criticalValue1PctDf2:9.21034,
+      interpretation:'The O7 total attack-point law transports to the exact O8 low-defense scenario when defended and undefended points are both forced to hit, localizing the O8 mismatch downstream of total attack-point generation.'
+    }),
     interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider attack-point random-rounding distribution at its controlled boundary. O8 rejects the naive extension in which attack and defense points are independently wider-rounded and simply subtracted. The exact defended-vs-undefended split remains unvalidated.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
-    'does not identify the exact defense / defended-vs-undefended split after O8 rejected independent wider defense-point rounding',
+    'does not identify the exact defended-vs-undefended split after O8 rejected independent wider defense-point rounding and O9 localized the mismatch downstream of total attack-point generation',
     'does not validate hit-roll distribution',
     'does not validate organization/strength damage dice',
     'does not validate tactic execution outside the neutralized O1 harness',

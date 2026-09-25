@@ -106,11 +106,25 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       }),
       interpretation:'At Defense 12, only the predeclared single-Bernoulli bounded defense-point family remains compatible at the controlled O12 boundary. This narrows defense integerization to stochastic rounding of Defense/10 before bounding by total attack points.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows a real defense-present effect even at the executable minimum. O11 establishes exactly one defended point at Defense 10. O12 supports single-Bernoulli stochastic rounding of Defense/10 bounded by total attack points at Defense 12. One additional fractional-defense confirmation remains prudent before promoting the split model more broadly.'
+    highFractionDefenseEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O13 defended-only fixed-damage boundary at Soft Attack 20 and Defense 18',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:18,
+      tooltipDefense:18,
+      multiplicityCounts:Object.freeze({zero:0,one:36,two:44,three:0,fourPlus:0}),
+      candidateProbabilities:Object.freeze({one:0.4,two:0.6}),
+      pearsonChiSquare:0.8333333333,
+      criticalValue1PctDf1:6.634897,
+      action:'single-Bernoulli-bounded-transports',
+      interpretation:'The O12-supported single-Bernoulli Defense/10 sampler bounded by total attack points transports to the Defense-18 confirmation boundary.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O8 rejects independent wider defense rounding plus simple subtraction. O9 localizes that mismatch downstream of total attack generation. O10v2 shows a real defense-present effect even at the executable minimum. O11 establishes exactly one defended point at Defense 10. O12 supports single-Bernoulli stochastic rounding of Defense/10 bounded by total attack points at Defense 12, and O13 confirms the same family at Defense 18. The planner point-partition structure is now narrowly Oracle-validated across the tested boundaries; normal hit probabilities and damage dice remain separate validation targets.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
-    'does not establish the defense split outside the controlled O11/O12 Defense-10 and Defense-12 defended-only boundaries',
+    'does not establish the defense split outside the controlled O11/O12/O13 Defense-10/12/18 defended-only boundaries',
     'does not validate hit-roll distribution',
     'does not validate organization/strength damage dice',
     'does not validate tactic execution outside the neutralized O1 harness',

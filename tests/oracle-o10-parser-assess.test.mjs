@@ -6,7 +6,7 @@ function b(v){return {low:Math.max(0,v-.00003).toFixed(5),high:Math.min(1,v+.000
 function run(counts){
   const seq=[];for(let i=0;i<counts.one;i++)seq.push(.00088);for(let i=0;i<counts.two;i++)seq.push(.00176);for(let i=0;i<counts.three;i++)seq.push(.00264);
   if(seq.length!==60)throw new Error('synthetic O10 needs 60 intervals');
-  const lines=['WPO10 BEGIN schema=1 scenario=o10-zero-defense-hit-gate-control-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial61 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-1.0328836429 prepared=yes modifiersPresent=yes'];
+  const lines=['WPO10 BEGIN schema=1 scenario=o10-zero-defense-hit-gate-control-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial61 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-1.0423836429 prepared=yes modifiersPresent=yes'];
   let d=1;
   for(let h=0;h<=61;h++){
     if(h>=2)d-=seq[h-2];

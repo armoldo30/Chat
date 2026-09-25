@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O14 defended-hit probability probe.
+Source Oracle head: 41be0ff6a02dfbd563722e528a8c0adcc6dc60f8
+Do not merge this launch-candidate branch.

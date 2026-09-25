@@ -2045,7 +2045,7 @@ Persisted evidence:
 - `oracle-lab/captures/o10v2-minimum-defense-001-summary.json`
 - `oracle-lab/captures/o10v2-minimum-defense-001-assessment.json`
 
-### O11 defended-only partition probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O11 defended-only partition probe — COMPLETE / PARTITION-MEAN COMPATIBLE
 
 O8 measured the **undefended** portion at Soft Attack 20 / Defense 10 by forcing defended attacks to miss and undefended attacks to hit. O9 measured the **total** attack-point distribution at the same 20 / 10 panel by forcing both branches to hit.
 
@@ -2117,6 +2117,77 @@ Decision rule:
 8. No adaptive extension.
 
 A compatible result would establish a strong necessary structural property: the O8 and O11 branches behave, in expectation, like complementary partitions of the O9 total attack process. It would **not** identify their joint per-interval RNG or exact integerization formula. A mismatch would imply that changing the branch hit gates alters more than merely which pre-existing attack points deal damage.
+
+
+#### O11 run 001 — PASS / DEFENDED-ONLY STREAM COLLAPSES TO EXACTLY 1x
+
+The accepted O11 trace completed h0..h81 with unchanged strength and clean modifier removal. Across all **80 firing intervals**, the defended-only multiplicity was:
+
+- 0x: **0**
+- 1x: **80**
+- 2x: **0**
+- 3x: **0**
+- ≥4x: **0**
+
+So at Soft Attack 20 / Defense 10, with defended attacks forced to hit and undefended attacks forced to miss, the defended branch is empirically **deterministic at exactly one multiplicity** over the accepted sample.
+
+The predeclared partition-mean check used the frozen O8 and O9 samples:
+
+- O8 undefended mean = **0.7625**
+- O9 total mean = **1.9333333333**
+- implied defended mean = **1.1708333333**
+- observed O11 defended mean = **1.0000**
+- delta = **0.1708333333**
+- SE = **0.1096600888**
+- z = **1.5578442**
+- 1% two-sided critical z = **2.575829**
+
+Machine action:
+
+`partition-mean-compatible`
+
+Classification:
+
+- the O11 defended-only multiplicity distribution at Defense 10 is **oracle-validated** at this controlled boundary;
+- the frozen O8/O11 branch means are compatible with partitioning the O9 total process **in expectation**;
+- this does **not** establish the exact per-interval joint split, RNG correlation, or the defense mapping away from Defense 10.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o11-defended-only-001-summary.json`
+- `oracle-lab/captures/o11-defended-only-001-assessment.json`
+
+### O12 defended-only fractional-defense probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O11 established that Defense 10 produces exactly one defended multiplicity in every accepted interval. O12 moves the same defended-only diagnostic to a **non-integer defense/10 point** so competing integerization families separate.
+
+Scenario:
+
+`o12-defended-only-defense12-v1`
+
+Targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **12.0**
+- same 1v1 baseline, neutral tactics, no commanders, zero reserves
+- defended attacks forced to hit: `BASE_CHANCE_TO_AVOID_HIT = 0`
+- undefended attacks forced to miss: `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100`
+- org die = 1, strength damage = 0, night penalty = 0
+
+Precomputed POL modifier:
+
+`army_infantry_defence_factor = -0.9842773534`
+
+The executable panel is authoritative. Any result other than exactly 12.0 Defense is tuning-only.
+
+O12 does **not** preselect a winning defense law. It discriminates these families at Defense 12:
+
+- deterministic floor / nearest-like center behavior → defended stream remains concentrated at 1x;
+- single-Bernoulli stochastic rounding of 1.2, bounded by total attack → approximately 85% 1x / 15% 2x under the frozen O7 attack law;
+- wider independent rounding of 1.2 before bounding → predicts a visible 0x tail plus materially more 2x mass;
+- deterministic ceiling-like behavior → far more 2x mass.
+
+Collect exactly one h0..h81 trace = **80 firing intervals**. The primary result is the observed defended-only multiplicity distribution itself; no post-hoc extension is permitted. O12 will be used to choose the smallest candidate family still compatible with O11 and O12 jointly.
 
 
 ## Promotion rule

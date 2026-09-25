@@ -2493,7 +2493,7 @@ Persisted evidence:
 - `oracle-lab/captures/o15-normal-undefended-hit-001-summary.json`
 - `oracle-lab/captures/o15-normal-undefended-hit-001-assessment.json`
 
-### O16 normal organization-die probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O16 normal organization-die probe — COMPLETE / UNIFORM 1-THROUGH-4 SUPPORTED
 
 O16 moves from hit-count validation to the first real damage-die validation while preserving the clean O11 one-defended-point boundary.
 
@@ -2543,6 +2543,88 @@ Collect exactly one accepted h0..h81 trace = **80 firing intervals**.
 7. No adaptive extension.
 
 A passing O16 result will narrowly validate the vanilla unarmored organization damage die and its 1-through-N support at the controlled one-hit boundary. The next stage should isolate the strength die separately before a combined normal-damage validation.
+
+
+#### O16 run 001 — PASS / VANILLA UNARMORED ORG DIE SUPPORTED
+
+The accepted O16 trace completed h0..h81 with unchanged strength and clean modifier removal.
+
+Observed organization-damage die classes across **80 firing intervals**:
+
+- die 1: **19**
+- die 2: **19**
+- die 3: **23**
+- die 4: **19**
+- zero: **0**
+- out of range: **0**
+
+Against the predeclared Uniform{1,2,3,4} model, Pearson chi-square = **0.6**, below the 1% critical value **11.34487** with 3 degrees of freedom.
+
+Machine action:
+
+`org-die-uniform-1-through-4-supported`
+
+Classification:
+
+- the vanilla unarmored organization damage die is narrowly **oracle-validated** as a uniform integer draw from 1 through 4 at the controlled O16 one-hit boundary;
+- the game-file exact `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0.053` remains the multiplier used by the validated planner path;
+- strength damage remains the next isolated executable target.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o16-normal-org-die-001-summary.json`
+- `oracle-lab/captures/o16-normal-org-die-001-assessment.json`
+
+### O17 fixed strength-damage unit calibration — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O17 isolates one guaranteed defended hit per firing interval and fixes the strength die to **1** so the executable's single strength-damage unit can be measured directly before testing the normal two-sided strength die.
+
+Scenario:
+
+`o17-fixed-strength-unit-v1`
+
+Exact panel targets at combat start:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- same 1v1 baseline, no commanders, zero reserves, neutral tactics
+
+Game-file exact baseline static HP is **225** for the 9-infantry tested division.
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0` → defended point always hits
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → undefended points always miss
+- `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0` → organization cannot end the battle
+- `LAND_COMBAT_ORG_DICE_SIZE = 1`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0.060` → vanilla strength multiplier
+- `LAND_COMBAT_STR_DICE_SIZE = 1` → fixed strength die
+- `LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE = 1`
+- `BASE_NIGHT_ATTACK_PENALTY = 0`
+
+At full strength, O11 established exactly one defended point at the 20 / 10 panel. With one guaranteed hit and a fixed strength die of 1, the game-file candidate predicts a defender strength decrement of:
+
+`0.060 / 225 * 100 = 0.0266667 percentage points`
+
+per firing interval.
+
+The bisection14 measurement width is about **0.0061035 percentage points**, so O17 predeclares a per-interval accepted measurement band of:
+
+**0.0195 pp through 0.0340 pp inclusive.**
+
+Collect exactly one accepted h0..h21 trace = **20 firing intervals**. The short horizon intentionally limits strength-feedback drift in attack/defense stats.
+
+#### O17 fixed decision rule
+
+1. h0→h1 must be unchanged.
+2. Defender organization must remain unchanged for the entire trace.
+3. Every one of the 20 firing intervals must show a strict defender strength loss.
+4. Every measured defender strength loss must fall inside **0.0195–0.0340 pp**.
+5. If all controls pass, action = `fixed-strength-unit-supported`.
+6. Otherwise action = `fixed-strength-unit-mismatch-or-feedback`.
+7. No adaptive extension.
+
+A passing O17 result will establish the executable scale of one vanilla unarmored strength-damage unit on the exact HP-225 baseline. O18 can then restore `LAND_COMBAT_STR_DICE_SIZE = 2` and predeclare the 1x/2x strength-loss classifier from the O17 measurement rather than choosing a threshold after seeing O18.
 
 
 ## Promotion rule

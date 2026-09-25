@@ -1,0 +1,11 @@
+# O9 uses the exact accepted O8 live-panel targets.
+
+oracle_o9_attack_target = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.721
+}
+
+oracle_o9_defense_target = {
+    enable = { always = yes }
+    army_infantry_defence_factor = -0.9923784016
+}

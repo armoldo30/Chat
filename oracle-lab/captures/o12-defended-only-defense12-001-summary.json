@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o12-defended-only-defense12-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(5).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 12,
+    "defenderDefenseTooltip": 12.0,
+    "provenance": "user proceeded with the accepted O12 trace after the required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 71,
+    "two": 9,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "defendedMoments": {
+    "n": 80,
+    "mean": 1.1125,
+    "sampleVariance": 0.10110759493670886
+  },
+  "candidateChiSquare": {
+    "deterministicOne": null,
+    "singleBernoulliBounded": 0.8823529411764706,
+    "widerIndependentBounded": 31.112462006079028,
+    "deterministicCeilingBounded": 173.4
+  },
+  "compatibleFamiliesAt1Pct": [
+    "singleBernoulliBounded"
+  ],
+  "action": "candidate-family-set-resolved",
+  "interpretation": "At Defense 12, the defended-only stream is 71x1 and 9x2 with no 0x/3x tail. Of the predeclared candidate families, only single-Bernoulli defense-point rounding bounded by the total attack-point count is compatible at the controlled O12 boundary. This is narrow executable evidence, not proof of source identity or behavior outside the tested range."
+}

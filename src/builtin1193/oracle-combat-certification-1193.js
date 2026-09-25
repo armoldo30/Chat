@@ -154,7 +154,24 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'undefended-hit-40pct-supported',
       interpretation:'At the controlled 20/10 boundary, the observed 102/55/3 zero/one/two-hit distribution matches the validated point model with an independent 40% undefended hit gate.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 validates the vanilla defended hit gate as 10%, and O15 validates the vanilla undefended hit gate as 40%, at controlled fixed-damage boundaries. Normal organization and strength damage dice remain separate validation targets.'
+    organizationDieEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O16 one-defended-hit organization-damage boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      trials:80,
+      dieCounts:Object.freeze({one:19,two:19,three:23,four:19}),
+      zeroDamageIntervals:0,
+      outOfRangeIntervals:0,
+      expectedProbabilities:Object.freeze({one:0.25,two:0.25,three:0.25,four:0.25}),
+      pearsonChiSquare:0.6,
+      criticalValue1PctDf3:11.34487,
+      action:'org-die-uniform-1-through-4-supported',
+      interpretation:'At the controlled one-hit boundary, all 80 organization-damage outcomes fall in the 1-through-4 support and the 19/19/23/19 distribution is compatible with a uniform four-sided integer die.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 and O15 validate the vanilla defended and undefended hit gates. O16 validates the vanilla unarmored organization die as UniformInteger(1,4) at the controlled one-hit boundary. Strength damage remains the next isolated validation target.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',

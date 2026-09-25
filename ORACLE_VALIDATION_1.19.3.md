@@ -2404,7 +2404,7 @@ Persisted evidence:
 - `oracle-lab/captures/o14-normal-defended-hit-001-summary.json`
 - `oracle-lab/captures/o14-normal-defended-hit-001-assessment.json`
 
-### O15 normal undefended-hit probability probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O15 normal undefended-hit probability probe — COMPLETE / 40% UNDEFENDED HIT SUPPORTED
 
 O15 validates the complementary vanilla undefended hit gate after O14 validated the defended 10% gate.
 
@@ -2456,6 +2456,93 @@ O15 collects exactly one h0..h161 trace = **160 firing intervals**, giving expec
 6. No adaptive extension.
 
 A passing O15 result will complete the fixed-damage validation of both vanilla hit gates at the controlled 20 / 10 boundary. The next Oracle stage should then restore normal organization damage dice while keeping strength damage suppressed.
+
+
+#### O15 run 001 — PASS / VANILLA UNDEFENDED HIT GATE SUPPORTED
+
+The accepted O15 trace completed h0..h161 with unchanged strength and clean modifier removal.
+
+Observed defender fixed-damage hit counts across **160 firing intervals**:
+
+- 0x: **102**
+- 1x: **55**
+- 2x: **3**
+- ≥3x: **0**
+
+The predeclared point model plus a 40% independent undefended hit gate predicted:
+
+- 0x: **64%** → 102.4 expected
+- 1x: **32%** → 51.2 expected
+- 2x: **4%** → 6.4 expected
+
+Pearson chi-square = **2.08984**, below the predeclared 1% critical value **9.21034** with 2 degrees of freedom, and the required 2x tail was observed.
+
+Machine action:
+
+`undefended-hit-40pct-supported`
+
+Classification:
+
+- executable use of `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 60` as a **40% undefended hit probability** is narrowly **oracle-validated** at the controlled O15 boundary;
+- together O14 + O15 complete fixed-damage validation of both vanilla hit gates at the 20/10 panel;
+- point generation, defense partitioning, and both hit probabilities are now sufficiently constrained for the next stage;
+- normal organization and strength damage dice remain unvalidated.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o15-normal-undefended-hit-001-summary.json`
+- `oracle-lab/captures/o15-normal-undefended-hit-001-assessment.json`
+
+### O16 normal organization-die probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O16 moves from hit-count validation to the first real damage-die validation while preserving the clean O11 one-defended-point boundary.
+
+Scenario:
+
+`o16-normal-org-die-v1`
+
+Exact panel targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- same 1v1 baseline, no commanders, zero reserves, neutral tactics
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0` → the single defended point always hits
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → undefended points always miss
+- `LAND_COMBAT_ORG_DICE_SIZE = 4` → vanilla organization die
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 6` → vanilla armored-soft organization die, retained but irrelevant for the baseline unarmored infantry
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0` → suppress strength damage
+- `BASE_NIGHT_ATTACK_PENALTY = 0`
+
+O11 established that the same 20 / 10 panel produces exactly one defended attack point per firing interval. Therefore O16 gives exactly one guaranteed organization-damage roll per defender interval.
+
+Under the planner/game-file candidate:
+
+`damage = UniformInteger(1, LAND_COMBAT_ORG_DICE_SIZE) * LAND_COMBAT_ORG_DAMAGE_MODIFIER`
+
+the unarmored organization die is Uniform{1,2,3,4}. The earlier fixed-die controls place one damage unit near **0.088 percentage points of organization** on this baseline, so O16 classifies defender interval losses using the frozen boundaries:
+
+- die 1: positive loss < **0.13 pp**
+- die 2: **0.13 ≤ loss < 0.225 pp**
+- die 3: **0.225 ≤ loss < 0.315 pp**
+- die 4: **0.315 ≤ loss < 0.405 pp**
+- anything else: support violation
+
+Collect exactly one accepted h0..h81 trace = **80 firing intervals**.
+
+#### O16 fixed decision rule
+
+1. Any 0x or out-of-range (>4) damage interval => `org-die-semantics-mismatch`.
+2. Otherwise Pearson chi-square against uniform probabilities **0.25 / 0.25 / 0.25 / 0.25**.
+3. Expected count = **20** in each die bin.
+4. Degrees of freedom = 3; significance level = **1%**; critical value = **11.34487**.
+5. If chi-square ≤ 11.34487 and all four die outcomes occur => `org-die-uniform-1-through-4-supported`.
+6. Otherwise => `org-die-semantics-mismatch`.
+7. No adaptive extension.
+
+A passing O16 result will narrowly validate the vanilla unarmored organization damage die and its 1-through-N support at the controlled one-hit boundary. The next stage should isolate the strength die separately before a combined normal-damage validation.
 
 
 ## Promotion rule

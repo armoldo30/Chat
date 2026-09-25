@@ -1,0 +1,50 @@
+add_namespace = oracle_o12
+country_event = {
+    id = oracle_o12.1
+    hidden = yes
+    is_triggered_only = yes
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o12_running }
+            add_to_variable = { oracle_o12_hour = 1 }
+            oracle_o12_capture_sample = yes
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o12_hour
+                            value = 81
+                            compare = less_than
+                        }
+                    }
+                }
+                clr_country_flag = oracle_o12_running
+                if = {
+                    limit = { has_dynamic_modifier = { modifier = oracle_o12_attack_target } }
+                    remove_dynamic_modifier = { modifier = oracle_o12_attack_target }
+                    force_update_dynamic_modifier = yes
+                }
+                POL = {
+                    if = {
+                        limit = { has_dynamic_modifier = { modifier = oracle_o12_defense_target } }
+                        remove_dynamic_modifier = { modifier = oracle_o12_defense_target }
+                        force_update_dynamic_modifier = yes
+                    }
+                }
+                clr_country_flag = oracle_o12_prepared
+                if = {
+                    limit = {
+                        OR = {
+                            has_dynamic_modifier = { modifier = oracle_o12_attack_target }
+                            POL = { has_dynamic_modifier = { modifier = oracle_o12_defense_target } }
+                        }
+                    }
+                    log = "WPO12 END hour=[?oracle_o12_hour] reason=trial81-complete modifiersRemoved=no cleanupFailure=yes"
+                }
+                else = {
+                    log = "WPO12 END hour=[?oracle_o12_hour] reason=trial81-complete modifiersRemoved=yes cleanupFailure=no"
+                }
+            }
+        }
+    }
+}

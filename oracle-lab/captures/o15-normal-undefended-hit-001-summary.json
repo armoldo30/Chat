@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o15-normal-undefended-hit-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(8).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O15 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..161 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:60,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "hitCounts": {
+    "zero": 102,
+    "one": 55,
+    "two": 3,
+    "threePlus": 0
+  },
+  "clusterStats": {
+    "one": {"count":55,"meanPp":0.0882090909,"minPp":0.0850,"maxPp":0.0920},
+    "two": {"count":3,"meanPp":0.1776666667,"minPp":0.1770,"maxPp":0.1780}
+  },
+  "reference": {
+    "name": "controlled 20/10 undefended-point model with independent 40% hit gate",
+    "probabilities": {"zero":0.64,"one":0.32,"two":0.04},
+    "expectedCounts": {"zero":102.4,"one":51.2,"two":6.4},
+    "pearsonChiSquare": 2.08984375,
+    "degreesOfFreedom": 2,
+    "criticalValue1Pct": 9.21034
+  },
+  "action": "undefended-hit-40pct-supported",
+  "interpretation": "At the controlled 20/10 fixed-damage boundary, 102/55/3 zero/one/two-hit intervals match the predeclared 64%/32%/4% distribution implied by the validated point model and an independent 40% undefended hit gate. No 3+ hit interval appeared. This narrowly validates executable use of CHANCE_TO_AVOID_HIT_AT_NO_DEF=60 as a 40% undefended hit probability at O15."
+}

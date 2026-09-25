@@ -2,7 +2,8 @@
 # Defense target is live-calibration derived from:
 #   - 17.8 at -0.9607843137
 #   - 10.0 at -0.9923784016
-# assuming the observed local linear modifier response.
+#   - 1.9 at -1.0328836429
+# Latest retune extrapolates the near-200 Defense-per-modifier response to zero.
 
 oracle_o10_attack_target = {
     enable = { always = yes }
@@ -11,5 +12,5 @@ oracle_o10_attack_target = {
 
 oracle_o10_defense_zero = {
     enable = { always = yes }
-    army_infantry_defence_factor = -1.0328836429
+    army_infantry_defence_factor = -1.0423836429
 }

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o17-fixed-strength-unit-v1",
+  "evidenceStatus": "oracle-divergent",
+  "observed": {
+    "strictLossIntervals": 20,
+    "meanLossPp": 0.024125,
+    "minLossPp": 0.0185,
+    "maxLossPp": 0.025,
+    "cumulativeLossPp": 0.4825,
+    "outsidePredeclaredBand": 1
+  },
+  "naiveCandidate": {
+    "perHitPp": 0.0266666667,
+    "cumulative20Pp": 0.5333333333
+  },
+  "pointNineCandidate": {
+    "perHitPp": 0.024,
+    "cumulative20Pp": 0.48,
+    "status": "unvalidated"
+  },
+  "action": "fixed-strength-unit-mismatch-or-feedback"
+}

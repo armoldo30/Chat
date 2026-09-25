@@ -1785,6 +1785,57 @@ Persisted evidence:
 O8 therefore closes the naive symmetry hypothesis. The next Oracle experiment should target the **defended-vs-undefended split itself**, not simply retry another defense-rounding law.
 
 
+### O9 all-hit transport control — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O8 strongly rejected the hypothesis that the executable independently wider-rounds attack and defense points and then simply subtracts them. Before probing a more complicated defended-vs-undefended split, O9 checks a necessary transport control:
+
+**Does the O7 attack-point distribution still appear in the exact accepted O8 20-attack / 10-defense scenario when every attack point is forced to hit?**
+
+Scenario:
+
+`o9-o8-all-hit-transport-v1`
+
+O9 keeps the exact accepted O8 live-panel targets:
+
+- GER Soft Attack exactly **20.0**;
+- POL Defense exactly **10.0**;
+- GER attack modifier `army_infantry_attack_factor = -0.721`;
+- POL defense modifier `army_infantry_defence_factor = -0.9923784016`.
+
+The diagnostic define bundle changes only the hit gates needed for this control:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0`;
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 0`;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0;
+- neutral tactics.
+
+Because defended and undefended points both have 100% hit chance, Defense no longer changes defender organization loss. The observed multiplicity therefore measures the **total attack-point distribution** in the exact low-defense O8 scenario.
+
+#### O9 fixed prediction and decision rule
+
+If the O7 attack-point law transports cleanly, the 60 accepted firing intervals should again follow:
+
+- 1x: **25%**
+- 2x: **50%**
+- 3x: **25%**
+
+with no 0x or ≥4x intervals.
+
+Decision rule:
+
+1. One accepted h0..h61 trace only.
+2. Any 0x or ≥4x interval => `o7-attack-law-does-not-transport`.
+3. Otherwise Pearson chi-square against 25% / 50% / 25%.
+4. Degrees of freedom = 2; significance level = **1%**; critical value = **9.21034**.
+5. If chi-square ≤ 9.21034 and both 1x and 3x are observed => `o7-attack-law-transports`.
+6. Otherwise => `o7-attack-law-does-not-transport`.
+7. No adaptive extension.
+
+If O9 supports transport, the O8 discrepancy is localized downstream of attack-point generation to the **defended-vs-undefended split or hit-resolution ordering**. If O9 fails, the attack-point law itself is context-sensitive across these diagnostic hit-gate states and must be investigated before any more specific defense model is proposed.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

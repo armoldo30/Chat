@@ -10,7 +10,7 @@ function run(counts){
   for(let i=0;i<counts.two;i++)seq.push(.00176);
   for(let i=0;i<counts.three;i++)seq.push(.00264);
   if(seq.length!==80)throw new Error('synthetic O8 needs 80 intervals');
-  const lines=['WPO8 BEGIN schema=1 scenario=o8-defense-wide-rounding-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial81 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9607843137 prepared=yes modifiersPresent=yes'];
+  const lines=['WPO8 BEGIN schema=1 scenario=o8-defense-wide-rounding-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial81 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:100,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenseModifier=army_infantry_defence_factor:-0.9923784016 prepared=yes modifiersPresent=yes'];
   let d=1;
   for(let h=0;h<=81;h++){
     if(h>=2)d-=seq[h-2];

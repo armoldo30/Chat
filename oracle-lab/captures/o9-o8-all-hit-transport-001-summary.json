@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o9-o8-all-hit-transport-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(2).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "user-confirmed live panel"
+  },
+  "machineControls": {
+    "hours": "0..61 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 16,
+    "two": 32,
+    "three": 12,
+    "fourPlus": 0
+  },
+  "clusterStats": {
+    "one": {"count": 16, "meanPp": 0.0876875, "minPp": 0.0845, "maxPp": 0.0920},
+    "two": {"count": 32, "meanPp": 0.17609375, "minPp": 0.1710, "maxPp": 0.1825},
+    "three": {"count": 12, "meanPp": 0.2670416667, "minPp": 0.2625, "maxPp": 0.2690}
+  },
+  "candidate": {
+    "formula": "O7 wider attack-point law transported to the O8 20-attack/10-defense scenario under all-hit gates",
+    "probabilities": {"one": 0.25, "two": 0.5, "three": 0.25},
+    "expectedCounts": {"one": 15, "two": 30, "three": 15},
+    "pearsonChiSquare": 0.8,
+    "degreesOfFreedom": 2,
+    "criticalValue1Pct": 9.21034
+  },
+  "action": "o7-attack-law-transports",
+  "interpretation": "The O7 1x/2x/3x attack-point distribution transports cleanly to the accepted O8 20-attack/10-defense scenario when both defended and undefended points are forced to hit. This localizes the O8 mismatch downstream of total attack-point generation, while the exact defended-vs-undefended split remains unvalidated."
+}

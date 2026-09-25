@@ -2239,7 +2239,7 @@ Persisted evidence:
 - `oracle-lab/captures/o12-defended-only-defense12-001-summary.json`
 - `oracle-lab/captures/o12-defended-only-defense12-001-assessment.json`
 
-### O13 defended-only high-fraction confirmation — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O13 defended-only high-fraction confirmation — COMPLETE / TRANSPORT SUPPORTED
 
 O13 is the confirmation point for the O12-supported defense integerization family. It moves Defense/10 from **1.2** to **1.8**, where the single-Bernoulli and wider-rounding families predict materially different defended-only distributions.
 
@@ -2286,6 +2286,91 @@ Collect one accepted h0..h81 trace = **80 firing intervals**.
 6. No adaptive extension.
 
 A passing O13 result will justify treating the current planner defense-point sampler and defended-count bounding as narrowly **oracle-validated across two fractional Defense points plus the integer-center O11 control**. The next Oracle work should then leave point partitioning and move to normal hit probabilities / damage generation.
+
+
+#### O13 run 001 — PASS / DEFENSE SAMPLER TRANSPORTS
+
+The accepted O13 trace completed h0..h81 with unchanged strength and clean modifier removal.
+
+Observed defended-only multiplicities across **80 firing intervals**:
+
+- 0x: **0**
+- 1x: **36**
+- 2x: **44**
+- 3x: **0**
+- ≥4x: **0**
+
+The predeclared O12-supported family predicted **32 / 48** for 1x / 2x. Pearson chi-square = **0.83333**, below the predeclared 1% critical value **6.634897** with 1 degree of freedom.
+
+Machine action:
+
+`single-Bernoulli-bounded-transports`
+
+Classification:
+
+- `stochasticRound(Defense / 10)` followed by `min(totalAttackPoints, defensePoints)` is now narrowly **oracle-validated** across:
+  - O11: Defense 10 integer center;
+  - O12: Defense 12 low fractional point;
+  - O13: Defense 18 high fractional point.
+- This does **not** establish arbitrary-range source identity.
+- Point partitioning is sufficiently constrained for the next Oracle stage; subsequent experiments should target normal hit probabilities and damage generation instead of further attack/defense-point rounding.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o13-defended-only-defense18-001-summary.json`
+- `oracle-lab/captures/o13-defended-only-defense18-001-assessment.json`
+
+### O14 normal defended-hit probability probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O14 leaves the now-constrained point partition in place and restores the vanilla **defended** hit gate while suppressing the undefended branch.
+
+Scenario:
+
+`o14-normal-defended-hit-v1`
+
+Exact panel targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- one GER vs one POL baseline division
+- no commanders, zero reserves
+- neutral tactics
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 90` → vanilla defended hit probability **10%**
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → undefended points always miss
+- `LAND_COMBAT_ORG_DICE_SIZE = 1`
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 1`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0`
+- `BASE_NIGHT_ATTACK_PENALTY = 0`
+
+O11 established that this 20 / 10 panel produces exactly **one defended attack point per firing interval** under the controlled defended-only boundary. Therefore O14 converts each firing interval into one executable defended-hit Bernoulli trial while keeping organization damage per successful hit fixed.
+
+Collect exactly one accepted h0..h81 trace = **80 firing intervals**.
+
+#### O14 fixed decision rule
+
+Classify each firing interval:
+
+- 0x = no measurable defender organization loss;
+- 1x = positive organization loss below **0.13 percentage points**;
+- ≥2x = loss at or above **0.13 percentage points**.
+
+Under the game-file exact `BASE_CHANCE_TO_AVOID_HIT = 90` interpretation, the number of 1x intervals is Binomial(**n=80, p=0.10**).
+
+Predeclared exact central 99% acceptance region:
+
+- **2 through 16** successful 1x intervals inclusive.
+
+Decision:
+
+1. Any ≥2x interval => `defended-hit-semantics-mismatch`.
+2. If 1x count is between 2 and 16 inclusive => `defended-hit-10pct-supported`.
+3. Otherwise => `defended-hit-semantics-mismatch`.
+4. No adaptive extension.
+
+This test validates executable use of the vanilla defended avoid-chance define only at the controlled O14 boundary. It does not validate the undefended 40% hit gate or normal damage dice.
 
 
 ## Promotion rule

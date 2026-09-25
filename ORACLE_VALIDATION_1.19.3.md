@@ -1899,9 +1899,9 @@ O10 keeps:
 
 POL Defense is driven to exactly **0.0** with:
 
-`army_infantry_defence_factor = -1.0328836429`
+`army_infantry_defence_factor = -1.0423836429`
 
-This modifier was precomputed from the two live O8 calibration observations. Exact executable panel values remain authoritative; if the panel is not 20.0 / 0.0, the run is tuning only and must not be interpreted.
+The first O10 tuning attempt at `-1.0328836429` produced live POL Defense **1.9** and is tuning-only evidence. The retuned value uses that live observation plus the prior O8 calibration. Exact executable panel values remain authoritative; if the panel is not 20.0 / 0.0, the run is tuning only and must not be interpreted.
 
 With Defense exactly zero, every generated GER attack point must take the undefended branch. Therefore, if the O8 hit-gate bundle itself does not distort total attack-point generation, the 60 firing intervals should again follow the O7/O9 distribution:
 

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o10v2-minimum-defense-response-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "minimum-defense-effect-detected",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 1.9,
+    "tooltipDefense": 1.9
+  },
+  "multiplicityCounts": {
+    "zero": 1,
+    "one": 18,
+    "two": 37,
+    "three": 4,
+    "fourPlus": 0
+  },
+  "referenceProbabilities": {
+    "one": 0.25,
+    "two": 0.50,
+    "three": 0.25
+  },
+  "pearsonChiSquare": 10.3,
+  "criticalValue": 9.21034,
+  "supportViolation": "observed 0x interval",
+  "decision": "effect-detected",
+  "boundary": "controlled O10v2 fixed-damage asymmetric-hit-gate boundary at Soft Attack 20 and executable-minimum Defense 1.9",
+  "exactMechanismClassification": "unvalidated",
+  "interpretation": "The minimum reachable positive Defense already changes the undefended-hit multiplicity distribution. The exact defended-vs-undefended partition and any RNG correlation remain unvalidated."
+}

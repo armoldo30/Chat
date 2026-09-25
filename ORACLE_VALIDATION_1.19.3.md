@@ -1928,7 +1928,7 @@ Therefore the zero-defense acceptance state is not reachable through this modifi
 This floor observation is itself a useful executable constraint. The replacement experiment is O10v2, which treats the **1.9 minimum Defense** as the controlled variable and asks whether that minimum nonzero defense measurably changes the O7/O9 attack-point distribution under O8's asymmetric hit gates.
 
 
-### O10v2 minimum-defense response probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O10v2 minimum-defense response probe — COMPLETE / EFFECT DETECTED
 
 Scenario:
 
@@ -1989,6 +1989,134 @@ Decision:
 6. No adaptive extension.
 
 Neither outcome identifies the exact split algorithm. A detected effect means the defense response is already visible at the executable's 1% stat floor; a non-detected effect brackets the response between Defense 1.9 and the clearly divergent Defense 10 O8 point.
+
+
+#### O10v2 run 001 — PASS / MINIMUM-DEFENSE EFFECT DETECTED
+
+The accepted O10v2 panel remained at the intentionally minimum reachable values:
+
+- GER Soft Attack: **20.0**
+- POL Defense: **1.9**
+- POL base Defense: **198**
+- final-stat floor: **1.00%**
+
+The WPO10V2 trace is structurally clean:
+
+- exact h0..h61 sampling;
+- h0→h1 unchanged;
+- exactly **60 firing intervals**;
+- attacker and defender strength unchanged;
+- O8 asymmetric hit gates active;
+- successful cleanup at h61.
+
+Observed defender organization-loss multiplicities:
+
+- 0x: **1**
+- 1x: **18**
+- 2x: **37**
+- 3x: **4**
+- ≥4x: **0**
+
+Reference O7/O9 no-defense-effect shape at Soft Attack 20:
+
+- 1x: **15**
+- 2x: **30**
+- 3x: **15**
+- 0x / ≥4x: **0**
+
+The O10v2 run triggers the predeclared effect rule twice:
+
+1. a **0x** interval appears, outside the no-effect reference support;
+2. ignoring that support violation, Pearson chi-square over 1x/2x/3x is **10.3**, above the predeclared 1% critical value **9.21034**.
+
+Machine action:
+
+`minimum-defense-effect-detected`
+
+Classification:
+
+- the existence of a defense-present effect at the executable minimum Defense 1.9 is **oracle-validated** at this controlled asymmetric-hit-gate boundary;
+- the exact defended-vs-undefended partition, integerization placement, and RNG correlation remain **unvalidated**.
+
+This result is especially useful because it rules out the idea that Defense must reach roughly one full /10 combat point before it affects the split. A measurable response is already present at the 1% final-stat floor.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o10v2-minimum-defense-001-summary.json`
+- `oracle-lab/captures/o10v2-minimum-defense-001-assessment.json`
+
+### O11 defended-only partition probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O8 measured the **undefended** portion at Soft Attack 20 / Defense 10 by forcing defended attacks to miss and undefended attacks to hit. O9 measured the **total** attack-point distribution at the same 20 / 10 panel by forcing both branches to hit.
+
+O11 measures the complementary quantity at the same panel:
+
+**the defended portion only.**
+
+Scenario:
+
+`o11-defended-only-partition-v1`
+
+Exact panel targets:
+
+- GER Soft Attack displayed/tooltip exactly **20.0**;
+- POL Defense displayed/tooltip exactly **10.0**;
+- GER modifier `army_infantry_attack_factor = -0.721`;
+- POL modifier `army_infantry_defence_factor = -0.9923784016`.
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0` → defended attacks always hit;
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → undefended attacks always miss;
+- organization dice fixed at 1;
+- strength damage fixed at 0;
+- night attack penalty fixed at 0;
+- neutral tactics.
+
+Therefore each defender organization-loss multiplicity measures the number of **defended attack points** in that firing interval.
+
+#### O11 predeclared partition check
+
+Historical accepted samples are frozen before O11:
+
+O8 undefended-only sample:
+
+- n = **80**
+- counts 0/1/2/3 = **25 / 49 / 6 / 0**
+- mean undefended multiplicity = **0.7625**
+- sample variance = **0.3352848101**
+
+O9 all-hit total sample:
+
+- n = **60**
+- counts 1/2/3 = **16 / 32 / 12**
+- mean total multiplicity = **1.9333333333**
+- sample variance = **0.4700564972**
+
+If the defended and undefended branches are a partition of the same stable total attack process, their expectations must satisfy:
+
+`E[total] = E[defended] + E[undefended]`
+
+Using the frozen O8/O9 means, the implied defended mean is:
+
+**1.1708333333**
+
+Collect exactly one accepted O11 h0..h81 trace, giving **80 defended-only firing intervals**.
+
+Decision rule:
+
+1. Any ≥4x defended-only interval => `partition-mean-mismatch`.
+2. Compute O11 defended multiplicity mean and unbiased sample variance.
+3. Compute:
+   `delta = meanTotal(O9) - meanUndefended(O8) - meanDefended(O11)`
+4. Compute independent-sample standard error:
+   `SE = sqrt(varO9/60 + varO8/80 + varO11/80)`
+5. Predeclared two-sided significance level = **1%**, normal critical value **2.575829**.
+6. If `abs(delta) <= 2.575829 * SE`, action = `partition-mean-compatible`.
+7. Otherwise action = `partition-mean-mismatch`.
+8. No adaptive extension.
+
+A compatible result would establish a strong necessary structural property: the O8 and O11 branches behave, in expectation, like complementary partitions of the O9 total attack process. It would **not** identify their joint per-interval RNG or exact integerization formula. A mismatch would imply that changing the branch hit gates alters more than merely which pre-existing attack points deal damage.
 
 
 ## Promotion rule

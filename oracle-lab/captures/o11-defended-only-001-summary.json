@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o11-defended-only-partition-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(4).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "user proceeded with the accepted O11 trace after the required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..81 complete",
+    "startupNoDamage": true,
+    "attackerStrengthUnchanged": true,
+    "defenderStrengthUnchanged": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DICE:1,STR_DAMAGE:0,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "zero": 0,
+    "one": 80,
+    "two": 0,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "defendedMoments": {
+    "n": 80,
+    "mean": 1.0,
+    "variance": 0.0
+  },
+  "frozenO8Undefended": {
+    "n": 80,
+    "mean": 0.7625,
+    "variance": 0.33528481012658234
+  },
+  "frozenO9Total": {
+    "n": 60,
+    "mean": 1.9333333333333333,
+    "variance": 0.47005649717514125
+  },
+  "impliedDefendedMean": 1.1708333333333334,
+  "partitionDelta": 0.1708333333333334,
+  "standardError": 0.10966008881767925,
+  "zStatistic": 1.5578441999747121,
+  "criticalValue1Pct": 2.575829,
+  "action": "partition-mean-compatible",
+  "interpretation": "At Soft Attack 20 / Defense 10 with defended points forced to hit and undefended points forced to miss, every one of the 80 firing intervals produced exactly one defended damage multiplicity. The defended-only mean remains statistically compatible at the predeclared 1% level with O8 undefended plus O11 defended partitioning the O9 total process in expectation. This does not identify the exact joint per-interval split or defense integerization law outside Defense 10."
+}

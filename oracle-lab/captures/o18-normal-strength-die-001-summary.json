@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o18-normal-strength-die-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(20260926-033143).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O18 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..21 complete",
+    "startupNoDamage": true,
+    "defenderOrganizationInvariant": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DAMAGE_MODIFIER:0,STR_DAMAGE_MODIFIER:0.060,STR_DICE:2,STR_ARMOR_SOFT_DICE:2,NIGHT_PENALTY:0"
+  },
+  "dieCounts": {
+    "zero": 0,
+    "one": 8,
+    "two": 12,
+    "outOfSupport": 0
+  },
+  "dieTwoExactAcceptance": {
+    "min": 4,
+    "max": 16,
+    "alphaTwoSided": 0.01
+  },
+  "action": "strength-die-uniform-1-through-2-supported",
+  "interpretation": "At the controlled one-defended-hit O18 boundary, all 20 strength-loss intervals fall in the predeclared die-1 or die-2 bands, with 8/12 outcomes and no zero or out-of-support interval. K=12 lies inside the exact two-sided 1% Binomial(20,0.5) acceptance region 4..16. This narrowly validates the ordinary unarmored strength die as UniformInteger(1,2)."
+}

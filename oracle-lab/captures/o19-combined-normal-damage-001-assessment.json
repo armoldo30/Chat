@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o19-combined-normal-damage-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "combined-normal-damage-coherent",
+  "decision": "supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "intervalCounts": {
+    "miss": 143,
+    "hit": 17,
+    "mixedChannel": 0,
+    "supportViolation": 0
+  },
+  "orgDieCountsOnHits": {"one":3,"two":3,"three":4,"four":7},
+  "strengthDieCountsOnHits": {"one":5,"two":12},
+  "hitAcceptance": {"min":7,"max":26},
+  "boundary": "controlled O19 combined normal-damage boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The separately validated defended hit gate and ordinary ORG/strength damage channels compose coherently in one executable event stream at this boundary."
+}

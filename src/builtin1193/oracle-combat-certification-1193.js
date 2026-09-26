@@ -2,7 +2,7 @@ export const ORACLE_COMBAT_1193=Object.freeze({
   gameVersion:'1.19.3.0.c01a',
   baseChecksum:'5632',
   classification:'oracle-validated',
-  validationBoundary:'controlled O1 combat-entry timing only',
+  validationBoundary:'controlled O1-O20 ordinary unarmored 1v1 boundaries',
   initialFireDelayHours:1,
   strengthDamageExecutableScale:0.9,
   evidence:Object.freeze({
@@ -237,13 +237,30 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'combined-normal-damage-coherent',
       interpretation:'The defended hit gate, ordinary ORG die, validated 0.9 strength scale, and ordinary strength die compose coherently across 160 controlled intervals with no mixed-channel or support violation.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; and O19 validates coherent combined normal damage at the 20/10 boundary. Broader normal hit-transport remains the final core unarmored resolver target.'
+    normalHitTransportDefense18Evidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O20 normal hit-transport boundary at Soft Attack 20 and Defense 18',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:18,
+      tooltipDefense:18,
+      trials:160,
+      intervalCounts:Object.freeze({zero:121,one:36,two:3,three:0,fourPlus:0}),
+      groupedCounts:Object.freeze({zero:121,one:36,twoPlus:3}),
+      expectedProbabilities:Object.freeze({zero:0.7164,one:0.2488,twoPlus:0.0348}),
+      pearsonChiSquare:1.9033166318218089,
+      criticalValue1PctDf2:9.21034,
+      action:'normal-hit-transport-defense18-supported',
+      interpretation:'The validated attack-point law, bounded stochastic Defense/10 rounding, and normal 10% defended / 40% undefended hit gates transport coherently to the independently validated Defense-18 boundary.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; O19 validates coherent combined normal damage at the 20/10 boundary; and O20 transports the validated point-partition plus both normal hit gates to Defense 18. Within these controlled boundaries, the core ordinary unarmored 1v1 resolver program is complete.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
     'does not establish the defense split outside the controlled O11/O12/O13 Defense-10/12/18 defended-only boundaries',
-    'does not validate hit-roll distribution',
-    'organization and strength dice are validated only at controlled O16/O18 boundaries; combined normal-damage and broader transport remain unresolved',
+    'normal defended and undefended hit gates are validated only at the controlled O14/O15/O20 boundaries',
+    'organization and strength dice are validated only at controlled O16/O18 boundaries; O19 establishes combined normal-damage coherence at the controlled 20/10 boundary',
+    'armor, piercing, armored-on-soft damage behavior, and other special-case combat paths remain unvalidated unless separately tested',
     'does not validate tactic execution outside the neutralized O1 harness',
     'does not establish bit-for-bit hoi4.exe parity'
   ])

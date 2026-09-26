@@ -1,0 +1,10 @@
+oracle_o19_attack_target = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.721
+}
+
+oracle_o19_defender_control = {
+    enable = { always = yes }
+    army_infantry_attack_factor = -0.99
+    army_infantry_defence_factor = -0.9923784016
+}

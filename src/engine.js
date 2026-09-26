@@ -454,8 +454,8 @@ export function simulateOnce(a,d,opts,rngOverride){
       aHitsTotal+=aProfile.total; dHitsTotal+=dProfile.total;
       do_-=(rollDamage(aProfile.softHits,aDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*dDamageTaken;
       ao-=(rollDamage(dProfile.softHits,dDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*aDamageTaken;
-      dhp-=(rollDamage(aProfile.softHits,aDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*dDamageTaken;
-      ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*aDamageTaken;
+      dhp-=(rollDamage(aProfile.softHits,aDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier*COMBAT_CONSTANTS.strengthDamageExecutableScale,rng)+rollDamage(aProfile.hardHits,aDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier*COMBAT_CONSTANTS.strengthDamageExecutableScale,rng))*dDamageTaken;
+      ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier*COMBAT_CONSTANTS.strengthDamageExecutableScale,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier*COMBAT_CONSTANTS.strengthDamageExecutableScale,rng))*aDamageTaken;
     }
     hours++;
     if(timeline&&(hours%traceIntervalHours===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===maxHours))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});

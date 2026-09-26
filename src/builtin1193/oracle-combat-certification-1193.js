@@ -2,7 +2,7 @@ export const ORACLE_COMBAT_1193=Object.freeze({
   gameVersion:'1.19.3.0.c01a',
   baseChecksum:'5632',
   classification:'oracle-validated',
-  validationBoundary:'controlled O1-O20 ordinary unarmored 1v1 boundaries',
+  validationBoundary:'controlled O1 combat-entry timing only',
   initialFireDelayHours:1,
   strengthDamageExecutableScale:0.9,
   evidence:Object.freeze({

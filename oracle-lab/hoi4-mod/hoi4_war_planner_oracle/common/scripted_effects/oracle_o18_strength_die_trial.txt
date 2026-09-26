@@ -1,0 +1,128 @@
+# O18 normal strength-die probe.
+# Acceptance: GER Soft Attack 20.0 exactly; POL Defense 10.0 exactly.
+
+oracle_o18_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO18 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o18_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO18 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+
+oracle_o18_capture_sample = {
+    log = "WPO18 SAMPLE hour=[?oracle_o18_hour]"
+    oracle_o18_log_attacker_divisions = yes
+    POL = { oracle_o18_log_defender_divisions = yes }
+}
+
+d_oracle_o18_prepare = {
+    GER = {
+        clr_country_flag = oracle_o18_prepared
+        clr_country_flag = oracle_o18_running
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o18_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o18_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o18_attack_target }
+        force_update_dynamic_modifier = yes
+    }
+
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o18_defender_control } }
+            remove_dynamic_modifier = { modifier = oracle_o18_defender_control }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o18_defender_control }
+        force_update_dynamic_modifier = yes
+    }
+
+    GER = {
+        if = {
+            limit = {
+                has_dynamic_modifier = { modifier = oracle_o18_attack_target }
+                POL = { has_dynamic_modifier = { modifier = oracle_o18_defender_control } }
+            }
+            set_country_flag = oracle_o18_prepared
+            log = "WPO18 STATUS state=prepared scenario=o18-normal-strength-die-v1 attackModifier=army_infantry_attack_factor:-0.721 defenderAttackModifier=army_infantry_attack_factor:-0.99 defenseModifier=army_infantry_defence_factor:-0.9923784016 modifiersPresent=yes expectedPanel=GER-soft-20-tooltip-20.0-POL-defense-10-tooltip-10.0"
+        }
+        else = { log = "WPO18 STATUS state=prepare-failed" }
+    }
+}
+
+d_oracle_o18_clear = {
+    GER = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o18_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o18_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        clr_country_flag = oracle_o18_prepared
+        clr_country_flag = oracle_o18_running
+    }
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o18_defender_control } }
+            remove_dynamic_modifier = { modifier = oracle_o18_defender_control }
+            force_update_dynamic_modifier = yes
+        }
+    }
+    GER = {
+        if = {
+            limit = {
+                OR = {
+                    has_dynamic_modifier = { modifier = oracle_o18_attack_target }
+                    POL = { has_dynamic_modifier = { modifier = oracle_o18_defender_control } }
+                }
+            }
+            log = "WPO18 STATUS state=clear-failed modifiersRemoved=no"
+        }
+        else = { log = "WPO18 STATUS state=cleared modifiersRemoved=yes" }
+    }
+}
+
+oracle_o18_trial21_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o18_prepared
+            has_dynamic_modifier = { modifier = oracle_o18_attack_target }
+            POL = { has_dynamic_modifier = { modifier = oracle_o18_defender_control } }
+        }
+        clr_country_flag = oracle_o18_running
+        set_country_flag = oracle_o18_running
+        set_variable = { oracle_o18_hour = 0 }
+        log = "WPO18 BEGIN schema=1 scenario=o18-normal-strength-die-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DAMAGE_MODIFIER:0,STR_DAMAGE_MODIFIER:0.060,STR_DICE:2,STR_ARMOR_SOFT_DICE:2,NIGHT_PENALTY:0 attackModifier=army_infantry_attack_factor:-0.721 defenderAttackModifier=army_infantry_attack_factor:-0.99 defenseModifier=army_infantry_defence_factor:-0.9923784016 prepared=yes modifiersPresent=yes"
+        oracle_o18_capture_sample = yes
+        country_event = { id = oracle_o18.1 hours = 1 }
+        country_event = { id = oracle_o18.1 hours = 2 }
+        country_event = { id = oracle_o18.1 hours = 3 }
+        country_event = { id = oracle_o18.1 hours = 4 }
+        country_event = { id = oracle_o18.1 hours = 5 }
+        country_event = { id = oracle_o18.1 hours = 6 }
+        country_event = { id = oracle_o18.1 hours = 7 }
+        country_event = { id = oracle_o18.1 hours = 8 }
+        country_event = { id = oracle_o18.1 hours = 9 }
+        country_event = { id = oracle_o18.1 hours = 10 }
+        country_event = { id = oracle_o18.1 hours = 11 }
+        country_event = { id = oracle_o18.1 hours = 12 }
+        country_event = { id = oracle_o18.1 hours = 13 }
+        country_event = { id = oracle_o18.1 hours = 14 }
+        country_event = { id = oracle_o18.1 hours = 15 }
+        country_event = { id = oracle_o18.1 hours = 16 }
+        country_event = { id = oracle_o18.1 hours = 17 }
+        country_event = { id = oracle_o18.1 hours = 18 }
+        country_event = { id = oracle_o18.1 hours = 19 }
+        country_event = { id = oracle_o18.1 hours = 20 }
+        country_event = { id = oracle_o18.1 hours = 21 }
+    }
+    else = { log = "WPO18 STATUS state=not-prepared action=run-d_oracle_o18_prepare-first" }
+}
+
+d_oracle_o18_trial21 = { GER = { oracle_o18_trial21_start = yes } }

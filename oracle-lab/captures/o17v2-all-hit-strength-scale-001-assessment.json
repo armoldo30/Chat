@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o17v2-all-hit-strength-scale-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "point-nine-strength-scale-supported",
+  "decision": "point-nine-strength-scale-supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "multiplicityCounts": {
+    "one": 13,
+    "two": 36,
+    "three": 11,
+    "outOfSupport": 0
+  },
+  "normalizedStrengthUnitPp": {
+    "mean": 0.0242055556,
+    "min": 0.019,
+    "max": 0.03
+  },
+  "candidateCentersPp": {
+    "pointNine": 0.024,
+    "naiveHpOnly": 0.0266667
+  },
+  "boundary": "controlled O17v2 all-hit fixed-strength-die boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The O17 post-result 0.9 strength-damage scalar is confirmed by the separately predeclared O17v2 all-hit transport test."
+}

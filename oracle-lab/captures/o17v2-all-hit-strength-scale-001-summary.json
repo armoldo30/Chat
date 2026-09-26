@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o17v2-all-hit-strength-scale-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(20260926-030054).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O17v2 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..61 complete",
+    "startupNoDamage": true,
+    "organizationInvariant": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:0,CHANCE_TO_AVOID_HIT_AT_NO_DEF:0,ORG_DAMAGE_MODIFIER:0,STR_DAMAGE_MODIFIER:0.060,STR_DICE:1,STR_ARMOR_SOFT_DICE:1,NIGHT_PENALTY:0"
+  },
+  "multiplicityCounts": {
+    "one": 13,
+    "two": 36,
+    "three": 11,
+    "outOfSupport": 0
+  },
+  "normalizedStrengthUnitPp": {
+    "mean": 0.0242055556,
+    "min": 0.019,
+    "max": 0.03
+  },
+  "predeclaredCandidateBandsPp": {
+    "pointNine": {"min":0.0230,"max":0.0250,"center":0.0240},
+    "naiveHpOnly": {"min":0.0257,"max":0.0277,"center":0.0266667}
+  },
+  "attackMultiplicityReference": {
+    "probabilities": {"one":0.25,"two":0.50,"three":0.25},
+    "expectedCounts": {"one":15,"two":30,"three":15},
+    "pearsonChiSquare": 2.5333333333
+  },
+  "action": "point-nine-strength-scale-supported",
+  "interpretation": "Across 60 all-hit fixed-strength-die intervals, the normalized one-unit defender strength loss is 0.0242056 percentage points, inside the predeclared 0.0230-0.0250 band for an additional 0.9 scalar and outside the naive HP-only band. All 1x/2x/3x multiplicity classes occur with no support violation. This narrowly validates the 0.9 strength-damage scale at the controlled O17v2 baseline."
+}

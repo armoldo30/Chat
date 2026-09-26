@@ -2751,7 +2751,7 @@ Persisted evidence:
 - `oracle-lab/captures/o17v2-all-hit-strength-scale-001-summary.json`
 - `oracle-lab/captures/o17v2-all-hit-strength-scale-001-assessment.json`
 
-### O18 normal strength-die probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O18 normal strength-die probe — COMPLETE / UNIFORM 1-THROUGH-2 SUPPORTED
 
 O18 keeps the validated 20 / 10 one-defended-point control, keeps organization damage disabled, and restores the vanilla **two-sided strength die**.
 
@@ -2798,6 +2798,99 @@ Collect exactly one h0..h21 trace = **20 firing intervals**. The short horizon l
 9. No adaptive extension.
 
 A passing O18 result will complete the isolated validation of ordinary unarmored organization and strength damage dice. The remaining Oracle work can then move to combined normal-damage and transport/end-to-end validation.
+
+
+#### O18 run 001 — PASS / VANILLA UNARMORED STRENGTH DIE SUPPORTED
+
+The accepted O18 trace completed h0..h21 with defender organization invariant and clean modifier removal.
+
+Observed one-hit strength-die classes across **20 firing intervals**:
+
+- die 1: **8**
+- die 2: **12**
+- zero: **0**
+- out of support: **0**
+
+For a UniformInteger(1,2) strength die, the predeclared exact two-sided 1% Binomial(20, 0.5) acceptance region for the die-2 count was **4 through 16 inclusive**. The observed die-2 count was **12**.
+
+Machine action:
+
+`strength-die-uniform-1-through-2-supported`
+
+Classification:
+
+- the ordinary unarmored strength damage die is narrowly **oracle-validated** as UniformInteger(1,2) at the controlled O18 one-hit boundary;
+- together O16 + O17v2 + O18 now establish the ordinary unarmored ORG die, strength scale, and strength die separately;
+- combined normal-damage behavior remains the next target.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o18-normal-strength-die-001-summary.json`
+- `oracle-lab/captures/o18-normal-strength-die-001-assessment.json`
+
+### O19 combined normal-damage coherence probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O19 restores the ordinary defended hit gate and both ordinary unarmored damage dice simultaneously while retaining the clean 20 / 10 one-defended-point boundary.
+
+Scenario:
+
+`o19-combined-normal-damage-v1`
+
+Exact combat-start targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- same baseline divisions and neutral tactics
+- POL attack suppressed to the executable 1% final-stat floor to minimize counterfire feedback
+
+Diagnostic / near-normal defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 90` → ordinary defended hit probability **10%**
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → suppress undefended-point damage so the one-defended-point control remains isolated
+- `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0.053`
+- `LAND_COMBAT_ORG_DICE_SIZE = 4`
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 6`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0.060`
+- `LAND_COMBAT_STR_DICE_SIZE = 2`
+- `LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE = 2`
+- night penalty = 0
+
+Collect exactly one h0..h161 trace = **160 firing intervals**.
+
+At this boundary, O11 established one defended point per interval at full strength, O14 validated its 10% hit gate, O16 validated the 1–4 ORG die, O17v2 validated the additional 0.9 strength scale, and O18 validated the 1–2 strength die.
+
+Each firing interval is therefore classified as:
+
+- **miss**: neither defender ORG nor strength shows a strict loss;
+- **hit**: both ORG and strength show a strict loss and each loss falls into its previously frozen damage-die support band;
+- **mixed-channel**: exactly one of ORG / strength changes;
+- **support violation**: both change but either channel falls outside its prior validated support.
+
+Frozen ORG bands from O16:
+
+- die 1: positive loss < **0.13 pp**
+- die 2: **0.13 ≤ loss < 0.225 pp**
+- die 3: **0.225 ≤ loss < 0.315 pp**
+- die 4: **0.315 ≤ loss < 0.405 pp**
+
+Frozen strength bands from O17v2/O18:
+
+- die 1: **0.014 ≤ loss < 0.037 pp**
+- die 2: **0.037 ≤ loss < 0.064 pp**
+
+For 160 independent 10% defended-hit opportunities, the predeclared central 99% Binomial(160, 0.10) acceptance region is **7 through 26 hits inclusive**.
+
+#### O19 fixed decision rule
+
+1. h0→h1 must be unchanged.
+2. No mixed-channel interval is permitted.
+3. No ORG or strength support violation is permitted.
+4. Let H be the number of coherent hit intervals.
+5. If **7 ≤ H ≤ 26**, action = `combined-normal-damage-coherent`.
+6. Otherwise action = `combined-normal-damage-mismatch`.
+7. No adaptive extension.
+
+A passing O19 result will validate that the already isolated hit gate, ORG die, strength scale, and strength die compose coherently in a single executable damage event. The remaining Oracle work can then move to a broader transport/end-to-end battle test.
 
 
 ## Promotion rule

@@ -2926,7 +2926,7 @@ Persisted evidence:
 - `oracle-lab/captures/o19-combined-normal-damage-001-summary.json`
 - `oracle-lab/captures/o19-combined-normal-damage-001-assessment.json`
 
-### O20 normal hit-transport at Defense 18 — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O20 normal hit-transport at Defense 18 — COMPLETE / SUPPORTED
 
 O20 moves the now-validated attack/defense partition and both normal hit gates to the independently validated **Defense 18** boundary while returning to fixed organization damage for direct hit-multiplicity observation.
 
@@ -2990,7 +2990,54 @@ Expected grouped counts:
 7. Otherwise => `normal-hit-transport-mismatch`.
 8. No adaptive extension.
 
-A passing O20 result will complete the final broad unarmored hit-resolution transport check. After that, only optional special-case Oracle work such as armor/piercing would remain before the core ordinary 1v1 land-combat resolver can be treated as complete.
+#### O20 run 001 — PASS / NORMAL HIT TRANSPORT SUPPORTED
+
+The accepted O20 trace completed h0..h161 with h0→h1 unchanged, both sides' strength invariant, and clean modifier removal.
+
+The required live combat-panel values were user-confirmed before acceptance:
+
+- GER Soft Attack: **20.0**
+- POL Defense: **18.0**
+
+Across **160 firing intervals**, observed fixed-damage hit multiplicities were:
+
+- 0 hits: **121**
+- 1 hit: **36**
+- 2 hits: **3**
+- 3 hits: **0**
+- 4+ hits: **0**
+
+Grouped for the predeclared test:
+
+- 0 hits: **121**
+- 1 hit: **36**
+- 2+ hits: **3**
+
+Expected grouped counts were **114.624 / 39.808 / 5.568** from probabilities **0.7164 / 0.2488 / 0.0348**.
+
+Pearson chi-square:
+
+- observed χ² = **1.9033166318**
+- df = **2**
+- 1% critical value = **9.21034**
+
+The required 2+ support was observed and no 4+ support violation occurred.
+
+Machine action:
+
+`normal-hit-transport-defense18-supported`
+
+Classification:
+
+- the validated total attack-point law, bounded stochastic Defense/10 rounding, and ordinary 10% defended / 40% undefended hit gates transport coherently to the independently validated Defense-18 boundary;
+- O20 is narrowly **oracle-validated** at this controlled 20 / 18 boundary;
+- the **core ordinary unarmored 1v1 land-combat resolver Oracle program is complete within its declared controlled boundaries**;
+- armor/piercing and other special-case combat behavior remain optional follow-up scope, not blockers for this core result.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o20-normal-hit-transport-defense18-001-summary.json`
+- `oracle-lab/captures/o20-normal-hit-transport-defense18-001-assessment.json`
 
 
 ## Promotion rule

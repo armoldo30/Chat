@@ -4,6 +4,7 @@ export const ORACLE_COMBAT_1193=Object.freeze({
   classification:'oracle-validated',
   validationBoundary:'controlled O1 combat-entry timing only',
   initialFireDelayHours:1,
+  strengthDamageExecutableScale:0.9,
   evidence:Object.freeze({
     totalControlledRuns:35,
     vanillaTacticRuns:25,

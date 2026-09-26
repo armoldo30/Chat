@@ -28,6 +28,7 @@ export const COMBAT_CONSTANTS = {
   nightAttackPenalty: Math.abs(D1193_MIL.BASE_NIGHT_ATTACK_PENALTY),
   orgDamageModifier: D1193_MIL.LAND_COMBAT_ORG_DAMAGE_MODIFIER,
   strengthDamageModifier: D1193_MIL.LAND_COMBAT_STR_DAMAGE_MODIFIER,
+  strengthDamageExecutableScale: ORACLE_COMBAT_1193.strengthDamageExecutableScale,
   orgDice: D1193_MIL.LAND_COMBAT_ORG_DICE_SIZE,
   armoredOrgDice: D1193_MIL.LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE,
   strengthDice: D1193_MIL.LAND_COMBAT_STR_DICE_SIZE,

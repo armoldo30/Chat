@@ -1,0 +1,59 @@
+add_namespace = oracle_o20
+
+country_event = {
+    id = oracle_o20.1
+    hidden = yes
+    is_triggered_only = yes
+
+    immediate = {
+        if = {
+            limit = { has_country_flag = oracle_o20_running }
+
+            add_to_variable = { oracle_o20_hour = 1 }
+            oracle_o20_capture_sample = yes
+
+            if = {
+                limit = {
+                    NOT = {
+                        check_variable = {
+                            var = oracle_o20_hour
+                            value = 161
+                            compare = less_than
+                        }
+                    }
+                }
+
+                clr_country_flag = oracle_o20_running
+
+                if = {
+                    limit = { has_dynamic_modifier = { modifier = oracle_o20_attack_target } }
+                    remove_dynamic_modifier = { modifier = oracle_o20_attack_target }
+                    force_update_dynamic_modifier = yes
+                }
+
+                POL = {
+                    if = {
+                        limit = { has_dynamic_modifier = { modifier = oracle_o20_defender_control } }
+                        remove_dynamic_modifier = { modifier = oracle_o20_defender_control }
+                        force_update_dynamic_modifier = yes
+                    }
+                }
+
+                clr_country_flag = oracle_o20_prepared
+
+                if = {
+                    limit = {
+                        OR = {
+                            has_dynamic_modifier = { modifier = oracle_o20_attack_target }
+                            POL = { has_dynamic_modifier = { modifier = oracle_o20_defender_control } }
+                        }
+                    }
+                    log = "WPO20 END hour=[?oracle_o20_hour] reason=trial161-complete modifiersRemoved=no cleanupFailure=yes"
+                }
+                else = {
+                    log = "WPO20 END hour=[?oracle_o20_hour] reason=trial161-complete modifiersRemoved=yes cleanupFailure=no"
+                }
+            }
+        }
+    }
+}

@@ -209,13 +209,26 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'point-nine-strength-scale-supported',
       interpretation:'The separately predeclared O17v2 all-hit transport test confirms the additional 0.9 strength-damage scalar at the controlled baseline. The normalized one-unit mean is 0.0242056 percentage points, inside the 0.9 candidate band and outside the naive HP-only band.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 and O15 validate the vanilla defended and undefended hit gates. O16 validates the vanilla unarmored organization die as UniformInteger(1,4). O17 rejects the planner\'s naive HP-only strength-damage scale, and O17v2 separately confirms an additional 0.9 strength-damage scalar at the controlled baseline. The normal strength die remains the next isolated target.'
+    strengthDieEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O18 one-defended-hit normal-strength-die boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      trials:20,
+      dieCounts:Object.freeze({one:8,two:12,zero:0,outOfSupport:0}),
+      dieTwoExactAcceptance:Object.freeze({min:4,max:16,alphaTwoSided:0.01}),
+      action:'strength-die-uniform-1-through-2-supported',
+      interpretation:'All 20 O18 strength-loss intervals fall in the predeclared one- or two-unit bands, with 8/12 outcomes and no control/support violation. This supports UniformInteger(1,2) for the ordinary unarmored strength die at the controlled boundary.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 and O15 validate the vanilla defended and undefended hit gates. O16 validates the ordinary unarmored organization die as UniformInteger(1,4). O17/O17v2 establish the additional 0.9 strength-damage scalar, and O18 validates the ordinary unarmored strength die as UniformInteger(1,2). Combined normal-damage and broader end-to-end transport remain the next validation targets.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
     'does not establish the defense split outside the controlled O11/O12/O13 Defense-10/12/18 defended-only boundaries',
     'does not validate hit-roll distribution',
-    'organization die is validated only at the controlled O16 boundary; strength-damage scale is validated only at the controlled O17v2 baseline and the normal strength die remains unresolved',
+    'organization and strength dice are validated only at controlled O16/O18 boundaries; combined normal-damage and broader transport remain unresolved',
     'does not validate tactic execution outside the neutralized O1 harness',
     'does not establish bit-for-bit hoi4.exe parity'
   ])

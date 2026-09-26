@@ -1,0 +1,3 @@
+Temporary CI trigger for accepted O20 evidence certification.
+Source Oracle head: 5c48892eea5fe4eafc2806f448a1ef1b20725051
+Do not merge this launch-candidate branch.

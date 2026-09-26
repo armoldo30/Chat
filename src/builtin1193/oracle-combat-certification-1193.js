@@ -222,7 +222,22 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'strength-die-uniform-1-through-2-supported',
       interpretation:'All 20 O18 strength-loss intervals fall in the predeclared one- or two-unit bands, with 8/12 outcomes and no control/support violation. This supports UniformInteger(1,2) for the ordinary unarmored strength die at the controlled boundary.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate the planner defense-point stochastic rounding and bounding structure at Defense 10/12/18. O14 and O15 validate the vanilla defended and undefended hit gates. O16 validates the ordinary unarmored organization die as UniformInteger(1,4). O17/O17v2 establish the additional 0.9 strength-damage scalar, and O18 validates the ordinary unarmored strength die as UniformInteger(1,2). Combined normal-damage and broader end-to-end transport remain the next validation targets.'
+    combinedNormalDamageEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O19 combined normal-damage boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      trials:160,
+      intervalCounts:Object.freeze({miss:143,hit:17,mixedChannel:0,supportViolation:0}),
+      orgDieCountsOnHits:Object.freeze({one:3,two:3,three:4,four:7}),
+      strengthDieCountsOnHits:Object.freeze({one:5,two:12}),
+      hitAcceptance:Object.freeze({min:7,max:26}),
+      action:'combined-normal-damage-coherent',
+      interpretation:'The defended hit gate, ordinary ORG die, validated 0.9 strength scale, and ordinary strength die compose coherently across 160 controlled intervals with no mixed-channel or support violation.'
+    }),
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; and O19 validates coherent combined normal damage at the 20/10 boundary. Broader normal hit-transport remains the final core unarmored resolver target.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',

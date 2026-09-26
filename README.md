@@ -1,9 +1,25 @@
-# HOI4 War Planner — 0.17.16
+# HOI4 War Planner — 0.17.17
 
 A mobile-friendly Hearts of Iron IV analytical planning suite locked to a bundled **vanilla HOI4 1.19.3** game-file baseline. The planner combines source-certified game data with explicitly labeled executable-inferred and planner-analytical behavior rather than claiming `hoi4.exe` parity.
 
 **Live site:** https://hoioracle.com/  
 **Report a problem or request an improvement:** https://github.com/armoldo30/Chat/issues/new/choose
+
+## 0.17.17 release focus
+
+0.17.17 ports the completed **HOI4 1.19.3 Oracle core ordinary-unarmored resolver validation** into production without merging the Oracle laboratory branch.
+
+- Adds the Oracle-validated one-hour initial fire delay from controlled O1.
+- Replaces the old attack-point Bernoulli sampler with the O7-supported `round(attack / 10 + U[-1,+1])` law, clamped nonnegative.
+- Retains stochastic `Defense / 10` rounding and bounding, supported across controlled Defense 10 / 12 / 18 tests.
+- Retains the game-file 10% defended and 40% undefended hit gates, now Oracle-validated at controlled O14 / O15 boundaries and transported by O20.
+- Applies the O17v2-confirmed **0.9 executable strength-damage scalar**.
+- Preserves the ordinary unarmored 1–4 ORG die and 1–2 strength die validated by O16 / O18.
+- Adds a compact production certification record and regression without shipping the Oracle mod/capture laboratory.
+
+The final O20 transport test at Soft Attack 20 / Defense 18 observed **121 / 36 / 3** zero / one / two-plus hits across 160 firing intervals, with χ² **1.9033** against the predeclared distribution (1% critical value **9.21034**).
+
+This remains a bounded certification: armor/piercing special cases, non-neutral tactic behavior, broader engine ordering, and bit-for-bit `hoi4.exe` parity are not claimed.
 
 ## 0.17.16 release focus
 

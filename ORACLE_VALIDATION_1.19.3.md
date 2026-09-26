@@ -2659,7 +2659,7 @@ Narrow classification:
   - observed minus candidate = **+0.0025 pp**
 - the 0.9 scalar is a **post-result candidate only** and is not validated by O17.
 
-### O17v2 all-hit strength-scale confirmation — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O17v2 all-hit strength-scale confirmation — COMPLETE / 0.9 SCALE SUPPORTED
 
 O17v2 tests the newly exposed 0.9 candidate without relying on Defense rounding. Both defended and undefended attack points are forced to hit, organization damage is disabled, and the strength die remains fixed at 1.
 
@@ -2711,6 +2711,93 @@ Predeclared candidate centers:
 7. No adaptive extension.
 
 A passing 0.9 result would justify correcting the planner strength-damage scale before moving to the normal two-sided strength die.
+
+
+#### O17v2 run 001 — PASS / 0.9 STRENGTH SCALE CONFIRMED
+
+The accepted O17v2 trace completed h0..h61 with organization invariant and clean modifier removal.
+
+Across the **60 firing intervals**, the all-hit fixed-strength-die multiplicities were:
+
+- 1x: **13**
+- 2x: **36**
+- 3x: **11**
+- out of support: **0**
+
+After dividing each measured strength loss by its classified attack multiplicity, the normalized one-unit strength loss was:
+
+- mean: **0.0242056 pp**
+- minimum: **0.0190 pp**
+- maximum: **0.0300 pp**
+
+The predeclared candidate bands were:
+
+- additional 0.9 scalar: **0.0230–0.0250 pp**
+- naive HP-only scale: **0.0257–0.0277 pp**
+
+Machine action:
+
+`point-nine-strength-scale-supported`
+
+Classification:
+
+- the additional **0.9 strength-damage scalar** is narrowly **oracle-validated** at the controlled O17v2 baseline;
+- the prior naive planner scale is superseded on the Oracle branch;
+- the planner Oracle branch now applies an effective unarmored strength modifier of `0.060 × 0.9 = 0.054`;
+- the normal strength die itself remains to be validated separately.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o17v2-all-hit-strength-scale-001-summary.json`
+- `oracle-lab/captures/o17v2-all-hit-strength-scale-001-assessment.json`
+
+### O18 normal strength-die probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O18 keeps the validated 20 / 10 one-defended-point control, keeps organization damage disabled, and restores the vanilla **two-sided strength die**.
+
+Scenario:
+
+`o18-normal-strength-die-v1`
+
+Exact combat-start targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
+- same baseline divisions and neutral tactics
+- POL attack suppressed to the ordinary executable 1% final-stat floor to minimize counterfire strength feedback into GER
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 0` → defended point always hits
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 100` → undefended points always miss
+- `LAND_COMBAT_ORG_DAMAGE_MODIFIER = 0`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0.060`
+- `LAND_COMBAT_STR_DICE_SIZE = 2`
+- `LAND_COMBAT_STR_ARMOR_ON_SOFT_DICE_SIZE = 2`
+- night penalty = 0
+
+O17v2 fixed the executable one-unit scale near **0.024 pp**. O18 therefore freezes the following one-hit strength-loss classes before the run:
+
+- die 1: **0.014 ≤ loss < 0.037 pp**
+- die 2: **0.037 ≤ loss < 0.064 pp**
+- zero loss: control-feedback contamination
+- any loss ≥ 0.064 pp: support violation
+
+Collect exactly one h0..h21 trace = **20 firing intervals**. The short horizon limits defender-strength feedback into the 10 Defense control.
+
+#### O18 fixed decision rule
+
+1. h0→h1 must be unchanged.
+2. Defender organization must remain invariant.
+3. Any zero-loss interval => `one-defended-point-control-broke-under-strength-feedback`.
+4. Any out-of-support interval => `strength-die-semantics-mismatch`.
+5. Otherwise classify all 20 intervals as die 1 or die 2.
+6. Under UniformInteger(1,2), let K be the number of die-2 intervals. The exact two-sided 1% Binomial(20, 0.5) acceptance region is **K = 4 through 16 inclusive**.
+7. If K is in 4..16 and both outcomes occur => `strength-die-uniform-1-through-2-supported`.
+8. Otherwise => `strength-die-semantics-mismatch`.
+9. No adaptive extension.
+
+A passing O18 result will complete the isolated validation of ordinary unarmored organization and strength damage dice. The remaining Oracle work can then move to combined normal-damage and transport/end-to-end validation.
 
 
 ## Promotion rule

@@ -2828,7 +2828,7 @@ Persisted evidence:
 - `oracle-lab/captures/o18-normal-strength-die-001-summary.json`
 - `oracle-lab/captures/o18-normal-strength-die-001-assessment.json`
 
-### O19 combined normal-damage coherence probe — PREDECLARED / NOT YET EXECUTABLE-RUN
+### O19 combined normal-damage coherence probe — COMPLETE / COHERENT
 
 O19 restores the ordinary defended hit gate and both ordinary unarmored damage dice simultaneously while retaining the clean 20 / 10 one-defended-point boundary.
 
@@ -2891,6 +2891,106 @@ For 160 independent 10% defended-hit opportunities, the predeclared central 99% 
 7. No adaptive extension.
 
 A passing O19 result will validate that the already isolated hit gate, ORG die, strength scale, and strength die compose coherently in a single executable damage event. The remaining Oracle work can then move to a broader transport/end-to-end battle test.
+
+
+#### O19 run 001 — PASS / COMBINED NORMAL DAMAGE COHERENT
+
+The accepted O19 trace completed h0..h161 with clean modifier removal.
+
+Across **160 firing intervals**:
+
+- coherent misses: **143**
+- coherent hits: **17**
+- mixed-channel intervals: **0**
+- support violations: **0**
+
+On the 17 coherent hits, the previously validated damage supports remained intact:
+
+- ORG die classes 1/2/3/4: **3 / 3 / 4 / 7**
+- strength die classes 1/2: **5 / 12**
+
+The predeclared central 99% Binomial(160, 0.10) acceptance region for coherent defended hits was **7 through 26**. Observed H = **17**.
+
+Machine action:
+
+`combined-normal-damage-coherent`
+
+Classification:
+
+- the ordinary defended hit gate, ordinary unarmored ORG die, validated 0.9 strength scale, and ordinary unarmored strength die compose coherently at the controlled 20 / 10 boundary;
+- no mixed-channel executable behavior appeared;
+- broader transport of the complete point-partition + both hit-gate family remains the final core unarmored resolver target.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o19-combined-normal-damage-001-summary.json`
+- `oracle-lab/captures/o19-combined-normal-damage-001-assessment.json`
+
+### O20 normal hit-transport at Defense 18 — PREDECLARED / NOT YET EXECUTABLE-RUN
+
+O20 moves the now-validated attack/defense partition and both normal hit gates to the independently validated **Defense 18** boundary while returning to fixed organization damage for direct hit-multiplicity observation.
+
+Scenario:
+
+`o20-normal-hit-transport-defense18-v1`
+
+Exact combat-start targets:
+
+- GER Soft Attack exactly **20.0**
+- POL Defense exactly **18.0**
+- same 1v1 baseline and neutral tactics
+- POL attack suppressed to the executable 1% final-stat floor
+
+Diagnostic defines:
+
+- `BASE_CHANCE_TO_AVOID_HIT = 90` → defended hit probability **10%**
+- `CHANCE_TO_AVOID_HIT_AT_NO_DEF = 60` → undefended hit probability **40%**
+- `LAND_COMBAT_ORG_DICE_SIZE = 1`
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 1`
+- `LAND_COMBAT_STR_DAMAGE_MODIFIER = 0`
+- night penalty = 0
+
+Validated point-model inputs at 20 / 18:
+
+- total attack points A = 1 / 2 / 3 with probabilities **0.25 / 0.50 / 0.25**
+- defense points D = 1 / 2 with probabilities **0.20 / 0.80**
+- bounded defended/undefended point pairs:
+  - (1,0): **0.25**
+  - (1,1): **0.10**
+  - (2,0): **0.40**
+  - (1,2): **0.05**
+  - (2,1): **0.20**
+
+Applying the validated 10% defended and 40% undefended hit gates gives the predeclared total hit-multiplicity distribution:
+
+- 0 hits: **0.7164**
+- 1 hit: **0.2488**
+- 2 hits: **0.0332**
+- 3 hits: **0.0016**
+- 4+ hits: impossible under the candidate family
+
+For the fixed statistical test, 2-hit and 3-hit outcomes are combined into **2+ hits = 0.0348**.
+
+Collect exactly one h0..h161 trace = **160 firing intervals**.
+
+Expected grouped counts:
+
+- 0 hits: **114.624**
+- 1 hit: **39.808**
+- 2+ hits: **5.568**
+
+#### O20 fixed decision rule
+
+1. h0→h1 must be unchanged and both sides' strength must remain invariant.
+2. Any 4+ fixed-damage interval => `normal-hit-transport-mismatch`.
+3. Group 2-hit and 3-hit intervals into 2+.
+4. Pearson chi-square against probabilities **0.7164 / 0.2488 / 0.0348**.
+5. Degrees of freedom = 2; significance level = **1%**; critical value = **9.21034**.
+6. If chi-square ≤ 9.21034 and at least one 2+ interval occurs => `normal-hit-transport-defense18-supported`.
+7. Otherwise => `normal-hit-transport-mismatch`.
+8. No adaptive extension.
+
+A passing O20 result will complete the final broad unarmored hit-resolution transport check. After that, only optional special-case Oracle work such as armor/piercing would remain before the core ordinary 1v1 land-combat resolver can be treated as complete.
 
 
 ## Promotion rule

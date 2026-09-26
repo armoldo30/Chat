@@ -2670,7 +2670,9 @@ Scenario:
 Exact combat-start target:
 
 - GER Soft Attack exactly **20.0**
+- POL Defense exactly **10.0**
 - same baseline divisions and neutral tactics
+- POL attack is suppressed to the ordinary executable 1% final-stat floor during the diagnostic to minimize counterfire strength feedback into GER; this does not alter the defender strength-loss stream being measured
 
 Diagnostic defines:
 

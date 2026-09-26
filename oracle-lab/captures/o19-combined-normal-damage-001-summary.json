@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o19-combined-normal-damage-v1",
+  "evidenceStatus": "oracle-validated",
+  "sourceLog": "user-uploaded game(20260926-034311).log",
+  "observedCombatPanel": {
+    "attackerSoftAttackDisplayed": 20,
+    "attackerSoftAttackTooltip": 20.0,
+    "defenderDefenseDisplayed": 10,
+    "defenderDefenseTooltip": 10.0,
+    "provenance": "accepted O19 run after required live-panel check"
+  },
+  "machineControls": {
+    "hours": "0..161 complete",
+    "startupNoDamage": true,
+    "modifierRemoved": true,
+    "cleanupFailure": false,
+    "defineOverrides": "BASE_CHANCE_TO_AVOID_HIT:90,CHANCE_TO_AVOID_HIT_AT_NO_DEF:100,ORG_DAMAGE_MODIFIER:0.053,ORG_DICE:4,ORG_ARMOR_SOFT_DICE:6,STR_DAMAGE_MODIFIER:0.060,STR_DICE:2,STR_ARMOR_SOFT_DICE:2,NIGHT_PENALTY:0"
+  },
+  "intervalCounts": {
+    "miss": 143,
+    "hit": 17,
+    "mixedChannel": 0,
+    "supportViolation": 0
+  },
+  "orgDieCountsOnHits": {
+    "one": 3,
+    "two": 3,
+    "three": 4,
+    "four": 7
+  },
+  "strengthDieCountsOnHits": {
+    "one": 5,
+    "two": 12
+  },
+  "hitAcceptance": {
+    "min": 7,
+    "max": 26,
+    "reference": "central 99% Binomial(160,0.10)"
+  },
+  "action": "combined-normal-damage-coherent",
+  "interpretation": "Across 160 firing intervals, exactly 17 intervals show coherent simultaneous ORG and strength damage, with no mixed-channel or support-violation interval. H=17 lies within the predeclared 7..26 central 99% Binomial(160,0.10) acceptance region. This narrowly validates composition of the defended hit gate, ordinary ORG die, validated 0.9 strength scale, and ordinary strength die at the controlled 20/10 boundary."
+}

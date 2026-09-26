@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o18-normal-strength-die-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "strength-die-uniform-1-through-2-supported",
+  "decision": "supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 10,
+    "tooltipDefense": 10.0
+  },
+  "dieCounts": {
+    "zero": 0,
+    "one": 8,
+    "two": 12,
+    "outOfSupport": 0
+  },
+  "dieTwoExactAcceptance": {
+    "min": 4,
+    "max": 16
+  },
+  "boundary": "controlled O18 one-defended-hit normal-strength-die boundary at Soft Attack 20 and Defense 10",
+  "interpretation": "The ordinary unarmored strength die behaves as UniformInteger(1,2) at this controlled executable boundary."
+}

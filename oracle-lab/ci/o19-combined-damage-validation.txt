@@ -1,0 +1,3 @@
+Temporary CI trigger for predeclared O19 combined normal-damage coherence probe.
+Source Oracle head: e32e33e3fbe02f753a99f0370713a5ffc68190f2
+Do not merge this launch-candidate branch.

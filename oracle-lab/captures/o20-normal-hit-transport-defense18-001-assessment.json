@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o20-normal-hit-transport-defense18-v1",
+  "evidenceStatus": "oracle-validated",
+  "stage": "complete",
+  "action": "normal-hit-transport-defense18-supported",
+  "decision": "supported",
+  "observedCombatPanel": {
+    "displayedSoftAttack": 20,
+    "tooltipSoftAttack": 20.0,
+    "displayedDefense": 18,
+    "tooltipDefense": 18.0
+  },
+  "intervalCounts": {
+    "zero": 121,
+    "one": 36,
+    "two": 3,
+    "three": 0,
+    "fourPlus": 0
+  },
+  "groupedCounts": {
+    "zero": 121,
+    "one": 36,
+    "twoPlus": 3
+  },
+  "expectedProbabilities": {
+    "zero": 0.7164,
+    "one": 0.2488,
+    "twoPlus": 0.0348
+  },
+  "pearsonChiSquare": 1.9033166318218089,
+  "criticalValue1PctDf2": 9.21034,
+  "boundary": "controlled O20 normal hit-transport boundary at Soft Attack 20 and Defense 18",
+  "interpretation": "The validated total attack-point law, stochastic Defense/10 rounding with bounding, and ordinary 10% defended / 40% undefended hit gates transport coherently to the independently validated Defense-18 boundary."
+}

@@ -25,6 +25,7 @@ import technologyEffects01 from './builtin1193/technology-effects-exact-1193-01.
 import technologyEffects02 from './builtin1193/technology-effects-exact-1193-02.js';
 import technologyEffects03 from './builtin1193/technology-effects-exact-1193-03.js';
 import SOURCE_CERTIFICATION_1193 from './builtin1193/source-certification-1193.js';
+import ORACLE_COMBAT_1193 from './builtin1193/oracle-combat-certification-1193.js';
 import { applyHqLineEligibilityRecovery, HQ_LINE_ELIGIBILITY_1193_META } from './builtin1193/hq-line-eligibility-1193.js';
 import { resolveMIOs } from './parser.js';
 
@@ -135,8 +136,9 @@ BUILTIN_1193.meta={
   hqOnlyLineBattalionMissingFromCompact:[...hqLineEligibilityRecovery1193.missing],
   hqLineEligibilityEvidence:HQ_LINE_ELIGIBILITY_1193_META.evidence,
   hqLineEligibilityRecovery:HQ_LINE_ELIGIBILITY_1193_META.recovery,
-  executableValidation:'pending-1.19.3-oracle',
-  executableEvidenceBase:'1.19.2-executable-inferred'
+  executableValidation:'core-ordinary-unarmored-oracle-validated',
+  executableEvidenceBase:'mixed-1.19.3-oracle-validated-and-bounded-inference',
+  oracleCombatCertification:clone(ORACLE_COMBAT_1193)
 };
 
 export default BUILTIN_1193;

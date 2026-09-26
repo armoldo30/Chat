@@ -375,6 +375,10 @@ function seededRng(seed){
   return ()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};
 }
 function stochasticRound(v,rng=Math.random){const x=Math.max(0,Number(v)||0),lo=Math.floor(x);return lo+(rng()<x-lo?1:0);}
+export function sampleAttackPoints(attack,rng=Math.random){
+  const x=Math.max(0,Number(attack)||0)*COMBAT_CONSTANTS.combatPointScale;
+  return Math.max(0,Math.round(x+(rng()*2-1)));
+}
 function randNormal(rng=Math.random){let u=0,v=0;while(u===0)u=rng();while(v===0)v=rng();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
 function sampleBinomial(n,p,rng=Math.random){
   n=Math.max(0,Math.floor(n)); p=clamp(p,0,1); if(!n||!p)return 0;if(p===1)return n;
@@ -394,7 +398,7 @@ function sampleHypergeometric(population,successes,draws,rng=Math.random){
 }
 function sampleHitProfile(softAttack,hardAttack,defense,rng=Math.random){
   const soft=Math.max(0,Number(softAttack)||0),hard=Math.max(0,Number(hardAttack)||0),total=soft+hard;
-  const attackPoints=stochasticRound(total*COMBAT_CONSTANTS.combatPointScale,rng),defensePoints=stochasticRound(Math.max(0,Number(defense)||0)*COMBAT_CONSTANTS.combatPointScale,rng);
+  const attackPoints=sampleAttackPoints(total,rng),defensePoints=stochasticRound(Math.max(0,Number(defense)||0)*COMBAT_CONSTANTS.combatPointScale,rng);
   if(!attackPoints)return {softHits:0,hardHits:0,total:0,attackPoints:0,defensePoints};
   const softPoints=sampleBinomial(attackPoints,total?soft/total:0,rng),hardPoints=attackPoints-softPoints,blocked=Math.min(attackPoints,defensePoints);
   const blockedSoft=sampleHypergeometric(attackPoints,softPoints,blocked,rng),blockedHard=blocked-blockedSoft;
@@ -458,18 +462,22 @@ export function simulateOnce(a,d,opts,rngOverride){
   let ao=Math.max(1,a.org),do_=Math.max(1,d.org),ahp=Math.max(1,a.hp),dhp=Math.max(1,d.hp);
   const aOrg0=ao,dOrg0=do_,aHp0=ahp,dHp0=dhp; let hours=0,aHitsTotal=0,dHitsTotal=0;
   const maxHours=clamp(Math.floor(Number(opts?.maxHours)||COMBAT_CONSTANTS.simulationSafetyHours),COMBAT_CONSTANTS.combatMinimumHours,24*90);
+  const initialFireDelayHours=clamp(Math.floor(Number(opts?.initialFireDelayHours??COMBAT_CONSTANTS.initialFireDelayHours)||0),0,24);
   const timeline=opts?.trace?[{hour:0,aOrg:100,dOrg:100,aStrength:100,dStrength:100}]:null;
   const aDamageTaken=piercingDamageFactor(c.de.side.piercing,c.ae.side.armor),dDamageTaken=piercingDamageFactor(c.ae.side.piercing,c.de.side.armor);
   const aDice=damageDiceProfile(c.ae.side.armor,c.de.side.piercing),dDice=damageDiceProfile(c.de.side.armor,c.ae.side.piercing);
   while(ao>0&&do_>0&&ahp>0&&dhp>0&&hours<maxHours){
-    const aStrength=combatStrengthFactor(ahp,aHp0),dStrength=combatStrengthFactor(dhp,dHp0);
-    const aProfile=sampleHitProfile(c.aSoftAttack*aStrength,c.aHardAttack*aStrength,c.dDefense*dStrength,rng);
-    const dProfile=sampleHitProfile(c.dSoftAttack*dStrength,c.dHardAttack*dStrength,c.aBreak*aStrength,rng);
-    aHitsTotal+=aProfile.total; dHitsTotal+=dProfile.total;
-    do_-=(rollDamage(aProfile.softHits,aDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*dDamageTaken;
-    ao-=(rollDamage(dProfile.softHits,dDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*aDamageTaken;
-    dhp-=(rollDamage(aProfile.softHits,aDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*dDamageTaken;
-    ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,COMBAT_CONSTANTS.strengthDamageModifier,rng))*aDamageTaken;
+    if(hours>=initialFireDelayHours){
+      const aStrength=combatStrengthFactor(ahp,aHp0),dStrength=combatStrengthFactor(dhp,dHp0);
+      const aProfile=sampleHitProfile(c.aSoftAttack*aStrength,c.aHardAttack*aStrength,c.dDefense*dStrength,rng);
+      const dProfile=sampleHitProfile(c.dSoftAttack*dStrength,c.dHardAttack*dStrength,c.aBreak*aStrength,rng);
+      aHitsTotal+=aProfile.total; dHitsTotal+=dProfile.total;
+      do_-=(rollDamage(aProfile.softHits,aDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*dDamageTaken;
+      ao-=(rollDamage(dProfile.softHits,dDice.softOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardOrgDice,COMBAT_CONSTANTS.orgDamageModifier,rng))*aDamageTaken;
+      const strengthModifier=COMBAT_CONSTANTS.strengthDamageModifier*COMBAT_CONSTANTS.strengthDamageExecutableScale;
+      dhp-=(rollDamage(aProfile.softHits,aDice.softStrengthDice,strengthModifier,rng)+rollDamage(aProfile.hardHits,aDice.hardStrengthDice,strengthModifier,rng))*dDamageTaken;
+      ahp-=(rollDamage(dProfile.softHits,dDice.softStrengthDice,strengthModifier,rng)+rollDamage(dProfile.hardHits,dDice.hardStrengthDice,strengthModifier,rng))*aDamageTaken;
+    }
     hours++;
     if(timeline&&(hours%6===0||ao<=0||do_<=0||ahp<=0||dhp<=0||hours===maxHours))timeline.push({hour:hours,aOrg:clamp(ao/aOrg0,0,1)*100,dOrg:clamp(do_/dOrg0,0,1)*100,aStrength:clamp(ahp/aHp0,0,1)*100,dStrength:clamp(dhp/dHp0,0,1)*100});
   }
@@ -477,7 +485,7 @@ export function simulateOnce(a,d,opts,rngOverride){
   const attackerWin=do_<=0&&ao>0,defenderWin=ao<=0&&do_>0,draw=!attackerWin&&!defenderWin;
   const aCas=clamp((aHp0-Math.max(0,ahp))/aHp0,0,1),dCas=clamp((dHp0-Math.max(0,dhp))/dHp0,0,1);
   const aPermanentManpowerFactor=1-clamp(Number(a.casualtyTrickleback)||0,0,1),dPermanentManpowerFactor=1-clamp(Number(d.casualtyTrickleback)||0,0,1);
-  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower*aPermanentManpowerFactor,defenderManpowerLoss:dCas*d.manpower*dPermanentManpowerFactor,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline,maxHours};
+  return {attackerWin,defenderWin,draw,hours,aOrg:Math.max(0,ao),dOrg:Math.max(0,do_),aOrgLoss:clamp((aOrg0-Math.max(0,ao))/aOrg0,0,1),dOrgLoss:clamp((dOrg0-Math.max(0,do_))/dOrg0,0,1),attackerCasualtyRate:aCas,defenderCasualtyRate:dCas,attackerManpowerLoss:aCas*a.manpower*aPermanentManpowerFactor,defenderManpowerLoss:dCas*d.manpower*dPermanentManpowerFactor,attackerEquipmentLosses:equipmentLosses(a,aCas),defenderEquipmentLosses:equipmentLosses(d,dCas),attackerPiercesDefender:c.ae.side.piercing>=c.de.side.armor,defenderPiercesAttacker:c.de.side.piercing>=c.ae.side.armor,attackerHitsPerHour:aHitsTotal/Math.max(1,hours),defenderHitsPerHour:dHitsTotal/Math.max(1,hours),context:c,timeline,maxHours,initialFireDelayHours};
 }
 
 function wilsonInterval(successes,n,z=1.96){

@@ -1,3 +1,36 @@
+# HOI4 War Planner 0.17.17 — Release Notes
+
+## Overview
+
+0.17.17 promotes the completed **HOI4 1.19.3 Oracle validation of the core ordinary unarmored 1v1 land-combat resolver** into production. The port is intentionally narrow and starts from current `main`; the historical Oracle branch and mod laboratory are not merged.
+
+## Resolver changes
+
+- Combat now observes the Oracle-validated **one-hour initial fire delay** from controlled O1.
+- Total attack points now use the O7-supported `round(attack / 10 + U[-1,+1])` sampler, clamped nonnegative, replacing the prior Oracle-divergent single-Bernoulli rounding path.
+- Defense points retain stochastic `Defense / 10` rounding and are bounded by total attack points, consistent with O11/O12/O13.
+- The existing 10% defended and 40% undefended hit gates remain game-file derived and are now backed by controlled O14/O15 validation plus O20 transport.
+- Strength damage applies the O17v2-confirmed **0.9 executable scalar** on top of the game-file `LAND_COMBAT_STR_DAMAGE_MODIFIER`.
+- The existing ordinary unarmored 1–4 ORG die and 1–2 strength die are retained with O16/O18 executable support.
+
+## Final transport evidence
+
+O20 moved the full point-partition plus normal hit-gate family to the independently validated Defense-18 boundary. At Soft Attack 20 / Defense 18, 160 firing intervals produced:
+
+- 121 zero-hit intervals
+- 36 one-hit intervals
+- 3 two-hit intervals
+- 0 three-hit intervals
+- 0 four-plus intervals
+
+Grouped as 121 / 36 / 3 against expected 114.624 / 39.808 / 5.568, Pearson χ² was **1.9033166318**, below the predeclared **9.21034** 1% critical value for df=2.
+
+## Evidence boundary
+
+The promoted behavior is **oracle-validated only at the controlled boundaries exercised by O1–O20**. The implementation remains an executable reconstruction, not source code from `hoi4.exe`. Armor/piercing special cases, armored-on-soft damage behavior, non-neutral tactic execution, broader RNG ordering, and other executable-only paths remain outside this certification. Bit-for-bit parity is not claimed.
+
+---
+
 # HOI4 War Planner 0.17.15 — Release Notes
 
 ## Overview

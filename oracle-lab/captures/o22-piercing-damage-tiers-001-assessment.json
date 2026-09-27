@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o22-piercing-damage-tier-v1",
+  "evidenceStatus": "oracle-validated",
+  "action": "piercing-damage-tiers-supported",
+  "fullPiercingCumulativeOrgLossPp": 1.7655,
+  "expectedFactors": {
+    "p20": 1,
+    "p15": 0.8,
+    "p14": 0.65,
+    "p10": 0.65,
+    "p9": 0.5
+  },
+  "observedRatios": {
+    "p20": 1,
+    "p15": 0.7989238176154094,
+    "p14": 0.6505239308977617,
+    "p10": 0.6505239308977617,
+    "p9": 0.4984423676012485
+  },
+  "absoluteErrors": {
+    "p20": 0,
+    "p15": 0.0010761823845906182,
+    "p14": 0.0005239308977617041,
+    "p10": 0.0005239308977617041,
+    "p9": 0.0015576323987515073
+  },
+  "frozenAbsoluteRatioTolerance": 0.04,
+  "controlsPassed": {
+    "allFiveModesExactlyOnce": true,
+    "twentyStrictOrgLossIntervalsEach": true,
+    "startupUnchanged": true,
+    "defenderStrengthInvariant": true,
+    "cleanCleanup": true,
+    "livePanelsUserConfirmedExpected": true
+  },
+  "interpretation": "Measured executable organization damage follows the retained 100% / 80% / 65% / 65% / 50% piercing-tier family at the controlled Armor-20 boundaries."
+}

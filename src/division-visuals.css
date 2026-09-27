@@ -20,3 +20,10 @@
   .division-unit-icon svg{width:48px;height:48px}
   .picture-picker-choice{min-height:108px!important}
 }
+
+
+.division-counter.hoi4-modeled-icon{
+  width:48px!important;height:48px!important;display:grid!important;place-items:center!important;
+  padding:0!important;background:transparent!important;border:0!important;color:inherit!important;overflow:visible!important
+}
+.division-counter.hoi4-modeled-icon .hoi-model-icon{width:46px!important;height:46px!important}

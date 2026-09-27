@@ -67,6 +67,12 @@ function enhanceDivision(){
     const label=norm(button.querySelector('small')?.textContent||button.title),icon=button.querySelector('.picture-unit-symbol');
     replace(icon,label,label,'infantry','support','Division unit');
   });
+  document.querySelectorAll('.hoi-designer').forEach(designer=>{
+    const counter=designer.querySelector('.division-counter'),first=designer.querySelector('.hoi-battalion-slot.filled');
+    if(!counter||!first)return;
+    const label=norm(first.querySelector('small')?.textContent||first.title)||'Infantry';
+    replace(counter,label,label,'infantry','infantry','Division identity');
+  });
 }
 function enhance(){enhanceTriggers();enhanceModal();enhanceTankTabs();enhanceAirRoles();enhanceDivision();}
 registerUiEnhancer(enhance);

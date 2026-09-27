@@ -15,8 +15,8 @@ const RANGE_CONTROLS={
 };
 
 const PIP_CONTROLS={
-  'b-directions':{label:'Attack Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
-  'f-directions':{label:'Attack Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
+  'b-directions':{label:'Attacking Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
+  'f-directions':{label:'Attacking Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
   'b-entrench':{label:'Entrenchment',kind:'support',min:0,max:100,marks:[0,20,40,60,80,100],unit:v=>`${v}%`},
   'b-fort':{label:'Fort Level',kind:'industry',min:0,max:10,marks:[0,1,2,3,4,5,6,7,8,9,10],unit:v=>v===0?'No fort':`Level ${v}`}
 };

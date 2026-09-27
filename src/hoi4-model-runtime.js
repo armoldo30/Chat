@@ -14,6 +14,7 @@ function replace(node,value,label,context,fallback,slot=''){
   if(node.dataset.hoiModelSig===sig)return;
   node.dataset.hoiModelSig=sig;
   const key=hoi4ModelIconKey(value,label,context,slot);
+  for(const cls of [...node.classList])if(cls.startsWith('hoi4-')&&cls!=='hoi4-modeled-icon')node.classList.remove(cls);
   node.classList.add('hoi4-modeled-icon',`hoi4-${key}`);
   node.innerHTML=hoi4ModelIconSvg(value,label,context,fallback,slot);
 }

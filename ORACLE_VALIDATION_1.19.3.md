@@ -3485,6 +3485,64 @@ Implementation files:
 - `tests/oracle-o24-parser-assess.test.mjs`
 
 
+### O25 high-resolution combined armored confirmation — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+
+O25 repeats O24 with **identical combat mechanics** and changes only the observation instrument.
+
+The sole experimental change is division-state measurement:
+
+- O24: 14 bisections, internal bracket width = 1/16384 ≈ 0.0000610 of full scale
+- O25: **18 bisections**, internal bracket width = 1/262144 ≈ 0.00000381 of full scale
+
+This is intended to resolve the single O24 strength bracket that touched exactly at the boundary.
+
+All combat controls remain frozen from O24:
+
+- GER Soft Attack **20.0**
+- POL Defense **10.0**
+- GER Armor **20.0**
+- GER Piercing **9.0**
+- POL Armor **20.0**
+- POL Piercing **4.0**
+- GER outgoing piercing factor **0.50**
+- POL cannot pierce GER
+- defended hit probability **10%**
+- undefended hit probability **0%**
+- armored ORG die **1..6**
+- strength die **1..2**
+- strength modifier **0.060** with executable 0.9 scalar left endogenous
+- night penalty **0**
+- sample size **160 firing intervals**
+
+The same O24 50%-scaled support bands and hit-count acceptance region are reused unchanged.
+
+#### O25 fixed decision rule
+
+1. Require exact h0..h161 trace and unchanged h0→h1 startup.
+2. Require the live panel to match the O24 target exactly.
+3. Every interval must be either:
+   - a complete miss with neither ORG nor strength loss, or
+   - a coherent hit where both ORG and strength strictly decrease and both midpoint losses fall inside the frozen O24 50%-scaled support bands.
+4. Any mixed-channel interval or support violation => `combined-armored-hires-mismatch`.
+5. Coherent hit count must be **7..26 inclusive**, unchanged from O24.
+6. If channel coherence/support is perfect and hit count is 7..26, action = `combined-armored-hires-coherent`.
+7. No adaptive extension, no support-band widening, and no post-result reinterpretation.
+8. If O25 passes, O24's lone mismatch is classified as a bisection14 observation-resolution artifact rather than a combat-model divergence.
+9. If O25 reproduces a mixed-channel interval at higher resolution, stop and predeclare a strength-specific armored diagnostic before changing the planner.
+
+Implementation:
+
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o25_combined_armored_hires.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/defines/zz_oracle_o25_defines.lua`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/dynamic_modifiers/oracle_o25_dynamic_modifiers.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o25_combined_armored_hires_trial.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/events/oracle_o25_events.txt`
+- `scripts/oracle-o25-trial161.mjs`
+- `scripts/oracle-o25-assess.mjs`
+- `tests/oracle-o25-harness.test.mjs`
+- `tests/oracle-o25-parser-assess.test.mjs`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

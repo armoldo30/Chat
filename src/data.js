@@ -8,7 +8,7 @@ export const MODEL_META = {
   gameVersion: '1.19.3',
   label: 'Vanilla 1.19.3 bundled game-data baseline',
   confidence: 'Authoritative 1.19.3 game-file data; core ordinary 1v1 combat behavior, including controlled armor/piercing paths, Oracle-validated through O25',
-  updated: '2026-09-26'
+  updated: '2026-09-27'
 };
 
 export const RESOURCES = ['steel','aluminum','rubber','tungsten','chromium'];

@@ -3040,7 +3040,7 @@ Persisted evidence:
 - `oracle-lab/captures/o20-normal-hit-transport-defense18-001-assessment.json`
 
 
-### O21 armor/piercing stat-injection calibration — ATTEMPT 001 REJECTED / V2 PREDECLARED
+### O21 armor/piercing stat-injection calibration — LIVE PANEL CALIBRATED / MACHINE LOG PERSISTENCE PENDING
 
 O21 begins the armor/piercing follow-up series without creating a new campaign or division template.
 
@@ -3098,7 +3098,94 @@ Implementation files:
 - `tests/oracle-o21-harness.test.mjs`
 - `tests/oracle-o21-parser-assess.test.mjs`
 
+O21 v2 live-panel result:
+
+- GER Piercing: **20.0**
+- POL Armor: **20.0**
+- GER Armor: **20.0** as expected from the shared infantry-equipment override
+- UI classification:
+  - GER Piercing 20 vs POL Armor 20: **100% damage through armor**
+  - POL baseline Piercing 4 vs GER Armor 20: **cannot pierce; 50% damage**
+
+This is sufficient to calibrate the stat injector for O22. It is still treated as **instrumentation evidence**, not armor-damage validation. No O21 game.log was supplied with this panel report, so the machine assessment artifact remains pending rather than silently fabricated.
+
 If O21 passes, O22 will use the same mechanism to test the retained piercing damage tiers at 1.00 / 0.75 / 0.70 / 0.50 / 0.45 piercing-to-armor ratios.
+
+### O22 piercing damage-tier sweep — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+
+O22 tests whether the executable's **actual organization damage**, not merely the combat tooltip, follows the retained piercing damage-tier family.
+
+The shared O21 v2 infantry-equipment override leaves both controlled divisions at **Armor 20**. GER's Piercing is changed with one hidden Oracle technology per run:
+
+| Mode | GER Piercing | POL Armor | Piercing/Armor | Expected damage factor |
+| --- | ---: | ---: | ---: | ---: |
+| p20 | 20 | 20 | 1.00 | 1.00 |
+| p15 | 15 | 20 | 0.75 | 0.80 |
+| p14 | 14 | 20 | 0.70 | 0.65 |
+| p10 | 10 | 20 | 0.50 | 0.65 |
+| p9 | 9 | 20 | 0.45 | 0.50 |
+
+Each mode must be run from a fresh reload of the same `perfect baseline ready.hoi4` save so only one hidden piercing technology is present.
+
+Combat controls:
+
+- GER Soft Attack = **20.0 exactly**
+- POL Defense = **10.0 exactly**
+- one baseline division per side
+- neutral tactics
+- POL counterattack suppressed to the executable floor
+- defended hit chance = **100%**
+- undefended hit chance = **0%**
+- ordinary ORG die = **1**
+- armored-on-soft ORG die = **1**
+- strength damage = **0**
+- night penalty = **0**
+- vanilla `PIERCING_THRESHOLDS` and `PIERCING_THRESHOLD_DAMAGE_VALUES` are deliberately **not overridden**
+
+At the already validated 20 / 10 point boundary, this creates exactly one defended hit per firing interval while suppressing any undefended-point damage. Each O22 mode therefore collects h0..h21, giving **20 deterministic firing intervals** after the validated one-hour startup delay.
+
+To minimize bisection noise, O22 compares **cumulative defender organization loss from h1 to h21** rather than classifying individual hit sizes. Let the p20 cumulative loss be the full-piercing reference `L20`. For each mode `m`, compute:
+
+`ratio_m = cumulative_loss_m / L20`
+
+Predeclared expected ratios:
+
+- p20: **1.00**
+- p15: **0.80**
+- p14: **0.65**
+- p10: **0.65**
+- p9: **0.50**
+
+#### O22 fixed decision rule
+
+1. Exactly one accepted trace must exist for each of p20 / p15 / p14 / p10 / p9.
+2. Every trace must contain exact h0..h21 samples, one attacker, one defender, clean startup, clean cleanup, and invariant defender strength.
+3. Every trace must contain **20 strict defender organization-loss intervals**.
+4. Before acceptance, the live panel for each mode must show:
+   - GER Soft Attack **20.0**
+   - POL Defense **10.0**
+   - POL Armor **20.0**
+   - GER Piercing exactly **20 / 15 / 14 / 10 / 9** for its declared mode
+5. The p20 cumulative loss must be positive.
+6. Compare each observed cumulative-loss ratio to its expected factor above.
+7. Frozen absolute ratio tolerance = **±0.04** for every mode.
+8. If all five ratios fall within tolerance, action = `piercing-damage-tiers-supported`.
+9. Otherwise action = `piercing-damage-tiers-mismatch`.
+10. No adaptive extension and no post-result tolerance changes.
+
+The ±0.04 windows do not overlap between the 0.80, 0.65, and 0.50 tier centers, so a passing result discriminates the retained tier family rather than merely detecting generic armor reduction.
+
+Implementation files:
+
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o22_piercing_tiers.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/defines/zz_oracle_o22_defines.lua`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/dynamic_modifiers/oracle_o22_dynamic_modifiers.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o22_piercing_tier_trial.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/events/oracle_o22_events.txt`
+- `scripts/oracle-o22-trial21.mjs`
+- `scripts/oracle-o22-assess.mjs`
+- `tests/oracle-o22-harness.test.mjs`
+- `tests/oracle-o22-parser-assess.test.mjs`
 
 
 ## Promotion rule

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o25-combined-armored-hires-v1",
+  "sourceLog": "game(20260927-020206).log",
+  "gameVersion": "1.19.3.0.c01a",
+  "checksum": "5632",
+  "controls": {
+    "softAttack": 20,
+    "defense": 10,
+    "attackerArmor": 20,
+    "attackerPiercing": 9,
+    "defenderArmor": 20,
+    "defenderPiercing": 4,
+    "expectedPiercingDamageFactor": 0.5,
+    "firingIntervals": 160,
+    "measurement": "bisection18"
+  },
+  "intervalCounts": {
+    "miss": 138,
+    "hit": 22,
+    "mixedChannel": 0,
+    "supportViolation": 0
+  },
+  "orgDice": {
+    "one": 3,
+    "two": 6,
+    "three": 3,
+    "four": 5,
+    "five": 5,
+    "six": 0
+  },
+  "strengthDice": {
+    "one": 11,
+    "two": 11
+  },
+  "startupUnchanged": true,
+  "cleanCleanup": true
+}

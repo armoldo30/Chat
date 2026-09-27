@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o25-combined-armored-hires-v1",
+  "evidenceStatus": "oracle-validated",
+  "action": "combined-armored-hires-coherent",
+  "predeclaredHitAcceptance": {
+    "min": 7,
+    "max": 26
+  },
+  "observedHitCount": 22,
+  "observedMissCount": 138,
+  "mixedChannelCount": 0,
+  "supportViolationCount": 0,
+  "hitCountInsideAcceptance": true,
+  "resolvesO24": "bisection14 observation-resolution artifact",
+  "interpretation": "With mechanics unchanged from O24 and only measurement precision increased from bisection14 to bisection18, all 160 intervals are coherent: 138 misses and 22 supported hits with zero mixed-channel intervals and zero support violations. O24's lone mixed interval is therefore attributed to observation resolution rather than a model divergence."
+}

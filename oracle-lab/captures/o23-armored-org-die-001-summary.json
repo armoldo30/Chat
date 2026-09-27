@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o23-armored-org-die-v1",
+  "sourceLog": "game(20260927-012817).log",
+  "gameVersion": "1.19.3.0.c01a",
+  "checksum": "5632",
+  "controls": {
+    "softAttack": 20,
+    "defense": 10,
+    "attackerArmor": 20,
+    "attackerPiercing": 20,
+    "defenderArmor": 20,
+    "defenderPiercing": 4,
+    "firingIntervals": 120,
+    "strengthDamageDisabled": true,
+    "ordinaryOrgDie": 4,
+    "armoredOnSoftOrgDie": 6
+  },
+  "counts": {
+    "one": 20,
+    "two": 18,
+    "three": 22,
+    "four": 22,
+    "five": 18,
+    "six": 20,
+    "zero": 0,
+    "outOfSupport": 0
+  },
+  "startupUnchanged": true,
+  "attackerStrengthInvariant": true,
+  "defenderStrengthInvariant": true,
+  "cleanup": true
+}

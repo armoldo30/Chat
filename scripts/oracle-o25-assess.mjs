@@ -30,13 +30,13 @@ export function assessO25({batch,panel}){
   const cap=batch.runs[0].capture,c=cap.counts,n=c.miss+c.hit+c.mixedChannel+c.supportViolation;
   if(n!==160)return {...base,stage:'bad-interval-count',action:'review-control',counts:c};
   if(c.mixedChannel>0||c.supportViolation>0)return {
-    ...base,stage:'complete',action:'combined-armored-damage-mismatch',counts:c,orgDice:cap.orgDice,strengthDice:cap.strengthDice,
+    ...base,stage:'complete',action:'combined-armored-hires-mismatch',counts:c,orgDice:cap.orgDice,strengthDice:cap.strengthDice,
     interpretation:'At least one interval broke ORG/strength channel coherence or fell outside the predeclared 50%-scaled armored damage support.'
   };
   const supported=c.hit>=O25_HIT_ACCEPTANCE.min&&c.hit<=O25_HIT_ACCEPTANCE.max;
   return {
     ...base,stage:'complete',
-    action:supported?'combined-armored-damage-coherent':'combined-armored-damage-mismatch',
+    action:supported?'combined-armored-hires-coherent':'combined-armored-hires-mismatch',
     counts:c,orgDice:cap.orgDice,strengthDice:cap.strengthDice,hitAcceptance:O25_HIT_ACCEPTANCE,
     interpretation:supported
       ?'The normal defended hit gate, unpierced armored 1..6 organization die, 1..2 strength die, validated 0.9 strength scalar, and validated 50% piercing factor compose coherently at the controlled Armor-20/Piercing-9 boundary.'

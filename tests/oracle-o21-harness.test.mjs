@@ -3,13 +3,20 @@ import {readFileSync} from 'node:fs';
 
 const t=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o21_armor_piercing.txt',import.meta.url),'utf8');
 const e=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o21_armor_piercing_calibration.txt',import.meta.url),'utf8');
+const q=readFileSync(new URL('../oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/units/equipment/zz_oracle_o21_infantry_equipment.txt',import.meta.url),'utf8');
 
-assert.match(t,/oracle_o21_armor20[\s\S]*?category_all_infantry[\s\S]*?armor_value\s*=\s*20/);
-assert.match(t,/oracle_o21_piercing20[\s\S]*?category_all_infantry[\s\S]*?ap_attack\s*=\s*16/);
-assert.match(t,/ai_will_do\s*=\s*\{\s*factor\s*=\s*0\s*\}/);
+assert.match(t,/oracle_o21_piercing20[\s\S]*?category_all_infantry[\s\S]*?ap_attack\s*=\s*4/);
+assert.doesNotMatch(t,/armor_value\s*=/);
+assert.match(q,/infantry_equipment_1[\s\S]*?armor_value\s*=\s*20/);
+assert.match(q,/build_cost_ic\s*=\s*0\.5/);
+assert.match(q,/defense\s*=\s*22/);
+assert.match(q,/soft_attack\s*=\s*6/);
+assert.match(q,/ap_attack\s*=\s*4/);
 assert.match(e,/d_oracle_o21_prepare\s*=\s*\{/);
 assert.match(e,/oracle_o21_piercing20\s*=\s*1/);
-assert.match(e,/oracle_o21_armor20\s*=\s*1/);
+assert.match(e,/scenario=o21-armor-piercing-injection-v2/);
+assert.match(e,/piercingFactor=4/);
+assert.match(e,/armorSource=equipment-override-20/);
 assert.match(e,/expectedGERPiercing=20\.0/);
 assert.match(e,/expectedPOLArmor=20\.0/);
 assert.doesNotMatch(e,/declare_war_on|create_unit|division_template/);

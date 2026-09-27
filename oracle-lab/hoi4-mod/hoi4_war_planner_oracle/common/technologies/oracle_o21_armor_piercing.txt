@@ -1,0 +1,23 @@
+technologies = {
+    # O21 calibration-only technology. Hidden from ordinary use; granted by scripted effect.
+    # Baseline 1936 infantry has Armor 0 / Piercing 4 at the source-exact equipment boundary.
+    oracle_o21_armor20 = {
+        category_all_infantry = {
+            armor_value = 20
+        }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+
+    oracle_o21_piercing20 = {
+        category_all_infantry = {
+            ap_attack = 16
+        }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+}

@@ -1,3 +1,3 @@
-Temporary exact-head RC trigger for 0.17.20 UI copy and icon polish.
-Source head: f459b58f226f2e19d881139aa2aac23514ac2022
+Temporary exact-head RC trigger for UI/icon polish release 0.17.20.
+Source head: a26e6b0748238e12bafffca45a3c9519726edc1f
 Do not merge this launch-candidate branch.

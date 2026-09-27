@@ -3040,7 +3040,7 @@ Persisted evidence:
 - `oracle-lab/captures/o20-normal-hit-transport-defense18-001-assessment.json`
 
 
-### O21 armor/piercing stat-injection calibration — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-CALIBRATED
+### O21 armor/piercing stat-injection calibration — ATTEMPT 001 REJECTED / V2 PREDECLARED
 
 O21 begins the armor/piercing follow-up series without creating a new campaign or division template.
 
@@ -3056,9 +3056,13 @@ Source-exact baseline relevant to the injector:
 
 - the controlled divisions use 1936 `infantry_equipment_1`;
 - retained source gives that equipment **Armor 0** and **Piercing 4**;
-- O21 therefore uses hidden Oracle-only technology effects on `category_all_infantry`:
-  - POL: `armor_value = 20`
-  - GER: `ap_attack = 16`
+- O21 attempt 001 used hidden Oracle-only technology effects on `category_all_infantry`.
+- Live panel calibration rejected that injector: **GER Piercing = 68** and **POL Armor = 0**.
+- This identifies the technology equipment-stat semantics as multiplicative at this boundary: baseline Piercing 4 with `ap_attack = 16` produced `4 × (1 + 16) = 68`, while zero Armor remained zero under `armor_value = 20`.
+- O21 v2 therefore:
+  - changes GER's piercing technology to `ap_attack = 4`, targeting `4 × (1 + 4) = 20`;
+  - removes the technology armor injection;
+  - adds an Oracle-only late `infantry_equipment_1` definition preserving the retained 1936 equipment stats while setting `armor_value = 20`.
 
 Candidate expected live values:
 
@@ -3067,7 +3071,7 @@ Candidate expected live values:
 
 Scenario:
 
-`o21-armor-piercing-injection-v1`
+`o21-armor-piercing-injection-v2`
 
 Command from the clean baseline save:
 
@@ -3088,6 +3092,7 @@ Then begin the same GER → POL 1v1 combat and inspect the combat panel.
 Implementation files:
 
 - `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o21_armor_piercing.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/units/equipment/zz_oracle_o21_infantry_equipment.txt`
 - `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o21_armor_piercing_calibration.txt`
 - `scripts/oracle-o21-assess.mjs`
 - `tests/oracle-o21-harness.test.mjs`

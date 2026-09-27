@@ -1,0 +1,3 @@
+Temporary CI trigger for O25 high-resolution combined armored confirmation.
+Source Oracle head: 2b5912e8b6a586fb0c40ee11607026aaf0cf536b
+Do not merge this launch-candidate branch.

@@ -126,7 +126,7 @@ function supportBody(key){
   if(key==='infantry')return '<circle class="hoi-fill" cx="17" cy="10" r="4"/><path class="hoi-detail" d="M17 14v15M17 20l-7 7M17 20l8 7M17 29l-6 12M17 29l8 12"/><path class="hoi-weapon" d="M30 10l8 33"/>';
   if(key==='cavalry')return '<path class="hoi-fill" d="M10 34c6-3 10-9 13-17 4 5 8 7 13 7l5 7-8 10M14 34l-4 8M27 32l3 10"/><circle class="hoi-fill" cx="13" cy="11" r="3"/><path class="hoi-detail" d="M20 17l-4-7M28 18l5-5"/>';
   if(key==='motorized'||key==='logistics')return '<path class="hoi-fill" d="M5 19h25v15H5zM30 24h7l6 6v4H30z"/><circle class="hoi-wheel" cx="13" cy="37" r="4"/><circle class="hoi-wheel" cx="35" cy="37" r="4"/><path class="hoi-detail" d="M10 24h12M18 19v15"/>';
-  if(key==='mechanized')return '<path class="hoi-fill" d="M5 20h30l8 8v7H5zM11 20l5-7h14l6 7"/><path class="hoi-track" d="M7 34h34v7H7z"/>\${wheels([12,20,28,36],37,2.6)}';
+  if(key==='mechanized')return `<path class="hoi-fill" d="M5 20h30l8 8v7H5zM11 20l5-7h14l6 7"/><path class="hoi-track" d="M7 34h34v7H7z"/>${wheels([12,20,28,36],37,2.6)}`;
   if(key==='mountaineer')return '<path class="hoi-fill" d="M4 40 18 13l8 13 6-9 12 23z"/><path class="hoi-detail" d="M14 25l4 4 5-5M29 40l4-10 5 6"/>';
   if(key==='marine')return '<path class="hoi-detail" d="M24 7v28M16 15h16M12 35c5 8 19 8 24 0M8 31h9M31 31h9"/><circle class="hoi-fill" cx="24" cy="10" r="3"/>';
   if(key==='paratrooper')return '<path class="hoi-fill" d="M6 18c6-13 30-13 36 0-5-3-9-3-13 0-3-3-7-3-10 0-4-3-8-3-13 0z"/><path class="hoi-detail" d="M11 18l10 13M37 18 27 31M24 18v13"/><circle class="hoi-fill" cx="24" cy="35" r="3"/>';

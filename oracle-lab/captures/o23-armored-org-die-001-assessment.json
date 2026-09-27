@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o23-armored-org-die-v1",
+  "evidenceStatus": "oracle-validated",
+  "action": "armored-org-die-uniform-1-through-6-supported",
+  "counts": {
+    "one": 20,
+    "two": 18,
+    "three": 22,
+    "four": 22,
+    "five": 18,
+    "six": 20,
+    "zero": 0,
+    "outOfSupport": 0
+  },
+  "expectedPerFace": 20,
+  "pearsonChiSquare": 0.8,
+  "criticalValue1PctDf5": 15.086272,
+  "requiredFacesObserved": {
+    "five": true,
+    "six": true
+  },
+  "controlsPassed": {
+    "exactH0ThroughH121": true,
+    "oneAttackerOneDefender": true,
+    "startupUnchanged": true,
+    "strengthInvariant": true,
+    "cleanCleanup": true,
+    "livePanelUserConfirmedExpected": true
+  },
+  "interpretation": "At the controlled unpierced-armored-attacker boundary, executable organization damage is compatible with UniformInteger(1,6), including direct support for die faces 5 and 6."
+}

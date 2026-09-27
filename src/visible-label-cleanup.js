@@ -16,7 +16,7 @@ function cleanCopyAliases(scope){
   scope.querySelectorAll('label,span,b,strong,h3,small,option').forEach(element=>{
     if(blockedTags.has(element.tagName))return;
     for(const node of element.childNodes||[]){
-      if(node.nodeType!==Node.TEXT_NODE)continue;
+      if(node.nodeType!==3)continue;
       let value=node.nodeValue||'',next=value;
       for(const [pattern,replacement] of COPY_ALIASES)next=next.replace(pattern,replacement);
       if(next!==value)node.nodeValue=next;

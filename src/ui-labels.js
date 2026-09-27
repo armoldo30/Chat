@@ -69,7 +69,7 @@ export function visualKind(value=''){
   return 'generic';
 }
 
-const common='viewBox="0 0 48 48" aria-hidden="true" focusable="false"';
+const common='viewBox="0 0 48 48" aria-hidden="true" focusable="false" class="ui-symbol-icon"';
 const ICONS={
   armor:`<svg ${common}><path d="M8 27h4l4-9h20l5 9v9H8z"/><path d="M19 18v-5h11l5 5M13 36h27M16 40h20"/></svg>`,
   armor_light:`<svg ${common}><path d="M8 29h5l4-8h15l7 8v7H8zM19 21v-5h9l5 5M13 36h25"/><circle cx="16" cy="37" r="2"/><circle cx="31" cy="37" r="2"/></svg>`,

@@ -136,7 +136,7 @@ BUILTIN_1193.meta={
   hqOnlyLineBattalionMissingFromCompact:[...hqLineEligibilityRecovery1193.missing],
   hqLineEligibilityEvidence:HQ_LINE_ELIGIBILITY_1193_META.evidence,
   hqLineEligibilityRecovery:HQ_LINE_ELIGIBILITY_1193_META.recovery,
-  executableValidation:'core-ordinary-unarmored-oracle-validated',
+  executableValidation:'core-ordinary-1v1-plus-armor-piercing-oracle-validated',
   executableEvidenceBase:'mixed-1.19.3-oracle-validated-and-bounded-inference',
   oracleCombatCertification:clone(ORACLE_COMBAT_1193)
 };

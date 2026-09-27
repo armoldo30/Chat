@@ -4,11 +4,11 @@ import { COMBAT_EXECUTABLE_1192, COMBAT_ANALYTICAL_1192 } from './builtin1192/co
 import ORACLE_COMBAT_1193 from './builtin1193/oracle-combat-certification-1193.js';
 
 export const MODEL_META = {
-  appVersion: '0.17.17',
+  appVersion: '0.17.18',
   gameVersion: '1.19.3',
   label: 'Vanilla 1.19.3 bundled game-data baseline',
-  confidence: 'Authoritative 1.19.3 game-file data; core ordinary unarmored 1v1 combat behavior Oracle-validated at controlled O1-O20 boundaries',
-  updated: '2026-09-26'
+  confidence: 'Authoritative 1.19.3 game-file data; core ordinary 1v1 combat behavior, including controlled armor/piercing paths, Oracle-validated through O25',
+  updated: '2026-09-27'
 };
 
 export const RESOURCES = ['steel','aluminum','rubber','tungsten','chromium'];

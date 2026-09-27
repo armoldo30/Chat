@@ -3349,7 +3349,7 @@ Implementation files:
 - `tests/oracle-o23-parser-assess.test.mjs`
 
 
-### O24 combined armored combat — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+### O24 combined armored combat — COMPLETE / PREDECLARED MISMATCH
 
 O24 is the final armor/piercing composition test. It deliberately combines only mechanisms already isolated in O14/O18/O22/O23.
 
@@ -3427,6 +3427,50 @@ Required live panel before acceptance:
 - UI indicates POL cannot pierce GER armor
 
 A passing O24 would close the planned armor/piercing validation family by establishing composition of the normal defended hit gate, armored organization die, ordinary strength die, executable 0.9 strength scalar, and 50% piercing damage factor in one controlled battle.
+
+#### O24 run 001 — MISMATCH / MEASUREMENT-RESOLUTION DIAGNOSTIC REQUIRED
+
+The live panel was user-confirmed at all predeclared values.
+
+Across 160 firing intervals:
+
+- coherent misses: **138**
+- coherent hits: **21**
+- mixed-channel intervals: **1**
+- support violations: **0**
+
+The coherent hit count **21** lies inside the frozen 99% Binomial(160,0.10) acceptance range of **7..26**.
+
+Classified coherent-hit damage:
+
+- armored ORG die 1/2/3/4/5/6 = **3 / 6 / 3 / 4 / 5 / 0**
+- strength die 1/2 = **10 / 11**
+
+The sole failure is interval h43→h44:
+
+- ORG midpoint loss: approximately **0.201 pp**, with a strict organization drop
+- strength midpoint loss: approximately **0.0065 pp**
+- h43 strength bracket: **0.99797–0.99804**
+- h44 strength bracket: **0.99791–0.99797**
+- the brackets touch exactly at **0.99797**, so the bisection14 instrument cannot establish a strict strength drop even though the midpoint decreased
+
+Because the O24 rule was frozen to reject any mixed-channel interval, machine action is:
+
+`combined-armored-damage-mismatch`
+
+Classification:
+
+- O24 is **oracle-divergent** at the controlled **bisection14 strict-channel** boundary;
+- this does **not** overturn O22 or O23;
+- the observed pattern is specifically consistent with insufficient strength-measurement resolution;
+- no post-result widening of support or reclassification is permitted;
+- the next experiment must be separately predeclared with finer measurement before any combat-model change.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o24-combined-armored-damage-001-summary.json`
+- `oracle-lab/captures/o24-combined-armored-damage-001-assessment.json`
+
 
 Implementation files:
 

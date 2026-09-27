@@ -3485,7 +3485,7 @@ Implementation files:
 - `tests/oracle-o24-parser-assess.test.mjs`
 
 
-### O25 high-resolution combined armored confirmation — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+### O25 high-resolution combined armored confirmation — COMPLETE / PASS
 
 O25 repeats O24 with **identical combat mechanics** and changes only the observation instrument.
 
@@ -3529,6 +3529,41 @@ The same O24 50%-scaled support bands and hit-count acceptance region are reused
 7. No adaptive extension, no support-band widening, and no post-result reinterpretation.
 8. If O25 passes, O24's lone mismatch is classified as a bisection14 observation-resolution artifact rather than a combat-model divergence.
 9. If O25 reproduces a mixed-channel interval at higher resolution, stop and predeclare a strength-specific armored diagnostic before changing the planner.
+
+#### O25 run 001 — PASS / O24 RESOLUTION ARTIFACT CONFIRMED
+
+The live panel was user-confirmed at all predeclared values.
+
+Across 160 firing intervals:
+
+- coherent misses: **138**
+- coherent hits: **22**
+- mixed-channel intervals: **0**
+- support violations: **0**
+
+The coherent hit count **22** lies inside the frozen 99% Binomial(160,0.10) acceptance range of **7..26**.
+
+Classified coherent-hit damage:
+
+- armored ORG die 1/2/3/4/5/6 = **3 / 6 / 3 / 5 / 5 / 0**
+- strength die 1/2 = **11 / 11**
+
+Machine action:
+
+`combined-armored-hires-coherent`
+
+Classification:
+
+- O25 is narrowly **oracle-validated** at the controlled Armor-20/Piercing-9 bisection18 boundary;
+- combat mechanics were unchanged from O24; only measurement precision increased;
+- O24's lone mixed-channel result is therefore classified as a **bisection14 observation-resolution artifact**, while O24 itself remains preserved as a predeclared mismatch;
+- the planned armor/piercing validation family is complete for the tested ordinary 1v1 controlled scope.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o25-combined-armored-hires-001-summary.json`
+- `oracle-lab/captures/o25-combined-armored-hires-001-assessment.json`
+- `tests/oracle-o25-evidence.test.mjs`
 
 Implementation:
 

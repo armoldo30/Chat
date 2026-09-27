@@ -4,14 +4,15 @@ import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
 
-const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons]=await Promise.all([
+const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
   readFile(new URL('../src/visual-overhaul.js',import.meta.url),'utf8'),
   readFile(new URL('../src/designer-visuals.js',import.meta.url),'utf8'),
   readFile(new URL('../src/item-icon-clarity.css',import.meta.url),'utf8'),
   readFile(new URL('../src/hoi4-model-runtime.js',import.meta.url),'utf8'),
   readFile(new URL('../src/hoi4-model-icons.css',import.meta.url),'utf8'),
-  readFile(new URL('../src/hoi4-model-icons.js',import.meta.url),'utf8')
+  readFile(new URL('../src/hoi4-model-icons.js',import.meta.url),'utf8'),
+  readFile(new URL('../src/ui-labels.js',import.meta.url),'utf8')
 ]);
 
 assert.doesNotMatch(html,/src\/icon-overhaul\.js/,'legacy icon runtime must not override the current item-icon system');
@@ -32,6 +33,8 @@ assert.match(modelCss,/Semantic palette/,'modeled icons should use semantic mili
 assert.match(modelCss,/hoi4-artillery/,'artillery should have a distinct semantic palette');
 assert.match(modelCss,/hoi4-antiair/,'anti-air should have a distinct semantic palette');
 assert.match(modelCss,/hoi4-mountaineer/,'special forces should have distinct semantic palettes');
+assert.match(modelCss,/Shared small-symbol treatment/,'nav, battlefield and stat icons should share the polished symbol treatment');
+assert.match(uiLabels,/class="ui-symbol-icon"/,'shared semantic SVGs should expose the unified symbol class');
 assert.match(modelIcons,/hoi-stage-badge/,'modeled tier differences should use explicit stage badges');
 assert.match(modelIcons,/hoi-model-corners/,'modeled icons should use the stronger framed plate treatment');
 assert.match(modelIcons,/hoi-model-glyph/,'modeled silhouettes should render in a shared scalable glyph layer');

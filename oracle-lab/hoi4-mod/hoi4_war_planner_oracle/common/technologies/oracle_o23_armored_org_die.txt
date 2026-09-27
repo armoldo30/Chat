@@ -1,0 +1,11 @@
+technologies = {
+    # O23: fully pierce the defender while leaving defender piercing at baseline 4.
+    # Baseline infantry_equipment_1 Piercing 4 * (1 + 4) = 20.
+    oracle_o23_p20 = {
+        category_all_infantry = { ap_attack = 4 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+}

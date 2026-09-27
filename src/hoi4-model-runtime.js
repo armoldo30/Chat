@@ -14,6 +14,7 @@ function replace(node,value,label,context,fallback,slot=''){
   if(node.dataset.hoiModelSig===sig)return;
   node.dataset.hoiModelSig=sig;
   const key=hoi4ModelIconKey(value,label,context,slot);
+  for(const cls of [...node.classList])if(cls.startsWith('hoi4-')&&cls!=='hoi4-modeled-icon')node.classList.remove(cls);
   node.classList.add('hoi4-modeled-icon',`hoi4-${key}`);
   node.innerHTML=hoi4ModelIconSvg(value,label,context,fallback,slot);
 }
@@ -65,6 +66,12 @@ function enhanceDivision(){
   document.querySelectorAll('.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled').forEach(button=>{
     const label=norm(button.querySelector('small')?.textContent||button.title),icon=button.querySelector('.picture-unit-symbol');
     replace(icon,label,label,'infantry','support','Division unit');
+  });
+  document.querySelectorAll('.hoi-designer').forEach(designer=>{
+    const counter=designer.querySelector('.division-counter'),first=designer.querySelector('.hoi-battalion-slot.filled');
+    if(!counter||!first)return;
+    const label=norm(first.querySelector('small')?.textContent||first.title)||'Infantry';
+    replace(counter,label,label,'infantry','infantry','Division identity');
   });
 }
 function enhance(){enhanceTriggers();enhanceModal();enhanceTankTabs();enhanceAirRoles();enhanceDivision();}

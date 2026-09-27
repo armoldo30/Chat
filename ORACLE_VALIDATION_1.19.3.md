@@ -3349,6 +3349,98 @@ Implementation files:
 - `tests/oracle-o23-parser-assess.test.mjs`
 
 
+### O24 combined armored combat — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+
+O24 is the final armor/piercing composition test. It deliberately combines only mechanisms already isolated in O14/O18/O22/O23.
+
+Controlled matchup:
+
+- both divisions: **Armor 20** from the O21 equipment override
+- GER Piercing: **9**, giving a 9/20 = 0.45 piercing-to-armor ratio
+- POL Piercing: baseline **4**
+- GER Soft Attack: **20.0**
+- POL Defense: **10.0**
+- one baseline division per side
+- neutral tactics
+- POL counterattack suppressed to the executable floor
+
+Expected armor relationships:
+
+- GER Piercing 9 vs POL Armor 20 => validated **50% outgoing damage tier**
+- POL Piercing 4 vs GER Armor 20 => POL cannot pierce GER, so GER uses the validated **armored 1..6 organization die**
+
+Normal combat defines are restored for the tested channels:
+
+- defended hit chance = **10%**
+- undefended hit chance = **0%** for this one-defended-point composition probe
+- organization modifier = **0.053**
+- ordinary ORG die = **1..4**
+- armored-on-soft ORG die = **1..6**
+- strength modifier = **0.060**
+- ordinary strength die = **1..2**
+- armored-on-soft strength die = **1..2**
+- night penalty = **0**
+- vanilla piercing thresholds/damage factors are not overridden
+
+The validated executable **0.9 strength scalar** is not modded; O24 tests whether it composes with the 50% piercing factor in the actual executable.
+
+Collect h0..h161 = **160 firing intervals** after the validated one-hour startup delay.
+
+#### Frozen 50%-scaled support bands
+
+The O23 armored ORG bands are scaled by the already validated O22 0.50 damage factor:
+
+- armored ORG die 1: positive loss < **0.065 pp**
+- die 2: **0.065 ≤ loss < 0.1125 pp**
+- die 3: **0.1125 ≤ loss < 0.1575 pp**
+- die 4: **0.1575 ≤ loss < 0.2025 pp**
+- die 5: **0.2025 ≤ loss < 0.2475 pp**
+- die 6: **0.2475 ≤ loss < 0.2925 pp**
+
+The O19/O18 strength bands are likewise scaled by 0.50:
+
+- strength die 1: **0.007 ≤ loss < 0.0185 pp**
+- strength die 2: **0.0185 ≤ loss < 0.032 pp**
+
+#### O24 fixed decision rule
+
+1. h0→h1 must be unchanged.
+2. Exactly 160 firing intervals must be present.
+3. Every interval must be either:
+   - a complete miss with no ORG or strength loss, or
+   - a coherent hit where both ORG and strength change in the same interval and each falls inside one of the predeclared 50%-scaled support bands.
+4. Any mixed-channel interval or support violation => `combined-armored-damage-mismatch`.
+5. With one defended point and a 10% defended hit chance, the hit count uses the same frozen central 99% Binomial(160,0.10) acceptance region as O19: **7 through 26 inclusive**.
+6. If support/coherence is perfect and hit count is 7..26, action = `combined-armored-damage-coherent`.
+7. Otherwise action = `combined-armored-damage-mismatch`.
+8. No adaptive extension and no post-result support/tolerance changes.
+
+Required live panel before acceptance:
+
+- GER Soft Attack **20.0**
+- POL Defense **10.0**
+- GER Piercing **9.0**
+- GER Armor **20.0**
+- POL Piercing **4.0**
+- POL Armor **20.0**
+- UI indicates GER deals **50% damage through POL armor**
+- UI indicates POL cannot pierce GER armor
+
+A passing O24 would close the planned armor/piercing validation family by establishing composition of the normal defended hit gate, armored organization die, ordinary strength die, executable 0.9 strength scalar, and 50% piercing damage factor in one controlled battle.
+
+Implementation files:
+
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o24_combined_armored.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/defines/zz_oracle_o24_defines.lua`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/dynamic_modifiers/oracle_o24_dynamic_modifiers.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o24_combined_armored_trial.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/events/oracle_o24_events.txt`
+- `scripts/oracle-o24-trial161.mjs`
+- `scripts/oracle-o24-assess.mjs`
+- `tests/oracle-o24-harness.test.mjs`
+- `tests/oracle-o24-parser-assess.test.mjs`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

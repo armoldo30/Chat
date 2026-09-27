@@ -91,3 +91,25 @@
 
 .hoi4-modeled-icon:focus-visible .hoi-model-icon .hoi-model-plate,
 button:focus-visible .hoi4-modeled-icon .hoi-model-icon .hoi-model-plate{stroke:#e1c878;stroke-width:1.65}
+
+
+/* Shared small-symbol treatment: nav, battlefield, doctrine and stat icons. */
+.ui-symbol-icon{
+  display:block;width:100%;height:100%;
+  fill:none;stroke:currentColor;stroke-width:2.05;
+  stroke-linecap:round;stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.42))
+}
+.nav-visual-icon .ui-symbol-icon,
+.battlefield-gauge-icon .ui-symbol-icon,
+.stat-visual-icon .ui-symbol-icon,
+.mio-node-icon .ui-symbol-icon{
+  opacity:.96
+}
+.nav-visual-icon,
+.battlefield-gauge-icon,
+.stat-visual-icon{
+  border-color:rgba(171,160,116,.42)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 1px 2px rgba(0,0,0,.28)
+}

@@ -2,6 +2,8 @@
 .hoi-model-icon{
   --hoi-accent:#b7aa79;
   --hoi-fill:#b8bba4;
+  --hoi-plate:#141914;
+  --hoi-inner:#20261f;
   display:block;width:100%;height:100%;overflow:visible
 }
 .hoi-model-icon.hoi-model-unit{--hoi-accent:#879b74;--hoi-fill:#aeb99b}
@@ -15,15 +17,19 @@
 .hoi-model-icon.hoi-model-air-module{--hoi-accent:#7f94a1}
 .hoi-model-icon.hoi-model-module{--hoi-accent:#9b9478}
 
-.hoi-model-icon .hoi-model-plate{fill:#141914;stroke:var(--hoi-accent);stroke-width:1.15}
-.hoi-model-icon .hoi-model-inner{fill:#20261f;stroke:#3b4337;stroke-width:.8}
-.hoi-model-icon .hoi-model-accent{fill:none;stroke:var(--hoi-accent);stroke-width:1.7;stroke-linecap:round;opacity:.86}
-.hoi-model-icon .hoi-fill,.hoi-model-icon .hoi-hull{fill:var(--hoi-fill);stroke:#e6dfc3;stroke-width:.72;stroke-linejoin:round}
+.hoi-model-icon .hoi-model-shadow{fill:#070a07;opacity:.72}
+.hoi-model-icon .hoi-model-plate{fill:var(--hoi-plate);stroke:var(--hoi-accent);stroke-width:1.25}
+.hoi-model-icon .hoi-model-inner{fill:var(--hoi-inner);stroke:#465044;stroke-width:.85}
+.hoi-model-icon .hoi-model-accent{fill:none;stroke:var(--hoi-accent);stroke-width:1.85;stroke-linecap:round;opacity:.95}
+.hoi-model-icon .hoi-model-corners{fill:none;stroke:var(--hoi-accent);stroke-width:.75;stroke-linecap:square;opacity:.52}
+.hoi-model-icon .hoi-model-footer{fill:none;stroke:var(--hoi-accent);stroke-width:.7;stroke-linecap:round;opacity:.35}
+.hoi-model-icon .hoi-model-glyph{transform-box:view-box;transform-origin:24px 24px;transform:scale(1.045)}
+.hoi-model-icon .hoi-fill,.hoi-model-icon .hoi-hull{fill:var(--hoi-fill);stroke:#f0e7c7;stroke-width:.82;stroke-linejoin:round}
 .hoi-model-icon .hoi-track{fill:#4b5348;stroke:#aaa98f;stroke-width:.82}
 .hoi-model-icon .hoi-wheel{fill:#1b211c;stroke:#c8c3a5;stroke-width:.78}
-.hoi-model-icon .hoi-detail{fill:none;stroke:#efe7c9;stroke-width:1.18;stroke-linecap:round;stroke-linejoin:round}
+.hoi-model-icon .hoi-detail{fill:none;stroke:#f3ecd2;stroke-width:1.25;stroke-linecap:round;stroke-linejoin:round}
 .hoi-model-icon .hoi-detail-fill{fill:#efe7c9;stroke:none}
-.hoi-model-icon .hoi-barrel,.hoi-model-icon .hoi-weapon{fill:none;stroke:#eee5c6;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.hoi-model-icon .hoi-barrel,.hoi-model-icon .hoi-weapon{fill:none;stroke:#f4ebcb;stroke-width:2.35;stroke-linecap:round;stroke-linejoin:round}
 .hoi-model-icon .hoi-cut{fill:#171c17;stroke:#d8d0b2;stroke-width:.85}
 .hoi-model-icon .hoi-water{fill:none;stroke:#8fa9b0;stroke-width:1.3;stroke-linecap:round}
 .hoi-model-icon .hoi-flame{fill:none;stroke:#d6ae70;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -39,10 +45,10 @@
 .visual-option.selected .hoi-model-icon .hoi-model-accent,.designer-visual-tab.active .hoi-model-icon .hoi-model-accent{stroke:#dec77d}
 .visual-option.selected .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-hull{fill:#c8c5aa}
 
-.visual-trigger-icon,.visual-option-icon{width:44px!important;height:44px!important}
-.visual-trigger-icon svg,.visual-option-icon svg{width:42px!important;height:42px!important}
-.designer-tab-icon svg{width:36px!important;height:36px!important}
-.tank-silhouette-icon svg{width:60px!important;height:40px!important}
+.visual-trigger-icon,.visual-option-icon{width:48px!important;height:48px!important}
+.visual-trigger-icon svg,.visual-option-icon svg{width:46px!important;height:46px!important}
+.designer-tab-icon svg{width:38px!important;height:38px!important}
+.tank-silhouette-icon svg{width:66px!important;height:44px!important}
 
 @media(max-width:720px){
   .visual-trigger-icon,.visual-option-icon{width:40px!important;height:40px!important}
@@ -51,4 +57,59 @@
   .hoi-model-icon .hoi-detail{stroke-width:1.3}
   .hoi-model-icon .hoi-barrel,.hoi-model-icon .hoi-weapon{stroke-width:2.35}
   .hoi-model-icon .hoi-stage-badge text{font-size:6.8px}
+}
+
+
+/* Semantic palette: muted military families, not rainbow badges. */
+.hoi4-infantry .hoi-model-icon{--hoi-accent:#91a879;--hoi-fill:#b9c4a6;--hoi-plate:#121912;--hoi-inner:#1d271c}
+.hoi4-motorized .hoi-model-icon,.hoi4-mechanized .hoi-model-icon,.hoi4-logistics .hoi-model-icon{--hoi-accent:#9b9d78;--hoi-fill:#c1bfa2}
+.hoi4-mountaineer .hoi-model-icon{--hoi-accent:#a99b82;--hoi-fill:#c7bca8}
+.hoi4-marine .hoi-model-icon{--hoi-accent:#72a09a;--hoi-fill:#a9c4bd}
+.hoi4-paratrooper .hoi-model-icon{--hoi-accent:#829caf;--hoi-fill:#b0c0cc}
+.hoi4-cavalry .hoi-model-icon{--hoi-accent:#a58f72;--hoi-fill:#c4b198}
+
+.hoi4-artillery .hoi-model-icon,.hoi4-support_artillery .hoi-model-icon,.hoi4-rocket_artillery .hoi-model-icon{--hoi-accent:#b78565;--hoi-fill:#c9a58d;--hoi-plate:#1b1511;--hoi-inner:#271d17}
+.hoi4-antitank .hoi-model-icon,.hoi4-anti_tank .hoi-model-icon,.hoi4-support_at .hoi-model-icon{--hoi-accent:#b77564;--hoi-fill:#c89b8d;--hoi-plate:#1b1210;--hoi-inner:#281916}
+.hoi4-antiair .hoi-model-icon,.hoi4-anti_air .hoi-model-icon,.hoi4-support_aa .hoi-model-icon{--hoi-accent:#779bb5;--hoi-fill:#adc0cf;--hoi-plate:#111820;--hoi-inner:#18242d}
+
+.hoi4-engineer .hoi-model-icon,.hoi4-recon .hoi-model-icon,.hoi4-signal .hoi-model-icon,.hoi4-maintenance .hoi-model-icon,.hoi4-hospital .hoi-model-icon,.hoi4-military_police .hoi-model-icon{--hoi-accent:#b2a76f;--hoi-fill:#c8c2a4;--hoi-plate:#18170f;--hoi-inner:#242318}
+
+.hoi4-light_tank .hoi-model-icon{--hoi-accent:#7faaa3;--hoi-fill:#a9c4bb}
+.hoi4-medium_tank .hoi-model-icon,.hoi4-modern_tank .hoi-model-icon{--hoi-accent:#789b95;--hoi-fill:#a8beb7}
+.hoi4-heavy_tank .hoi-model-icon,.hoi4-superheavy_tank .hoi-model-icon,.hoi4-land_cruiser .hoi-model-icon{--hoi-accent:#6e8784;--hoi-fill:#9faeaa}
+.hoi4-tank_destroyer .hoi-model-icon{--hoi-accent:#9b8074;--hoi-fill:#bdaba3}
+.hoi4-spg .hoi-model-icon{--hoi-accent:#9f866d;--hoi-fill:#c0aa92}
+.hoi4-spaa .hoi-model-icon{--hoi-accent:#728ea1;--hoi-fill:#a7bbc7}
+.hoi4-flame_tank .hoi-model-icon{--hoi-accent:#b38b62;--hoi-fill:#c9ad8b}
+
+.hoi4-fighter .hoi-model-icon,.hoi4-airframe_small .hoi-model-icon{--hoi-accent:#7797ae;--hoi-fill:#a9bdca}
+.hoi4-cas .hoi-model-icon{--hoi-accent:#8b8f77;--hoi-fill:#b7b9a1}
+.hoi4-naval_bomber .hoi-model-icon{--hoi-accent:#6f9aa5;--hoi-fill:#a6c1c6}
+.hoi4-tactical_bomber .hoi-model-icon,.hoi4-airframe_medium .hoi-model-icon{--hoi-accent:#7e8fa6;--hoi-fill:#afb9c8}
+.hoi4-strategic_bomber .hoi-model-icon,.hoi4-airframe_large .hoi-model-icon{--hoi-accent:#777f96;--hoi-fill:#a9afc0}
+.hoi4-scout_air .hoi-model-icon{--hoi-accent:#8ca38d;--hoi-fill:#b7c6b7}
+
+.hoi4-modeled-icon:focus-visible .hoi-model-icon .hoi-model-plate,
+button:focus-visible .hoi4-modeled-icon .hoi-model-icon .hoi-model-plate{stroke:#e1c878;stroke-width:1.65}
+
+
+/* Shared small-symbol treatment: nav, battlefield, doctrine and stat icons. */
+.ui-symbol-icon{
+  display:block;width:100%;height:100%;
+  fill:none;stroke:currentColor;stroke-width:2.05;
+  stroke-linecap:round;stroke-linejoin:round;
+  vector-effect:non-scaling-stroke;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.42))
+}
+.nav-visual-icon .ui-symbol-icon,
+.battlefield-gauge-icon .ui-symbol-icon,
+.stat-visual-icon .ui-symbol-icon,
+.mio-node-icon .ui-symbol-icon{
+  opacity:.96
+}
+.nav-visual-icon,
+.battlefield-gauge-icon,
+.stat-visual-icon{
+  border-color:rgba(171,160,116,.42)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 1px 2px rgba(0,0,0,.28)
 }

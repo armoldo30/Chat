@@ -4,7 +4,7 @@ import {COMBAT_CONSTANTS,MODEL_META} from '../src/data.js';
 import ORACLE_COMBAT_1193 from '../src/builtin1193/oracle-combat-certification-1193.js';
 import {damageDiceProfile,piercingDamageFactor} from '../src/engine.js';
 
-assert.equal(MODEL_META.appVersion,'0.17.19');
+assert.equal(MODEL_META.appVersion,'0.17.20');
 assert.match(MODEL_META.confidence,/armor\/piercing.*Oracle-validated through O25/);
 
 assert.deepEqual(COMBAT_CONSTANTS.piercingThresholds,[1,0.75,0.5,0]);

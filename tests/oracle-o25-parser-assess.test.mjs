@@ -27,10 +27,10 @@ const p={
  polPiercingDisplayed:4,polPiercingTooltip:4,polArmorDisplayed:20,polArmorTooltip:20
 };
 const ok=assessO25({batch:parseO25Batch(run()),panel:p});
-assert.equal(ok.action,'combined-armored-damage-coherent');
+assert.equal(ok.action,'combined-armored-hires-coherent');
 assert.equal(ok.counts.hit,16);
 assert.equal(ok.counts.mixedChannel,0);
 assert.equal(ok.counts.supportViolation,0);
 const few=assessO25({batch:parseO25Batch(run(new Set([10,20,30]))),panel:p});
-assert.equal(few.action,'combined-armored-damage-mismatch');
+assert.equal(few.action,'combined-armored-hires-mismatch');
 console.log('Oracle O25 parser/assessment regression passed.');

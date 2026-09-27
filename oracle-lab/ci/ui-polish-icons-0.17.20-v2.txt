@@ -1,0 +1,3 @@
+Temporary exact-head RC trigger for corrected 0.17.20 UI polish.
+Source head: 4d2281827f7c7d2e7cdddda877b6d18f67d965c6
+Do not merge this launch-candidate branch.

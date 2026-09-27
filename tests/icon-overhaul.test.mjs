@@ -27,7 +27,14 @@ assert.match(modelRuntime,/data-tank-class/,'model runtime should replace tank-f
 assert.match(modelCss,/hoi-model-plate/,'model icons should use stamped equipment plates');
 assert.match(modelCss,/hoi-model-accent/,'modeled icons should share a category accent system');
 assert.match(modelCss,/hoi-model-unit/,'division icons should receive unit-specific plate styling');
+assert.match(modelCss,/Semantic palette/,'modeled icons should use semantic military-family palettes');
+assert.match(modelCss,/hoi4-artillery/,'artillery should have a distinct semantic palette');
+assert.match(modelCss,/hoi4-antiair/,'anti-air should have a distinct semantic palette');
+assert.match(modelCss,/hoi4-mountaineer/,'special forces should have distinct semantic palettes');
 assert.match(modelIcons,/hoi-stage-badge/,'modeled tier differences should use explicit stage badges');
+assert.match(modelIcons,/hoi-model-corners/,'modeled icons should use the stronger framed plate treatment');
+assert.match(modelIcons,/hoi-model-glyph/,'modeled silhouettes should render in a shared scalable glyph layer');
+assert.match(modelRuntime,/startsWith\('hoi4-'\)/,'runtime should clear stale semantic icon classes when selections change');
 assert.doesNotMatch(modelIcons,/hoi-id-rivet|identityMark/,'modeled icons should not use pseudo-random identity decoration');
 
 const tankIds=[

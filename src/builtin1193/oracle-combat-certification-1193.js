@@ -237,6 +237,27 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'combined-normal-damage-coherent',
       interpretation:'The defended hit gate, ordinary ORG die, validated 0.9 strength scale, and ordinary strength die compose coherently across 160 controlled intervals with no mixed-channel or support violation.'
     }),
+    armoredOrganizationDieEvidence:Object.freeze({
+      status:'oracle-validated',
+      boundary:'controlled O23 unpierced-armored-attacker one-defended-hit organization-damage boundary at Soft Attack 20 and Defense 10',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      attackerArmor:20,
+      attackerPiercing:20,
+      defenderArmor:20,
+      defenderPiercing:4,
+      trials:120,
+      dieCounts:Object.freeze({one:20,two:18,three:22,four:22,five:18,six:20}),
+      zeroDamageIntervals:0,
+      outOfSupportIntervals:0,
+      expectedProbabilities:Object.freeze({one:1/6,two:1/6,three:1/6,four:1/6,five:1/6,six:1/6}),
+      pearsonChiSquare:0.8,
+      criticalValue1PctDf5:15.086272,
+      action:'armored-org-die-uniform-1-through-6-supported',
+      interpretation:'At the controlled unpierced-armored-attacker boundary, all 120 organization-damage outcomes fall in the 1-through-6 support and the 20/18/22/22/18/20 distribution is compatible with a uniform six-sided integer die.'
+    }),
     piercingDamageTierEvidence:Object.freeze({
       status:'oracle-validated',
       boundary:'controlled O22 deterministic organization-damage sweep at Armor 20 with Piercing 20/15/14/10/9',
@@ -270,14 +291,14 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'normal-hit-transport-defense18-supported',
       interpretation:'The validated attack-point law, bounded stochastic Defense/10 rounding, and normal 10% defended / 40% undefended hit gates transport coherently to the independently validated Defense-18 boundary.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; O19 validates coherent combined normal damage at the 20/10 boundary; O20 transports the validated point-partition plus both normal hit gates to Defense 18; and O22 validates the retained piercing damage-tier factors at controlled Armor 20. Within these controlled boundaries, the ordinary resolver plus piercing damage reduction is executable-supported.'
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; O19 validates coherent combined normal damage at the 20/10 boundary; O20 transports the validated point-partition plus both normal hit gates to Defense 18; O22 validates the retained piercing damage-tier factors at controlled Armor 20; and O23 validates the unpierced armored attacker organization die as UniformInteger(1,6). Within these controlled boundaries, the ordinary resolver plus the main isolated armor/piercing mechanisms are executable-supported.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
     'does not establish the defense split outside the controlled O11/O12/O13 Defense-10/12/18 defended-only boundaries',
     'normal defended and undefended hit gates are validated only at the controlled O14/O15/O20 boundaries',
     'organization and strength dice are validated only at controlled O16/O18 boundaries; O19 establishes combined normal-damage coherence at the controlled 20/10 boundary',
-    'piercing damage-tier factors are validated only at the controlled O22 Armor-20 boundaries; armored-on-soft offensive damage dice and other special-case armor behavior remain unvalidated unless separately tested',
+    'piercing damage-tier factors are validated only at the controlled O22 Armor-20 boundaries and the armored-on-soft organization die only at the controlled O23 unpierced-attacker boundary; combined armored combat remains unvalidated unless separately tested',
     'does not validate tactic execution outside the neutralized O1 harness',
     'does not establish bit-for-bit hoi4.exe parity'
   ])

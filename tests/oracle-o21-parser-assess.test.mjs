@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {parseO21,assessO21} from '../scripts/oracle-o21-assess.mjs';
 
-const log='WPO21 STATUS state=prepared schema=1 scenario=o21-armor-piercing-injection-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=manual-panel-calibration tacticMode=not-applicable baseline=perfect-baseline-ready expectedGERPiercing=20.0 expectedPOLArmor=20.0 sourceBaselinePiercing=4 armorDelta=20 piercingDelta=16 techsPresent=yes';
+const log='WPO21 STATUS state=prepared schema=1 scenario=o21-armor-piercing-injection-v2 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=manual-panel-calibration tacticMode=not-applicable baseline=perfect-baseline-ready expectedGERPiercing=20.0 expectedPOLArmor=20.0 sourceBaselinePiercing=4 piercingFactor=4 armorSource=equipment-override-20 techPresent=yes';
 const parsed=parseO21(log);
 assert.equal(parsed.statuses.length,1);
 assert.equal(parsed.statuses[0].state,'prepared');

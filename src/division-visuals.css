@@ -1,22 +1,29 @@
 /* Picture-first division-template symbols, now using the shared stamped model plates. */
-.picture-unit-symbol{display:grid!important;place-items:center!important;width:38px!important;height:38px!important;margin:0 auto 3px!important;color:#c9c2a5!important}
-.picture-unit-symbol svg,.division-unit-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.picture-unit-symbol{display:grid!important;place-items:center!important;width:44px!important;height:44px!important;margin:0 auto 4px!important;color:#c9c2a5!important}
+.picture-unit-symbol svg,.division-unit-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
 .picture-unit-symbol.armor,.division-unit-icon.armor{color:#9ab0ae!important}
 .picture-unit-symbol.artillery,.division-unit-icon.artillery{color:#c59579!important}
 .picture-unit-symbol.antitank,.division-unit-icon.antitank{color:#c8906f!important}
 .picture-unit-symbol.antiair,.division-unit-icon.antiair{color:#98aeca!important}
 .picture-unit-symbol.support,.division-unit-icon.support{color:#aaa989!important}
 .picture-unit-symbol.infantry,.division-unit-icon.infantry{color:#9bb18a!important}
-.picture-picker-choice{min-height:118px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:5px!important}
+.picture-picker-choice{min-height:124px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important}
 .picture-picker-choice> b{font-size:.5rem!important;color:#8f9380!important}
-.division-unit-icon{width:54px;height:54px;display:grid;place-items:center;color:#b9b39a;background:transparent;border:0;border-radius:4px}
-.division-unit-icon svg{width:50px;height:50px}
+.division-unit-icon{width:62px;height:62px;display:grid;place-items:center;color:#b9b39a;background:transparent;border:0;border-radius:4px}
+.division-unit-icon svg{width:58px;height:58px}
 .picture-picker-choice small{font-size:.62rem!important;line-height:1.15!important;text-align:center}
-.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled{min-height:76px!important}
-.hoi-battalion-slot.filled small,.regimental-support.filled small,.hoi-support-slot.filled small{font-size:.5rem!important;line-height:1.05!important}
+.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled{min-height:82px!important}
+.hoi-battalion-slot.filled small,.regimental-support.filled small,.hoi-support-slot.filled small{font-size:.51rem!important;line-height:1.08!important;color:#c3c5b7!important}
 @media(max-width:720px){
-  .picture-unit-symbol{width:32px!important;height:32px!important}
-  .division-unit-icon{width:48px;height:48px}
-  .division-unit-icon svg{width:44px;height:44px}
-  .picture-picker-choice{min-height:102px!important}
+  .picture-unit-symbol{width:36px!important;height:36px!important}
+  .division-unit-icon{width:52px;height:52px}
+  .division-unit-icon svg{width:48px;height:48px}
+  .picture-picker-choice{min-height:108px!important}
 }
+
+
+.division-counter.hoi4-modeled-icon{
+  width:48px!important;height:48px!important;display:grid!important;place-items:center!important;
+  padding:0!important;background:transparent!important;border:0!important;color:inherit!important;overflow:visible!important
+}
+.division-counter.hoi4-modeled-icon .hoi-model-icon{width:46px!important;height:46px!important}

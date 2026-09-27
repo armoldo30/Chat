@@ -1,0 +1,10 @@
+technologies = {
+    # O25: identical combat stat setup to O24; only measurement precision changes.
+    oracle_o25_p9 = {
+        category_all_infantry = { ap_attack = 1.25 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+}

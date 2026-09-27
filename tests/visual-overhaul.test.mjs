@@ -28,7 +28,7 @@ const distinctSamples=[
   ['bogie','Bogie Suspension','armor'],['christie','Christie Suspension','armor'],['torsion','Torsion Bar','armor'],['interleaved','Interleaved Roadwheels','armor'],
   ['riveted','Riveted Armor','armor'],['welded','Welded Armor','armor'],['cast','Cast Armor','armor'],
   ['gasoline','Gasoline Engine','armor'],['diesel','Diesel Engine','armor'],['petrol_electric','Petrol-Electric Engine','armor'],
-  ['engine_1_1x','Engine I ×1','air'],['engine_2_1x','Engine II ×1','air'],['engine_2_2x','Engine II ×2','air'],
+  ['engine_1_1x','Engine I ×1','air'],['engine_2_1x','Engine II ×1','air'],
   ['light_mg_2x','2× Light Machine Guns','air'],['heavy_mg_2x','2× Heavy Machine Guns','air'],['aircraft_cannon_1_1x','Cannon I','air'],
   ['bomb_locks','Bomb Locks','air'],['medium_bomb_bay','Medium Bomb Bay','air'],['torpedo_mounting','Torpedo Mounting','air'],
   ['recon_camera','Recon Camera','air'],['radio_navigation_1','Radio Navigation','air'],['drop_tanks','Drop Tanks','air'],['self_sealing_fuel_tanks_small','Self-Sealing Fuel Tanks','air']
@@ -80,7 +80,8 @@ assert.match(designer,/\[data-tank-role\]/,'tank role tabs should gain pictogram
 assert.match(designer,/\.aircraft-role span/,'aircraft role tags should gain pictograms');
 assert.match(designer,/itemIconSvg/,'equipment designers should use item-specific pictograms');
 assert.doesNotMatch(designer,/engine\.js|simulateBattle|calcDivision/,'designer visual layer must remain UI-only');
-assert.match(itemIcons,/icon-signature/,'item icons should include deterministic per-id identity marks');
+assert.match(itemIcons,/icon-tier-badge/,'item icons should expose meaningful tier badges');
+assert.doesNotMatch(itemIcons,/icon-signature/,'generated per-id signature marks should stay retired');
 assert.match(designerCss,/designer-visual-tab/);
 assert.match(designerCss,/air-role-visual/);
 assert.match(css,/visual-picker-grid/);

@@ -15,20 +15,20 @@ const stageOf=(value,label='')=>{
   const x=s.match(/(?:^|[_\s-])(\d+)(?:x|\b|$)/);if(x)return Math.max(1,Math.min(9,+x[1]||1));
   if(/\biv\b|advanced/.test(s))return 4;if(/\biii\b/.test(s))return 3;if(/\bii\b|improved/.test(s))return 2;if(/\bi\b|basic/.test(s))return 1;return 0;
 };
-const hash32=s=>{let h=2166136261;for(const c of String(s||'')){h^=c.charCodeAt(0);h=Math.imul(h,16777619)>>>0;}return h>>>0;};
 const inner=markup=>String(markup||'').replace(/^<svg[^>]*>/,'').replace(/<\/svg>$/,'');
 
-function identityMark(seed,stage=0){
-  const h=hash32(seed),roman=['','I','II','III','IV','V','VI','VII','VIII','IX'][stage]||'';
-  const dots=[0,1,2].map(i=>{const x=7+(((h>>>(i*4))&7)*4.6),y=42-(((h>>>(i*5+3))&1)*3);return `<circle class="hoi-id-rivet" cx="${x.toFixed(1)}" cy="${y}" r="1.1"/>`;}).join('');
-  return `${dots}${roman?`<text class="hoi-stage" x="41" y="10" text-anchor="end">${roman}</text>`:''}`;
+function stageBadge(stage=0){
+  const roman=['','I','II','III','IV','V','VI','VII','VIII','IX'][stage]||'';
+  if(!roman)return '';
+  return `<g class="hoi-stage-badge"><rect x="35" y="5" width="8" height="9" rx="1.4"/><text x="39" y="11.4" text-anchor="middle">${roman}</text></g>`;
 }
 
 function plate(body,seed,kind,stage=0){
   return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-model-${kind}" data-icon-id="${esc(norm(seed))}">
-    <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="43" rx="2.5"/>
-    <path class="hoi-model-bevel" d="M5 7h38M5 41h38M7 5v38M41 5v38"/>
-    ${body}${identityMark(seed,stage)}
+    <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="43" rx="3"/>
+    <rect class="hoi-model-inner" x="5" y="5" width="38" height="38" rx="2"/>
+    <path class="hoi-model-accent" d="M7 7h34"/>
+    ${body}${stageBadge(stage)}
   </svg>`;
 }
 
@@ -67,9 +67,20 @@ function airBody(key){
 }
 
 function gunBody(key,stage){
-  const heavy=/heavy|howitzer/.test(key),hv=/velocity/.test(key),aa=/antiair|anti_air/.test(key),mg=/mg|machine/.test(key);
-  const barrel=hv?45:heavy?42:40,width=mg?3:heavy?6:4;
-  return `<path class="hoi-fill" d="M8 30h18l6-6h7v7l-8 7H8z"/><rect class="hoi-fill" x="13" y="18" width="${width+7}" height="11" rx="1"/><path class="hoi-barrel" d="M${20+width} 22 ${barrel} ${aa?9:heavy?13:17}"/>${aa?'<path class="hoi-barrel" d="M24 22 34 8"/>':''}<circle class="hoi-wheel" cx="15" cy="37" r="4"/><circle class="hoi-wheel" cx="29" cy="37" r="4"/><path class="hoi-detail" d="M10 42h24"/>`;
+  if(/rocket/.test(key)){
+    return '<path class="hoi-track" d="M7 32h27v7H7z"/><circle class="hoi-wheel" cx="13" cy="39" r="3"/><circle class="hoi-wheel" cx="29" cy="39" r="3"/><path class="hoi-fill" d="M10 28h22l7-13 3 2-7 14H10z"/><path class="hoi-weapon" d="M20 25 32 10M25 27 37 12M30 29 42 14"/>';
+  }
+  if(/antiair|anti_air|aa_gun/.test(key)){
+    return '<path class="hoi-fill" d="M8 31h24l4 5H8z"/><circle class="hoi-wheel" cx="14" cy="38" r="4"/><circle class="hoi-wheel" cx="29" cy="38" r="4"/><path class="hoi-barrel" d="M19 28 25 9M25 28 34 10"/><path class="hoi-detail" d="M12 29h17M23 13h12"/>';
+  }
+  if(/antitank|anti_tank|velocity/.test(key)){
+    return '<path class="hoi-fill" d="M7 31h23l6 4H7z"/><circle class="hoi-wheel" cx="14" cy="37" r="4"/><circle class="hoi-wheel" cx="29" cy="37" r="4"/><path class="hoi-barrel" d="M22 27 45 16"/><path class="hoi-detail" d="M10 28h17M34 14l8 5"/>';
+  }
+  if(/mg|machine/.test(key)){
+    return '<path class="hoi-fill" d="M8 29h23l8-5v6l-7 6H8z"/><rect class="hoi-fill" x="13" y="17" width="8" height="11" rx="1"/><path class="hoi-barrel" d="M21 22 43 17"/><path class="hoi-detail" d="M12 39h23"/>';
+  }
+  const heavy=/heavy|howitzer|artillery/.test(key);
+  return `<path class="hoi-fill" d="M8 30h18l6-7h7v7l-8 7H8z"/><rect class="hoi-fill" x="13" y="${heavy?17:18}" width="${heavy?14:11}" height="${heavy?12:10}" rx="1"/><path class="hoi-barrel" d="M${heavy?25:22} 22 ${heavy?43:41} ${heavy?12:16}"/><circle class="hoi-wheel" cx="15" cy="37" r="${heavy?4.5:4}"/><circle class="hoi-wheel" cx="30" cy="37" r="${heavy?4.5:4}"/><path class="hoi-detail" d="M9 42h25"/>`;
 }
 
 function turretBody(key){
@@ -112,13 +123,23 @@ function airModuleBody(key){
 }
 
 function supportBody(key){
-  if(key==='infantry')return '<circle class="hoi-fill" cx="17" cy="10" r="4"/><path class="hoi-detail" d="M17 14v15M17 20l-7 7M17 20l8 7M17 29l-6 12M17 29l8 12M30 10l8 33"/>';
-  if(key==='motorized'||key==='logistics')return '<path class="hoi-fill" d="M5 19h25v15H5zM30 24h7l6 6v4H30z"/><circle class="hoi-wheel" cx="13" cy="37" r="4"/><circle class="hoi-wheel" cx="35" cy="37" r="4"/><path class="hoi-detail" d="M10 24h12"/>';
-  if(key==='mechanized')return '<path class="hoi-fill" d="M5 20h30l8 8v7H5zM11 20l5-7h14l6 7"/><path class="hoi-track" d="M7 34h34v7H7z"/>${wheels([12,20,28,36],37,2.6)}';
+  if(key==='infantry')return '<circle class="hoi-fill" cx="17" cy="10" r="4"/><path class="hoi-detail" d="M17 14v15M17 20l-7 7M17 20l8 7M17 29l-6 12M17 29l8 12"/><path class="hoi-weapon" d="M30 10l8 33"/>';
+  if(key==='cavalry')return '<path class="hoi-fill" d="M10 34c6-3 10-9 13-17 4 5 8 7 13 7l5 7-8 10M14 34l-4 8M27 32l3 10"/><circle class="hoi-fill" cx="13" cy="11" r="3"/><path class="hoi-detail" d="M20 17l-4-7M28 18l5-5"/>';
+  if(key==='motorized'||key==='logistics')return '<path class="hoi-fill" d="M5 19h25v15H5zM30 24h7l6 6v4H30z"/><circle class="hoi-wheel" cx="13" cy="37" r="4"/><circle class="hoi-wheel" cx="35" cy="37" r="4"/><path class="hoi-detail" d="M10 24h12M18 19v15"/>';
+  if(key==='mechanized')return `<path class="hoi-fill" d="M5 20h30l8 8v7H5zM11 20l5-7h14l6 7"/><path class="hoi-track" d="M7 34h34v7H7z"/>${wheels([12,20,28,36],37,2.6)}`;
   if(key==='mountaineer')return '<path class="hoi-fill" d="M4 40 18 13l8 13 6-9 12 23z"/><path class="hoi-detail" d="M14 25l4 4 5-5M29 40l4-10 5 6"/>';
   if(key==='marine')return '<path class="hoi-detail" d="M24 7v28M16 15h16M12 35c5 8 19 8 24 0M8 31h9M31 31h9"/><circle class="hoi-fill" cx="24" cy="10" r="3"/>';
   if(key==='paratrooper')return '<path class="hoi-fill" d="M6 18c6-13 30-13 36 0-5-3-9-3-13 0-3-3-7-3-10 0-4-3-8-3-13 0z"/><path class="hoi-detail" d="M11 18l10 13M37 18 27 31M24 18v13"/><circle class="hoi-fill" cx="24" cy="35" r="3"/>';
-  if(key==='artillery'||key==='antitank'||key==='antiair')return gunBody(key,0);
+  if(key==='engineer')return '<path class="hoi-detail" d="M9 39 21 27M16 32l-6-6 6-6 6 6M27 11l10 10M31 8l9 9M24 29l14 13"/><circle class="hoi-fill" cx="15" cy="25" r="2.2"/>';
+  if(key==='recon')return '<circle class="hoi-fill" cx="20" cy="20" r="10"/><circle class="hoi-cut" cx="20" cy="20" r="6"/><path class="hoi-detail" d="M27 27l12 12M15 20h10M20 15v10"/>';
+  if(key==='signal')return '<path class="hoi-detail" d="M24 42V19M17 42h14M11 19c3-5 8-7 13-7s10 2 13 7M6 13C11 6 17 3 24 3s13 3 18 10"/><circle class="hoi-fill" cx="24" cy="19" r="3"/>';
+  if(key==='hospital')return '<rect class="hoi-fill" x="8" y="12" width="32" height="28" rx="2"/><path class="hoi-cut" d="M21 17h6v6h6v6h-6v6h-6v-6h-6v-6h6z"/>';
+  if(key==='maintenance')return '<path class="hoi-detail" d="M8 39 21 26M17 18l7 7M29 22l8-8 4 4-8 8M11 9l7 7-5 5-7-7z"/><circle class="hoi-fill" cx="30" cy="33" r="7"/><path class="hoi-cut" d="M30 29v8M26 33h8"/>';
+  if(key==='military_police')return '<path class="hoi-fill" d="M24 5 39 11v12c0 10-6 17-15 21C15 40 9 33 9 23V11z"/><path class="hoi-cut" d="M18 19h12M18 25h12M21 31h6"/>';
+  if(key==='rocket_artillery')return gunBody('rocket_artillery',0);
+  if(key==='artillery'||key==='support_artillery')return gunBody('artillery',0);
+  if(key==='antitank'||key==='anti_tank'||key==='support_at')return gunBody('antitank',0);
+  if(key==='antiair'||key==='anti_air'||key==='support_aa')return gunBody('antiair',0);
   return null;
 }
 

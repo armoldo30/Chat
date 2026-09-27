@@ -4,26 +4,31 @@ import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
 
-const [html,visual,designer,clarity,modelRuntime,modelCss]=await Promise.all([
+const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
   readFile(new URL('../src/visual-overhaul.js',import.meta.url),'utf8'),
   readFile(new URL('../src/designer-visuals.js',import.meta.url),'utf8'),
   readFile(new URL('../src/item-icon-clarity.css',import.meta.url),'utf8'),
   readFile(new URL('../src/hoi4-model-runtime.js',import.meta.url),'utf8'),
-  readFile(new URL('../src/hoi4-model-icons.css',import.meta.url),'utf8')
+  readFile(new URL('../src/hoi4-model-icons.css',import.meta.url),'utf8'),
+  readFile(new URL('../src/hoi4-model-icons.js',import.meta.url),'utf8')
 ]);
 
 assert.doesNotMatch(html,/src\/icon-overhaul\.js/,'legacy icon runtime must not override the current item-icon system');
-assert.match(html,/src\/item-icon-clarity\.css/,'item identity marks should be visible at runtime');
+assert.match(html,/src\/item-icon-clarity\.css/,'semantic tier badges should be styled at runtime');
 assert.match(html,/src\/hoi4-model-icons\.css/,'HOI4-style model icon skin should load');
 assert.match(html,/src\/hoi4-model-runtime\.js/,'HOI4-style model icon runtime should load');
 assert.match(visual,/sourceIconHint/,'visual pickers should use source-aware module hints');
 assert.match(visual,/itemIconSvg/,'visual pickers should retain the shared item-icon system under the model layer');
 assert.match(designer,/familyIconValue/,'tank family tabs should keep family-specific silhouettes');
-assert.match(clarity,/icon-signature/,'variant marks should be emphasized for phone-size icons');
+assert.match(clarity,/icon-tier-badge/,'meaningful tier badges should remain legible on phone-size icons');
 assert.match(modelRuntime,/visual-picker-trigger/,'model runtime should replace active designer trigger icons');
 assert.match(modelRuntime,/data-tank-class/,'model runtime should replace tank-family tabs');
 assert.match(modelCss,/hoi-model-plate/,'model icons should use stamped equipment plates');
+assert.match(modelCss,/hoi-model-accent/,'modeled icons should share a category accent system');
+assert.match(modelCss,/hoi-model-unit/,'division icons should receive unit-specific plate styling');
+assert.match(modelIcons,/hoi-stage-badge/,'modeled tier differences should use explicit stage badges');
+assert.doesNotMatch(modelIcons,/hoi-id-rivet|identityMark/,'modeled icons should not use pseudo-random identity decoration');
 
 const tankIds=[
   'tank_auto_cannon_2','tank_anti_air_cannon_3','tank_high_velocity_cannon_3','tank_medium_howitzer_2',

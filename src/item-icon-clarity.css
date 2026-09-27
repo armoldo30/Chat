@@ -1,22 +1,14 @@
-/* Make item-identity marks readable at phone sizes. */
-.visual-trigger-icon .icon-signature,
-.visual-option-icon .icon-signature,
-.designer-tab-icon .icon-signature,
-.tank-silhouette-icon .icon-signature,
-.air-role-visual .icon-signature,
-.division-unit-icon .icon-signature,
-.picture-unit-symbol .icon-signature{
-  stroke-width:3.25!important;
-  opacity:1!important;
-  stroke-linecap:round!important;
-}
+/* Meaningful tier badges replace the old generated identity marks. */
+.icon-tier-badge rect{fill:#bda96c;stroke:#171b16;stroke-width:.8}
+.icon-tier-badge text{fill:#171a15;font:800 6.4px/1 system-ui,sans-serif;letter-spacing:-.35px}
+.visual-trigger-icon .icon-tier-badge,
+.visual-option-icon .icon-tier-badge,
+.designer-tab-icon .icon-tier-badge,
+.tank-silhouette-icon .icon-tier-badge,
+.air-role-visual .icon-tier-badge,
+.division-unit-icon .icon-tier-badge,
+.picture-unit-symbol .icon-tier-badge{opacity:1}
 
 @media(max-width:720px){
-  .visual-trigger-icon .icon-signature,
-  .visual-option-icon .icon-signature,
-  .designer-tab-icon .icon-signature,
-  .tank-silhouette-icon .icon-signature,
-  .air-role-visual .icon-signature{
-    stroke-width:3.6!important;
-  }
+  .icon-tier-badge text{font-size:6.8px}
 }

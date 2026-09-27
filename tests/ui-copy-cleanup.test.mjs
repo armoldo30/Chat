@@ -9,10 +9,10 @@ const battlefield=readFileSync(new URL('../src/battlefield-visuals.js',import.me
 assert.doesNotMatch(html,/publisher-guide|QUICK GUIDE|What can I use this for\?/,'planner should not restore the lower-page Quick Guide block');
 assert.match(html,/site-legal-footer/,'compact legal/navigation footer must remain');
 assert.doesNotMatch(main,/attack axes/i,'battle-plan UI should not use attack-axis wording');
-assert.match(main,/Attack directions/,'battlefield controls should say Attack directions');
-assert.match(main,/Extra attack directions/,'front controls should say Extra attack directions');
+assert.match(main,/Attacking directions/,'battlefield controls should say Attacking directions');
+assert.match(main,/Extra attacking directions/,'front controls should say Extra attacking directions');
 assert.doesNotMatch(battlefield,/axis|axes/i,'enhanced battlefield controls should not use axis terminology');
-assert.match(battlefield,/Attack Directions/,'enhanced battlefield controls should say Attack Directions');
+assert.match(battlefield,/Attacking Directions/,'enhanced battlefield controls should say Attacking Directions');
 assert.match(battlefield,/Single direction/,'single-direction readout should use direction terminology');
 assert.doesNotMatch(publisherCss,/\.publisher-guide/,'retired lower-page guide styling should stay removed');
 

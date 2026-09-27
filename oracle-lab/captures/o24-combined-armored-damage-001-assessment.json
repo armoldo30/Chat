@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o24-combined-armored-damage-v1",
+  "evidenceStatus": "oracle-divergent",
+  "action": "combined-armored-damage-mismatch",
+  "predeclaredHitAcceptance": {
+    "min": 7,
+    "max": 26
+  },
+  "observedHitCount": 21,
+  "observedMissCount": 138,
+  "mixedChannelCount": 1,
+  "supportViolationCount": 0,
+  "hitCountInsideAcceptance": true,
+  "likelyDiagnosticTarget": "measurement-resolution",
+  "interpretation": "O24 fails its frozen rule because one interval has strict ORG loss but non-strict strength loss. The strength bisection14 brackets touch exactly, making the failure consistent with measurement-resolution ambiguity; this is not sufficient to alter the combat model post hoc. A separately predeclared higher-resolution repeat is required."
+}

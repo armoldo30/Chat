@@ -1,0 +1,3 @@
+Temporary exact-head RC trigger for methodology O25 hotfix.
+Source hotfix head: 18dc9627b4f5ee2506b146e9f76c94d25351f9b6
+Do not merge this launch-candidate branch.

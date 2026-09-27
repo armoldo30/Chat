@@ -237,6 +237,37 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'combined-normal-damage-coherent',
       interpretation:'The defended hit gate, ordinary ORG die, validated 0.9 strength scale, and ordinary strength die compose coherently across 160 controlled intervals with no mixed-channel or support violation.'
     }),
+    combinedArmoredDamageEvidence:Object.freeze({
+      status:'oracle-divergent',
+      boundary:'controlled O24 combined armored-damage composition at Soft Attack 20, Defense 10, attacker Armor 20/Piercing 9, defender Armor 20/Piercing 4, measured with bisection14',
+      displayedSoftAttack:20,
+      tooltipSoftAttack:20,
+      displayedDefense:10,
+      tooltipDefense:10,
+      attackerArmor:20,
+      attackerPiercing:9,
+      defenderArmor:20,
+      defenderPiercing:4,
+      expectedPiercingDamageFactor:0.5,
+      trials:160,
+      intervalCounts:Object.freeze({miss:138,hit:21,mixedChannel:1,supportViolation:0}),
+      orgDieCounts:Object.freeze({one:3,two:6,three:3,four:4,five:5,six:0}),
+      strengthDieCounts:Object.freeze({one:10,two:11}),
+      hitAcceptance:Object.freeze({min:7,max:26}),
+      mixedInterval:Object.freeze({
+        fromHour:43,
+        toHour:44,
+        orgLossPp:0.201,
+        strengthMidpointLossPp:0.0065,
+        priorStrengthLow:0.99797,
+        priorStrengthHigh:0.99804,
+        currentStrengthLow:0.99791,
+        currentStrengthHigh:0.99797
+      }),
+      action:'combined-armored-damage-mismatch',
+      diagnosticTarget:'measurement-resolution',
+      interpretation:'O24 fails the frozen combined-armored coherence rule because one interval has strict organization loss but non-strict strength loss. The bisection14 strength brackets touch exactly at 0.99797, so the mismatch is consistent with measurement-resolution ambiguity; no combat-model change is inferred without a separately predeclared higher-resolution confirmation.'
+    }),
     armoredOrganizationDieEvidence:Object.freeze({
       status:'oracle-validated',
       boundary:'controlled O23 unpierced-armored-attacker one-defended-hit organization-damage boundary at Soft Attack 20 and Defense 10',
@@ -291,14 +322,14 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       action:'normal-hit-transport-defense18-supported',
       interpretation:'The validated attack-point law, bounded stochastic Defense/10 rounding, and normal 10% defended / 40% undefended hit gates transport coherently to the independently validated Defense-18 boundary.'
     }),
-    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; O19 validates coherent combined normal damage at the 20/10 boundary; O20 transports the validated point-partition plus both normal hit gates to Defense 18; O22 validates the retained piercing damage-tier factors at controlled Armor 20; and O23 validates the unpierced armored attacker organization die as UniformInteger(1,6). Within these controlled boundaries, the ordinary resolver plus the main isolated armor/piercing mechanisms are executable-supported.'
+    interpretation:'O6 rejects the old single-Bernoulli attack support. O7 supports the wider total attack-point distribution. O11/O12/O13 narrowly validate defense-point stochastic rounding/bounding at Defense 10/12/18. O14/O15 validate the defended and undefended hit gates. O16 validates the ordinary unarmored ORG die; O17/O17v2 establish the additional 0.9 strength scale; O18 validates the ordinary unarmored strength die; O19 validates coherent combined normal damage at the 20/10 boundary; O20 transports the validated point-partition plus both normal hit gates to Defense 18; O22 validates the retained piercing damage-tier factors at controlled Armor 20; O23 validates the unpierced armored attacker organization die as UniformInteger(1,6); and O24 records a single bisection14 mixed-channel mismatch in the combined armored composition test. The isolated armor/piercing mechanisms remain executable-supported, while their combined composition requires the separately predeclared higher-resolution follow-up.'
   }),
   limitations:Object.freeze([
     'does not validate the wider attack-point law outside the controlled O7 range',
     'does not establish the defense split outside the controlled O11/O12/O13 Defense-10/12/18 defended-only boundaries',
     'normal defended and undefended hit gates are validated only at the controlled O14/O15/O20 boundaries',
     'organization and strength dice are validated only at controlled O16/O18 boundaries; O19 establishes combined normal-damage coherence at the controlled 20/10 boundary',
-    'piercing damage-tier factors are validated only at the controlled O22 Armor-20 boundaries and the armored-on-soft organization die only at the controlled O23 unpierced-attacker boundary; combined armored combat remains unvalidated unless separately tested',
+    'piercing damage-tier factors are validated only at the controlled O22 Armor-20 boundaries and the armored-on-soft organization die only at the controlled O23 unpierced-attacker boundary; O24 combined armored combat is oracle-divergent under the bisection14 strict-channel rule pending higher-resolution confirmation',
     'does not validate tactic execution outside the neutralized O1 harness',
     'does not establish bit-for-bit hoi4.exe parity'
   ])

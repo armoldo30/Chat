@@ -1,0 +1,34 @@
+# O21 armor/piercing stat-injection calibration.
+# Reuse the clean perfect-baseline save. Run before combat, then begin GER -> POL combat and read the panel.
+# Acceptance is manual and exact: GER Piercing 20.0, POL Armor 20.0.
+
+d_oracle_o21_prepare = {
+    GER = {
+        clr_country_flag = oracle_o21_prepared
+        set_technology = {
+            oracle_o21_piercing20 = 1
+            popup = no
+        }
+    }
+
+    POL = {
+        set_technology = {
+            oracle_o21_armor20 = 1
+            popup = no
+        }
+    }
+
+    GER = {
+        if = {
+            limit = {
+                has_tech = oracle_o21_piercing20
+                POL = { has_tech = oracle_o21_armor20 }
+            }
+            set_country_flag = oracle_o21_prepared
+            log = "WPO21 STATUS state=prepared schema=1 scenario=o21-armor-piercing-injection-v1 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=manual-panel-calibration tacticMode=not-applicable baseline=perfect-baseline-ready expectedGERPiercing=20.0 expectedPOLArmor=20.0 sourceBaselinePiercing=4 armorDelta=20 piercingDelta=16 techsPresent=yes"
+        }
+        else = {
+            log = "WPO21 STATUS state=prepare-failed schema=1 scenario=o21-armor-piercing-injection-v1 techsPresent=no"
+        }
+    }
+}

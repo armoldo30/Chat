@@ -4,7 +4,7 @@ import { COMBAT_EXECUTABLE_1192, COMBAT_ANALYTICAL_1192 } from './builtin1192/co
 import ORACLE_COMBAT_1193 from './builtin1193/oracle-combat-certification-1193.js';
 
 export const MODEL_META = {
-  appVersion: '0.17.19',
+  appVersion: '0.17.20',
   gameVersion: '1.19.3',
   label: 'Vanilla 1.19.3 bundled game-data baseline',
   confidence: 'Authoritative 1.19.3 game-file data; core ordinary 1v1 combat behavior, including controlled armor/piercing paths, Oracle-validated through O25',

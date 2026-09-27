@@ -1,0 +1,3 @@
+Temporary release-candidate trigger for final production armor/piercing port.
+Source production-port head: f1dff160d1ab2e16324a75a9c57ea068e37ed2a2
+Do not merge this launch-candidate branch.

@@ -71,6 +71,38 @@ export const ORACLE_COMBAT_1193=Object.freeze({
       o20GroupedCounts:Object.freeze({zero:121,one:36,twoPlus:3}),
       o20PearsonChiSquare:1.9033166318218089,
       o20CriticalValue1PctDf2:9.21034
+    }),
+    piercingDamageTiers:Object.freeze({
+      classification:'oracle-validated',
+      boundary:'controlled O22 Armor-20 sweep at Piercing 20/15/14/10/9',
+      expected:Object.freeze({p20:1.00,p15:0.80,p14:0.65,p10:0.65,p9:0.50}),
+      observed:Object.freeze({
+        p20:1.0000000000000000,
+        p15:0.7989238176154094,
+        p14:0.6505239308977617,
+        p10:0.6505239308977617,
+        p9:0.4984423676012485
+      }),
+      interpretation:'Executable damage follows the retained 100% / 80% / 65% / 65% / 50% piercing tier family at the tested Armor-20 boundaries.'
+    }),
+    armoredOrgDie:Object.freeze({
+      classification:'oracle-validated',
+      boundary:'controlled O23 unpierced armored attacker at Armor 20 vs defender Piercing 4',
+      support:'UniformInteger(1,6)',
+      dieCounts:Object.freeze({one:20,two:18,three:22,four:22,five:18,six:20}),
+      pearsonChiSquare:0.8,
+      criticalValue1PctDf5:15.086272
+    }),
+    combinedArmored:Object.freeze({
+      classification:'oracle-validated',
+      boundary:'controlled O25 combined armored composition with attacker Armor 20/Piercing 9 and defender Armor 20/Piercing 4',
+      trials:160,
+      intervalCounts:Object.freeze({miss:138,hit:22,mixedChannel:0,supportViolation:0}),
+      orgDieCounts:Object.freeze({one:3,two:6,three:3,four:5,five:5,six:0}),
+      strengthDieCounts:Object.freeze({one:11,two:11}),
+      hitAcceptance:Object.freeze({min:7,max:26}),
+      resolvesO24:'bisection14 observation-resolution artifact',
+      interpretation:'The validated defended hit gate, armored organization die, ordinary strength die, executable 0.9 strength scalar, and 50% piercing damage tier compose coherently at the tested boundary.'
     })
   }),
   limitations:Object.freeze([

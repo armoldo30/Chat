@@ -1,0 +1,146 @@
+# O22 piercing-damage tier sweep.
+# Same perfect baseline save; equipment override from O21 v2 gives both infantry divisions Armor 20.
+# Reload the clean save before every mode so only one hidden piercing technology is present.
+
+oracle_o22_log_attacker_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO22 ATTACKER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+oracle_o22_log_defender_divisions = {
+    every_country_division = {
+        oracle_o1_measure_division = yes
+        log = "WPO22 DEFENDER orgLow=[?oracle_org_low] orgHigh=[?oracle_org_high] strengthLow=[?oracle_strength_low] strengthHigh=[?oracle_strength_high]"
+    }
+}
+oracle_o22_capture_sample = {
+    log = "WPO22 SAMPLE hour=[?oracle_o22_hour]"
+    oracle_o22_log_attacker_divisions = yes
+    POL = { oracle_o22_log_defender_divisions = yes }
+}
+
+oracle_o22_apply_controls = {
+    GER = {
+        clr_country_flag = oracle_o22_prepared
+        clr_country_flag = oracle_o22_running
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o22_attack_target } }
+            remove_dynamic_modifier = { modifier = oracle_o22_attack_target }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o22_attack_target }
+        force_update_dynamic_modifier = yes
+    }
+    POL = {
+        if = {
+            limit = { has_dynamic_modifier = { modifier = oracle_o22_defender_control } }
+            remove_dynamic_modifier = { modifier = oracle_o22_defender_control }
+            force_update_dynamic_modifier = yes
+        }
+        add_dynamic_modifier = { modifier = oracle_o22_defender_control }
+        force_update_dynamic_modifier = yes
+    }
+}
+
+d_oracle_o22_prepare_p20 = {
+    oracle_o22_apply_controls = yes
+    GER = {
+        set_technology = { oracle_o22_p20 = 1 popup = no }
+        set_variable = { oracle_o22_mode = 20 }
+        set_country_flag = oracle_o22_prepared
+        log = "WPO22 STATUS state=prepared schema=1 scenario=o22-piercing-damage-tier-v1 mode=p20 targetPiercing=20 targetArmor=20 expectedFactor=1.00 expectedPanel=SA20-DEF10-P20-A20"
+    }
+}
+d_oracle_o22_prepare_p15 = {
+    oracle_o22_apply_controls = yes
+    GER = {
+        set_technology = { oracle_o22_p15 = 1 popup = no }
+        set_variable = { oracle_o22_mode = 15 }
+        set_country_flag = oracle_o22_prepared
+        log = "WPO22 STATUS state=prepared schema=1 scenario=o22-piercing-damage-tier-v1 mode=p15 targetPiercing=15 targetArmor=20 expectedFactor=0.80 expectedPanel=SA20-DEF10-P15-A20"
+    }
+}
+d_oracle_o22_prepare_p14 = {
+    oracle_o22_apply_controls = yes
+    GER = {
+        set_technology = { oracle_o22_p14 = 1 popup = no }
+        set_variable = { oracle_o22_mode = 14 }
+        set_country_flag = oracle_o22_prepared
+        log = "WPO22 STATUS state=prepared schema=1 scenario=o22-piercing-damage-tier-v1 mode=p14 targetPiercing=14 targetArmor=20 expectedFactor=0.65 expectedPanel=SA20-DEF10-P14-A20"
+    }
+}
+d_oracle_o22_prepare_p10 = {
+    oracle_o22_apply_controls = yes
+    GER = {
+        set_technology = { oracle_o22_p10 = 1 popup = no }
+        set_variable = { oracle_o22_mode = 10 }
+        set_country_flag = oracle_o22_prepared
+        log = "WPO22 STATUS state=prepared schema=1 scenario=o22-piercing-damage-tier-v1 mode=p10 targetPiercing=10 targetArmor=20 expectedFactor=0.65 expectedPanel=SA20-DEF10-P10-A20"
+    }
+}
+d_oracle_o22_prepare_p9 = {
+    oracle_o22_apply_controls = yes
+    GER = {
+        set_technology = { oracle_o22_p9 = 1 popup = no }
+        set_variable = { oracle_o22_mode = 9 }
+        set_country_flag = oracle_o22_prepared
+        log = "WPO22 STATUS state=prepared schema=1 scenario=o22-piercing-damage-tier-v1 mode=p9 targetPiercing=9 targetArmor=20 expectedFactor=0.50 expectedPanel=SA20-DEF10-P9-A20"
+    }
+}
+
+oracle_o22_trial21_start = {
+    if = {
+        limit = {
+            has_country_flag = oracle_o22_prepared
+            has_dynamic_modifier = { modifier = oracle_o22_attack_target }
+            POL = { has_dynamic_modifier = { modifier = oracle_o22_defender_control } }
+        }
+        clr_country_flag = oracle_o22_running
+        set_country_flag = oracle_o22_running
+        set_variable = { oracle_o22_hour = 0 }
+        if = {
+            limit = { check_variable = { var = oracle_o22_mode value = 20 compare = equals } }
+            log = "WPO22 BEGIN schema=1 scenario=o22-piercing-damage-tier-v1 mode=p20 targetPiercing=20 targetArmor=20 expectedFactor=1.00 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=DEFENDED_HIT:100,UNDEFENDED_HIT:0,ORG_MOD:0.053,ORG_DICE:1,ORG_ARMOR_DICE:1,STR_DAMAGE:0,NIGHT:0 attackModifier=-0.721 defenseModifier=-0.9923784016 prepared=yes"
+        }
+        else_if = {
+            limit = { check_variable = { var = oracle_o22_mode value = 15 compare = equals } }
+            log = "WPO22 BEGIN schema=1 scenario=o22-piercing-damage-tier-v1 mode=p15 targetPiercing=15 targetArmor=20 expectedFactor=0.80 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=DEFENDED_HIT:100,UNDEFENDED_HIT:0,ORG_MOD:0.053,ORG_DICE:1,ORG_ARMOR_DICE:1,STR_DAMAGE:0,NIGHT:0 attackModifier=-0.721 defenseModifier=-0.9923784016 prepared=yes"
+        }
+        else_if = {
+            limit = { check_variable = { var = oracle_o22_mode value = 14 compare = equals } }
+            log = "WPO22 BEGIN schema=1 scenario=o22-piercing-damage-tier-v1 mode=p14 targetPiercing=14 targetArmor=20 expectedFactor=0.65 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=DEFENDED_HIT:100,UNDEFENDED_HIT:0,ORG_MOD:0.053,ORG_DICE:1,ORG_ARMOR_DICE:1,STR_DAMAGE:0,NIGHT:0 attackModifier=-0.721 defenseModifier=-0.9923784016 prepared=yes"
+        }
+        else_if = {
+            limit = { check_variable = { var = oracle_o22_mode value = 10 compare = equals } }
+            log = "WPO22 BEGIN schema=1 scenario=o22-piercing-damage-tier-v1 mode=p10 targetPiercing=10 targetArmor=20 expectedFactor=0.65 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=DEFENDED_HIT:100,UNDEFENDED_HIT:0,ORG_MOD:0.053,ORG_DICE:1,ORG_ARMOR_DICE:1,STR_DAMAGE:0,NIGHT:0 attackModifier=-0.721 defenseModifier=-0.9923784016 prepared=yes"
+        }
+        else = {
+            log = "WPO22 BEGIN schema=1 scenario=o22-piercing-damage-tier-v1 mode=p9 targetPiercing=9 targetArmor=20 expectedFactor=0.50 gameVersion=1.19.3.0.c01a checksum=5632 checksumScope=base-game-reference method=bisection14 runMode=trial21 tacticMode=neutral-basic-only defineOverrides=DEFENDED_HIT:100,UNDEFENDED_HIT:0,ORG_MOD:0.053,ORG_DICE:1,ORG_ARMOR_DICE:1,STR_DAMAGE:0,NIGHT:0 attackModifier=-0.721 defenseModifier=-0.9923784016 prepared=yes"
+        }
+        oracle_o22_capture_sample = yes
+        country_event = { id = oracle_o22.1 hours = 1 }
+        country_event = { id = oracle_o22.1 hours = 2 }
+        country_event = { id = oracle_o22.1 hours = 3 }
+        country_event = { id = oracle_o22.1 hours = 4 }
+        country_event = { id = oracle_o22.1 hours = 5 }
+        country_event = { id = oracle_o22.1 hours = 6 }
+        country_event = { id = oracle_o22.1 hours = 7 }
+        country_event = { id = oracle_o22.1 hours = 8 }
+        country_event = { id = oracle_o22.1 hours = 9 }
+        country_event = { id = oracle_o22.1 hours = 10 }
+        country_event = { id = oracle_o22.1 hours = 11 }
+        country_event = { id = oracle_o22.1 hours = 12 }
+        country_event = { id = oracle_o22.1 hours = 13 }
+        country_event = { id = oracle_o22.1 hours = 14 }
+        country_event = { id = oracle_o22.1 hours = 15 }
+        country_event = { id = oracle_o22.1 hours = 16 }
+        country_event = { id = oracle_o22.1 hours = 17 }
+        country_event = { id = oracle_o22.1 hours = 18 }
+        country_event = { id = oracle_o22.1 hours = 19 }
+        country_event = { id = oracle_o22.1 hours = 20 }
+        country_event = { id = oracle_o22.1 hours = 21 }
+    }
+    else = { log = "WPO22 STATUS state=not-prepared action=run-an-o22-prepare-command-first" }
+}
+d_oracle_o22_trial21 = { GER = { oracle_o22_trial21_start = yes } }

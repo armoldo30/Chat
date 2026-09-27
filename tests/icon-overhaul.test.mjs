@@ -24,6 +24,7 @@ assert.match(designer,/familyIconValue/,'tank family tabs should keep family-spe
 assert.match(clarity,/icon-tier-badge/,'meaningful tier badges should remain legible on phone-size icons');
 assert.match(modelRuntime,/visual-picker-trigger/,'model runtime should replace active designer trigger icons');
 assert.match(modelRuntime,/data-tank-class/,'model runtime should replace tank-family tabs');
+assert.match(modelRuntime,/division-counter/,'model runtime should replace letter-only division counters with modeled unit identities');
 assert.match(modelCss,/hoi-model-plate/,'model icons should use stamped equipment plates');
 assert.match(modelCss,/hoi-model-accent/,'modeled icons should share a category accent system');
 assert.match(modelCss,/hoi-model-unit/,'division icons should receive unit-specific plate styling');

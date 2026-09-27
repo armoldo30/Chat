@@ -1,0 +1,65 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o22-piercing-damage-tier-v1",
+  "sourceLog": "game(20260927-010305).log",
+  "gameVersion": "1.19.3.0.c01a",
+  "checksum": "5632",
+  "controls": {
+    "modes": [
+      "p20",
+      "p15",
+      "p14",
+      "p10",
+      "p9"
+    ],
+    "targetArmor": 20,
+    "softAttack": 20,
+    "defense": 10,
+    "firingIntervalsPerMode": 20,
+    "strengthDamageDisabled": true,
+    "ordinaryOrgDie": 1,
+    "armoredOnSoftOrgDie": 1
+  },
+  "runs": {
+    "p20": {
+      "targetPiercing": 20,
+      "cumulativeOrgLossPp": 1.7655,
+      "strictIntervals": 20,
+      "startupUnchanged": true,
+      "strengthInvariant": true,
+      "cleanup": true
+    },
+    "p15": {
+      "targetPiercing": 15,
+      "cumulativeOrgLossPp": 1.4105,
+      "strictIntervals": 20,
+      "startupUnchanged": true,
+      "strengthInvariant": true,
+      "cleanup": true
+    },
+    "p14": {
+      "targetPiercing": 14,
+      "cumulativeOrgLossPp": 1.1485,
+      "strictIntervals": 20,
+      "startupUnchanged": true,
+      "strengthInvariant": true,
+      "cleanup": true
+    },
+    "p10": {
+      "targetPiercing": 10,
+      "cumulativeOrgLossPp": 1.1485,
+      "strictIntervals": 20,
+      "startupUnchanged": true,
+      "strengthInvariant": true,
+      "cleanup": true
+    },
+    "p9": {
+      "targetPiercing": 9,
+      "cumulativeOrgLossPp": 0.88,
+      "strictIntervals": 20,
+      "startupUnchanged": true,
+      "strengthInvariant": true,
+      "cleanup": true
+    }
+  }
+}

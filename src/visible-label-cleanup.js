@@ -5,6 +5,25 @@ import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 const TARGETS='option,td,th,span,b,strong,h3,small';
 const blockedTags=new Set(['CODE','PRE','SCRIPT','STYLE','TEXTAREA']);
 
+const COPY_ALIASES=[
+  [/\bAttacking Axes\b/gi,'Attacking directions'],
+  [/\bAttack Axes\b/gi,'Attacking directions'],
+  [/\bAttack Directions\b/g,'Attacking Directions']
+];
+
+function cleanCopyAliases(scope){
+  if(!scope?.querySelectorAll)return;
+  scope.querySelectorAll('label,span,b,strong,h3,small,option').forEach(element=>{
+    if(blockedTags.has(element.tagName))return;
+    for(const node of element.childNodes||[]){
+      if(node.nodeType!==Node.TEXT_NODE)continue;
+      let value=node.nodeValue||'',next=value;
+      for(const [pattern,replacement] of COPY_ALIASES)next=next.replace(pattern,replacement);
+      if(next!==value)node.nodeValue=next;
+    }
+  });
+}
+
 function isTechnicalToken(text){
   const value=String(text||'').trim();
   return /[\\/]/.test(value)||/\.(?:txt|lua|yml|yaml|gui|asset|json|md)$/i.test(value)||/^[a-f0-9]{16,}$/i.test(value)||/^https?:/i.test(value);
@@ -27,6 +46,7 @@ function cleanElement(element){
 }
 function run(root=document){
   const scope=root.querySelector?.('#app')||root;if(!scope?.querySelectorAll)return;
+  cleanCopyAliases(scope);
   scope.querySelectorAll(TARGETS).forEach(cleanElement);
 }
 registerUiEnhancer(()=>run(document));

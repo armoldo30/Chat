@@ -1,0 +1,3 @@
+Temporary exact-head RC trigger for cleaned 0.17.18 armor/piercing port.
+Source production-port head: 4d1cdcc03dd27224ab62ae482d706cf8aa956736
+Do not merge this launch-candidate branch.

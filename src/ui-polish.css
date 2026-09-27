@@ -351,3 +351,11 @@ code{border-radius:3px;background:#1a1e19;border-color:#4d5241;color:#d9d4bf}
   html{scroll-behavior:auto}
   *,*::before,*::after{animation:none!important;transition:none!important}
 }
+
+
+/* 0.17.19 lower-page cleanup */
+.compact-version-panel{padding:7px 8px!important}
+.compact-version-panel .panel-head{margin-bottom:4px!important}
+.compact-version{display:flex!important;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px!important}
+.compact-version strong{font-size:.78rem!important}
+.compact-version span{font-size:.56rem!important;color:#8f947f!important}

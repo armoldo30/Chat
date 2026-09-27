@@ -3111,7 +3111,7 @@ This is sufficient to calibrate the stat injector for O22. It is still treated a
 
 If O21 passes, O22 will use the same mechanism to test the retained piercing damage tiers at 1.00 / 0.75 / 0.70 / 0.50 / 0.45 piercing-to-armor ratios.
 
-### O22 piercing damage-tier sweep — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+### O22 piercing damage-tier sweep — COMPLETE / PIERCING DAMAGE TIERS SUPPORTED
 
 O22 tests whether the executable's **actual organization damage**, not merely the combat tooltip, follows the retained piercing damage-tier family.
 
@@ -3174,6 +3174,54 @@ Predeclared expected ratios:
 10. No adaptive extension and no post-result tolerance changes.
 
 The ±0.04 windows do not overlap between the 0.80, 0.65, and 0.50 tier centers, so a passing result discriminates the retained tier family rather than merely detecting generic armor reduction.
+
+
+#### O22 run 001 — PASS / PIERCING DAMAGE TIERS SUPPORTED
+
+All five live combat-panel readings were user-confirmed before acceptance:
+
+- p20: Soft Attack 20.0 / Defense 10.0 / Piercing 20.0 / Armor 20.0
+- p15: Soft Attack 20.0 / Defense 10.0 / Piercing 15.0 / Armor 20.0
+- p14: Soft Attack 20.0 / Defense 10.0 / Piercing 14.0 / Armor 20.0
+- p10: Soft Attack 20.0 / Defense 10.0 / Piercing 10.0 / Armor 20.0
+- p9: Soft Attack 20.0 / Defense 10.0 / Piercing 9.0 / Armor 20.0
+
+Every accepted trace contained h0..h21, unchanged h0→h1 startup, 20 strict defender organization-loss intervals, invariant defender strength, and clean cleanup.
+
+Observed cumulative h1→h21 defender organization losses:
+
+- p20: **1.7655 pp**
+- p15: **1.4105 pp**
+- p14: **1.1485 pp**
+- p10: **1.1485 pp**
+- p9: **0.8800 pp**
+
+Relative to p20, the measured executable damage ratios were:
+
+- p20: **1.000000**
+- p15: **0.798924**
+- p14: **0.650524**
+- p10: **0.650524**
+- p9: **0.498442**
+
+Expected ratios were **1.00 / 0.80 / 0.65 / 0.65 / 0.50**. Absolute errors were approximately **0 / 0.00108 / 0.00052 / 0.00052 / 0.00156**, all far inside the frozen **±0.04** acceptance tolerance.
+
+Machine action:
+
+`piercing-damage-tiers-supported`
+
+Classification:
+
+- the retained 100% / 80% / 65% / 50% piercing damage-tier family is narrowly **oracle-validated** at the controlled Armor-20 boundaries;
+- equality at **75% piercing/armor** belongs to the 80% tier;
+- equality at **50% piercing/armor** belongs to the 65% tier;
+- the combat tooltip and actual measured organization damage agree at all five tested boundaries;
+- the remaining major armor-specific uncertainty is the unpierced armored attacker's offensive organization-damage die.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o22-piercing-damage-tiers-001-summary.json`
+- `oracle-lab/captures/o22-piercing-damage-tiers-001-assessment.json`
 
 Implementation files:
 

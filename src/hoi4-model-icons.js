@@ -25,10 +25,14 @@ function stageBadge(stage=0){
 
 function plate(body,seed,kind,stage=0){
   return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-model-${kind}" data-icon-id="${esc(norm(seed))}">
-    <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="43" rx="3"/>
-    <rect class="hoi-model-inner" x="5" y="5" width="38" height="38" rx="2"/>
+    <rect class="hoi-model-shadow" x="2" y="3.5" width="44" height="42.5" rx="3"/>
+    <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="42.5" rx="3"/>
+    <rect class="hoi-model-inner" x="4.75" y="4.75" width="38.5" height="38.5" rx="1.8"/>
     <path class="hoi-model-accent" d="M7 7h34"/>
-    ${body}${stageBadge(stage)}
+    <path class="hoi-model-corners" d="M7 13V7h6M35 7h6v6M7 35v6h6M35 41h6v-6"/>
+    <g class="hoi-model-glyph">${body}</g>
+    <path class="hoi-model-footer" d="M9 41h30"/>
+    ${stageBadge(stage)}
   </svg>`;
 }
 

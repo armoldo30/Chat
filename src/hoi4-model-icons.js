@@ -20,16 +20,16 @@ const inner=markup=>String(markup||'').replace(/^<svg[^>]*>/,'').replace(/<\/svg
 function stageBadge(stage=0){
   const roman=['','I','II','III','IV','V','VI','VII','VIII','IX'][stage]||'';
   if(!roman)return '';
-  return \`<g class="hoi-stage-badge"><rect x="35" y="5" width="8" height="9" rx="1.4"/><text x="39" y="11.4" text-anchor="middle">\${roman}</text></g>\`;
+  return `<g class="hoi-stage-badge"><rect x="35" y="5" width="8" height="9" rx="1.4"/><text x="39" y="11.4" text-anchor="middle">${roman}</text></g>`;
 }
 
 function plate(body,seed,kind,stage=0){
-  return \`<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-model-\${kind}" data-icon-id="\${esc(norm(seed))}">
+  return `<svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-model-${kind}" data-icon-id="${esc(norm(seed))}">
     <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="43" rx="3"/>
     <rect class="hoi-model-inner" x="5" y="5" width="38" height="38" rx="2"/>
     <path class="hoi-model-accent" d="M7 7h34"/>
-    \${body}\${stageBadge(stage)}
-  </svg>\`;
+    ${body}${stageBadge(stage)}
+  </svg>`;
 }
 
 const wheels=(xs=[11,18,25,32,39],y=36,r=3)=>xs.map(x=>`<circle class="hoi-wheel" cx="${x}" cy="${y}" r="${r}"/>`).join('');
@@ -80,7 +80,7 @@ function gunBody(key,stage){
     return '<path class="hoi-fill" d="M8 29h23l8-5v6l-7 6H8z"/><rect class="hoi-fill" x="13" y="17" width="8" height="11" rx="1"/><path class="hoi-barrel" d="M21 22 43 17"/><path class="hoi-detail" d="M12 39h23"/>';
   }
   const heavy=/heavy|howitzer|artillery/.test(key);
-  return \`<path class="hoi-fill" d="M8 30h18l6-7h7v7l-8 7H8z"/><rect class="hoi-fill" x="13" y="\${heavy?17:18}" width="\${heavy?14:11}" height="\${heavy?12:10}" rx="1"/><path class="hoi-barrel" d="M\${heavy?25:22} 22 \${heavy?43:41} \${heavy?12:16}"/><circle class="hoi-wheel" cx="15" cy="37" r="\${heavy?4.5:4}"/><circle class="hoi-wheel" cx="30" cy="37" r="\${heavy?4.5:4}"/><path class="hoi-detail" d="M9 42h25"/>\`;
+  return `<path class="hoi-fill" d="M8 30h18l6-7h7v7l-8 7H8z"/><rect class="hoi-fill" x="13" y="${heavy?17:18}" width="${heavy?14:11}" height="${heavy?12:10}" rx="1"/><path class="hoi-barrel" d="M${heavy?25:22} 22 ${heavy?43:41} ${heavy?12:16}"/><circle class="hoi-wheel" cx="15" cy="37" r="${heavy?4.5:4}"/><circle class="hoi-wheel" cx="30" cy="37" r="${heavy?4.5:4}"/><path class="hoi-detail" d="M9 42h25"/>`;
 }
 
 function turretBody(key){

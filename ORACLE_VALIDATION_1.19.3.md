@@ -3236,6 +3236,80 @@ Implementation files:
 - `tests/oracle-o22-parser-assess.test.mjs`
 
 
+### O23 unpierced armored-attacker organization die — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+
+O23 isolates the retained armored-on-soft organization-damage die after O22 validated the piercing damage-tier factors.
+
+Controlled matchup:
+
+- shared O21 equipment override gives both divisions **Armor 20**
+- GER receives Piercing **20**, so GER fully pierces POL Armor 20 and outgoing GER damage is not reduced by O22's piercing factors
+- POL remains at baseline Piercing **4**, so POL cannot pierce GER Armor 20
+- GER Soft Attack = **20.0**
+- POL Defense = **10.0**
+- one baseline division per side
+- neutral tactics
+- POL counterattack suppressed to the executable floor
+
+Diagnostic defines:
+
+- defended hit chance = **100%**
+- undefended hit chance = **0%**
+- `LAND_COMBAT_ORG_DICE_SIZE = 4`
+- `LAND_COMBAT_ORG_ARMOR_ON_SOFT_DICE_SIZE = 6`
+- strength damage = **0**
+- night penalty = **0**
+
+At the validated 20 / 10 boundary this yields exactly one defended hit per firing interval. The only intended stochastic damage component is the organization-damage die selected for an unpierced armored attacker.
+
+Collect exactly one h0..h121 trace = **120 firing intervals**.
+
+The previously frozen O16 one-hit organization-loss bands are retained and extended with the same spacing:
+
+- die 1: positive loss < **0.13 pp**
+- die 2: **0.13 ≤ loss < 0.225 pp**
+- die 3: **0.225 ≤ loss < 0.315 pp**
+- die 4: **0.315 ≤ loss < 0.405 pp**
+- die 5: **0.405 ≤ loss < 0.495 pp**
+- die 6: **0.495 ≤ loss < 0.585 pp**
+- any zero-loss or ≥0.585 pp interval = support violation
+
+#### O23 fixed decision rule
+
+1. h0→h1 must be unchanged.
+2. Both sides' strength must remain invariant.
+3. Exactly 120 firing intervals must be present.
+4. Every firing interval must show a strict defender organization loss inside die support 1..6.
+5. Let observed die counts be compared with UniformInteger(1,6), expected **20 per face**.
+6. Pearson chi-square, df = 5, significance level = **1%**, critical value = **15.086272**.
+7. Die faces **5 and 6 must both occur**.
+8. If chi-square ≤ 15.086272 and both die 5 and die 6 occur, action = `armored-org-die-uniform-1-through-6-supported`.
+9. Otherwise action = `armored-org-die-mismatch`.
+10. No adaptive extension and no post-result threshold changes.
+
+Required live panel before acceptance:
+
+- GER Soft Attack **20.0**
+- POL Defense **10.0**
+- GER Piercing **20.0**
+- GER Armor **20.0**
+- POL Piercing **4.0**
+- POL Armor **20.0**
+- UI must indicate POL cannot pierce GER while GER fully pierces POL
+
+Implementation files:
+
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o23_armored_org_die.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/defines/zz_oracle_o23_defines.lua`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/dynamic_modifiers/oracle_o23_dynamic_modifiers.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o23_armored_org_die_trial.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/events/oracle_o23_events.txt`
+- `scripts/oracle-o23-trial121.mjs`
+- `scripts/oracle-o23-assess.mjs`
+- `tests/oracle-o23-harness.test.mjs`
+- `tests/oracle-o23-parser-assess.test.mjs`
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

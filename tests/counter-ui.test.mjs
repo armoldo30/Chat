@@ -5,7 +5,7 @@ const read=path=>readFile(new URL(path,root),'utf8');
 const [index,direction,runtimeGuard,mode,baseView,model,candidates,forceCandidates,search,searchView,explanations,main,landMioMap]=await Promise.all([
   read('index.html'),read('src/product-direction-runtime.js'),read('src/runtime-guard.js'),read('src/counter-analysis-ui.js'),read('src/counter-base-view.js'),read('src/counter-state-model.js'),read('src/counter-candidates.js'),read('src/counter-force-candidates.js'),read('src/counter-search.js'),read('src/counter-search-view.js'),read('src/counter-explanations.js'),read('src/main.js'),read('src/land-mio-family-map.js')
 ]);
-assert.match(index,/Counter Analysis/);
+assert.doesNotMatch(index,/publisher-guide|What can I use this for\?/,'Counter must not depend on the retired lower-page guide copy');
 assert.match(index,/counter-analysis\.css/);
 assert.match(index,/counter-results-ui\.js/);
 assert.match(index,/counter-analysis-ui\.js/);

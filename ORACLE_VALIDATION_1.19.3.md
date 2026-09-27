@@ -3236,7 +3236,7 @@ Implementation files:
 - `tests/oracle-o22-parser-assess.test.mjs`
 
 
-### O23 unpierced armored-attacker organization die — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-TESTED
+### O23 unpierced armored-attacker organization die — COMPLETE / UNIFORM 1–6 SUPPORTED
 
 O23 isolates the retained armored-on-soft organization-damage die after O22 validated the piercing damage-tier factors.
 
@@ -3296,6 +3296,45 @@ Required live panel before acceptance:
 - POL Piercing **4.0**
 - POL Armor **20.0**
 - UI must indicate POL cannot pierce GER while GER fully pierces POL
+
+#### O23 run 001 — PASS / ARMORED ORG DIE 1–6 SUPPORTED
+
+The live combat panel was user-confirmed at the predeclared values: GER Soft Attack 20.0, GER Piercing 20.0, GER Armor 20.0, POL Defense 10.0, POL Piercing 4.0, POL Armor 20.0, with POL unable to pierce GER and GER fully piercing POL.
+
+The trace contained exact h0..h121 samples, unchanged h0→h1 startup, invariant strength on both sides, 120 strict defender organization-loss intervals, and clean cleanup.
+
+Observed armored organization-die counts:
+
+- die 1: **20**
+- die 2: **18**
+- die 3: **22**
+- die 4: **22**
+- die 5: **18**
+- die 6: **20**
+- zero/out-of-support: **0**
+
+Pearson chi-square against UniformInteger(1,6):
+
+- χ² = **0.80**
+- df = **5**
+- 1% critical value = **15.086272**
+
+Both die faces 5 and 6 occurred, satisfying the explicit support requirement.
+
+Machine action:
+
+`armored-org-die-uniform-1-through-6-supported`
+
+Classification:
+
+- the unpierced armored attacker's organization die is narrowly **oracle-validated** as UniformInteger(1,6) at the controlled O23 boundary;
+- this directly distinguishes the armored path from the ordinary O16 UniformInteger(1,4) path;
+- combined normal armored combat still requires a final composition test.
+
+Persisted evidence:
+
+- `oracle-lab/captures/o23-armored-org-die-001-summary.json`
+- `oracle-lab/captures/o23-armored-org-die-001-assessment.json`
 
 Implementation files:
 

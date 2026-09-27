@@ -201,14 +201,21 @@ export function itemIconKey(value='',label='',context=''){
   return visualKind(s);
 }
 
-function signature(value=''){
-  const seed=String(value||'').trim();if(!seed)return '';
-  let h=2166136261;for(let i=0;i<seed.length;i++){h^=seed.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}
-  const a=34+(h&3),b=36+((h>>>2)&3),c=39+((h>>>4)&3),d=35+((h>>>6)&3);
-  return `<path class="icon-signature" d="M${a} 43l${(h>>>8)&1?3:-3} -3M${b} 44h${(h>>>9)&1?5:-5}M42 ${c}l-4 ${((h>>>10)&1)?-3:3}M${d} 39v${((h>>>11)&1)?5:-5}"/>`;
+function tierOf(value='',label=''){
+  const s=`${String(value||'')} ${String(label||'')}`;
+  const numeric=s.match(/(?:^|[_\s-])(?:mk\s*)?([1-6])(?:[_x\s-]|$)/i);
+  if(numeric)return Number(numeric[1]);
+  const roman=s.match(/\b(IV|III|II|I)\b/i);
+  return roman?({I:1,II:2,III:3,IV:4}[roman[1].toUpperCase()]||0):0;
+}
+
+function tierBadge(value='',label=''){
+  const tier=tierOf(value,label);if(!tier)return '';
+  const roman=['','I','II','III','IV','V','VI'][tier]||String(tier);
+  return `<g class="icon-tier-badge"><rect x="34" y="4" width="10" height="10" rx="1.5"/><text x="39" y="11.4" text-anchor="middle">${roman}</text></g>`;
 }
 
 export function itemIconSvg(value='',label='',context='',fallback='generic'){
-  const key=itemIconKey(value,label,context),base=ICON[key]||iconSvg(fallback)||ICON.generic,mark=signature(value||label);
-  return mark?base.replace('</svg>',`${mark}</svg>`):base;
+  const key=itemIconKey(value,label,context),base=ICON[key]||iconSvg(fallback)||ICON.generic,badge=tierBadge(value,label);
+  return badge?base.replace('</svg>',`${badge}</svg>`):base;
 }

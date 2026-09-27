@@ -3040,6 +3040,62 @@ Persisted evidence:
 - `oracle-lab/captures/o20-normal-hit-transport-defense18-001-assessment.json`
 
 
+### O21 armor/piercing stat-injection calibration — PREDECLARED / IMPLEMENTED / NOT YET EXECUTABLE-CALIBRATED
+
+O21 begins the armor/piercing follow-up series without creating a new campaign or division template.
+
+It reuses the exact clean `perfect baseline ready.hoi4` save and its existing 9-infantry, no-support, 18-width GER/POL divisions.
+
+Purpose:
+
+- establish that the Oracle mod can inject nonzero armor and controlled piercing into those existing infantry divisions;
+- verify the **live combat panel**, not script intent, before any armor/piercing combat result is accepted;
+- validate instrumentation only. A passing O21 does **not** validate armor damage reduction or armored damage dice.
+
+Source-exact baseline relevant to the injector:
+
+- the controlled divisions use 1936 `infantry_equipment_1`;
+- retained source gives that equipment **Armor 0** and **Piercing 4**;
+- O21 therefore uses hidden Oracle-only technology effects on `category_all_infantry`:
+  - POL: `armor_value = 20`
+  - GER: `ap_attack = 16`
+
+Candidate expected live values:
+
+- GER Piercing = **20.0 exactly**
+- POL Armor = **20.0 exactly**
+
+Scenario:
+
+`o21-armor-piercing-injection-v1`
+
+Command from the clean baseline save:
+
+`d_oracle_o21_prepare`
+
+Then begin the same GER → POL 1v1 combat and inspect the combat panel.
+
+#### O21 fixed acceptance rule
+
+1. The log must contain exactly one `WPO21 STATUS state=prepared` record for the O21 scenario.
+2. The same baseline divisions must be used.
+3. GER Piercing must read **20.0** both displayed and in the detailed tooltip.
+4. POL Armor must read **20.0** both displayed and in the detailed tooltip.
+5. If all conditions hold, action = `armor-piercing-injection-calibrated`.
+6. Any other live value means the injector must be repaired or retuned before O22.
+7. No combat-result inference is permitted from O21 itself.
+
+Implementation files:
+
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/technologies/oracle_o21_armor_piercing.txt`
+- `oracle-lab/hoi4-mod/hoi4_war_planner_oracle/common/scripted_effects/oracle_o21_armor_piercing_calibration.txt`
+- `scripts/oracle-o21-assess.mjs`
+- `tests/oracle-o21-harness.test.mjs`
+- `tests/oracle-o21-parser-assess.test.mjs`
+
+If O21 passes, O22 will use the same mechanism to test the retained piercing damage tiers at 1.00 / 0.75 / 0.70 / 0.50 / 0.45 piercing-to-armor ratios.
+
+
 ## Promotion rule
 
 O1 may move from `unvalidated` only after:

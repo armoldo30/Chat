@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "scenario": "o24-combined-armored-damage-v1",
+  "sourceLog": "game(20260927-014635).log",
+  "gameVersion": "1.19.3.0.c01a",
+  "checksum": "5632",
+  "controls": {
+    "softAttack": 20,
+    "defense": 10,
+    "attackerArmor": 20,
+    "attackerPiercing": 9,
+    "defenderArmor": 20,
+    "defenderPiercing": 4,
+    "expectedPiercingDamageFactor": 0.5,
+    "firingIntervals": 160,
+    "measurement": "bisection14"
+  },
+  "intervalCounts": {
+    "miss": 138,
+    "hit": 21,
+    "mixedChannel": 1,
+    "supportViolation": 0
+  },
+  "orgDice": {
+    "one": 3,
+    "two": 6,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 0
+  },
+  "strengthDice": {
+    "one": 10,
+    "two": 11
+  },
+  "mixedInterval": {
+    "fromHour": 43,
+    "toHour": 44,
+    "orgLossPp": 0.201,
+    "strengthMidpointLossPp": 0.0065,
+    "priorStrengthBounds": {
+      "low": 0.99797,
+      "high": 0.99804
+    },
+    "currentStrengthBounds": {
+      "low": 0.99791,
+      "high": 0.99797
+    },
+    "note": "strength brackets touch at 0.99797, so bisection14 cannot establish a strict strength loss"
+  },
+  "startupUnchanged": true,
+  "cleanCleanup": true
+}

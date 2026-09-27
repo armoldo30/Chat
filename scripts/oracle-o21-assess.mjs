@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 
-export const O21_SCENARIO='o21-armor-piercing-injection-v1';
+export const O21_SCENARIO='o21-armor-piercing-injection-v2';
 
 function kv(s){const o={};for(const m of String(s).matchAll(/([A-Za-z][A-Za-z0-9_]*)=([^\s]+)/g))o[m[1]]=m[2];return o;}
 

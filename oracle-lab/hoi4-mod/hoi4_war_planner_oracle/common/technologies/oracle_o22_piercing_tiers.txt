@@ -1,0 +1,39 @@
+technologies = {
+    # O22 piercing-tier sweep. Equipment stat modifiers are multiplicative.
+    # Baseline infantry_equipment_1 Piercing = 4.
+    oracle_o22_p20 = {
+        category_all_infantry = { ap_attack = 4 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+    oracle_o22_p15 = {
+        category_all_infantry = { ap_attack = 2.75 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+    oracle_o22_p14 = {
+        category_all_infantry = { ap_attack = 2.5 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+    oracle_o22_p10 = {
+        category_all_infantry = { ap_attack = 1.5 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+    oracle_o22_p9 = {
+        category_all_infantry = { ap_attack = 1.25 }
+        research_cost = 999
+        start_year = 9999
+        categories = { infantry_weapons }
+        ai_will_do = { factor = 0 }
+    }
+}

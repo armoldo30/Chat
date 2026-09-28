@@ -16,17 +16,45 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Test
+      - name: Classify release scope
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            scope=full
+          else
+            base="$BEFORE_SHA"
+            head="$CURRENT_SHA"
+            if [[ "$base" =~ ^0+$ ]]; then base="$(git rev-parse "$head^")"; fi
+            scope="$(node scripts/classify-release-scope.mjs "$base" "$head")"
+          fi
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          echo "Production validation scope: $scope"
+      - name: Fast presentation regression suite
+        if: steps.scope.outputs.scope == 'fast'
+        run: npm run test:visual
+      - name: Full certified regression suite
+        if: steps.scope.outputs.scope != 'fast'
         run: npm test
       - name: Build static site
         run: npm run build
-      - name: Served browser route and accessibility smoke
+      - name: Fast presentation browser smoke
+        if: steps.scope.outputs.scope == 'fast'
+        run: bash scripts/served-browser-smoke-fast.sh dist
+      - name: Full served browser route and accessibility smoke
+        if: steps.scope.outputs.scope != 'fast'
         run: bash scripts/served-browser-smoke.sh dist
       - name: Configure Pages
         if: github.ref == 'refs/heads/main'

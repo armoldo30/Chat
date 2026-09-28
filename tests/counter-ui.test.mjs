@@ -91,6 +91,8 @@ assert.match(searchView,/runCounterSearchResponsive/,'UI must use the responsive
 assert.match(searchView,/try\{\s*const snap=counterSnapshot\(\)/,'fresh Counter snapshots must be taken inside the feature-local error boundary');
 assert.match(searchView,/countersettings[\s\S]*try\{renderResults\(host,counterSnapshot\(\),lastSide\);\}/,'Counter settings refresh must contain snapshot/render failures locally');
 assert.match(searchView,/deep\?'REDESIGN':'ANALYZING'/,'UI must distinguish normal and deep-search progress labels');
+assert.match(searchView,/second-screening/,'UI must expose second-step screening so mobile searches do not appear frozen at the first-step boundary');
+assert.match(searchView,/SCREENING STEP/,'UI must label the candidate-pool screening phase separately from battle-test counts');
 assert.match(searchView,/\$\{completed\} \/ \$\{total\}/,'UI must show bounded search progress counts');
 assert.match(searchView,/MATCHUP-DRIVEN TWO-STEP SEARCH/);
 assert.match(searchView,/TRY DEEP REDESIGN/,'failed normal search must offer an explicit larger-redesign fallback');

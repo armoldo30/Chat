@@ -9,6 +9,9 @@ const ICON={
   motorized:svg('<path d="M5 18h23v16H5zM28 24h8l7 7v3H28z"/><circle cx="13" cy="37" r="4"/><circle cx="35" cy="37" r="4"/><path d="M10 23h12"/>'),
   mechanized:svg('<path d="M5 18h30l8 10v7H5zM11 18l4-7h14l7 7M10 35h29"/><circle cx="13" cy="38" r="3"/><circle cx="23" cy="38" r="3"/><circle cx="33" cy="38" r="3"/>'),
   cavalry:svg('<path d="M11 34c6-3 10-9 13-18 4 5 8 7 13 7l4 8-7 10M15 34l-4 8M28 31l3 11M21 16l-4-7M30 17l4-5"/><circle cx="14" cy="11" r="3"/>'),
+  bicycle:svg('<circle cx="14" cy="34" r="7"/><circle cx="34" cy="34" r="7"/><path d="M14 34l7-13 6 13H14l8-7h12M21 21h8M29 21l5 13M19 17h7"/>'),
+  armored_car:svg('<path d="M6 22h27l9 8v7H6zM12 22l5-7h13l5 7M15 15h11M31 18h9"/><circle cx="14" cy="38" r="4"/><circle cx="34" cy="38" r="4"/>'),
+  motorized_artillery:svg('<path d="M5 23h21v12H5zM26 27h8l7 5v3H26z"/><circle cx="12" cy="38" r="4"/><circle cx="33" cy="38" r="4"/><path d="M17 23l15-12M28 10l9-3"/>'),
   mountaineer:svg('<path d="M4 40 18 14l7 12 6-9 13 23zM14 22l4 5 4-4M28 40l5-10 4 6"/>'),
   marine:svg('<path d="M24 6v28M16 14h16M13 34c5 7 17 7 22 0M8 31h8M32 31h8"/><circle cx="24" cy="9" r="3"/>'),
   paratrooper:svg('<path d="M7 17c5-12 29-12 34 0-5-3-9-3-13 0-3-3-6-3-9 0-4-3-8-3-12 0zM11 17l10 13M37 17 27 30M24 17v13"/><circle cx="24" cy="34" r="3"/><path d="M24 37v7"/>'),
@@ -20,6 +23,7 @@ const ICON={
   maintenance:svg('<circle cx="18" cy="20" r="7"/><path d="M23 25l13 13M31 31l7-7M8 39l9-9"/>'),
   military_police:svg('<path d="M24 5 39 11v11c0 10-5 17-15 22C14 39 9 32 9 22V11z"/><path d="M17 22h14M24 15v14"/>'),
   artillery:svg('<circle cx="15" cy="35" r="7"/><path d="M20 31l19-15 3 4-18 16M8 35h5M22 23l-5-6"/>'),
+  rocket_artillery:svg('<path d="M7 31h28v7H7z"/><circle cx="13" cy="39" r="3"/><circle cx="30" cy="39" r="3"/><path d="M11 28h21l7-13M18 27l12-15M24 28l12-14M30 29l10-12"/>'),
   antitank:svg('<circle cx="16" cy="35" r="6"/><path d="M21 31L42 17M13 28l5-8h10M35 14l8 8"/>'),
   antiair:svg('<circle cx="16" cy="36" r="6"/><path d="M19 30l8-20M25 30l9-19M12 28h18M31 9l7 4"/>'),
 
@@ -180,6 +184,11 @@ export function itemIconKey(value='',label='',context=''){
   if(/armor plate|armour plate/.test(s)&&(context==='air'||/air|aircraft/.test(s)))return 'air_armor';
   if(/non strategic material/.test(s))return 'non_strategic';
 
+  if(/armou?red car/.test(s))return 'armored_car';
+  if(/bicycle/.test(s))return 'bicycle';
+  if(/motorized artillery|motorised artillery|mot artillery|motorized fire support|motorised fire support|mot fire support/.test(s))return 'motorized_artillery';
+  if(/rocket artillery|rocket battery/.test(s))return 'rocket_artillery';
+  if(/field guns?|infantry guns?|fire support/.test(s))return 'artillery';
   if(/mechanized|mechanised/.test(s))return 'mechanized';
   if(/motorized|motorised/.test(s))return 'motorized';
   if(/mountain|mountaineer/.test(s))return 'mountaineer';

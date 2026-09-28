@@ -128,3 +128,9 @@ button:focus-visible .hoi4-modeled-icon .hoi-model-icon .hoi-model-plate{stroke:
 .hoi4-engineer .hoi-model-inner,.hoi4-recon .hoi-model-inner,.hoi4-signal .hoi-model-inner,
 .hoi4-logistics .hoi-model-inner,.hoi4-maintenance .hoi-model-inner,.hoi4-hospital .hoi-model-inner,
 .hoi4-military_police .hoi-model-inner{fill:#201f16}
+
+
+.hoi4-bicycle .hoi-model-icon{--hoi-accent:#a49b73;--hoi-fill:#c3baa0}
+.hoi4-armored_car .hoi-model-icon{--hoi-accent:#7e9892;--hoi-fill:#a9bdb5}
+.hoi4-motorized_artillery .hoi-model-icon{--hoi-accent:#ad846a;--hoi-fill:#c5a38d}
+.hoi4-rocket_artillery .hoi-model-icon{--hoi-accent:#a97c63;--hoi-fill:#c79c84}

@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
+import { iconSvg } from '../src/ui-labels.js';
 
 const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
@@ -75,5 +76,13 @@ assert.equal(new Set(airEngineVariants).size,4,'air engine generations must not 
 
 const cannonVariants=['tank_small_cannon','tank_small_cannon_2','tank_medium_cannon','tank_medium_cannon_2','tank_heavy_cannon','tank_heavy_cannon_2'].map(id=>hoi4ModelIconSvg(id,id,'armor','armor','Main Armament'));
 assert.equal(new Set(cannonVariants).size,cannonVariants.length,'source tank weapons must remain item-distinct in the modeled icon layer');
+
+for(const key of ['hq','front','intel','gauntlet','data','scenario','directions','supply','planning','night','fort','entrench','soft_attack','defense','health','reliability','cost','speed','range','agility','organization','width']){
+  const svg=iconSvg(key);
+  assert.match(svg,/ui-symbol-icon/,key+' should render through the shared symbol system');
+  assert.doesNotEqual(svg,iconSvg('generic'),key+' must have a dedicated pictogram');
+}
+assert.match(modelIcons,/hoi-model-rivets/,'modeled plates should use visible stamped rivets');
+assert.match(modelIcons,/hoi-model-bevel/,'modeled plates should include an inner bevel');
 
 console.log('Live item-specific HOI4-style icon regression checks passed.');

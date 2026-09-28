@@ -77,7 +77,16 @@ document.addEventListener('countersearch',async event=>{
     const result=await runCounterSearchResponsive(snap,{
       side,deep,
       cancelled:()=>request!==activeSearch||!host.isConnected,
-      onProgress:({completed,total})=>{if(request===activeSearch)setSearchButtons(host,side,`${deep?'REDESIGN':'ANALYZING'} ${completed} / ${total}…`,deep);}
+      onProgress:progress=>{
+        if(request!==activeSearch)return;
+        const {phase,completed,total,seedCompleted=0,seedTotal=0,screened=0,screeningTotal=0}=progress;
+        if(phase==='second-screening'||phase==='third-screening'){
+          const step=phase==='third-screening'?3:2,seedText=seedTotal?` · branch ${Math.min(seedCompleted+1,seedTotal)} / ${seedTotal}`:'',screenText=screeningTotal?` · ${screened} / ${screeningTotal} candidates`:'';
+          setSearchButtons(host,side,`SCREENING STEP ${step}${seedText}${screenText}…`,deep);
+          return;
+        }
+        setSearchButtons(host,side,`${deep?'REDESIGN':'ANALYZING'} ${completed} / ${total}…`,deep);
+      }
     });
     if(request!==activeSearch||!host.isConnected)return;
     lastSearch[side]=result;renderResults(host,snap,side);setSearchButtons(host);

@@ -1,0 +1,3 @@
+Temporary exact-head RC trigger for corrected 0.17.21 UI density/icon polish.
+Source head: 7d1122d6f2244442233ba38c5a7d91b4b28a0ef3
+Do not merge this launch-candidate branch.

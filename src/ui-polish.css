@@ -375,3 +375,6 @@ code{border-radius:3px;background:#1a1e19;border-color:#4d5241;color:#d9d4bf}
 .saved-matchups-panel>p.muted{
   display:none!important;
 }
+.battle-report-panel .report>.grid.two:has(>div:nth-child(2)){
+  grid-template-columns:1fr!important;
+}

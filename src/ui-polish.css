@@ -361,20 +361,41 @@ code{border-radius:3px;background:#1a1e19;border-color:#4d5241;color:#d9d4bf}
 .compact-version span{font-size:.56rem!important;color:#8f947f!important}
 
 
-/* 0.17.21 density pass: keep the working screens focused on decisions, not repeated prose.
-   Full accuracy boundaries remain on Methodology; warnings/errors stay visible. */
-.battle-report-panel .report>.grid.two>div:nth-child(2),
-.battle-report-panel .report>p.notice,
-.tank-performance>p.muted,
-.air-verdict>p,
-.air-comparison-report+.panel p.notice,
-.advisor-lines+p.notice,
-.replacement-advisor+p.muted,
-.robustness-panel>p.muted,
-.dossier-panel>p.muted,
-.saved-matchups-panel>p.muted{
-  display:none!important;
+/* 0.17.22 density pass: explanatory material stays available on demand
+   without occupying permanent workspace height. */
+.compact-model-notes{
+  margin-top:10px;
+  border-top:1px solid var(--ui-border-soft);
 }
-.battle-report-panel .report>.grid.two:has(>div:nth-child(2)){
-  grid-template-columns:1fr!important;
+.compact-model-notes>summary{
+  min-height:32px;
+  padding:7px 2px;
+  color:var(--ui-muted);
+  font-size:.68rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.compact-model-notes>p{
+  margin:0;
+  padding:3px 2px 7px;
+  max-width:82ch;
+  color:var(--ui-muted);
+  font-size:.74rem;
+  line-height:1.45;
+}
+.variant-link-summary{
+  display:flex;
+  align-items:baseline;
+  flex-wrap:wrap;
+  gap:7px;
+  margin:8px 0 10px;
+}
+.variant-link-summary strong{color:var(--ui-ink);font-size:1rem}
+.variant-link-summary span{color:var(--ui-muted);font-size:.75rem}
+.gauntlet-validation-summary{
+  display:block;
+  margin-top:7px;
+  color:var(--ui-muted);
+  line-height:1.4;
 }

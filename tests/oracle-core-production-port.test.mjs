@@ -4,7 +4,7 @@ import {COMBAT_CONSTANTS,MODEL_META} from '../src/data.js';
 import ORACLE_COMBAT_1193 from '../src/builtin1193/oracle-combat-certification-1193.js';
 import {sampleAttackPoints,piercingDamageFactor,damageDiceProfile} from '../src/engine.js';
 
-assert.equal(MODEL_META.appVersion,'0.17.20');
+assert.equal(MODEL_META.appVersion,'0.17.21');
 assert.equal(ORACLE_COMBAT_1193.gameVersion,'1.19.3.0.c01a');
 assert.equal(ORACLE_COMBAT_1193.baseChecksum,'5632');
 assert.equal(COMBAT_CONSTANTS.initialFireDelayHours,1,'O1 must keep the one-hour combat-entry delay');

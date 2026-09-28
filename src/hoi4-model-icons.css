@@ -113,3 +113,24 @@ button:focus-visible .hoi4-modeled-icon .hoi-model-icon .hoi-model-plate{stroke:
   border-color:rgba(171,160,116,.42)!important;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 1px 2px rgba(0,0,0,.28)
 }
+
+
+/* 0.17.21 readability pass: stronger plate depth and family separation at small sizes. */
+.hoi-model-icon .hoi-model-shadow{opacity:.82}
+.hoi-model-icon .hoi-model-plate{stroke-width:1.45}
+.hoi-model-icon .hoi-model-inner{stroke:#596254;stroke-width:1}
+.hoi-model-icon .hoi-model-accent{stroke-width:2}
+.hoi-model-icon .hoi-model-footer{opacity:.58;stroke-width:.9}
+.hoi-model-icon.hoi-model-unit .hoi-model-inner{fill:#1a2119}
+.hoi-model-icon.hoi-model-tank .hoi-model-inner{fill:#18201f}
+.hoi-model-icon.hoi-model-aircraft .hoi-model-inner{fill:#171d22}
+.hoi-model-icon.hoi-model-weapon .hoi-model-inner{fill:#211916}
+.hoi4-engineer .hoi-model-inner,.hoi4-recon .hoi-model-inner,.hoi4-signal .hoi-model-inner,
+.hoi4-logistics .hoi-model-inner,.hoi4-maintenance .hoi-model-inner,.hoi4-hospital .hoi-model-inner,
+.hoi4-military_police .hoi-model-inner{fill:#201f16}
+
+
+.hoi4-bicycle .hoi-model-icon{--hoi-accent:#a49b73;--hoi-fill:#c3baa0}
+.hoi4-armored_car .hoi-model-icon{--hoi-accent:#7e9892;--hoi-fill:#a9bdb5}
+.hoi4-motorized_artillery .hoi-model-icon{--hoi-accent:#ad846a;--hoi-fill:#c5a38d}
+.hoi4-rocket_artillery .hoi-model-icon{--hoi-accent:#a97c63;--hoi-fill:#c79c84}

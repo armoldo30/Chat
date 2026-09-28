@@ -69,7 +69,7 @@ assert.doesNotMatch(cleanup,/engine\.js|simulateBattle|calcDivision/,'label clea
 assert.match(division,/\.picker-choice\[data-choice\]/,'division selection cards should gain pictograms');
 assert.match(division,/\.hoi-battalion-slot\.filled/,'filled battalion slots should gain pictograms');
 assert.match(division,/\.regimental-support\.filled/,'filled regimental supports should gain pictograms');
-assert.match(division,/itemIconSvg/,'division pictograms should use the item-specific catalog');
+assert.match(division,/hoi4ModelIconSvg/,'division pictograms should use the shared modeled item-specific catalog');
 assert.doesNotMatch(division,/engine\.js|simulateBattle|calcDivision/,'division pictogram layer must remain UI-only');
 assert.match(industry,/\.advisor-eq \.equipment-badge/,'industry allocation rows should gain equipment pictograms');
 assert.match(industry,/\.stock-grid label/,'stockpile rows should gain equipment pictograms');

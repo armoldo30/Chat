@@ -359,3 +359,22 @@ code{border-radius:3px;background:#1a1e19;border-color:#4d5241;color:#d9d4bf}
 .compact-version{display:flex!important;align-items:center;justify-content:space-between;gap:10px;padding:6px 8px!important}
 .compact-version strong{font-size:.78rem!important}
 .compact-version span{font-size:.56rem!important;color:#8f947f!important}
+
+
+/* 0.17.21 density pass: keep the working screens focused on decisions, not repeated prose.
+   Full accuracy boundaries remain on Methodology; warnings/errors stay visible. */
+.battle-report-panel .report>.grid.two>div:nth-child(2),
+.battle-report-panel .report>p.notice,
+.tank-performance>p.muted,
+.air-verdict>p,
+.air-comparison-report+.panel p.notice,
+.advisor-lines+p.notice,
+.replacement-advisor+p.muted,
+.robustness-panel>p.muted,
+.dossier-panel>p.muted,
+.saved-matchups-panel>p.muted{
+  display:none!important;
+}
+.battle-report-panel .report>.grid.two:has(>div:nth-child(2)){
+  grid-template-columns:1fr!important;
+}

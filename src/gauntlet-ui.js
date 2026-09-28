@@ -1,7 +1,7 @@
 import { runGauntlet, gauntletGrade, GAUNTLET_TERRAINS } from './gauntlet.js';
 
 const TERRAIN_NAME={plains:'Plains',forest:'Forest',hills:'Hills',mountain:'Mountains',jungle:'Jungle',marsh:'Marsh',desert:'Desert',urban:'Urban'};
-let selectedSide='attacker',lastResult=null,lastSide=null,lastMode=null,running=false;
+let selectedSide='attacker',lastResult=null,lastSide=null,running=false;
 
 function ensureStyle(){if(document.querySelector('link[data-gauntlet-style]'))return;const l=document.createElement('link');l.rel='stylesheet';l.href='./src/gauntlet.css';l.dataset.gauntletStyle='1';document.head.append(l);}
 const fmt=(n,d=1)=>Number.isFinite(Number(n))?Number(n).toLocaleString(undefined,{maximumFractionDigits:d}):'—';
@@ -31,22 +31,21 @@ function resultHtml(r){
 }
 
 function shellHtml(api){
-  const name=api.name(selectedSide),stats=api.stats(selectedSide),mode=lastMode||'quick';
+  const name=api.name(selectedSide),stats=api.stats(selectedSide);
   return `<section class="gauntlet-hero"><div><span class="eyebrow">DIVISION GAUNTLET · GENERAL STAFF TRIALS</span><h1>Put one division through the entire war.</h1><p>Procedurally generated, plausible HOI4 opponents. Every terrain. Attack and defense. Production and supply matter.</p></div><div class="gauntlet-target"><small>TEST DIVISION</small><strong>${esc(name)}</strong><span>${fmt(stats.width,0)}w · ${fmt(stats.org,1)} org · ${fmt(stats.armor,1)} armor · ${fmt(stats.piercing,1)} piercing</span></div></section>
-  <section class="gauntlet-control-panel panel"><div class="gauntlet-side-switch"><button data-gauntlet-side="attacker" class="${selectedSide==='attacker'?'active':''}">Attacker Template</button><button data-gauntlet-side="defender" class="${selectedSide==='defender'?'active':''}">Defender Template</button></div><div class="gauntlet-mode-grid"><button data-gauntlet-mode="quick" class="gauntlet-mode ${mode==='quick'?'active':''}"><div><b>Quick Gauntlet</b><small>500 opponent designs</small><em>8,000 terrain/role matchups</em></div></button><button data-gauntlet-mode="full" class="gauntlet-mode ${mode==='full'?'active':''}"><div><b>Full Gauntlet</b><small>10,000 opponent designs</small><em>160,000 terrain/role matchups</em></div></button></div><button class="btn primary gauntlet-run" id="gauntletRun" ${running?'disabled':''}>${running?'Gauntlet running…':'Run Division Gauntlet'}</button><div class="gauntlet-progress" id="gauntletProgress" ${running?'':'hidden'}><div><i id="gauntletProgressBar"></i></div><span id="gauntletProgressText">Preparing opponent pool…</span></div></section>
-  ${lastResult&&lastSide===selectedSide?resultHtml(lastResult):`<section class="gauntlet-empty"><h2>No trial recorded for this template</h2><p>Choose Quick for rapid diagnosis or Full for the launch-grade 10,000-design matrix.</p></section>`}`;
+  <section class="gauntlet-control-panel panel"><div class="gauntlet-side-switch"><button data-gauntlet-side="attacker" class="${selectedSide==='attacker'?'active':''}">Attacker Template</button><button data-gauntlet-side="defender" class="${selectedSide==='defender'?'active':''}">Defender Template</button></div><div class="gauntlet-run-summary"><div><b>10,000 opponent designs</b><small>8 terrain types · attack + defense</small></div><strong>160,000 matchup checks</strong></div><button class="btn primary gauntlet-run" id="gauntletRun" ${running?'disabled':''}>${running?'Gauntlet running…':'Run Division Gauntlet'}</button><div class="gauntlet-progress" id="gauntletProgress" ${running?'':'hidden'}><div><i id="gauntletProgressBar"></i></div><span id="gauntletProgressText">Preparing opponent pool…</span></div></section>
+  ${lastResult&&lastSide===selectedSide?resultHtml(lastResult):`<section class="gauntlet-empty"><h2>No trial recorded for this template</h2><p>Run the 10,000-design matrix to expose broad strengths, counters, and terrain weaknesses.</p></section>`}`;
 }
 
 export function renderGauntlet(container,api){
   ensureStyle();container.innerHTML=shellHtml(api);
   container.querySelectorAll('[data-gauntlet-side]').forEach(b=>b.onclick=()=>{if(running)return;selectedSide=b.dataset.gauntletSide;renderGauntlet(container,api);});
-  let mode=lastMode||'quick';container.querySelectorAll('[data-gauntlet-mode]').forEach(b=>b.onclick=()=>{if(running)return;mode=b.dataset.gauntletMode;lastMode=mode;container.querySelectorAll('[data-gauntlet-mode]').forEach(x=>x.classList.toggle('active',x===b));});
   const run=container.querySelector('#gauntletRun');if(!run)return;
   run.onclick=async()=>{
-    if(running)return;running=true;lastMode=mode;run.disabled=true;run.textContent='Gauntlet running…';const progress=container.querySelector('#gauntletProgress'),bar=container.querySelector('#gauntletProgressBar'),text=container.querySelector('#gauntletProgressText');progress.hidden=false;
+    if(running)return;running=true;run.disabled=true;run.textContent='Gauntlet running…';const progress=container.querySelector('#gauntletProgress'),bar=container.querySelector('#gauntletProgressBar'),text=container.querySelector('#gauntletProgressText');progress.hidden=false;
     try{
-      const side=selectedSide,count=mode==='full'?10000:500,opponentSide=side==='attacker'?'defender':'attacker',data=api.data(opponentSide),opponentEquipment=api.equipment(opponentSide),candidateEquipment=api.equipment(side),candidate=api.stats(side),baseOpts=api.battleOpts();
-      const result=await runGauntlet({candidate,opponentData:data,opponentEquipment,candidateEquipment,data,equipment:opponentEquipment,baseOpts,count,stochasticRuns:mode==='full'?60:40,onProgress:p=>{if(!bar||!text)return;bar.style.width=`${Math.min(100,p.percent||0)}%`;text.textContent=p.phase==='validation'?`Validating extreme matchups · ${p.done}/${p.total}`:`Screening ${fmt(p.done,0)} / ${fmt(p.total,0)} opponent designs`;}});
+      const side=selectedSide,count=10000,opponentSide=side==='attacker'?'defender':'attacker',data=api.data(opponentSide),opponentEquipment=api.equipment(opponentSide),candidateEquipment=api.equipment(side),candidate=api.stats(side),baseOpts=api.battleOpts();
+      const result=await runGauntlet({candidate,opponentData:data,opponentEquipment,candidateEquipment,data,equipment:opponentEquipment,baseOpts,count,stochasticRuns:60,onProgress:p=>{if(!bar||!text)return;bar.style.width=`${Math.min(100,p.percent||0)}%`;text.textContent=p.phase==='validation'?`Validating extreme matchups · ${p.done}/${p.total}`:`Screening ${fmt(p.done,0)} / ${fmt(p.total,0)} opponent designs`;}});
       lastResult=result;lastSide=side;
     }catch(err){console.error(err);alert(`Gauntlet failed: ${err?.message||err}`);}
     finally{running=false;renderGauntlet(container,api);}

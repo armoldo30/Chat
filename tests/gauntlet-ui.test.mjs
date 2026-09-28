@@ -14,7 +14,7 @@ assert.match(main,/\['gauntlet','GNT','Division Gauntlet'\]/,'base sidebar must 
 assert.match(polish,/\['gauntlet','GNT','Division Gauntlet'\]/,'polished navigation must preserve Division Gauntlet');
 assert.match(main,/dashboard,battle,gauntlet,tank/,'route renderer must include Gauntlet');
 assert.match(main,/\['dashboard','battle','gauntlet'/,'route whitelist must include Gauntlet');
-assert.match(ui,/Quick Gauntlet/);assert.match(ui,/500 opponent designs/);assert.match(ui,/Full Gauntlet/);assert.match(ui,/10,000 opponent designs/);assert.match(ui,/160,000 terrain\/role matchups/);
+assert.doesNotMatch(ui,/Quick Gauntlet|500 opponent designs|data-gauntlet-mode/,'Gauntlet should expose one 10,000-design user mode');assert.match(ui,/10,000 opponent designs/);assert.match(ui,/160,000 matchup checks/);assert.match(ui,/count=10000/);assert.match(ui,/stochasticRuns:60/);
 assert.match(ui,/PRACTICAL/);assert.match(ui,/Raw Combat/);assert.match(ui,/IC Efficiency/);assert.match(ui,/Supply Efficiency/);assert.match(ui,/Consistency/);assert.match(ui,/Counter Resilience/);assert.match(ui,/Best Matchups/);assert.match(ui,/Worst Matchups/);assert.match(ui,/SECOND-STAGE VALIDATION/);
 assert.match(ui,/opponentSide=side==='attacker'\?'defender':'attacker'/,'generated opponents must baseline from the opposite Lab side');
 for(const terrain of ['plains','forest','hills','mountain','jungle','marsh','desert','urban'])assert.ok(core.includes(`'${terrain}'`),`Gauntlet core must include ${terrain}`);
@@ -22,6 +22,6 @@ for(const archetype of ['infantry_wall','artillery_infantry','cheap_holding','mo
 assert.match(ui,/planner analytical/,'UI must disclose analytical opponent/grading boundary');
 assert.match(ui,/Oracle-validated for HOI4 1\.19\.3 through O25/,'UI must disclose the current combat evidence boundary');
 assert.match(ui,/gauntlet-model-notes/,'Gauntlet evidence detail should be available without permanent footer prose');
-assert.match(css,/\.gauntlet-terrain-grid/);assert.match(css,/\.gauntlet-grade-grid/);assert.match(css,/@media\(max-width:600px\)/,'Gauntlet must retain a mobile layout');
+assert.match(css,/\.gauntlet-run-summary/);assert.match(css,/\.gauntlet-terrain-grid/);assert.match(css,/\.gauntlet-grade-grid/);assert.match(css,/@media\(max-width:600px\)/,'Gauntlet must retain a mobile layout');
 
 console.log('Division Gauntlet UI regression checks passed.');

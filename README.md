@@ -1,4 +1,4 @@
-# HOI4 War Planner — 0.17.22
+# HOI4 War Planner — 0.17.23
 
 A browser-based Hearts of Iron IV theorycrafting and combat-analysis suite built around a bundled **vanilla HOI4 1.19.3** baseline.
 

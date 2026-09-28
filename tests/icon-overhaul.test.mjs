@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
@@ -47,6 +47,23 @@ for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle
   assert.match(hoi4ModelIconSvg(id,id,'infantry','generic','Division unit'),/hoi-model-icon/);
 }
 assert.doesNotMatch(modelIcons,/hoi-id-rivet|identityMark/,'modeled icons should not use pseudo-random identity decoration');
+
+const unicodeIconPattern=/\p{Extended_Pictographic}|\uFE0F|[ⓘ☑☒☐✓✔✕✖✗✘★☆◆◇●○◉►▶◀▲▼]/u;
+async function collectUiSources(dirUrl,prefix='../src/'){
+  const entries=await readdir(dirUrl,{withFileTypes:true}),paths=[];
+  for(const entry of entries){
+    const path=`${prefix}${entry.name}`;
+    if(entry.isDirectory())paths.push(...await collectUiSources(new URL(`${entry.name}/`,dirUrl),`${path}/`));
+    else if(/\.(?:js|css)$/.test(entry.name))paths.push(path);
+  }
+  return paths;
+}
+const uiPaths=await collectUiSources(new URL('../src/',import.meta.url));
+uiPaths.push('../index.html','../about.html','../guides.html','../methodology.html','../privacy.html','../division-counter.html','../division-gauntlet.html','../tank-designer.html','../air-lab.html');
+for(const path of uiPaths){
+  const content=await readFile(new URL(path,import.meta.url),'utf8');
+  assert.doesNotMatch(content,unicodeIconPattern,`${path} must not ship Unicode emoji/pseudo-icon glyphs; use SVG, CSS, or text labels instead`);
+}
 
 const tankIds=[
   'tank_auto_cannon_2','tank_anti_air_cannon_3','tank_high_velocity_cannon_3','tank_medium_howitzer_2',

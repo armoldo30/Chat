@@ -71,7 +71,7 @@ function openPicker(select,baseKind,title){
   [...select.options].forEach(option=>{
     const visual=semanticIcon(option,baseKind,resolvedTitle);
     const card=document.createElement('button');card.type='button';card.className=`visual-option ${option.selected?'selected':''}`;card.disabled=option.disabled;
-    card.innerHTML=`<span class="visual-option-icon ${visual.kind} semantic-${visual.specific}">${visual.svg}</span><span class="visual-option-copy"><b>${visual.label}</b>${option.value&&visual.label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check">✓</span>':''}`;
+    card.innerHTML=`<span class="visual-option-icon ${visual.kind} semantic-${visual.specific}">${visual.svg}</span><span class="visual-option-copy"><b>${visual.label}</b>${option.value&&visual.label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check" aria-label="Selected"></span>':''}`;
     card.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));closeModal();});
     grid.append(card);
   });
@@ -96,7 +96,7 @@ function enhanceMastery(range){
   const pips=document.createElement('div');pips.className='mastery-pips';pips.setAttribute('role','group');pips.setAttribute('aria-label','Doctrine mastery');
   const current=Number(range.value)||0;
   for(let i=0;i<=5;i++){
-    const b=document.createElement('button');b.type='button';b.className=`mastery-pip ${i<=current?'filled':''} ${i===current?'current':''}`;b.dataset.value=String(i);b.setAttribute('aria-label',`Set mastery to ${i} of 5`);b.innerHTML=`<span>${i===0?'○':'◆'}</span><small>${i}</small>`;
+    const b=document.createElement('button');b.type='button';b.className=`mastery-pip ${i<=current?'filled':''} ${i===current?'current':''}`;b.dataset.value=String(i);b.setAttribute('aria-label',`Set mastery to ${i} of 5`);b.innerHTML=`<span aria-hidden="true"></span><small>${i}</small>`;
     b.addEventListener('click',()=>{range.value=String(i);range.dispatchEvent(new Event('change',{bubbles:true}));});pips.append(b);
   }
   range.insertAdjacentElement('afterend',pips);

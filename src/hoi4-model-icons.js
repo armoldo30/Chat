@@ -129,6 +129,9 @@ function airModuleBody(key){
 function supportBody(key){
   if(key==='infantry')return '<circle class="hoi-fill" cx="17" cy="10" r="4"/><path class="hoi-detail" d="M17 14v15M17 20l-7 7M17 20l8 7M17 29l-6 12M17 29l8 12"/><path class="hoi-weapon" d="M30 10l8 33"/>';
   if(key==='cavalry')return '<path class="hoi-fill" d="M10 34c6-3 10-9 13-17 4 5 8 7 13 7l5 7-8 10M14 34l-4 8M27 32l3 10"/><circle class="hoi-fill" cx="13" cy="11" r="3"/><path class="hoi-detail" d="M20 17l-4-7M28 18l5-5"/>';
+  if(key==='bicycle')return '<circle class="hoi-wheel" cx="13" cy="34" r="7"/><circle class="hoi-wheel" cx="35" cy="34" r="7"/><path class="hoi-detail" d="M13 34l8-13 7 13H13l9-7h13M21 21h9M30 21l5 13M18 17h8"/>';
+  if(key==='armored_car')return '<path class="hoi-fill" d="M6 22h27l9 8v7H6zM12 22l5-7h13l5 7z"/><rect class="hoi-fill" x="20" y="11" width="10" height="7" rx="2"/><path class="hoi-barrel" d="M29 14 41 11"/><circle class="hoi-wheel" cx="14" cy="38" r="4"/><circle class="hoi-wheel" cx="34" cy="38" r="4"/>';
+  if(key==='motorized_artillery')return '<path class="hoi-fill" d="M5 23h21v12H5zM26 27h8l7 5v3H26z"/><circle class="hoi-wheel" cx="12" cy="38" r="4"/><circle class="hoi-wheel" cx="33" cy="38" r="4"/><path class="hoi-barrel" d="M17 23 34 10"/><path class="hoi-detail" d="M29 10h9"/>';
   if(key==='motorized'||key==='logistics')return '<path class="hoi-fill" d="M5 19h25v15H5zM30 24h7l6 6v4H30z"/><circle class="hoi-wheel" cx="13" cy="37" r="4"/><circle class="hoi-wheel" cx="35" cy="37" r="4"/><path class="hoi-detail" d="M10 24h12M18 19v15"/>';
   if(key==='mechanized')return `<path class="hoi-fill" d="M5 20h30l8 8v7H5zM11 20l5-7h14l6 7"/><path class="hoi-track" d="M7 34h34v7H7z"/>${wheels([12,20,28,36],37,2.6)}`;
   if(key==='mountaineer')return '<path class="hoi-fill" d="M4 40 18 13l8 13 6-9 12 23z"/><path class="hoi-detail" d="M14 25l4 4 5-5M29 40l4-10 5 6"/>';

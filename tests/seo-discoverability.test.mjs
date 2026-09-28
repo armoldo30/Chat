@@ -21,7 +21,7 @@ assert.match(index,/"@type":"SoftwareApplication"/,'homepage structured data mus
 assert.match(index,/"isAccessibleForFree":true/,'homepage structured data must preserve free-access status');
 
 const methodology=pages.get('methodology.html');
-assert.match(methodology,/HOI4 War Planner 0\.17\.20/,'methodology metadata must match the active release');
+assert.match(methodology,/HOI4 War Planner 0\.17\.21/,'methodology metadata must match the active release');
 assert.match(methodology,/O1–O25/,'public methodology must describe the current Oracle validation range');
 assert.match(methodology,/100% \/ 80% \/ 65% \/ 50% piercing damage tiers/,'public methodology must disclose the validated piercing tiers');
 assert.match(methodology,/1–6 armored-on-soft organization die/,'public methodology must disclose the validated armored organization die');

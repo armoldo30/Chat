@@ -3,16 +3,23 @@ import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function kindFor(label='',container){
   const s=String(label).toLowerCase();
-  if(/soft attack|ground attack/.test(s))return 'artillery';
+  if(/soft attack|ground attack/.test(s))return 'soft_attack';
   if(/hard attack|pierc/.test(s))return 'antitank';
   if(/air attack|air defense|air defence/.test(s))return 'antiair';
   if(/armor|armour|hardness|breakthrough/.test(s))return 'armor';
   if(/manpower/.test(s))return 'infantry';
-  if(/defense|defence|hp|reliability|supply/.test(s))return 'support';
-  if(/ic cost|cost|fuel|resource/.test(s))return 'industry';
-  if(/agility|range|thrust/.test(s))return 'air';
-  if(/speed/.test(s))return container?.closest('.aircraft-designer')?'air':'armor';
-  if(/org|width/.test(s))return 'doctrine';
+  if(/defense|defence/.test(s))return 'defense';
+  if(/\bhp\b|strength/.test(s))return 'health';
+  if(/reliability/.test(s))return 'reliability';
+  if(/supply/.test(s))return 'supply';
+  if(/ic cost|\bcost\b|resource/.test(s))return 'cost';
+  if(/fuel/.test(s))return 'fuel';
+  if(/agility/.test(s))return 'agility';
+  if(/range/.test(s))return 'range';
+  if(/thrust/.test(s))return 'air_engine';
+  if(/speed/.test(s))return 'speed';
+  if(/\borg\b|organization|organisation/.test(s))return 'organization';
+  if(/width/.test(s))return 'width';
   return 'generic';
 }
 function labelNode(card){return card.querySelector(':scope > small,:scope > span');}

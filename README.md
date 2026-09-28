@@ -35,6 +35,10 @@ Production is deployed from `main` to GitHub Pages and served at **hoioracle.com
 
 The separate Oracle validation laboratory is intentionally kept out of production; validated results are promoted into `main` only after controlled testing and regression coverage.
 
+## Release validation
+
+Presentation-only changes use an accelerated validation lane with targeted UI/static regressions and a compact browser smoke. Changes to mechanics, data, Oracle, Counter, shared runtime code, build tooling or CI still require the full certification suite.
+
 ## Development
 
 No package install is required.

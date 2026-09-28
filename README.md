@@ -13,7 +13,7 @@ HOI4 War Planner is built for controlled matchup testing rather than one-size-fi
 - **Counter Analysis** — test bounded structural changes against that exact opponent and show the combat and IC/div tradeoff.
 - **Tank Designer** — build and compare source-backed tank designs and connect them to divisions.
 - **Air Lab** — compare aircraft designs with an explicitly bounded air-combat model.
-- **Division Gauntlet** — stress-test a division against 10,000 deterministic opponents across eight terrain types while attacking and defending: **160,000 matchup checks** in Full mode.
+- **Division Gauntlet** — stress-test a division against 10,000 deterministic opponents across eight terrain types while attacking and defending: **160,000 matchup checks**.
 - **Industry / replacement context** — inspect equipment cost, production burden and modeled replacement losses without pretending to reconstruct a live country's complete economy.
 
 ## Accuracy boundary

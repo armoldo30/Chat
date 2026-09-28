@@ -28,10 +28,12 @@ function plate(body,seed,kind,stage=0){
     <rect class="hoi-model-shadow" x="2" y="3.5" width="44" height="42.5" rx="3"/>
     <rect class="hoi-model-plate" x="2.5" y="2.5" width="43" height="42.5" rx="3"/>
     <rect class="hoi-model-inner" x="4.75" y="4.75" width="38.5" height="38.5" rx="1.8"/>
+    <path class="hoi-model-bevel" d="M7 9h34M7 39h34"/>
     <path class="hoi-model-accent" d="M7 7h34"/>
     <path class="hoi-model-corners" d="M7 13V7h6M35 7h6v6M7 35v6h6M35 41h6v-6"/>
+    <g class="hoi-model-rivets"><circle cx="7.5" cy="7.5" r=".85"/><circle cx="40.5" cy="7.5" r=".85"/><circle cx="7.5" cy="40.5" r=".85"/><circle cx="40.5" cy="40.5" r=".85"/></g>
     <g class="hoi-model-glyph">${body}</g>
-    <path class="hoi-model-footer" d="M9 41h30"/>
+    <path class="hoi-model-footer" d="M10 41h28"/>
     ${stageBadge(stage)}
   </svg>`;
 }

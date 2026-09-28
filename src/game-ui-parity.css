@@ -77,7 +77,7 @@
 #mio-board-modal .mio-full-tree>.mio-section-title h3{margin:0;font-size:.86rem}
 #mio-board-modal .mio-full-tree>.mio-section-title p{max-width:760px;font-size:.54rem}
 #mio-board-modal .mio-full-tree>.mio-section-title::after{
-  content:'ACTIVE  ●   AVAILABLE  ◆   LOCKED  ◇';margin-left:auto;white-space:nowrap;color:#aaa68e;font-size:.46rem;letter-spacing:.08em
+  content:'ACTIVE   AVAILABLE   LOCKED';margin-left:auto;white-space:nowrap;color:#aaa68e;font-size:.46rem;letter-spacing:.08em
 }
 #mio-board-modal .mio-board-traits.mio-tree-layout{
   min-width:900px;min-height:430px;margin:0!important;padding:36px 28px 30px!important;

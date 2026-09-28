@@ -2,23 +2,23 @@ import { iconSvg } from './ui-labels.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const RANGE_CONTROLS={
-  'b-asupply':{label:'Attacker Supply',kind:'support',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
-  'b-dsupply':{label:'Defender Supply',kind:'support',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
+  'b-asupply':{label:'Attacker Supply',kind:'supply',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
+  'b-dsupply':{label:'Defender Supply',kind:'supply',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
   'b-air':{label:'Air Control',kind:'air',min:-1,max:1,step:.05,format:v=>v>0.01?`Friendly +${Math.round(v*100)}%`:v<-.01?`Enemy ${Math.round(v*100)}%`:'Contested'},
   'b-cas':{label:'CAS Support',kind:'air',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
-  'b-planning':{label:'Planning',kind:'doctrine',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
-  'b-night':{label:'Night Fighting',kind:'generic',min:0,max:1,step:.1,format:v=>`${Math.round(v*100)}%`},
-  'f-asupply':{label:'Attacker Supply',kind:'support',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
+  'b-planning':{label:'Planning',kind:'planning',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
+  'b-night':{label:'Night Fighting',kind:'night',min:0,max:1,step:.1,format:v=>`${Math.round(v*100)}%`},
+  'f-asupply':{label:'Attacker Supply',kind:'supply',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
   'f-air':{label:'Air Control',kind:'air',min:-1,max:1,step:.05,format:v=>v>0.01?`Friendly +${Math.round(v*100)}%`:v<-.01?`Enemy ${Math.round(v*100)}%`:'Contested'},
-  'f-planning':{label:'Planning',kind:'doctrine',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
+  'f-planning':{label:'Planning',kind:'planning',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
   'f-cas':{label:'CAS Support',kind:'air',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`}
 };
 
 const PIP_CONTROLS={
-  'b-directions':{label:'Attacking Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
-  'f-directions':{label:'Attacking Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
-  'b-entrench':{label:'Entrenchment',kind:'support',min:0,max:100,marks:[0,20,40,60,80,100],unit:v=>`${v}%`},
-  'b-fort':{label:'Fort Level',kind:'industry',min:0,max:10,marks:[0,1,2,3,4,5,6,7,8,9,10],unit:v=>v===0?'No fort':`Level ${v}`}
+  'b-directions':{label:'Attacking Directions',kind:'directions',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
+  'f-directions':{label:'Attacking Directions',kind:'directions',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
+  'b-entrench':{label:'Entrenchment',kind:'entrench',min:0,max:100,marks:[0,20,40,60,80,100],unit:v=>`${v}%`},
+  'b-fort':{label:'Fort Level',kind:'fort',min:0,max:10,marks:[0,1,2,3,4,5,6,7,8,9,10],unit:v=>v===0?'No fort':`Level ${v}`}
 };
 
 function syncSource(source,value){

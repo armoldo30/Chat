@@ -49,8 +49,16 @@ for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle
 assert.doesNotMatch(modelIcons,/hoi-id-rivet|identityMark/,'modeled icons should not use pseudo-random identity decoration');
 
 const unicodeIconPattern=/\p{Extended_Pictographic}|\uFE0F|[ⓘ☑☒☐✓✔✕✖✗✘★☆◆◇●○◉►▶◀▲▼]/u;
-const uiEntries=await readdir(new URL('../src/',import.meta.url),{withFileTypes:true});
-const uiPaths=uiEntries.filter(entry=>entry.isFile()&&/\.(?:js|css)$/.test(entry.name)).map(entry=>`../src/${entry.name}`);
+async function collectUiSources(dirUrl,prefix='../src/'){
+  const entries=await readdir(dirUrl,{withFileTypes:true}),paths=[];
+  for(const entry of entries){
+    const path=`${prefix}${entry.name}`;
+    if(entry.isDirectory())paths.push(...await collectUiSources(new URL(`${entry.name}/`,dirUrl),`${path}/`));
+    else if(/\.(?:js|css)$/.test(entry.name))paths.push(path);
+  }
+  return paths;
+}
+const uiPaths=await collectUiSources(new URL('../src/',import.meta.url));
 uiPaths.push('../index.html','../about.html','../guides.html','../methodology.html','../privacy.html','../division-counter.html','../division-gauntlet.html','../tank-designer.html','../air-lab.html');
 for(const path of uiPaths){
   const content=await readFile(new URL(path,import.meta.url),'utf8');

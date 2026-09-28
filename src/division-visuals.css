@@ -1,5 +1,5 @@
 /* Picture-first division-template symbols, now using the shared stamped model plates. */
-.picture-unit-symbol{display:grid!important;place-items:center!important;width:44px!important;height:44px!important;margin:0 auto 4px!important;color:#c9c2a5!important}
+.picture-unit-symbol{display:grid!important;place-items:center!important;width:48px!important;height:48px!important;margin:0 auto 4px!important;color:#c9c2a5!important}
 .picture-unit-symbol svg,.division-unit-icon svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 1px 1px rgba(0,0,0,.5))}
 .picture-unit-symbol.armor,.division-unit-icon.armor{color:#9ab0ae!important}
 .picture-unit-symbol.artillery,.division-unit-icon.artillery{color:#c59579!important}
@@ -9,15 +9,15 @@
 .picture-unit-symbol.infantry,.division-unit-icon.infantry{color:#9bb18a!important}
 .picture-picker-choice{min-height:124px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:6px!important}
 .picture-picker-choice> b{font-size:.5rem!important;color:#8f9380!important}
-.division-unit-icon{width:62px;height:62px;display:grid;place-items:center;color:#b9b39a;background:transparent;border:0;border-radius:4px}
-.division-unit-icon svg{width:58px;height:58px}
+.division-unit-icon{width:66px;height:66px;display:grid;place-items:center;color:#b9b39a;background:transparent;border:0;border-radius:4px}
+.division-unit-icon svg{width:62px;height:62px}
 .picture-picker-choice small{font-size:.62rem!important;line-height:1.15!important;text-align:center}
-.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled{min-height:82px!important}
+.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled{min-height:88px!important}
 .hoi-battalion-slot.filled small,.regimental-support.filled small,.hoi-support-slot.filled small{font-size:.51rem!important;line-height:1.08!important;color:#c3c5b7!important}
 @media(max-width:720px){
-  .picture-unit-symbol{width:36px!important;height:36px!important}
-  .division-unit-icon{width:52px;height:52px}
-  .division-unit-icon svg{width:48px;height:48px}
+  .picture-unit-symbol{width:40px!important;height:40px!important}
+  .division-unit-icon{width:56px;height:56px}
+  .division-unit-icon svg{width:52px;height:52px}
   .picture-picker-choice{min-height:108px!important}
 }
 

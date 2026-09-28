@@ -80,7 +80,7 @@ assert.equal(new Set(cannonVariants).size,cannonVariants.length,'source tank wea
 for(const key of ['hq','front','intel','gauntlet','data','scenario','directions','supply','planning','night','fort','entrench','soft_attack','defense','health','reliability','cost','speed','range','agility','organization','width']){
   const svg=iconSvg(key);
   assert.match(svg,/ui-symbol-icon/,key+' should render through the shared symbol system');
-  assert.doesNotEqual(svg,iconSvg('generic'),key+' must have a dedicated pictogram');
+  assert.notEqual(svg,iconSvg('generic'),key+' must have a dedicated pictogram');
 }
 assert.match(modelIcons,/hoi-model-rivets/,'modeled plates should use visible stamped rivets');
 assert.match(modelIcons,/hoi-model-bevel/,'modeled plates should include an inner bevel');

@@ -1,0 +1,3 @@
+Temporary exact-head RC trigger for corrected 0.17.21 icon-system polish.
+Source head: f241db2c015e834505de0ade894490f1842dd2e0
+Do not merge this launch-candidate branch.

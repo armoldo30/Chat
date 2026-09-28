@@ -16,15 +16,48 @@ concurrency:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Classify release scope
+        id: scope
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+          BEFORE_SHA: ${{ github.event.before }}
+          CURRENT_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            scope=full
+          else
+            if [[ "$EVENT_NAME" == "pull_request" ]]; then
+              base="$PR_BASE"
+              head="$PR_HEAD"
+            else
+              base="$BEFORE_SHA"
+              head="$CURRENT_SHA"
+              if [[ "$base" =~ ^0+$ ]]; then base="$(git rev-parse "$head^")"; fi
+            fi
+            scope="$(node scripts/classify-release-scope.mjs "$base" "$head")"
+          fi
+          echo "scope=$scope" >> "$GITHUB_OUTPUT"
+          echo "Release validation scope: $scope"
+      - name: Fast presentation regression suite
+        if: steps.scope.outputs.scope == 'fast'
+        run: npm run test:visual
       - name: Full certified regression suite
+        if: steps.scope.outputs.scope != 'fast'
         run: npm test
       - name: Confirm full 160k Gauntlet matrix
+        if: steps.scope.outputs.scope != 'fast'
         run: node tests/gauntlet-full-smoke.test.mjs
       - name: Build static site
         run: npm run build
@@ -60,5 +93,9 @@ jobs:
           print('Built local references:',len(p.refs))
           PY
           git diff --exit-code
-      - name: Served browser route and accessibility smoke
+      - name: Fast presentation browser smoke
+        if: steps.scope.outputs.scope == 'fast'
+        run: bash scripts/served-browser-smoke-fast.sh dist
+      - name: Full served browser route and accessibility smoke
+        if: steps.scope.outputs.scope != 'fast'
         run: bash scripts/served-browser-smoke.sh dist

@@ -4,7 +4,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { battalions, supports, equipment, terrain } from '../src/data.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { applyRegimentalSupportCompatibilityFallback } from '../src/regimental-support-1193.js';
-import { runCounterSearch, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates, canReachMeaningfulCounterGain } from '../src/counter-search.js';
+import { runCounterSearch, runCounterSearchResponsive, COUNTER_SEARCH_DEFAULTS, COUNTER_DEEP_SEARCH_DEFAULTS, chooseCounterHighlights, buildCounterRecommendationGroups, selectDiverseCounterCandidates, canReachMeaningfulCounterGain } from '../src/counter-search.js';
 hydrateGameData(BUILTIN_1193,{battalions,supports,equipment,terrain},{year:1940});
 applyRegimentalSupportCompatibilityFallback(supports);
 const s=counterSnapshot();
@@ -60,6 +60,17 @@ assert.equal(defenderRun.side,'defender','the same search engine must optimize t
 assert.equal(defenderRun.multiChangeCount,0);
 assert.ok(defenderRun.oneChangeCount>0&&Number.isFinite(defenderRun.baseline.winRate));
 assert.ok(defenderRun.bestTested&&defenderRun.bestTested.side==='defender','defender candidate identity must survive full battle simulation and ranking');
+
+const responsiveProgress=[];
+const responsiveAttacker=await runCounterSearchResponsive(s,{side:'attacker',runs:4,firstStepLimit:4,beamWidth:2,secondPerSeedLimit:3,secondStepLimit:2,previewMultiplier:1,onProgress:progress=>responsiveProgress.push(progress)});
+assert.equal(responsiveAttacker.side,'attacker');
+assert.ok(responsiveProgress.some(progress=>progress.phase==='second-screening'),'responsive attacker search must report second-step screening instead of appearing frozen at the first-step boundary');
+assert.ok(responsiveProgress.some(progress=>progress.phase==='second'),'responsive attacker search must resume numbered battle-test progress after screening');
+const defenderProgress=[];
+const responsiveDefender=await runCounterSearchResponsive(s,{side:'defender',runs:4,firstStepLimit:4,beamWidth:2,secondPerSeedLimit:3,secondStepLimit:2,previewMultiplier:1,onProgress:progress=>defenderProgress.push(progress)});
+assert.equal(responsiveDefender.side,'defender');
+assert.ok(defenderProgress.some(progress=>progress.phase==='second-screening'),'responsive defender search must report second-step screening instead of appearing frozen at the first-step boundary');
+assert.ok(defenderProgress.some(progress=>progress.phase==='second'),'responsive defender search must resume numbered battle-test progress after screening');
 
 const heavy={key:'heavy',label:'Add Heavy Armor',gain:20,value:.5,changeCount:1,deltaIC:500},at={key:'at',label:'Add Support Anti-Tank',gain:9,value:.2,changeCount:1,deltaIC:50},support={key:'support',label:'Swap Support Company',gain:8,value:.15,changeCount:1,deltaIC:20};
 const picks=chooseCounterHighlights([heavy,at,support]);

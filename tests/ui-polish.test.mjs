@@ -12,6 +12,9 @@ assert.match(html,/\.\/src\/ui-polish\.js/,'index should load the UI polish modu
 assert.match(css,/prefers-reduced-motion/,'polish layer should respect reduced-motion preferences');
 assert.match(css,/:focus-visible/,'polish layer should provide keyboard focus treatment');
 assert.match(css,/@media\(max-width:980px\)/,'polish layer should include tablet/mobile navigation rules');
+assert.match(css,/battle-report-panel \.report>\.grid\.two>div:nth-child\(2\)/,'repeated battle-mechanics prose should be removed from the working surface');
+assert.match(css,/advisor-lines\+p\.notice/,'industry optimization explanation should not occupy permanent lower-page space');
+assert.match(css,/saved-matchups-panel>p\.muted/,'saved-matchup explanatory footer should be visually retired');
 
 for(const route of ['dashboard','front','intel','battle','tank','air','production','data','scenario']){
   assert.ok(js.includes(`'${route}'`),`polished navigation should expose ${route}`);

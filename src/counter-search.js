@@ -180,12 +180,17 @@ export async function runCounterSearchResponsive(snapshot,options={}){
     firstTested.push(simulateCandidate(snapshot,opponent,battleOptions,runs,firstEnriched[i],side));onProgress?.({phase:'first',completed:i+1,total:requestedTotal});await yieldControl();abortIfNeeded(cancelled);
   }
   const beam=selectDiverseCounterCandidates(firstTested,Math.max(1,beamWidth),item=>beamScore(snapshot,item,side)),seen=new Set([counterForceKey(state[side+'Grid'],state[side+'Supports'],state,side),...firstPreview.map(item=>item.key)]),secondPool=[];
-  for(const seed of beam){
-    const seedState=seed.state||state,raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier});
+  onProgress?.({phase:'second-screening',completed:firstTested.length,total:requestedTotal,seedCompleted:0,seedTotal:beam.length,screened:0,screeningTotal:0});await yieldControl();abortIfNeeded(cancelled);
+  for(let seedIndex=0;seedIndex<beam.length;seedIndex++){
+    const seed=beam[seedIndex],seedState=seed.state||state;
+    onProgress?.({phase:'second-screening',completed:firstTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:beam.length,screened:0,screeningTotal:0});await yieldControl();abortIfNeeded(cancelled);
+    const raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:secondPerSeedLimit*previewMultiplier});
+    onProgress?.({phase:'second-screening',completed:firstTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:beam.length,screened:0,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);
     for(let i=0;i<raw.length;i++){
       const enriched=enrichCandidate(snapshot,raw[i],side,seedState);if(!seen.has(enriched.key)){seen.add(enriched.key);secondPool.push(enriched);}
-      if(i%10===9){await yieldControl();abortIfNeeded(cancelled);}
+      if(i%4===3||i===raw.length-1){onProgress?.({phase:'second-screening',completed:firstTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:beam.length,screened:i+1,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);}
     }
+    onProgress?.({phase:'second-screening',completed:firstTested.length,total:requestedTotal,seedCompleted:seedIndex+1,seedTotal:beam.length,screened:raw.length,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);
   }
   const secondSelected=selectDiverseCounterCandidates(secondPool,Math.max(0,secondStepLimit),item=>heuristic(snapshot,item,side)),secondTested=[];
   for(let i=0;i<secondSelected.length;i++){
@@ -194,12 +199,17 @@ export async function runCounterSearchResponsive(snapshot,options={}){
   const thirdPool=[],deepAttempted=deep&&thirdStepLimit>0&&canReachMeaningfulCounterGain(baselineWin)&&!hasMeaningfulTested(snapshot,side,baselineWin,[...firstTested,...secondTested]);
   if(deepAttempted){
     const thirdSeeds=selectDiverseCounterCandidates(secondTested,Math.max(1,thirdBeamWidth),item=>beamScore(snapshot,item,side));
-    for(const seed of thirdSeeds){
-      const seedState=seed.state||state,raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:thirdPerSeedLimit*previewMultiplier});
+    onProgress?.({phase:'third-screening',completed:firstTested.length+secondTested.length,total:requestedTotal,seedCompleted:0,seedTotal:thirdSeeds.length,screened:0,screeningTotal:0});await yieldControl();abortIfNeeded(cancelled);
+    for(let seedIndex=0;seedIndex<thirdSeeds.length;seedIndex++){
+      const seed=thirdSeeds[seedIndex],seedState=seed.state||state;
+      onProgress?.({phase:'third-screening',completed:firstTested.length+secondTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:thirdSeeds.length,screened:0,screeningTotal:0});await yieldControl();abortIfNeeded(cancelled);
+      const raw=candidatePool(snapshot,{side,state:seedState,grid:seed.grid,supportKeys:seed.supportKeys,priorChanges:seed.changes,priorKinds:seed.changeKinds||[seed.kind],limit:thirdPerSeedLimit*previewMultiplier});
+      onProgress?.({phase:'third-screening',completed:firstTested.length+secondTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:thirdSeeds.length,screened:0,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);
       for(let i=0;i<raw.length;i++){
         const enriched=enrichCandidate(snapshot,raw[i],side,seedState);if(!seen.has(enriched.key)){seen.add(enriched.key);thirdPool.push(enriched);}
-        if(i%10===9){await yieldControl();abortIfNeeded(cancelled);}
+        if(i%4===3||i===raw.length-1){onProgress?.({phase:'third-screening',completed:firstTested.length+secondTested.length,total:requestedTotal,seedCompleted:seedIndex,seedTotal:thirdSeeds.length,screened:i+1,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);}
       }
+      onProgress?.({phase:'third-screening',completed:firstTested.length+secondTested.length,total:requestedTotal,seedCompleted:seedIndex+1,seedTotal:thirdSeeds.length,screened:raw.length,screeningTotal:raw.length});await yieldControl();abortIfNeeded(cancelled);
     }
   }
   const thirdSelected=selectDiverseCounterCandidates(thirdPool,Math.max(0,thirdStepLimit),item=>heuristic(snapshot,item,side)),thirdTested=[];

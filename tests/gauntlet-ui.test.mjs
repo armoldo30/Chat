@@ -20,7 +20,8 @@ assert.match(ui,/opponentSide=side==='attacker'\?'defender':'attacker'/,'generat
 for(const terrain of ['plains','forest','hills','mountain','jungle','marsh','desert','urban'])assert.ok(core.includes(`'${terrain}'`),`Gauntlet core must include ${terrain}`);
 for(const archetype of ['infantry_wall','artillery_infantry','cheap_holding','motorized','mechanized','light_armor','medium_armor','heavy_armor','breakthrough_tank','high_hardness','at_counter','aa_heavy','space_marine','high_org','low_cost_spam','elite'])assert.ok(core.includes(`id:'${archetype}'`),`missing archetype ${archetype}`);
 assert.match(ui,/planner analytical/,'UI must disclose analytical opponent/grading boundary');
-assert.match(ui,/certified bounded 1\.19\.2 combat engine/,'UI must disclose combat evidence boundary');
+assert.match(ui,/Oracle-validated for HOI4 1\.19\.3 through O25/,'UI must disclose the current combat evidence boundary');
+assert.match(ui,/gauntlet-model-notes/,'Gauntlet evidence detail should be available without permanent footer prose');
 assert.match(css,/\.gauntlet-terrain-grid/);assert.match(css,/\.gauntlet-grade-grid/);assert.match(css,/@media\(max-width:600px\)/,'Gauntlet must retain a mobile layout');
 
 console.log('Division Gauntlet UI regression checks passed.');

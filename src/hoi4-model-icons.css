@@ -19,11 +19,11 @@
 
 .hoi-model-icon .hoi-model-shadow{fill:#070a07;opacity:.72}
 .hoi-model-icon .hoi-model-plate{fill:var(--hoi-plate);stroke:var(--hoi-accent);stroke-width:1.25}
-.hoi-model-icon .hoi-model-inner{fill:var(--hoi-inner);stroke:#465044;stroke-width:.85}
+.hoi-model-icon .hoi-model-inner{fill:var(--hoi-inner);stroke:#4b5549;stroke-width:.85}.hoi-model-icon .hoi-model-bevel{fill:none;stroke:#87907b;stroke-width:.45;opacity:.22}
 .hoi-model-icon .hoi-model-accent{fill:none;stroke:var(--hoi-accent);stroke-width:1.85;stroke-linecap:round;opacity:.95}
 .hoi-model-icon .hoi-model-corners{fill:none;stroke:var(--hoi-accent);stroke-width:.75;stroke-linecap:square;opacity:.52}
-.hoi-model-icon .hoi-model-footer{fill:none;stroke:var(--hoi-accent);stroke-width:.7;stroke-linecap:round;opacity:.35}
-.hoi-model-icon .hoi-model-glyph{transform-box:view-box;transform-origin:24px 24px;transform:scale(1.045)}
+.hoi-model-icon .hoi-model-footer{fill:none;stroke:var(--hoi-accent);stroke-width:.85;stroke-linecap:round;opacity:.45}.hoi-model-icon .hoi-model-rivets{fill:var(--hoi-accent);opacity:.7}
+.hoi-model-icon .hoi-model-glyph{transform-box:view-box;transform-origin:24px 24px;transform:scale(1.075)}
 .hoi-model-icon .hoi-fill,.hoi-model-icon .hoi-hull{fill:var(--hoi-fill);stroke:#f0e7c7;stroke-width:.82;stroke-linejoin:round}
 .hoi-model-icon .hoi-track{fill:#4b5348;stroke:#aaa98f;stroke-width:.82}
 .hoi-model-icon .hoi-wheel{fill:#1b211c;stroke:#c8c3a5;stroke-width:.78}
@@ -40,7 +40,7 @@
 .hoi-model-icon .hoi-fallback>path,.hoi-model-icon .hoi-fallback>circle,.hoi-model-icon .hoi-fallback>rect{stroke:#ded8bc}
 
 .visual-trigger-icon,.visual-option-icon,.designer-tab-icon,.division-unit-icon,.picture-unit-symbol,.tank-silhouette-icon,.air-role-visual i{overflow:hidden}
-.visual-trigger-icon .hoi-model-icon,.visual-option-icon .hoi-model-icon,.designer-tab-icon .hoi-model-icon,.division-unit-icon .hoi-model-icon,.picture-unit-symbol .hoi-model-icon,.tank-silhouette-icon .hoi-model-icon,.air-role-visual .hoi-model-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.58))}
+.visual-trigger-icon .hoi-model-icon,.visual-option-icon .hoi-model-icon,.designer-tab-icon .hoi-model-icon,.division-unit-icon .hoi-model-icon,.picture-unit-symbol .hoi-model-icon,.tank-silhouette-icon .hoi-model-icon,.air-role-visual .hoi-model-icon{filter:drop-shadow(0 2px 2px rgba(0,0,0,.66))}
 .visual-option.selected .hoi-model-icon .hoi-model-plate,.visual-picker-trigger:hover .hoi-model-icon .hoi-model-plate,.designer-visual-tab.active .hoi-model-icon .hoi-model-plate{stroke:#d0b76d;fill:#182019}
 .visual-option.selected .hoi-model-icon .hoi-model-accent,.designer-visual-tab.active .hoi-model-icon .hoi-model-accent{stroke:#dec77d}
 .visual-option.selected .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-fill,.designer-visual-tab.active .hoi-model-icon .hoi-hull{fill:#c8c5aa}

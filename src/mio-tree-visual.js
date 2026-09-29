@@ -1,4 +1,4 @@
-import BUILTIN_1192 from './builtin1192.js';
+import BUILTIN_1193 from './builtin1193.js';
 import { mioCatalog } from './mio.js';
 import { displayLabel } from './ui-labels.js';
 import { registerUiEnhancer, scheduleUiEnhancers } from './ui-enhancer-runtime.js';
@@ -8,7 +8,7 @@ function currentPack(){
   for(const key of STORAGE_KEYS){
     try{const raw=JSON.parse(localStorage.getItem(key)||'null');if(raw?.dataPack)return raw.dataPack;}catch{}
   }
-  return BUILTIN_1192;
+  return BUILTIN_1193;
 }
 function currentCatalog(){try{return mioCatalog(currentPack());}catch{return {};}}
 function orgIdFor(root){

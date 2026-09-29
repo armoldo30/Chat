@@ -52,8 +52,16 @@ export function materializedRuntimePackModule(pack){
   return `// Generated at build time from the certified source pack. Do not edit.\nexport const RUNTIME_PACK_FORMAT=1;\nconst BUILTIN_1193=${serialized};\nexport default BUILTIN_1193;\n`;
 }
 
+export function rewriteModuleForMaterializedPack(source){
+  const text=String(source);
+  const occurrences=text.split(SOURCE_IMPORT).length-1;
+  return {source:text.split(SOURCE_IMPORT).join(RUNTIME_IMPORT),occurrences};
+}
+
 export function rewriteMainForMaterializedPack(source){
-  return replaceExactlyOnce(source,SOURCE_IMPORT,RUNTIME_IMPORT,'BUILTIN_1193 source import');
+  const rewritten=rewriteModuleForMaterializedPack(source);
+  if(rewritten.occurrences!==1)throw new Error(`Runtime-pack materialization expected exactly one BUILTIN_1193 source import in main.js, found ${rewritten.occurrences}.`);
+  return rewritten.source;
 }
 
 export const RUNTIME_PACK_SOURCE_IMPORT=SOURCE_IMPORT;

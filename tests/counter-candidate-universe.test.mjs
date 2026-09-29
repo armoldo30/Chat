@@ -17,6 +17,10 @@ for(const id of ['medium_tank_destroyer_brigade','medium_sp_artillery_brigade','
 for(const id of ['hq_infantry','hq_motorized','hq_light_armor','hq_medium_armor','hq_heavy_armor']){
   if(battalions[id])assert.ok(!lineIds.includes(id),`Counter catalog must exclude HQ-only ${id}`);
 }
+for(const id of RETIRED_ORDINARY_DIVISION_BATTALION_IDS){
+  assert.ok(battalions[id],`retired odd unit ${id} should still exist in the hydrated source catalog`);
+  assert.ok(!lineIds.includes(id),`Counter catalog must not recommend retired odd unit ${id}`);
+}
 for(const id of RETIRED_ORDINARY_BATTALION_IDS){
   assert.ok(battalions[id],`retired source battalion ${id} should remain present in the hydrated source catalog`);
   assert.ok(!lineIds.includes(id),`Counter catalog must exclude retired source battalion ${id}`);

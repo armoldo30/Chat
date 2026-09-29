@@ -1,9 +1,9 @@
-import { iconSvg, visualKind } from './ui-labels.js';
-import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
+import { visualKind } from './ui-labels.js';
+import { hoi4SourceFallbackSvg, hoi4SourceIconSvg } from './hoi4-source-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(text){const kind=visualKind(text);return kind==='generic'?'industry':kind;}
-function equipmentIcon(text,kind){return hoi4SourceIconSvg(text,text,'generic','Equipment')||iconSvg(kind);}
+function equipmentIcon(text,kind){return hoi4SourceIconSvg(text,text,'generic','Equipment')||hoi4SourceFallbackSvg('generic',kind);}
 function decorateBadge(badge){
   if(!badge||badge.dataset.pictureEquipment==='1')return;badge.dataset.pictureEquipment='1';
   const row=badge.closest('.advisor-line'),name=row?.querySelector('.advisor-eq b')?.textContent||badge.textContent||'',kind=resolvedKind(name);

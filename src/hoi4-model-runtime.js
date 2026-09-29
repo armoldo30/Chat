@@ -29,9 +29,9 @@ function enhanceTriggers(){
 }
 function enhanceModal(){
   const modal=document.getElementById('visual-picker-modal');if(!modal||modal.hidden)return;
-  const title=norm(modal.querySelector('#visual-picker-title')?.textContent),context=/air|airframe|aircraft|weapon|bomb|torpedo/i.test(title)?'air':/tank|chassis|turret|suspension|armor|armour|engine|armament/i.test(title)?'armor':'infantry';
+  const title=norm(modal.querySelector('#visual-picker-title')?.textContent),pickerKind=norm(modal.dataset.pickerKind),context=pickerKind==='air'?'air':pickerKind==='armor'?'armor':/air|airframe|aircraft|weapon|bomb|torpedo/i.test(title)?'air':/tank|chassis|turret|suspension|armor|armour|engine|armament/i.test(title)?'armor':'infantry';
   modal.querySelectorAll('.visual-option').forEach((card,index)=>{
-    const icon=card.querySelector('.visual-option-icon'),label=norm(card.querySelector('.visual-option-copy b')?.textContent),raw=norm(card.querySelector('.visual-option-copy small')?.textContent),value=raw||label||`option_${index}`,fallback=context==='air'?'air':context==='armor'?'armor':'generic';
+    const icon=card.querySelector('.visual-option-icon'),label=norm(card.querySelector('.visual-option-copy b')?.textContent),raw=norm(card.querySelector('.visual-option-copy small')?.textContent),value=norm(card.dataset.optionValue)||raw||label||`option_${index}`,fallback=context==='air'?'air':context==='armor'?'armor':'generic';
     replace(icon,value,label,context,fallback,title);
   });
 }

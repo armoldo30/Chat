@@ -1,5 +1,6 @@
 import { itemIconKey, itemIconSvg } from './item-icons.js';
 import { sourceIconHint } from './source-icon-hints.js';
+import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
 
 /*
  * Planner-owned HOI4-style icon renderer.
@@ -155,6 +156,7 @@ function genericFallback(value,label,context,fallback){
 }
 
 export function hoi4ModelIconSvg(value='',label='',context='',fallback='generic',slot=''){
+  const sourced=hoi4SourceIconSvg(value,label,context,slot);if(sourced)return sourced;
   const hint=sourceIconHint(value,label,context,slot),key=itemIconKey(value,hint,context),stage=stageOf(value,label),seed=value||label||key;
   let body=null,kind='module';
   if(['light_tank','medium_tank','heavy_tank','superheavy_tank','modern_tank','amphibious_tank','land_cruiser','tank_destroyer','spg','spaa','flame_tank'].includes(key)){body=tankBody(key,stage);kind='tank';}

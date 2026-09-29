@@ -51,6 +51,7 @@ assert.match(buildScript,/publicFiles=\[[^\]]*'hoi4-icons\.webp'/s,'production b
 assert.match(sourceIcons,/ATLAS_ASSET_URL\.search=MODULE_URL\.search/,'atlas URL must inherit the module build token to avoid stale cached 404s');
 assert.match(sourceIcons,/clipPathUnits="userSpaceOnUse"/,'source atlas sprites should use an explicit user-space clip path');
 assert.match(sourceIcons,/clip-path="url\(#\$\{clipId\}\)"/,'atlas image must be explicitly clipped instead of relying on SVG viewport overflow');
+assert.match(sourceIcons,/SOURCE_CLIP_SERIAL/,'each rendered source icon should receive a unique clip id to avoid duplicate DOM ids');
 assert.match(sourceIcons,/<rect x="1" y="1" width="\$\{cellWidth-2\}" height="\$\{cellHeight-2\}"\/>/,'explicit atlas clip should inset one source pixel inside every cell');
 for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle_battalion','bicycle'],['mot_fire_support','motorized_artillery'],['rocket_battery','rocket_artillery']]){
   assert.equal(itemIconKey(id,id,'infantry'),expected,`${id} should resolve to ${expected}`);

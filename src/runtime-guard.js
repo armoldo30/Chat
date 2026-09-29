@@ -1,6 +1,6 @@
 // Lightweight launch-safety layer. No telemetry: failures stay in the browser.
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
-const RETIRED_PUBLIC_ROUTES=new Set(['dashboard','front','intel','production']);
+const RETIRED_PUBLIC_ROUTES=new Set(['dashboard','front','intel','scenario']);
 const CRITICAL_SCRIPT_RE=/\/src\/(?:main|product-direction-runtime|counter-[^/?]+)\.js(?:$|[?#])/;
 const initialRoute=location.hash.replace('#','');
 if(RETIRED_PUBLIC_ROUTES.has(initialRoute))history.replaceState(null,'',`${location.pathname}${location.search}#battle`);
@@ -21,7 +21,7 @@ function showRecovery(message,detail=''){
   if(anchor?.parentNode)anchor.parentNode.insertBefore(box,anchor);else document.body.prepend(box);
   box.querySelector('[data-runtime-reload]')?.addEventListener('click',()=>location.reload());
   box.querySelector('[data-runtime-reset]')?.addEventListener('click',()=>{
-    if(!confirm('Clear locally saved HOI4 War Planner state and reload? Export your scenario first if the planner is still usable.'))return;
+    if(!confirm('Clear locally saved HOI4 War Planner state and reload? Export a planner backup first if the planner is still usable.'))return;
     for(const key of STORAGE_KEYS){try{localStorage.removeItem(key);}catch{}}
     location.reload();
   });

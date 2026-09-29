@@ -3,7 +3,7 @@ import BUILTIN_1193 from '../src/builtin1193.js';
 import { battalions, supports, equipment, terrain } from '../src/data.js';
 import { hydrateGameData } from '../src/gameData.js';
 import { countsToGrid } from '../src/designer.js';
-import { ordinaryDivisionBattalionIds } from '../src/division-designer-options.js';
+import { RETIRED_ORDINARY_DIVISION_BATTALION_IDS, ordinaryDivisionBattalionIds } from '../src/division-designer-options.js';
 import { applyRegimentalSupportCompatibilityFallback, REGIMENTAL_SUPPORT_IDS_1193 } from '../src/regimental-support-1193.js';
 import { counterBattalionCandidateIds, counterDivisionalSupportIds, counterRegimentalSupportIds, counterTemplateKey, buildCounterCandidates } from '../src/counter-candidates.js';
 
@@ -16,6 +16,10 @@ for(const id of ['medium_tank_destroyer_brigade','medium_sp_artillery_brigade','
 }
 for(const id of ['hq_infantry','hq_motorized','hq_light_armor','hq_medium_armor','hq_heavy_armor']){
   if(battalions[id])assert.ok(!lineIds.includes(id),`Counter catalog must exclude HQ-only ${id}`);
+}
+for(const id of RETIRED_ORDINARY_DIVISION_BATTALION_IDS){
+  assert.ok(battalions[id],`retired odd unit ${id} should still exist in the hydrated source catalog`);
+  assert.ok(!lineIds.includes(id),`Counter catalog must not recommend retired odd unit ${id}`);
 }
 
 const divisionalSupportIds=counterDivisionalSupportIds(supports);

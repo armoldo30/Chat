@@ -7,7 +7,7 @@ import { hoi4SourceIcon } from '../src/hoi4-source-icons.js';
 import { hoi4TextIconForLabel } from '../src/hoi4-text-icons.js';
 import { hoi4StatIconForLabel } from '../src/hoi4-stat-icons.js';
 
-const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,divisionVisuals]=await Promise.all([
+const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,divisionVisuals,buildScript,sourceIcons]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
   readFile(new URL('../src/visual-overhaul.js',import.meta.url),'utf8'),
   readFile(new URL('../src/designer-visuals.js',import.meta.url),'utf8'),
@@ -16,7 +16,9 @@ const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,di
   readFile(new URL('../src/hoi4-model-icons.css',import.meta.url),'utf8'),
   readFile(new URL('../src/hoi4-model-icons.js',import.meta.url),'utf8'),
   readFile(new URL('../src/ui-labels.js',import.meta.url),'utf8'),
-  readFile(new URL('../src/division-visuals.js',import.meta.url),'utf8')
+  readFile(new URL('../src/division-visuals.js',import.meta.url),'utf8'),
+  readFile(new URL('../scripts/build.mjs',import.meta.url),'utf8'),
+  readFile(new URL('../src/hoi4-source-icons.js',import.meta.url),'utf8')
 ]);
 
 assert.doesNotMatch(html,/src\/icon-overhaul\.js/,'legacy icon runtime must not override the current item-icon system');
@@ -45,6 +47,8 @@ assert.match(modelIcons,/hoi-model-glyph/,'modeled silhouettes should render in 
 assert.match(modelRuntime,/startsWith\('hoi4-'\)/,'runtime should clear stale semantic icon classes when selections change');
 assert.match(divisionVisuals,/hoi4ModelIconSvg/,'Division Lab battalion and support slots should use the shared modeled icon renderer');
 assert.match(divisionVisuals,/hoi4ModelIconKey/,'Division Lab should share the same semantic icon identity mapping');
+assert.match(buildScript,/publicFiles=\[[^\]]*'hoi4-icons\.webp'/s,'production build must copy the authentic HOI4 atlas into dist');
+assert.match(sourceIcons,/ATLAS_ASSET_URL\.search=MODULE_URL\.search/,'atlas URL must inherit the module build token to avoid stale cached 404s');
 for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle_battalion','bicycle'],['mot_fire_support','motorized_artillery'],['rocket_battery','rocket_artillery']]){
   assert.equal(itemIconKey(id,id,'infantry'),expected,`${id} should resolve to ${expected}`);
   assert.match(hoi4ModelIconSvg(id,id,'infantry','generic','Division unit'),/hoi-model-icon/);

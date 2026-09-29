@@ -9,10 +9,10 @@ assert.doesNotMatch(index,/publisher-guide|What can I use this for\?/,'Counter m
 assert.match(index,/counter-analysis\.css/);
 assert.match(index,/counter-results-ui\.js/);
 assert.match(index,/counter-analysis-ui\.js/);
-assert.match(direction,/\['dashboard','front','intel','scenario'\]/,'Command, prior operational-planning routes, and Scenario must remain retired while Industry stays active');
+assert.match(direction,/\['dashboard','front','intel','production','scenario'\]/,'Command, prior operational-planning routes, Industry, and Scenario must remain retired');
 assert.match(direction,/HOI4 WAR PLANNER/,'persistent shell must use the current analysis product identity');
-assert.match(direction,/Build · Compare · Improve · Stress-test/,'top-level shell must communicate the current product workflow');
-assert.match(runtimeGuard,/RETIRED_PUBLIC_ROUTES=new Set\(\['dashboard','front','intel','scenario'\]\)/,'retired hashes must be normalized before the main SPA renders without redirecting Industry');
+assert.doesNotMatch(direction,/Build · Compare · Improve · Stress-test/,'retired promotional shell copy must stay removed');
+assert.match(runtimeGuard,/RETIRED_PUBLIC_ROUTES=new Set\(\['dashboard','front','intel','production','scenario'\]\)/,'retired hashes, including Industry, must be normalized before the main SPA renders');
 assert.match(runtimeGuard,/history\.replaceState\(null,'',`\$\{location\.pathname\}\$\{location\.search\}#battle`\)/,'legacy Command links must land directly in Division Lab without rendering the retired dashboard first');
 assert.match(mode,/COUNTER ANALYSIS/);
 assert.match(mode,/TEST THIS DIVISION →/,'Division Lab must expose a prominent one-click combat shortcut');

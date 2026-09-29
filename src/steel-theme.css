@@ -1,0 +1,227 @@
+/*
+ * Steel-blue theme trial
+ * Palette-only override layer. Loaded last so legacy olive/brass component
+ * colors can be restyled without changing structure, spacing, or behavior.
+ */
+:root{
+  --bg:#0b1017;
+  --panel:#111a24;
+  --panel2:#172331;
+  --line:#2b3c4d;
+  --muted:#93a4b2;
+  --accent:#78afc7;
+  --blue:#78afc7;
+  --steel-bg:#0b1017;
+  --steel-surface:#111a24;
+  --steel-surface-2:#172331;
+  --steel-surface-3:#1d2b39;
+  --steel-line:#2b3c4d;
+  --steel-line-strong:#405a70;
+  --steel-text:#e7eef4;
+  --steel-muted:#93a4b2;
+  --steel-accent:#78afc7;
+  --steel-accent-strong:#9ac6d8;
+}
+html{background:var(--steel-bg)}
+body{
+  color:var(--steel-text);
+  background:radial-gradient(circle at 70% -10%,#17283a 0,transparent 35%),var(--steel-bg)!important;
+}
+
+/* Publisher / static pages */
+.publisher-intro-inner,.content-card,.legal-page .legal-card{
+  border-color:rgba(120,175,199,.24)!important;
+  background:linear-gradient(180deg,rgba(18,29,40,.96),rgba(10,17,25,.94))!important;
+}
+.publisher-intro-actions a,.content-nav a{
+  border-color:rgba(120,175,199,.32)!important;
+  background:rgba(17,29,40,.64);
+}
+.publisher-intro-actions a:hover,.content-nav a:hover{border-color:var(--steel-accent)!important;background:#172838!important}
+.content-footer-links{border-top-color:rgba(120,175,199,.2)!important}
+
+/* Global shell */
+.sidebar{
+  background:#0c131c!important;
+  border-right-color:var(--steel-line)!important;
+}
+.brand{border-bottom-color:#263746!important}
+.brand-mark{border-color:#405a6e!important;color:var(--steel-accent)!important}
+.sidebar nav a{color:#a7b6c2!important}
+.sidebar nav a:hover{background:#142231!important}
+.sidebar nav a.active,.sidebar nav a[aria-current="page"]{
+  background:#1a2b3b!important;
+  color:#f2f6f8!important;
+  box-shadow:inset 3px 0 var(--steel-accent)!important;
+}
+.side-meta{border-top-color:var(--steel-line)!important;color:var(--steel-muted)!important}
+.topbar{background:#0f1822!important;border-bottom-color:var(--steel-line)!important}
+.hero,.tool-head{border-bottom-color:#2c4051!important}
+.hero h1,.tool-head h1,.panel h2,.content-page h1,.content-page h2{color:var(--steel-text)!important}
+.kicker,.eyebrow{color:var(--steel-accent)!important}
+.badge:not(.good){background:#111d28!important;border-color:#334a5e!important;color:#c4d2dc!important}
+.readiness-ring{border-color:#203141!important;border-top-color:var(--steel-accent)!important}
+
+/* Core surfaces */
+.panel,.metric{
+  background:linear-gradient(180deg,#131e2a,#0e1720)!important;
+  border-color:var(--steel-line)!important;
+}
+.stat,.compare-cards>div,.band>div,.result-grid>div,.resource-grid div,.projection>div,.slot-summary>div,.check-grid span{
+  background:#101a24!important;
+  border-color:#293d4e!important;
+}
+.notice{border-left-color:#405a70!important}
+.progress{background:#152331!important}
+.progress span{background:var(--steel-accent)!important}
+input,select,textarea{
+  background:#0b141d!important;
+  border-color:#30465a!important;
+  color:#edf3f6!important;
+}
+input:hover,select:hover,textarea:hover{border-color:#405c72!important}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--steel-accent)!important;
+  box-shadow:0 0 0 3px rgba(120,175,199,.10)!important;
+}
+button,.btn,.primary{
+  background:#172431!important;
+  border-color:#355064!important;
+  color:#e5edf2!important;
+}
+button:hover,.btn:hover{border-color:#54758c!important}
+.primary{
+  background:var(--steel-accent)!important;
+  border-color:var(--steel-accent)!important;
+  color:#09131b!important;
+}
+.table-wrap{border-color:#2c4051!important}
+thead th{background:#162330!important;border-color:#2c4051!important}
+th,td{border-color:#263a4b!important}
+code{background:#101c27!important;border-color:#2f4558!important;color:#c9d9e3!important}
+
+/* Division designer */
+.designer-tabs button{
+  background:linear-gradient(180deg,#233443,#182532)!important;
+  border-color:#3b5264!important;
+  color:#dbe6ed!important;
+}
+.designer-tabs button.active{
+  background:linear-gradient(180deg,#2d4558,#203545)!important;
+  border-color:#64879d!important;
+  box-shadow:inset 0 -3px var(--steel-accent)!important;
+}
+.hoi-designer{background:#111a23!important;border-color:#4b6274!important}
+.designer-topbar{
+  background:linear-gradient(180deg,#2a3d4d,#1d2d3a)!important;
+  border-bottom-color:#4b6274!important;
+}
+.division-counter{background:#1c2b37!important;border-color:#879ca9!important;color:#edf3f6!important}
+.hoi-designer-layout{
+  background:linear-gradient(135deg,rgba(58,91,116,.10),transparent 38%),#121c26!important;
+}
+.support-rail,.designer-stats{background:#0f1822!important;border-color:#344b5c!important}
+.rail-title,.stats-title,.board-label>span,.regimental-label>span{color:#b9cad5!important}
+.board-label small,.regimental-label small,.template-facts{color:#8fa1ae!important}
+.hoi-support-slot,.hoi-battalion-slot{
+  border-color:#41596b!important;
+  background:linear-gradient(145deg,#263847,#172632)!important;
+  color:#edf3f6!important;
+}
+.hoi-support-slot.empty,.hoi-battalion-slot.empty{background:#131e28!important;border-color:#354a5a!important;color:#7f94a3!important}
+.hoi-support-slot>small,.hoi-battalion-slot>small{color:#c4d1d9!important}
+.hoi-support-slot:hover,.hoi-battalion-slot:hover{border-color:var(--steel-accent)!important}
+.tone-infantry{background:linear-gradient(145deg,#314655,#1c2b37)!important}
+.tone-mobile{background:linear-gradient(145deg,#354c60,#203246)!important}
+.tone-fire{background:linear-gradient(145deg,#4a3940,#2f252c)!important}
+.tone-armor{background:linear-gradient(145deg,#365164,#203442)!important}
+.designer-main-stats,.designer-cost-band,.hoi-stat-section{background:#101a24!important;border-color:#304657!important}
+.designer-main-stats span{border-right-color:#2c4051!important}
+.designer-main-stats b,.hoi-stat-section b,.template-facts b{color:#e7eef4!important}
+.cost-chips span{background:#172532!important;border-color:#344b5d!important}
+.cost-total strong,.ic-total b{color:var(--steel-accent-strong)!important}
+.regiment-title,.regimental-support{background:#162431!important;border-color:#3a5366!important}
+.designer-footer{
+  background:linear-gradient(180deg,#243746,#182733)!important;
+  border-top-color:#486276!important;
+}
+.hoi-picker{
+  background:linear-gradient(180deg,#14212c,#0e1821)!important;
+  border-top-color:#486276!important;
+}
+.picker-head h3{color:#e7eef4!important}
+.picker-group h4{color:#afc4d2!important;border-bottom-color:#344b5d!important}
+.picker-choice:not(.remove-choice){background:#172532!important;border-color:#365064!important}
+.picker-choice:not(.remove-choice):hover,.picker-choice.selected{border-color:var(--steel-accent)!important;background:#203547!important}
+.picker-choice small{color:#adbec9!important}
+.hoi-control-panel{background:linear-gradient(180deg,#172633,#101a24)!important}
+
+/* Tank + air designers */
+.tank-class-tabs button{background:linear-gradient(#20313f,#15232f)!important;border-color:#3b5264!important;color:#dce7ed!important}
+.tank-class-tabs button.active{background:linear-gradient(#2c4355,#1f3342)!important;border-color:#66899e!important;box-shadow:inset 0 0 0 1px #486a80!important}
+.tank-blueprint{background:radial-gradient(circle at 35% 15%,rgba(75,119,150,.18),transparent 38%),linear-gradient(135deg,#14222e,#0d1720)!important;border-color:#3c5669!important}
+.tank-nameplate,.aircraft-head{border-bottom-color:#344c5e!important}
+.tank-nameplate input,.aircraft-head input{color:#edf3f6!important;border-bottom-color:#486477!important}
+.tank-silhouette{background:linear-gradient(#243746,#172632)!important;border-color:#4a6679!important}
+.tank-silhouette b,.tank-upgrades b,.big-ic,.air-verdict h2,.air-economics strong{color:var(--steel-accent-strong)!important}
+.tank-module-grid label,.air-module-grid label,.tank-upgrades label{background:#101b25!important;border-color:#30485a!important}
+.tank-module-grid label.fixed-slot{background:#162532!important;border-color:#49667a!important}
+.tank-module-grid label.weapon{box-shadow:inset 0 0 0 1px rgba(120,175,199,.30)!important}
+.tank-module-grid label span,.air-module-grid label span{color:#9eb1be!important}
+.tank-stat-grid,.air-stat-grid{background:#2b4050!important;border-color:#3d586c!important}
+.tank-stat-grid div,.air-stat-grid div{background:#101b25!important}
+.tank-stat-grid span,.air-stat-grid span{color:#a7b9c5!important}
+.aircraft-designer{background:linear-gradient(160deg,#14222e,#0d1720)!important}
+.aircraft-role span{background:#172734!important;border-color:#395468!important;color:#c4d3dc!important}
+.air-versus>span{background:#182a38!important;border-color:#4c6d83!important;color:var(--steel-accent-strong)!important}
+.air-comparison-report{background:linear-gradient(120deg,#162633,#0e1821)!important;border-color:#385367!important}
+.air-report-metrics article,.air-economics>div,.armor-variant-strip a{background:#101b25!important;border-color:#30485a!important}
+.armor-variant-strip a:hover{background:#192d3b!important;border-color:var(--steel-accent)!important}
+
+/* Visual pickers, doctrine, MIO */
+.visual-picker,.system-board,.doctrine-system-board,.air-doctrine-system-board{
+  background:#0e1821!important;
+  border-color:#405a6e!important;
+}
+.visual-picker header,.system-board>header{
+  background:linear-gradient(180deg,#223544,#172633)!important;
+  border-color:#405a6e!important;
+}
+.visual-option,.doctrine-choice-card,.doctrine-node,.mio-family-card,.mio-org-card,.mio-board-trait{
+  background:#14222e!important;
+  border-color:#334b5d!important;
+}
+.visual-option:hover,.visual-option.selected,
+.doctrine-choice-card:hover,.doctrine-choice-card.selected,
+.doctrine-node:hover,.doctrine-node.selected,
+.mio-family-card:hover,.mio-family-card.selected,
+.mio-org-card:hover,.mio-org-card.selected,
+.mio-board-trait:hover,.mio-board-trait.selected{
+  background:#1c3141!important;
+  border-color:var(--steel-accent)!important;
+}
+.doctrine-board-track,.mio-board-section,.mio-full-tree,.mio-base-bonuses{
+  background:#101b25!important;
+  border-color:#30485a!important;
+}
+.doctrine-board-track>header,.mio-full-tree>.mio-section-title{background:#1b2d3b!important;border-color:#3b566a!important}
+.mastery-pip{background:#182735!important;border-color:#3a5366!important}
+.mastery-pip.filled{background:#456d82!important;border-color:#6e9bb0!important}
+.mastery-pip.current{box-shadow:0 0 0 2px rgba(120,175,199,.24)!important}
+
+/* Navigation/icon framing */
+.sidebar nav a .nav-visual-icon{background:#152330!important;border-color:#344c5e!important}
+.sidebar nav a.active .nav-visual-icon{background:#203547!important;border-color:var(--steel-accent)!important}
+
+/* Gauntlet + Counter */
+.gauntlet-hero,.gauntlet-run-summary,.gauntlet-grade-card,.gauntlet-result-copy,.counter-matchup-grid article,.counter-priorities article{
+  background:#111d27!important;
+  border-color:#30485a!important;
+}
+.gauntlet-side-switch button{background:#152431!important;border-color:#355064!important}
+.gauntlet-side-switch button.active{background:#254257!important;border-color:var(--steel-accent)!important}
+.gauntlet-progress{background:#13212d!important}
+.gauntlet-progress span{background:var(--steel-accent)!important}
+.gauntlet-track{background:#13212d!important}
+.gauntlet-track i{background:var(--steel-accent)!important}
+.gauntlet-seal:not(.mixed){border-color:var(--steel-accent)!important;color:var(--steel-accent-strong)!important}

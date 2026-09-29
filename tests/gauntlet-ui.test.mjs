@@ -15,6 +15,8 @@ assert.match(polish,/\['gauntlet','GNT','Division Gauntlet'\]/,'polished navigat
 assert.match(main,/dashboard,battle,gauntlet,tank/,'route renderer must include Gauntlet');
 assert.match(main,/\['dashboard','battle','gauntlet'/,'route whitelist must include Gauntlet');
 assert.doesNotMatch(ui,/Quick Gauntlet|500 opponent designs|data-gauntlet-mode/,'Gauntlet should expose one 10,000-design user mode');assert.match(ui,/10,000 opponent designs/);assert.match(ui,/160,000 matchup checks/);assert.match(ui,/count=10000/);assert.match(ui,/stochasticRuns:60/);
+assert.doesNotMatch(ui,/GENERAL STAFF TRIALS|Put one division through the entire war|DIVISION GAUNTLET COMPLETE/,'Gauntlet header copy should stay factual rather than promotional');
+assert.match(ui,/Performance matrix/);
 assert.match(ui,/PRACTICAL/);assert.match(ui,/Raw Combat/);assert.match(ui,/IC Efficiency/);assert.match(ui,/Supply Efficiency/);assert.match(ui,/Consistency/);assert.match(ui,/Counter Resilience/);assert.match(ui,/Best Matchups/);assert.match(ui,/Worst Matchups/);assert.match(ui,/SECOND-STAGE VALIDATION/);
 assert.match(ui,/opponentSide=side==='attacker'\?'defender':'attacker'/,'generated opponents must baseline from the opposite Lab side');
 for(const terrain of ['plains','forest','hills','mountain','jungle','marsh','desert','urban'])assert.ok(core.includes(`'${terrain}'`),`Gauntlet core must include ${terrain}`);

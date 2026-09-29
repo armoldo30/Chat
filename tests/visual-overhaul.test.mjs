@@ -59,7 +59,9 @@ assert.match(html,/industry-visuals\.css/,'index should load industry pictogram 
 assert.match(html,/designer-visuals\.js/,'index should load designer visual tabs');
 assert.match(html,/designer-visuals\.css/,'index should load designer visual styling');
 for(const selector of ['#land-grand','[data-doctrine-choice]','[data-mio-org]','.tank-module-grid select','.air-module-grid select'])assert.ok(js.includes(selector),`visual picker coverage should include ${selector}`);
-assert.match(js,/itemIconSvg/,'visual selectors should use the item-specific icon catalog');
+assert.match(js,/hoi4SourceIconSvg/,'visual selectors should resolve exact HOI4 source art first');
+assert.match(js,/hoi4SourceFallbackSvg/,'visual selectors should fall back only to authentic HOI4 source artwork');
+assert.doesNotMatch(js,/\bitemIconSvg\s*\(/,'visible selectors must not render planner-drawn item icons');
 assert.match(js,/dispatchEvent\(new Event\('change'/,'visual choices must drive the existing certified controls');
 assert.doesNotMatch(js,/engine\.js|simulateBattle|calcDivision/,'visual layer must not import or execute simulation mechanics');
 assert.match(cleanup,/looksLikeIdentifier/,'visible label cleanup should only rewrite identifier-like labels');
@@ -78,7 +80,8 @@ assert.doesNotMatch(industry,/engine\.js|simulateBattle|calcDivision/,'industry 
 assert.match(designer,/\[data-tank-class\]/,'tank family tabs should gain pictograms');
 assert.match(designer,/\[data-tank-role\]/,'tank role tabs should gain pictograms');
 assert.match(designer,/\.aircraft-role span/,'aircraft role tags should gain pictograms');
-assert.match(designer,/itemIconSvg/,'equipment designers should use item-specific pictograms');
+assert.match(designer,/hoi4ModelIconSvg/,'equipment designers should route through the authentic-first HOI4 renderer');
+assert.doesNotMatch(designer,/\bitemIconSvg\s*\(/,'equipment designers must not render planner-drawn item icons');
 assert.doesNotMatch(designer,/engine\.js|simulateBattle|calcDivision/,'designer visual layer must remain UI-only');
 assert.match(itemIcons,/icon-tier-badge/,'item icons should expose meaningful tier badges');
 assert.doesNotMatch(itemIcons,/icon-signature/,'generated per-id signature marks should stay retired');

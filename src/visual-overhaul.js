@@ -1,9 +1,9 @@
-import { displayLabel, looksLikeIdentifier, visualKind, iconSvg } from './ui-labels.js';
-import { itemIconKey, itemIconSvg } from './item-icons.js';
+import { displayLabel, looksLikeIdentifier, visualKind } from './ui-labels.js';
+import { itemIconKey } from './item-icons.js';
 import { sourceIconHint } from './source-icon-hints.js';
-import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
+import { hoi4SourceFallbackSvg, hoi4SourceIconSvg } from './hoi4-source-icons.js';
 import { hoi4TextIconImg } from './hoi4-text-icons.js';
-import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
+import { hoi4StatIconForEffectKeys, hoi4StatIconImg } from './hoi4-stat-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const PICKER_TARGETS=[
@@ -65,7 +65,8 @@ function semanticIcon(option,baseKind,title=''){
   const label=optionLabel(option),value=option?.value||'',hint=sourceIconHint(value,label,baseKind,title),kind=resolvedKind(`${value} ${hint}`,baseKind),specific=itemIconKey(value,hint,baseKind);
   const source=hoi4SourceIconSvg(value,label,baseKind,title);
   const doctrine=baseKind==='doctrine'?hoi4TextIconImg('doctrine_texticon','hoi4-texticon picker-source-icon'):'';
-  return {label,kind,specific,svg:source||doctrine||itemIconSvg(value,hint,baseKind,kind),title};
+  const fallback=baseKind==='industry'?hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon picker-source-icon'):hoi4SourceFallbackSvg(baseKind,kind);
+  return {label,kind,specific,svg:source||doctrine||fallback,title};
 }
 
 function openPicker(select,baseKind,title){
@@ -111,7 +112,7 @@ function enhanceMioTraits(root=document){
   root.querySelectorAll('.mio-trait').forEach(label=>{
     if(label.dataset.visualNode==='1')return;label.dataset.visualNode='1';label.classList.add('visual-mio-node');
     const input=label.querySelector('input'),span=label.querySelector('span');
-    if(span){const kind=resolvedKind(input?.value,'industry'),source=hoi4StatIconForEffectKeys(input?.value||span.textContent,'hoi4-stat-source-icon mio-source-icon');span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${source||iconSvg(kind)}</i>`);}
+    if(span){const kind=resolvedKind(input?.value,'industry'),source=hoi4StatIconForEffectKeys(input?.value||span.textContent,'hoi4-stat-source-icon mio-source-icon');span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${source||hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon mio-source-icon')}</i>`);}
   });
 }
 

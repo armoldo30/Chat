@@ -1,5 +1,6 @@
 import { hoi4TextIconForLabel } from './hoi4-text-icons.js';
 import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
+import { hoi4StatIconForLabel } from './hoi4-stat-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const RANGE_CONTROLS={
@@ -16,6 +17,7 @@ const RANGE_CONTROLS={
 };
 
 function battlefieldIcon(meta){
+  const stat=hoi4StatIconForLabel(meta.label,'hoi4-stat-source-icon battlefield-source-icon');if(stat)return stat;
   const exact=hoi4TextIconForLabel(meta.label,'hoi4-texticon battlefield-source-icon');if(exact)return exact;
   if(/cas/i.test(meta.label))return hoi4SourceIconSvg('cas','Close Air Support','air','Battlefield control');
   if(/air control/i.test(meta.label))return hoi4SourceIconSvg('fighter','Air Superiority','air','Battlefield control');

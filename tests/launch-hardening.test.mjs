@@ -42,8 +42,10 @@ assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR v
 assert.match(releaseWorkflow,/VERSION="\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/,'release-surface validation must derive the version from package.json');
 assert.match(releaseWorkflow,/grep -Fq "appVersion: '\$VERSION'" dist\/src\/data\.js/,'release-surface validation must compare built MODEL_META against the package version');
 assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
-assert.match(browserSmoke,/battle counter gauntlet tank air production data/,'browser smoke must crawl every current desktop planner route including Industry, Advanced Data, and Counter Analysis');
-assert.match(browserSmoke,/battle counter tank air production gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');
+assert.match(browserSmoke,/battle counter gauntlet tank air data/,'browser smoke must crawl every current desktop planner route including Advanced Data and Counter Analysis');
+assert.match(browserSmoke,/battle counter tank air gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');
+assert.match(browserSmoke,/run_route production/,'browser smoke must exercise the retired Industry hash as a compatibility fallback');
+assert.match(browserSmoke,/Retired Industry UI or navigation reappeared/,'browser smoke must fail if the retired Industry surface returns');
 assert.match(browserSmoke,/run_route scenario/,'browser smoke must exercise the retired Scenario hash as a compatibility fallback');
 assert.match(browserSmoke,/Retired Scenario UI or navigation reappeared/,'browser smoke must fail if the retired Scenario surface returns');
 assert.match(browserSmoke,/run_route dashboard/,'browser smoke must exercise the retired Command hash');

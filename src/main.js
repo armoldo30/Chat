@@ -362,7 +362,7 @@ function pickerBattalionMeta(side,key){
 }
 function supportSourceEffectMeta(u={}){
   const effects=supportSourceEffects(u),shown=effects.slice(0,4);
-  const items=shown.map(x=>`<em title="${esc(x.runtimeEvidence)} · ${esc(x.state)}">${esc(x.label)} ${esc(x.display)}</em>`);
+  const items=shown.map(x=>`<em class="source-effect-meta" title="${esc(x.runtimeEvidence)} · ${esc(x.state)}">${esc(x.label)} ${esc(x.display)}</em>`);
   if(effects.length>shown.length)items.push(`<em title="Additional retained source effects are shown in the selected-template Source effects summary">+${effects.length-shown.length} more</em>`);
   return items.join('');
 }

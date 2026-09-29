@@ -5,7 +5,7 @@ import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
 import { hoi4SourceIcon } from '../src/hoi4-source-icons.js';
 import { hoi4TextIconForLabel } from '../src/hoi4-text-icons.js';
-import { hoi4StatIconForLabel } from '../src/hoi4-stat-icons.js';
+import { HOI4_STAT_ICONS, hoi4StatIconForLabel } from '../src/hoi4-stat-icons.js';
 
 const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,divisionVisuals,buildScript,sourceIcons]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
@@ -69,6 +69,13 @@ assert.match(hoi4ModelIconSvg('engine_2_1x','1x Engine II','air','air','Engine')
 assert.match(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown visible items should use a generic authentic HOI4 source fallback');
 for(const label of ['Soft Attack','Hard Attack','Piercing','Defense','Breakthrough','Armor','Hardness','Air Attack','Reliability','Speed','Fuel Consumption','Supply Consumption','Entrenchment','Build Cost']){
   assert.match(hoi4StatIconForLabel(label),/data:image\/webp;base64/,`${label} should use an exact HOI4 stat icon`);
+}
+for(const [key,url] of Object.entries(HOI4_STAT_ICONS)){
+  const b64=String(url).replace(/^data:image\/webp;base64,/,'');
+  const bytes=Buffer.from(b64,'base64');
+  assert.equal(bytes.subarray(0,4).toString('ascii'),'RIFF',`${key} must be a valid RIFF WebP`);
+  assert.equal(bytes.subarray(8,12).toString('ascii'),'WEBP',`${key} must be a valid WebP`);
+  assert.equal(bytes.length,bytes.readUInt32LE(4)+8,`${key} WebP payload must not be truncated or overrun`);
 }
 for(const label of ['Manpower','Organization','HP','Doctrine','Night Fighting']){
   assert.match(hoi4TextIconForLabel(label),/data:image\/png;base64,/,`${label} should use an exact HOI4 texticon`);

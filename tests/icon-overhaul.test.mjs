@@ -49,8 +49,9 @@ assert.match(divisionVisuals,/hoi4ModelIconSvg/,'Division Lab battalion and supp
 assert.match(divisionVisuals,/hoi4ModelIconKey/,'Division Lab should share the same semantic icon identity mapping');
 assert.match(buildScript,/publicFiles=\[[^\]]*'hoi4-icons\.webp'/s,'production build must copy the authentic HOI4 atlas into dist');
 assert.match(sourceIcons,/ATLAS_ASSET_URL\.search=MODULE_URL\.search/,'atlas URL must inherit the module build token to avoid stale cached 404s');
-assert.match(sourceIcons,/SOURCE_CROP_INSET=1/,'source atlas sprites should inset one source pixel to prevent neighboring-cell bleed');
-assert.match(sourceIcons,/viewBox="\$\{inset\} \$\{inset\} \$\{cellWidth-inset\*2\} \$\{cellHeight-inset\*2\}"/,'source sprite viewBox should crop inside the atlas cell boundary');
+assert.match(sourceIcons,/clipPathUnits="userSpaceOnUse"/,'source atlas sprites should use an explicit user-space clip path');
+assert.match(sourceIcons,/clip-path="url\(#\$\{clipId\}\)"/,'atlas image must be explicitly clipped instead of relying on SVG viewport overflow');
+assert.match(sourceIcons,/<rect x="1" y="1" width="\$\{cellWidth-2\}" height="\$\{cellHeight-2\}"\/>/,'explicit atlas clip should inset one source pixel inside every cell');
 for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle_battalion','bicycle'],['mot_fire_support','motorized_artillery'],['rocket_battery','rocket_artillery']]){
   assert.equal(itemIconKey(id,id,'infantry'),expected,`${id} should resolve to ${expected}`);
   assert.match(hoi4ModelIconSvg(id,id,'infantry','generic','Division unit'),/hoi-model-icon/);

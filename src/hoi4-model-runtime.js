@@ -64,14 +64,14 @@ function enhanceDivision(){
     replace(icon,value,label,'infantry','infantry','Division unit');
   });
   document.querySelectorAll('.hoi-battalion-slot.filled,.regimental-support.filled,.hoi-support-slot.filled').forEach(button=>{
-    const label=norm(button.querySelector('small')?.textContent||button.title),icon=button.querySelector('.picture-unit-symbol');
-    replace(icon,label,label,'infantry','support','Division unit');
+    const label=norm(button.querySelector('small')?.textContent||button.title),value=button.dataset.iconValue||label,icon=button.querySelector('.picture-unit-symbol');
+    replace(icon,value,label,'infantry','support','Division unit');
   });
   document.querySelectorAll('.hoi-designer').forEach(designer=>{
     const counter=designer.querySelector('.division-counter'),first=designer.querySelector('.hoi-battalion-slot.filled');
     if(!counter||!first)return;
-    const label=norm(first.querySelector('small')?.textContent||first.title)||'Infantry';
-    replace(counter,label,label,'infantry','infantry','Division identity');
+    const label=norm(first.querySelector('small')?.textContent||first.title)||'Infantry',value=first.dataset.iconValue||label;
+    replace(counter,value,label,'infantry','infantry','Division identity');
   });
 }
 function enhance(){enhanceTriggers();enhanceModal();enhanceTankTabs();enhanceAirRoles();enhanceDivision();}

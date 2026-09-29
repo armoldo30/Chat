@@ -3,6 +3,7 @@ import { itemIconKey, itemIconSvg } from './item-icons.js';
 import { sourceIconHint } from './source-icon-hints.js';
 import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
 import { hoi4TextIconImg } from './hoi4-text-icons.js';
+import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const PICKER_TARGETS=[
@@ -110,7 +111,7 @@ function enhanceMioTraits(root=document){
   root.querySelectorAll('.mio-trait').forEach(label=>{
     if(label.dataset.visualNode==='1')return;label.dataset.visualNode='1';label.classList.add('visual-mio-node');
     const input=label.querySelector('input'),span=label.querySelector('span');
-    if(span){const kind=resolvedKind(input?.value,'industry');span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${iconSvg(kind)}</i>`);}
+    if(span){const kind=resolvedKind(input?.value,'industry'),source=hoi4StatIconForEffectKeys(input?.value||span.textContent,'hoi4-stat-source-icon mio-source-icon');span.insertAdjacentHTML('afterbegin',`<i class="mio-node-icon ${kind}">${source||iconSvg(kind)}</i>`);}
   });
 }
 

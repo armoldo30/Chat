@@ -1,6 +1,6 @@
 import { displayLabel } from './ui-labels.js';
 import { hoi4TextIconImg } from './hoi4-text-icons.js';
-import { hoi4StatIconImg } from './hoi4-stat-icons.js';
+import { hoi4SourceFallbackSvg } from './hoi4-source-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function selectedText(select){const option=select?.selectedOptions?.[0];return displayLabel(option?.value,option?.textContent||option?.value||'—');}
@@ -29,7 +29,7 @@ function enhance(panel){
   const mastery=[...panel.querySelectorAll('[data-doctrine-mastery]')].reduce((sum,input)=>sum+(Number(input.value)||0),0);
   const assigned=mios.filter(select=>!!select.value),mioNames=assigned.map(selectedText).slice(0,2);
   const summary=document.createElement('div');summary.className='visual-system-summary-grid';
-  summary.innerHTML=`<button type="button" class="visual-system-summary doctrine-summary-card" data-summary-doctrine><span class="summary-system-icon doctrine">${hoi4TextIconImg('doctrine_texticon','hoi4-texticon summary-source-icon')}</span><span><small>LAND DOCTRINE</small><b>${selectedText(grand)}</b><em>${mastery}/20 mastery · ${tracks.length} tracks</em></span><i>OPEN BOARD ›</i></button><button type="button" class="visual-system-summary mio-summary-card" data-summary-mio><span class="summary-system-icon industry">${hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon summary-source-icon')}</span><span><small>MILITARY INDUSTRIAL ORGANIZATIONS</small><b>${assigned.length?mioNames.join(' · '):'No MIOs Assigned'}</b><em>${assigned.length}/${mios.length} equipment families assigned</em></span><i>OPEN BOARD ›</i></button>`;
+  summary.innerHTML=`<button type="button" class="visual-system-summary doctrine-summary-card" data-summary-doctrine><span class="summary-system-icon doctrine">${hoi4TextIconImg('doctrine_texticon','hoi4-texticon summary-source-icon')}</span><span><small>LAND DOCTRINE</small><b>${selectedText(grand)}</b><em>${mastery}/20 mastery · ${tracks.length} tracks</em></span><i>OPEN BOARD ›</i></button><button type="button" class="visual-system-summary mio-summary-card" data-summary-mio><span class="summary-system-icon industry">${hoi4SourceFallbackSvg('generic','industry')}</span><span><small>MILITARY INDUSTRIAL ORGANIZATIONS</small><b>${assigned.length?mioNames.join(' · '):'No MIOs Assigned'}</b><em>${assigned.length}/${mios.length} equipment families assigned</em></span><i>OPEN BOARD ›</i></button>`;
   summary.querySelector('[data-summary-doctrine]').onclick=()=>clickLauncher('[data-open-doctrine-board]');
   summary.querySelector('[data-summary-mio]').onclick=()=>clickLauncher('[data-open-mio-board]');
   (landSubhead||grandRow)?.insertAdjacentElement('beforebegin',summary);

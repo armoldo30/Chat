@@ -7,6 +7,8 @@ const publisherCss=readFileSync(new URL('../src/publisher-content.css',import.me
 const battlefield=readFileSync(new URL('../src/battlefield-visuals.js',import.meta.url),'utf8');
 const labelCleanup=readFileSync(new URL('../src/visible-label-cleanup.js',import.meta.url),'utf8');
 
+assert.match(html,/Division planning and combat analysis/,'homepage intro should use the restrained analysis heading');
+assert.doesNotMatch(html,/Build divisions\. Test counters\. See what actually changes the matchup\.|Recreate the fight you care about/,'homepage intro should not restore promotional matchup copy');
 assert.doesNotMatch(html,/publisher-guide|QUICK GUIDE|What can I use this for\?/,'planner should not restore the lower-page Quick Guide block');
 assert.match(html,/site-legal-footer/,'compact legal/navigation footer must remain');
 assert.doesNotMatch(main,/attack axes/i,'battle-plan UI should not use attack-axis wording');

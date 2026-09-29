@@ -1,5 +1,8 @@
 import { regimentGroupForUnit } from './regiment-groups.js';
 
+export const RETIRED_ORDINARY_DIVISION_BATTALION_IDS=Object.freeze(['fake_intel_unit','penal_battalion','bus']);
+const RETIRED_ORDINARY_DIVISION_BATTALIONS=new Set(RETIRED_ORDINARY_DIVISION_BATTALION_IDS);
+
 const PICKER_SECTIONS=Object.freeze([
   ['infantry','Infantry Battalions'],
   ['mobile','Mobile Battalions'],
@@ -10,7 +13,7 @@ const PICKER_SECTIONS=Object.freeze([
 ]);
 
 export function ordinaryDivisionBattalionIds(battalionMap={}){
-  return Object.entries(battalionMap||{}).filter(([,unit])=>unit&&typeof unit==='object'&&unit.allowInNonArmyHq!==false).map(([id])=>id);
+  return Object.entries(battalionMap||{}).filter(([id,unit])=>unit&&typeof unit==='object'&&unit.allowInNonArmyHq!==false&&!RETIRED_ORDINARY_DIVISION_BATTALIONS.has(id)).map(([id])=>id);
 }
 
 export function battalionPickerGroups(battalionMap={},ids=ordinaryDivisionBattalionIds(battalionMap)){

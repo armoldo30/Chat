@@ -3,7 +3,7 @@ import { hoi4TextIconImg } from './hoi4-text-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function routeIcon(route){
-  if(route==='dashboard'||route==='front'||route==='scenario')return hoi4TextIconImg('doctrine_texticon','hoi4-texticon nav-source-icon');
+  if(route==='dashboard'||route==='front')return hoi4TextIconImg('doctrine_texticon','hoi4-texticon nav-source-icon');
   if(route==='intel')return hoi4SourceIconSvg('recon','Recon','infantry','Navigation');
   if(route==='battle'||route==='gauntlet')return hoi4SourceIconSvg('infantry','Infantry','infantry','Navigation');
   if(route==='tank')return hoi4SourceIconSvg('medium_tank','Medium Tank','armor','Navigation');

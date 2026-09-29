@@ -1,0 +1,81 @@
+name: Publish Public Site
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: public-site-publish
+  cancel-in-progress: true
+
+jobs:
+  validate-build-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DEPLOY_REPOSITORY: armoldo30/hoioracle-site
+      DEPLOY_TOKEN: ${{ secrets.PUBLIC_SITE_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Require deployment token
+        run: |
+          set -euo pipefail
+          if [[ -z "${DEPLOY_TOKEN}" ]]; then
+            echo "Missing PUBLIC_SITE_TOKEN repository secret."
+            echo "Create a fine-grained GitHub token with Contents: Read and write access only to ${DEPLOY_REPOSITORY}, then save it in this repository as PUBLIC_SITE_TOKEN."
+            exit 1
+          fi
+
+      - name: Run certified regression suite
+        run: npm test
+
+      - name: Build public site
+        run: npm run build
+
+      - name: Verify built public surface
+        run: |
+          set -euo pipefail
+          test -f dist/index.html
+          test -f dist/CNAME
+          test -f dist/robots.txt
+          test -f dist/privacy.html
+          grep -Fxq "hoioracle.com" dist/CNAME
+          bash scripts/served-browser-smoke.sh dist
+
+      - name: Publish built files to deployment repository
+        env:
+          RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          set -euo pipefail
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          deploy="$work/site"
+
+          git clone "https://x-access-token:${DEPLOY_TOKEN}@github.com/${DEPLOY_REPOSITORY}.git" "$deploy"
+          cd "$deploy"
+          git checkout -B main
+
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$GITHUB_WORKSPACE/dist/." .
+          touch .nojekyll
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+
+          if git diff --cached --quiet; then
+            echo "Public deployment repository is already up to date."
+            exit 0
+          fi
+
+          git commit -m "Publish site build ${RUN_NUMBER}"
+          git push --force origin main

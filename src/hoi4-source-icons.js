@@ -4,6 +4,7 @@ const MODULE_URL=new URL(import.meta.url);
 const ATLAS_ASSET_URL=new URL('../hoi4-icons.webp',MODULE_URL);
 ATLAS_ASSET_URL.search=MODULE_URL.search;
 const ATLAS_URL=ATLAS_ASSET_URL.href;
+let SOURCE_CLIP_SERIAL=0;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s||'').trim().toLowerCase().replace(/^gfx_/,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 const has=key=>HOI4_ICON_INDEX.has(key);
@@ -108,7 +109,7 @@ export function hoi4SourceIcon(value='',label='',context='',slot=''){
 export function hoi4SourceIconSvg(value='',label='',context='',slot=''){
   const icon=hoi4SourceIcon(value,label,context,slot);if(!icon)return '';
   const {key,x,y,width,height,cellWidth,cellHeight}=icon;
-  const clipId=`hoi4clip_${String(key).replace(/[^a-z0-9_-]/gi,'_')}_${x}_${y}`;
+  const clipId=`hoi4clip_${++SOURCE_CLIP_SERIAL}`;
   return `<svg viewBox="0 0 ${cellWidth} ${cellHeight}" preserveAspectRatio="xMidYMid meet" overflow="hidden" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-source-icon" data-source-icon="${esc(key)}"><defs><clipPath id="${clipId}" clipPathUnits="userSpaceOnUse"><rect x="1" y="1" width="${cellWidth-2}" height="${cellHeight-2}"/></clipPath></defs><image href="${esc(ATLAS_URL)}" x="-${x}" y="-${y}" width="${width}" height="${height}" clip-path="url(#${clipId})"/></svg>`;
 }
 

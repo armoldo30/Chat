@@ -70,35 +70,63 @@ hook=r'''<script>
     const img=new Image();img.alt='';img.hidden=true;img.src='./__intentional_smoke_missing_resource__.png';document.body.append(img);
     button.click();
   };
-  const terrainSelectionIsClean=()=>{
+  const terrainSelectionIsClean=(expected='')=>{
     const select=document.getElementById('b-terrain');
     const buttons=[...document.querySelectorAll('.terrain-choices .quick-visual-choice')];
     const selected=buttons.filter(button=>button.classList.contains('selected'));
-    return !!select&&selected.length===1&&selected[0].dataset.value===select.value;
+    return !!select&&selected.length===1&&selected[0].dataset.value===select.value&&(!expected||select.value===expected);
   };
-  const runTerrain=()=>{
+  const markTerrainFailure=reason=>{
+    document.body.dataset.terrainSelectionSmoke='fail';
+    document.body.dataset.terrainSelectionReason=reason;
+  };
+  const runTerrain=(attempt=0)=>{
     const combat=document.querySelector('[data-lab-panel="combat"]');
-    if(!combat){setTimeout(runTerrain,50);return;}
+    if(!combat){
+      if(attempt<40){setTimeout(()=>runTerrain(attempt+1),100);return;}
+      markTerrainFailure('combat-panel-missing');return;
+    }
     combat.click();
-    setTimeout(()=>{
+    const chooseTerrain=(readyAttempt=0)=>{
       const select=document.getElementById('b-terrain');
       const buttons=[...document.querySelectorAll('.terrain-choices .quick-visual-choice')];
-      if(!select||buttons.length<2){document.body.dataset.terrainSelectionSmoke='fail';return;}
-      const target=buttons.find(button=>button.dataset.value!==select.value);
-      if(!target){document.body.dataset.terrainSelectionSmoke='fail';return;}
+      if(!select||buttons.length<2){
+        if(readyAttempt<30){setTimeout(()=>chooseTerrain(readyAttempt+1),100);return;}
+        markTerrainFailure('terrain-controls-not-ready');return;
+      }
+      const original=select.value;
+      const target=buttons.find(button=>button.dataset.value!==original);
+      if(!target){markTerrainFailure('terrain-target-missing');return;}
+      const expected=target.dataset.value;
       target.click();
-      const immediate=terrainSelectionIsClean();
-      document.querySelector('[data-lab-panel="template"]')?.click();
-      setTimeout(()=>{
-        document.querySelector('[data-lab-panel="combat"]')?.click();
-        setTimeout(()=>{
-          document.body.dataset.terrainSelectionSmoke=immediate&&terrainSelectionIsClean()?'pass':'fail';
-        },120);
-      },120);
-    },120);
+      const verifySelection=(selectionAttempt=0)=>{
+        if(terrainSelectionIsClean(expected)){
+          const template=document.querySelector('[data-lab-panel="template"]');
+          if(!template){markTerrainFailure('template-panel-missing');return;}
+          template.click();
+          setTimeout(()=>{
+            document.querySelector('[data-lab-panel="combat"]')?.click();
+            const verifyReturn=(returnAttempt=0)=>{
+              if(terrainSelectionIsClean(expected)){
+                document.body.dataset.terrainSelectionSmoke='pass';
+                return;
+              }
+              if(returnAttempt<30){setTimeout(()=>verifyReturn(returnAttempt+1),100);return;}
+              markTerrainFailure('selection-did-not-persist');
+            };
+            setTimeout(()=>verifyReturn(),200);
+          },200);
+          return;
+        }
+        if(selectionAttempt<30){setTimeout(()=>verifySelection(selectionAttempt+1),100);return;}
+        markTerrainFailure('selection-click-not-applied');
+      };
+      setTimeout(()=>verifySelection(),100);
+    };
+    setTimeout(()=>chooseTerrain(),300);
   };
   if(location.hash==='#counter')setTimeout(runCounter,250);
-  if(location.hash==='#battle')setTimeout(runTerrain,250);
+  if(location.hash==='#battle')setTimeout(()=>runTerrain(),800);
 })();
 </script>'''
 path.write_text(text.replace('</body>',hook+'\n</body>'))
@@ -136,8 +164,12 @@ run_counter_interaction '390,844' mobile
 run_terrain_interaction(){
   local size="$1" label="$2"
   local dom="$work/${label}-terrain-interaction.html" log="$work/${label}-terrain-interaction.log"
-  "$browser" --headless=new --no-sandbox --disable-gpu --window-size="$size" --virtual-time-budget=6000 --dump-dom "http://127.0.0.1:$interactive_port/#battle" >"$dom" 2>"$log"
-  grep -q 'data-terrain-selection-smoke="pass"' "$dom"
+  "$browser" --headless=new --no-sandbox --disable-gpu --window-size="$size" --virtual-time-budget=12000 --dump-dom "http://127.0.0.1:$interactive_port/#battle" >"$dom" 2>"$log"
+  if ! grep -q 'data-terrain-selection-smoke="pass"' "$dom"; then
+    echo "Terrain selection interaction did not reach pass for $label." >&2
+    grep -Eo 'data-terrain-selection-(smoke|reason)="[^"]*"' "$dom" >&2 || true
+    return 1
+  fi
   if grep -Eqi 'Uncaught (ReferenceError|TypeError|SyntaxError)|Unhandled Promise Rejection' "$log"; then
     cat "$log" >&2
     echo "Browser console/runtime error detected during $label terrain interaction." >&2

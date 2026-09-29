@@ -47,6 +47,9 @@ assert.match(publicPublishWorkflow,/DEPLOY_REPOSITORY: armoldo30\/hoioracle-site
 assert.match(publicPublishWorkflow,/secrets\.PUBLIC_SITE_TOKEN/,'public publishing must use the dedicated deployment secret');
 assert.match(publicPublishWorkflow,/cp -a "\$GITHUB_WORKSPACE\/dist\/\." \./,'deployment repository must receive built dist output instead of the source tree');
 assert.match(publicPublishWorkflow,/touch \.nojekyll/,'deployment output must disable Jekyll processing');
+assert.match(publicPublishWorkflow,/include_custom_domain:/,'first-stage publishing must expose an explicit custom-domain cutover switch');
+assert.match(publicPublishWorkflow,/default: false/,'custom domain publishing must default off before cutover');
+assert.match(publicPublishWorkflow,/rm -f CNAME/,'pre-cutover deployment must omit the custom-domain file');
 assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
 assert.match(browserSmoke,/battle counter gauntlet tank air data/,'browser smoke must crawl every current desktop planner route including Advanced Data and Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');

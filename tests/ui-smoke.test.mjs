@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 
 const store=new Map();
-const makeEl=id=>({id,innerHTML:'',value:'',checked:false,dataset:{},style:{},files:[],disabled:false,title:'',onclick:null,onchange:null,classList:{add(){},remove(){},toggle(){}},insertAdjacentHTML(){},remove(){},click(){}});
+const makeEl=id=>({id,innerHTML:'',value:'',checked:false,dataset:{},style:{},files:[],disabled:false,title:'',onclick:null,onchange:null,classList:{add(){},remove(){},toggle(){}},querySelector:()=>null,querySelectorAll:()=>[],insertAdjacentHTML(){},remove(){},click(){}});
 const elements=new Map();
 const get=id=>{if(!elements.has(id))elements.set(id,makeEl(id));return elements.get(id);};
-globalThis.document={body:get('body'),title:'',getElementById:get,querySelectorAll:()=>[],createElement:id=>makeEl(id)};
+globalThis.document={body:get('body'),head:{append(){}},title:'',getElementById:get,querySelector:()=>null,querySelectorAll:()=>[],createElement:id=>makeEl(id)};
 globalThis.window={addEventListener(){}};
 globalThis.location={hash:'#battle',reload(){}};
 globalThis.localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,String(v)),removeItem:k=>store.delete(k)};

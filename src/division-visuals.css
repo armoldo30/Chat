@@ -46,3 +46,17 @@
 .hoi-support-slot.filled:hover .hoi-model-plate{
   stroke:#d8bf76;filter:brightness(1.08);
 }
+
+
+/* Support picker: long source-effect descriptions must stay inside their card. */
+.picker-choice .picker-meta .source-effect-meta{
+  flex:1 1 100%;
+  width:100%;
+  max-width:100%;
+  box-sizing:border-box;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+  line-height:1.18;
+  text-align:center;
+}

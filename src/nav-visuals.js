@@ -8,7 +8,6 @@ function routeIcon(route){
   if(route==='battle'||route==='gauntlet')return hoi4SourceIconSvg('infantry','Infantry','infantry','Navigation');
   if(route==='tank')return hoi4SourceIconSvg('medium_tank','Medium Tank','armor','Navigation');
   if(route==='air')return hoi4SourceIconSvg('fighter','Fighter','air','Navigation');
-  if(route==='production')return hoi4TextIconImg('production_cost','hoi4-texticon nav-source-icon');
   return hoi4SourceIconSvg('support_equipment','Support Equipment','generic','Navigation');
 }
 

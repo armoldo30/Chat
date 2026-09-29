@@ -25,7 +25,7 @@
   .sidebar .brand,.sidebar .side-meta{display:none!important}
   .sidebar nav{
     display:grid!important;
-    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
     gap:3px!important;
     overflow:visible!important;
     width:100%!important;

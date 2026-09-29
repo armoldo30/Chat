@@ -48,7 +48,7 @@ function injectLaunchers(){
   document.querySelectorAll('details.air-doctrine').forEach(details=>{
     if(details.querySelector('[data-open-air-doctrine-board]'))return;
     const grand=details.querySelector('[id$="-air-grand"]');if(!grand)return;const prefix=grand.id.replace(/-air-grand$/,'');
-    const button=document.createElement('button');button.type='button';button.className='btn air-doctrine-board-launch';button.dataset.openAirDoctrineBoard=prefix;button.innerHTML=`<span class="board-button-icon">${iconSvg('air')}</span><span><small>FULL VIEW</small><b>Air Doctrine Board</b></span>`;button.onclick=event=>{event.preventDefault();event.stopPropagation();openBoard(prefix);};
+    const button=document.createElement('button');button.type='button';button.className='btn air-doctrine-board-launch';button.dataset.openAirDoctrineBoard=prefix;button.innerHTML=`<span class="board-button-icon">${doctrineIcon()}</span><span><small>FULL VIEW</small><b>Air Doctrine Board</b></span>`;button.onclick=event=>{event.preventDefault();event.stopPropagation();openBoard(prefix);};
     const body=details.querySelector('.drawer-body');body?.insertAdjacentElement('afterbegin',button);
   });
 }

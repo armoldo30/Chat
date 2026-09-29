@@ -24,7 +24,7 @@ assert.match(html,/src\/item-icon-clarity\.css/,'semantic tier badges should be 
 assert.match(html,/src\/hoi4-model-icons\.css/,'HOI4-style model icon skin should load');
 assert.match(html,/src\/hoi4-model-runtime\.js/,'HOI4-style model icon runtime should load');
 assert.match(visual,/sourceIconHint/,'visual pickers should use source-aware module hints');
-assert.match(visual,/itemIconSvg/,'visual pickers should retain the shared item-icon system under the model layer');
+assert.match(visual,/hoi4SourceFallbackSvg/,'visual pickers should fall back to authentic HOI4 source artwork');
 assert.match(designer,/familyIconValue/,'tank family tabs should keep family-specific silhouettes');
 assert.match(clarity,/icon-tier-badge/,'meaningful tier badges should remain legible on phone-size icons');
 assert.match(modelRuntime,/visual-picker-trigger/,'model runtime should replace active designer trigger icons');
@@ -58,12 +58,23 @@ assert.equal(exactTankGun?.key,'module:tank_medium_cannon_2','tank designer modu
 const exactInfantry=hoi4SourceIcon('infantry','Infantry','infantry','Division unit');
 assert.equal(exactInfantry?.key,'unit:infantry','division battalions should resolve by exact HOI4 subunit id');
 assert.match(hoi4ModelIconSvg('engine_2_1x','1x Engine II','air','air','Engine'),/data-source-icon="module:engine_2_1x"/,'authentic HOI4 art should take precedence over modeled SVG fallback');
-assert.doesNotMatch(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown items should retain the planner-owned fallback instead of guessing a game sprite');
+assert.match(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown visible items should use a generic authentic HOI4 source fallback');
 for(const label of ['Soft Attack','Hard Attack','Piercing','Defense','Breakthrough','Armor','Hardness','Air Attack','Reliability','Speed','Fuel Consumption','Supply Consumption','Entrenchment','Build Cost']){
   assert.match(hoi4StatIconForLabel(label),/data:image\/webp;base64,/,`${label} should use an exact HOI4 stat icon`);
 }
 for(const label of ['Manpower','Organization','HP','Doctrine','Night Fighting']){
   assert.match(hoi4TextIconForLabel(label),/data:image\/png;base64,/,`${label} should use an exact HOI4 texticon`);
+}
+
+const authenticOnlyUiPaths=[
+  '../src/nav-visuals.js','../src/battlefield-visuals.js','../src/stat-visuals.js','../src/battle-report-visuals.js',
+  '../src/industry-visuals.js','../src/designer-visuals.js','../src/visual-overhaul.js','../src/doctrine-board.js',
+  '../src/air-doctrine-board.js','../src/mio-board.js','../src/inline-mio-board.js','../src/tech-system-summary.js'
+];
+for(const path of authenticOnlyUiPaths){
+  const content=await readFile(new URL(path,import.meta.url),'utf8');
+  assert.doesNotMatch(content,/\bitemIconSvg\s*\(/,`${path} must not render planner-drawn item icons`);
+  assert.doesNotMatch(content,/\biconSvg\s*\(/,`${path} must not render planner-drawn generic UI icons`);
 }
 
 const unicodeIconPattern=/\p{Extended_Pictographic}|\uFE0F|[ⓘ☑☒☐✓✔✕✖✗✘★☆◆◇●○◉►▶◀▲▼]/u;

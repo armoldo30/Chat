@@ -243,7 +243,7 @@ if(sharedScenarioAttempted){
   if(sharedScenarioNotice)save();
   clearScenarioShareParam();
 }
-function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data'].includes(r)?r:'battle';}
+function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','front','intel','data'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function readJSON(file,cb){
   if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}
@@ -273,9 +273,9 @@ function lastBattlePreview(){
 }
 
 function shell(){
-  const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry']];
+  const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab']];
   const active=route();
-  const sectionName={battle:'Division Lab',gauntlet:'Division Gauntlet',tank:'Tank Designer',air:'Air Lab',production:'Industry',data:'Advanced Data'}[active]||'Division Lab';
+  const sectionName={battle:'Division Lab',gauntlet:'Division Gauntlet',tank:'Tank Designer',air:'Air Lab',data:'Advanced Data'}[active]||'Division Lab';
   document.title=`${sectionName} · HOI4 War Planner`;
   $('app').innerHTML=`<div class="app-shell">
     <aside class="sidebar">
@@ -287,7 +287,7 @@ function shell(){
   </div>`;
   render(active);
 }
-function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,production,front,intel,data}[r]||battle)(v);}
+function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,front,intel,data}[r]||battle)(v);}
 function gauntlet(c){renderGauntlet(c,{name:side=>state[side+'Name'],stats:side=>division(side),data:side=>techData(side),equipment:side=>equipmentForSide(side),battleOpts:()=>battleOpts()});}
 
 function dashboard(c){

@@ -197,7 +197,7 @@ if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-scenario.html"; then
   echo 'Legacy #scenario did not resolve to Division Lab.' >&2
   exit 1
 fi
-if grep -Eq 'SCENARIO CONTROL|<h1>Scenario</h1>|href="#scenario"' "$work/legacy-scenario.html"; then
+if grep -Eq 'SCENARIO CONTROL|<h1>Scenario</h1>|<span class="nav-code">CFG</span>' "$work/legacy-scenario.html"; then
   echo 'Retired Scenario UI or navigation reappeared from legacy #scenario hash.' >&2
   exit 1
 fi

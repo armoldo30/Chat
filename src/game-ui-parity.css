@@ -275,3 +275,66 @@
   #doctrine-board-modal .doctrine-choice-card,
   #air-doctrine-board-modal .doctrine-choice-card{flex-basis:160px}
 }
+
+
+/* Launch cleanup: keep primary navigation focused on core tools.
+   Save/share lives with Division Lab; custom data remains an advanced utility. */
+.side-meta .side-advanced-link{
+  margin-left:auto;
+  color:#a9a88f;
+  text-decoration:none;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+.side-meta .side-advanced-link:hover{color:#e8dfc0;text-decoration:underline}
+.matchup-tools{
+  margin-top:7px;
+  padding:0!important;
+  overflow:hidden;
+}
+.matchup-tools>summary{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:10px;
+  min-height:36px;
+  padding:8px 10px;
+  cursor:pointer;
+  list-style:none;
+  border-bottom:1px solid transparent;
+  background:#181d17;
+}
+.matchup-tools>summary::-webkit-details-marker{display:none}
+.matchup-tools>summary span{
+  color:#d2b976;
+  font-size:.55rem;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.matchup-tools>summary b{
+  color:#e8dfc0;
+  font-size:.65rem;
+}
+.matchup-tools>summary em{
+  color:#8f947f;
+  font-size:.55rem;
+  font-style:normal;
+  text-align:right;
+}
+.matchup-tools[open]>summary{border-bottom-color:#4d5242}
+.matchup-tools-body{padding:9px 10px 10px}
+.matchup-quick-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:6px;
+  margin-bottom:8px;
+}
+.matchup-tools .saved-matchups-panel{margin:0}
+.matchup-advanced{margin-top:8px}
+@media(max-width:680px){
+  .matchup-tools>summary{grid-template-columns:1fr auto}
+  .matchup-tools>summary em{display:none}
+  .matchup-quick-actions{display:grid;grid-template-columns:1fr}
+  .matchup-quick-actions>*{width:100%}
+}

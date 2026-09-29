@@ -2,6 +2,12 @@ name: Publish Public Site
 
 on:
   workflow_dispatch:
+    inputs:
+      include_custom_domain:
+        description: 'Publish the hoioracle.com CNAME during final cutover'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -54,6 +60,7 @@ jobs:
       - name: Publish built files to deployment repository
         env:
           RUN_NUMBER: ${{ github.run_number }}
+          INCLUDE_CUSTOM_DOMAIN: ${{ inputs.include_custom_domain }}
         run: |
           set -euo pipefail
           work="$(mktemp -d)"
@@ -66,6 +73,9 @@ jobs:
 
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a "$GITHUB_WORKSPACE/dist/." .
+          if [[ "${INCLUDE_CUSTOM_DOMAIN}" != "true" ]]; then
+            rm -f CNAME
+          fi
           touch .nojekyll
 
           git config user.name "github-actions[bot]"

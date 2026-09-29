@@ -906,15 +906,5 @@ function bindMatchupTools(){
   if($('resetState'))$('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
 }
 
-function scenario(c){
-  c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">SCENARIO CONTROL</p><h1>Scenario</h1><p>Manage the full planner state and see exactly what is modeled versus approximate.</p></div>${badge(`Schema ${state.schema}`)}</section>
-  <div class="grid two">${panel('Campaign',`<div class="field-grid"><label>Country<input id="s-country" value="${esc(state.country)}"></label><label>Operation<input id="s-operation" value="${esc(state.operation)}"></label></div><label>Objective<textarea id="s-objective" rows="4">${esc(state.objective)}</textarea></label><div class="actions"><button class="primary" id="saveState">Save locally</button><button class="btn" id="shareState" ${state.dataPack?.meta?.bundled?'':'disabled'}>Copy matchup link</button><button class="btn" id="exportState">Export JSON</button><label class="btn file">Import JSON<input id="importState" type="file" accept="application/json" hidden></label><button class="btn danger" id="resetState">Reset</button></div>${sharedScenarioError?`<p class="notice warn"><b>Share link ignored:</b> ${esc(sharedScenarioError)}</p>`:''}`)}${panel('Version lock',`<div class="version-card compact-version"><strong>HOI4 ${MODEL_META.gameVersion}</strong><span>Planner ${MODEL_META.appVersion}</span></div>`,'compact-version-panel')}</div>
-  ${savedMatchupPanel()} `;
-  $('s-country').onchange=()=>{state.country=$('s-country').value;save();}; $('s-operation').onchange=()=>{state.operation=$('s-operation').value;save();shell();}; $('s-objective').onchange=()=>{state.objective=$('s-objective').value;save();};
-  $('saveState').onclick=()=>{if(save())alert('Scenario saved locally.');}; $('shareState').onclick=()=>copyScenarioShareLink(); $('exportState').onclick=()=>downloadJSON('war-planner-scenario.json',serializableState());
-  $('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid scenario JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');if(save())location.reload();});};
-  bindSavedMatchupLibrary();
-  $('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
-}
 
 window.addEventListener('hashchange',shell); shell();

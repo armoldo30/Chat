@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import BUILTIN_1193 from '../src/builtin1193.js';
 import { hydrateGameData } from '../src/gameData.js';
-import { ordinaryDivisionBattalionIds, battalionPickerGroups, supportCompanyPickerGroups, supportCompanySection, assignRegimentalSupport } from '../src/division-designer-options.js';
+import { RETIRED_ORDINARY_BATTALION_IDS, ordinaryDivisionBattalionIds, battalionPickerGroups, supportCompanyPickerGroups, supportCompanySection, assignRegimentalSupport } from '../src/division-designer-options.js';
 import { regimentGroupForUnit } from '../src/regiment-groups.js';
 import { REGIMENTAL_SUPPORT_IDS_1193, applyRegimentalSupportCompatibilityFallback, regimentalSupportAllowed } from '../src/regimental-support-1193.js';
 import { HQ_ONLY_LINE_BATTALIONS_1193, HQ_LINE_ELIGIBILITY_1193_META } from '../src/builtin1193/hq-line-eligibility-1193.js';
@@ -55,6 +55,11 @@ for(const id of presentHqOnly){
   assert.equal(battalions[id].allowInNonArmyHq,false,`${id} must retain/recover the HQ-only structural restriction`);
   assert.ok(!ordinaryBattalions.includes(id),`${id} must be excluded from ordinary division templates`);
   for(const ids of Object.values(groups))assert.ok(!ids.includes(id),`${id} must not appear in the normal battalion picker`);
+}
+for(const id of RETIRED_ORDINARY_BATTALION_IDS){
+  assert.ok(battalions[id],`retired source battalion ${id} should remain available in the raw hydrated catalog for auditability`);
+  assert.ok(!ordinaryBattalions.includes(id),`retired source battalion ${id} must be excluded from ordinary division templates`);
+  for(const ids of Object.values(groups))assert.ok(!ids.includes(id),`retired source battalion ${id} must not appear in the Division Designer picker`);
 }
 assert.equal(HQ_LINE_ELIGIBILITY_1193_META.evidence,'unvalidated','bounded mirror recovery must not be promoted to game-file exact');
 const armorSupport=groups['Armored Combat Support']||[];

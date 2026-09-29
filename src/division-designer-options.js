@@ -9,8 +9,13 @@ const PICKER_SECTIONS=Object.freeze([
   ['armor_combat_support','Armored Combat Support']
 ]);
 
+export const RETIRED_ORDINARY_BATTALION_IDS=Object.freeze(['fake_intel_unit','penal_battalion','bus']);
+const RETIRED_ORDINARY_BATTALIONS=new Set(RETIRED_ORDINARY_BATTALION_IDS);
+
 export function ordinaryDivisionBattalionIds(battalionMap={}){
-  return Object.entries(battalionMap||{}).filter(([,unit])=>unit&&typeof unit==='object'&&unit.allowInNonArmyHq!==false).map(([id])=>id);
+  return Object.entries(battalionMap||{})
+    .filter(([id,unit])=>unit&&typeof unit==='object'&&unit.allowInNonArmyHq!==false&&!RETIRED_ORDINARY_BATTALIONS.has(id))
+    .map(([id])=>id);
 }
 
 export function battalionPickerGroups(battalionMap={},ids=ordinaryDivisionBattalionIds(battalionMap)){

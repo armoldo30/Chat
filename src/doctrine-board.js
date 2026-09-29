@@ -1,9 +1,8 @@
-import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
+import { displayLabel } from './ui-labels.js';
+import { hoi4TextIconImg } from './hoi4-text-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
-function resolvedKind(value,base='doctrine'){
-  const kind=visualKind(value);return kind==='generic'?base:kind;
-}
+const doctrineIcon=()=>hoi4TextIconImg('doctrine_texticon','hoi4-texticon doctrine-source-icon');
 function optionLabel(option){return displayLabel(option?.value,option?.textContent);}
 
 function ensureActionBar(){
@@ -28,7 +27,7 @@ function openBoard(){
   document.body.append(shell);document.documentElement.classList.add('picker-open');shell.querySelector('.system-board-backdrop').onclick=closeBoard;shell.querySelector('[data-close-doctrine]').onclick=closeBoard;
   const content=shell.querySelector('.doctrine-board-content');
   const render=()=>{
-    content.innerHTML=`<section class="doctrine-board-grand"><span class="eyebrow">GRAND DOCTRINE</span><div class="doctrine-grand-cards">${[...grand.options].map(o=>`<button type="button" class="doctrine-choice-card ${draft.grand===o.value?'selected':''}" data-board-grand="${o.value}"><span class="visual-option-icon doctrine">${iconSvg('doctrine')}</span><b>${optionLabel(o)}</b>${draft.grand===o.value?'<small>ACTIVE</small>':''}</button>`).join('')}</div></section><section class="doctrine-board-tracks">${Object.entries(draft.tracks).map(([track,t])=>`<article class="doctrine-board-track"><header><span>${t.title}</span><b>${t.mastery>=5?'MILESTONE ACTIVE':'MASTERY '+t.mastery+'/5'}</b></header><div class="doctrine-node-list">${[...t.select.options].map(o=>`<button type="button" class="doctrine-node ${t.choice===o.value?'selected':''}" data-board-track="${track}" data-board-choice="${o.value}"><span class="node-emblem ${resolvedKind(o.value)}">${iconSvg(resolvedKind(o.value))}</span><span>${optionLabel(o)}</span></button>`).join('')}</div><div class="board-mastery" aria-label="${t.title} mastery">${Array.from({length:6},(_,i)=>`<button type="button" class="mastery-pip ${i<=t.mastery?'filled':''} ${i===t.mastery?'current':''}" data-board-mastery="${track}" data-board-level="${i}"><span aria-hidden="true"></span><small>${i}</small></button>`).join('')}</div></article>`).join('')}</section><footer class="visual-board-footer"><button type="button" class="btn" data-cancel-doctrine>Cancel</button><button type="button" class="btn primary" data-apply-doctrine>Apply Doctrine</button></footer>`;
+    content.innerHTML=`<section class="doctrine-board-grand"><span class="eyebrow">GRAND DOCTRINE</span><div class="doctrine-grand-cards">${[...grand.options].map(o=>`<button type="button" class="doctrine-choice-card ${draft.grand===o.value?'selected':''}" data-board-grand="${o.value}"><span class="visual-option-icon doctrine">${doctrineIcon()}</span><b>${optionLabel(o)}</b>${draft.grand===o.value?'<small>ACTIVE</small>':''}</button>`).join('')}</div></section><section class="doctrine-board-tracks">${Object.entries(draft.tracks).map(([track,t])=>`<article class="doctrine-board-track"><header><span>${t.title}</span><b>${t.mastery>=5?'MILESTONE ACTIVE':'MASTERY '+t.mastery+'/5'}</b></header><div class="doctrine-node-list">${[...t.select.options].map(o=>`<button type="button" class="doctrine-node ${t.choice===o.value?'selected':''}" data-board-track="${track}" data-board-choice="${o.value}"><span class="node-emblem doctrine source-backed">${doctrineIcon()}</span><span>${optionLabel(o)}</span></button>`).join('')}</div><div class="board-mastery" aria-label="${t.title} mastery">${Array.from({length:6},(_,i)=>`<button type="button" class="mastery-pip ${i<=t.mastery?'filled':''} ${i===t.mastery?'current':''}" data-board-mastery="${track}" data-board-level="${i}"><span aria-hidden="true"></span><small>${i}</small></button>`).join('')}</div></article>`).join('')}</section><footer class="visual-board-footer"><button type="button" class="btn" data-cancel-doctrine>Cancel</button><button type="button" class="btn primary" data-apply-doctrine>Apply Doctrine</button></footer>`;
     content.querySelectorAll('[data-board-grand]').forEach(button=>button.onclick=()=>{draft.grand=button.dataset.boardGrand;render();});
     content.querySelectorAll('[data-board-choice]').forEach(button=>button.onclick=()=>{draft.tracks[button.dataset.boardTrack].choice=button.dataset.boardChoice;render();});
     content.querySelectorAll('[data-board-mastery]').forEach(button=>button.onclick=()=>{draft.tracks[button.dataset.boardMastery].mastery=Number(button.dataset.boardLevel);render();});
@@ -48,7 +47,7 @@ function openBoard(){
 
 function injectLauncher(){
   const bar=ensureActionBar();if(!bar||bar.querySelector('[data-open-doctrine-board]'))return;
-  const button=document.createElement('button');button.type='button';button.className='btn visual-board-launch';button.dataset.openDoctrineBoard='1';button.innerHTML=`<span class="board-button-icon">${iconSvg('doctrine')}</span><span><small>FULL VIEW</small><b>Doctrine Board</b></span>`;button.onclick=openBoard;bar.append(button);
+  const button=document.createElement('button');button.type='button';button.className='btn visual-board-launch';button.dataset.openDoctrineBoard='1';button.innerHTML=`<span class="board-button-icon">${doctrineIcon()}</span><span><small>FULL VIEW</small><b>Doctrine Board</b></span>`;button.onclick=openBoard;bar.append(button);
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.getElementById('doctrine-board-modal'))closeBoard();});

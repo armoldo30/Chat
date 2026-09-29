@@ -1,18 +1,17 @@
-import { iconSvg } from './ui-labels.js';
+import { hoi4StatIconForLabel } from './hoi4-stat-icons.js';
+import { hoi4TextIconForLabel } from './hoi4-text-icons.js';
+import { hoi4SourceFallbackSvg } from './hoi4-source-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
-function metricKind(label=''){
-  const s=label.toLowerCase();
-  if(/manpower|engaged|reserve/.test(s))return 'infantry';
-  if(/hits/.test(s))return 'artillery';
-  if(/width/.test(s))return 'doctrine';
-  if(/duration|hour/.test(s))return 'generic';
-  return 'generic';
+function metricIcon(label=''){
+  return hoi4StatIconForLabel(label,'hoi4-stat-source-icon battle-source-icon')
+    ||hoi4TextIconForLabel(label,'hoi4-texticon battle-source-icon')
+    ||hoi4SourceFallbackSvg('infantry','generic');
 }
 function enhanceMetrics(report){
   report.querySelectorAll('.result-grid > div').forEach(card=>{
     if(card.dataset.battleVisual==='1')return;card.dataset.battleVisual='1';
-    const label=card.querySelector('span')?.textContent||'',kind=metricKind(label),icon=document.createElement('i');icon.className=`battle-metric-icon ${kind}`;icon.innerHTML=iconSvg(kind);card.insertBefore(icon,card.firstChild);
+    const label=card.querySelector('span')?.textContent||'',icon=document.createElement('i');icon.className='battle-metric-icon source-backed';icon.innerHTML=metricIcon(label);card.insertBefore(icon,card.firstChild);
   });
 }
 function enhanceReport(report){

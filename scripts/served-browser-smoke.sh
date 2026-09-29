@@ -32,13 +32,13 @@ run_route(){
   fi
 }
 
-for route in battle counter gauntlet tank air data scenario; do
+for route in battle counter gauntlet tank air production data; do
   budget=4500
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '1440,1000' "$budget" desktop
 done
 
-for route in battle counter tank air scenario gauntlet; do
+for route in battle counter tank air production gauntlet; do
   budget=5000
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '390,844' "$budget" mobile
@@ -190,4 +190,16 @@ if grep -Eq 'GENERAL STAFF · THEATRE COMMAND|OPERATION READINESS|Operation orde
   exit 1
 fi
 
-echo 'Served desktop/mobile route, Counter interaction, and terrain selection crawl passed.'
+# Retired Scenario links must preserve compatibility by landing in Division Lab,
+# without restoring Scenario as a primary product surface.
+run_route scenario '1440,1000' 4500 legacy
+if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-scenario.html"; then
+  echo 'Legacy #scenario did not resolve to Division Lab.' >&2
+  exit 1
+fi
+if grep -Eq 'SCENARIO CONTROL|<h1>Scenario</h1>|href="#scenario"' "$work/legacy-scenario.html"; then
+  echo 'Retired Scenario UI or navigation reappeared from legacy #scenario hash.' >&2
+  exit 1
+fi
+
+echo 'Served desktop/mobile route, legacy fallback, Counter interaction, and terrain selection crawl passed.'

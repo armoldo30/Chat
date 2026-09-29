@@ -1,4 +1,4 @@
-import { HOI4_ICON_ATLAS, HOI4_ICON_INDEX } from './hoi4-icon-atlas.js';
+import { HOI4_ICON_ATLAS, HOI4_ICON_CELLS, HOI4_ICON_INDEX } from './hoi4-icon-atlas.js';
 
 const ATLAS_URL=new URL('../hoi4-icons.webp',import.meta.url).href;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -94,7 +94,7 @@ function candidates(value='',label='',context='',slot=''){
 export function hoi4SourceIcon(value='',label='',context='',slot=''){
   for(const key of candidates(value,label,context,slot)){
     if(!has(key))continue;
-    const index=HOI4_ICON_INDEX.get(key);
+    const position=HOI4_ICON_INDEX.get(key),index=HOI4_ICON_CELLS[position];
     const x=(index%HOI4_ICON_ATLAS.columns)*HOI4_ICON_ATLAS.cellWidth;
     const y=Math.floor(index/HOI4_ICON_ATLAS.columns)*HOI4_ICON_ATLAS.cellHeight;
     return {key,x,y,...HOI4_ICON_ATLAS};

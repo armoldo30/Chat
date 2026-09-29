@@ -1,5 +1,5 @@
-const retired=new Set(['dashboard','front','intel','scenario']);
-const retiredLinks='a[href="#dashboard"],a[href="#front"],a[href="#intel"],a[href="#scenario"]';
+const retired=new Set(['dashboard','front','intel','production','scenario']);
+const retiredLinks='a[href="#dashboard"],a[href="#front"],a[href="#intel"],a[href="#production"],a[href="#scenario"]';
 
 function openCombatTest(){
   if(location.hash!=='#battle')location.hash='battle';

@@ -32,13 +32,13 @@ run_route(){
   fi
 }
 
-for route in battle counter gauntlet tank air production data; do
+for route in battle counter gauntlet tank air data; do
   budget=4500
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '1440,1000' "$budget" desktop
 done
 
-for route in battle counter tank air production gauntlet; do
+for route in battle counter tank air gauntlet; do
   budget=5000
   [[ "$route" == "gauntlet" ]] && budget=8000
   run_route "$route" '390,844' "$budget" mobile
@@ -187,6 +187,17 @@ if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-dashboard.html"; then
 fi
 if grep -Eq 'GENERAL STAFF · THEATRE COMMAND|OPERATION READINESS|Operation order|Industrial command' "$work/legacy-dashboard.html"; then
   echo 'Retired Command dashboard rendered from legacy #dashboard hash.' >&2
+  exit 1
+fi
+
+# Retired Industry links must land in Division Lab and must not restore Industry navigation.
+run_route production '1440,1000' 4500 legacy
+if ! grep -q '<h1>Division Lab</h1>' "$work/legacy-production.html"; then
+  echo 'Legacy #production did not resolve to Division Lab.' >&2
+  exit 1
+fi
+if grep -Eq '<h1>Industry</h1>|<span class="nav-code">MIC</span>' "$work/legacy-production.html"; then
+  echo 'Retired Industry UI or navigation reappeared from legacy #production hash.' >&2
   exit 1
 fi
 

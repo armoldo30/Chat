@@ -21,7 +21,7 @@ store.set('hoi4-war-planner-v7',JSON.stringify({
   intelUncertainty:0
 }));
 
-for(const route of ['dashboard','front','intel','battle','tank','air','production','data']){
+for(const route of ['dashboard','front','intel','battle','tank','air','data']){
   location.hash='#'+route;elements.clear();document.body=get('body');
   await import(`../src/main.js?smoke=${route}`);
   assert.ok(document.title.includes('HOI4 War Planner'),`title should render for ${route}`);

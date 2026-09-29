@@ -60,7 +60,8 @@ export function rewriteModuleForMaterializedPack(source){
 
 export function rewriteMainForMaterializedPack(source){
   const rewritten=rewriteModuleForMaterializedPack(source);
-  if(rewritten.occurrences!==1)throw new Error(`Runtime-pack materialization expected exactly one BUILTIN_1193 source import in main.js, found ${rewritten.occurrences}.`);
+  if(rewritten.occurrences===0)throw new Error('Runtime-pack materialization could not find BUILTIN_1193 source import.');
+  if(rewritten.occurrences>1)throw new Error('Runtime-pack materialization found BUILTIN_1193 source import more than once.');
   return rewritten.source;
 }
 

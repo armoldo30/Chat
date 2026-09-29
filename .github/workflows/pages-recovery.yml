@@ -1,4 +1,5 @@
 name: Pages Recovery Deploy
+# Atlas packaging recovery trigger
 on:
   workflow_dispatch:
   push:

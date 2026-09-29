@@ -2,6 +2,7 @@ name: Pages Recovery Deploy
 # Atlas packaging recovery trigger
 # Atlas bleed recovery trigger
 # Explicit atlas clip recovery trigger
+# Launch navigation cleanup recovery trigger
 on:
   workflow_dispatch:
   push:

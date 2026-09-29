@@ -243,7 +243,7 @@ if(sharedScenarioAttempted){
   if(sharedScenarioNotice)save();
   clearScenarioShareParam();
 }
-function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data','scenario'].includes(r)?r:'battle';}
+function route(){const r=location.hash.replace('#','');return ['dashboard','battle','gauntlet','tank','air','production','front','intel','data'].includes(r)?r:'battle';}
 function downloadJSON(name,obj){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(obj,null,2)],{type:'application/json'}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
 function readJSON(file,cb){
   if(!file||file.size>25*1024*1024){alert('JSON file is too large to import safely. Maximum size is 25 MB.');return;}
@@ -273,20 +273,21 @@ function lastBattlePreview(){
 }
 
 function shell(){
-  const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry'],['data','DAT','Data Packs'],['scenario','CFG','Scenario']];
+  const nav=[['battle','DIV','Division Lab'],['gauntlet','GNT','Division Gauntlet'],['tank','TNK','Tank Designer'],['air','AIR','Air Lab'],['production','MIC','Industry']];
   const active=route();
-  document.title=`${state.operation} · HOI4 War Planner`;
+  const sectionName={battle:'Division Lab',gauntlet:'Division Gauntlet',tank:'Tank Designer',air:'Air Lab',production:'Industry',data:'Advanced Data'}[active]||'Division Lab';
+  document.title=`${sectionName} · HOI4 War Planner`;
   $('app').innerHTML=`<div class="app-shell">
     <aside class="sidebar">
       <a class="brand" href="#battle"><span class="brand-mark">GS</span><span><b>GENERAL STAFF</b><small>HOI4 War Planner</small></span></a>
       <nav>${nav.map(([r,code,n])=>`<a href="#${r}" class="${active===r?'active':''}"><span class="nav-code">${code}</span><span>${n}</span></a>`).join('')}</nav>
-      <div class="side-meta"><span>${MODEL_META.gameVersion}</span><small>${MODEL_META.appVersion}</small></div>
+      <div class="side-meta"><span>${MODEL_META.gameVersion}</span><small>${MODEL_META.appVersion}</small><a class="side-advanced-link" href="#data">Advanced data</a></div>
     </aside>
-    <main><header class="topbar"><div><span class="kicker">${esc(state.country)}</span><b>${esc(state.operation)}</b></div><div class="top-actions">${badge(`Game ${MODEL_META.gameVersion}`,'good')}${badge(state.dataPack?.meta?.bundled?'Public-data baseline':'Custom data pack',state.dataPack?.meta?.bundled?'':'warn')}${sharedScenarioNotice?badge(sharedScenarioNotice,'good'):''}${sharedScenarioError?badge('Share link ignored','warn'):''}</div></header><div id="view" class="view"></div></main>
+    <main><header class="topbar"><div><span class="kicker">HOI4 ${MODEL_META.gameVersion}</span><b>${esc(sectionName)}</b></div><div class="top-actions">${badge(`Game ${MODEL_META.gameVersion}`,'good')}${badge(state.dataPack?.meta?.bundled?'Vanilla data':'Custom data pack',state.dataPack?.meta?.bundled?'':'warn')}${sharedScenarioNotice?badge(sharedScenarioNotice,'good'):''}${sharedScenarioError?badge('Share link ignored','warn'):''}</div></header><div id="view" class="view"></div></main>
   </div>`;
   render(active);
 }
-function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,production,front,intel,data,scenario}[r]||battle)(v);}
+function render(r){const v=$('view');({dashboard,battle,gauntlet,tank,air,production,front,intel,data}[r]||battle)(v);}
 function gauntlet(c){renderGauntlet(c,{name:side=>state[side+'Name'],stats:side=>division(side),data:side=>techData(side),equipment:side=>equipmentForSide(side),battleOpts:()=>battleOpts()});}
 
 function dashboard(c){
@@ -538,7 +539,9 @@ function battle(c){
   const content=activeLabPanel==='template'?`${renderDivisionDesigner(activeDesignerSide)}${armorPanel}`:activeLabPanel==='tech'?renderTechDoctrine(activeDesignerSide):activeLabPanel==='combat'?`${battlefieldPanel}${panel('Battle report',`<div id="battleResult" class="result">${lastBattlePreview()}</div>`,'battle-report-panel')}`:analysisPanel;
   c.innerHTML=`<section class="tool-head hoi-tool-head"><div><p class="eyebrow">LAND FORCES</p><h1>Division Lab</h1></div>${badge(`HOI4 ${MODEL_META.gameVersion}`,'good')}</section>
   <div class="lab-command-bar"><div class="designer-tabs"><button class="${activeDesignerSide==='attacker'?'active':''}" data-designer-side="attacker"><span>ATTACKER</span><b>${fmt(a.width,0)}W · ${fmt(a.org,0)} ORG</b></button><button class="${activeDesignerSide==='defender'?'active':''}" data-designer-side="defender"><span>DEFENDER</span><b>${fmt(d.width,0)}W · ${fmt(d.org,0)} ORG</b></button><button class="swap-tab" id="swapSides">⇄</button></div><div class="lab-mode-tabs">${labTabs.map(([id,label])=>`<button data-lab-panel="${id}" class="${activeLabPanel===id?'active':''}">${label}${id==='tech'&&techInvalid?' !':''}</button>`).join('')}</div></div>
-  <div class="lab-workspace">${content}</div>`;
+  <div class="lab-workspace">${content}</div>
+  ${matchupToolsPanel()}`;
+  bindMatchupTools();
   document.querySelectorAll('[data-lab-panel]').forEach(el=>el.onclick=()=>{activeLabPanel=el.dataset.labPanel;designerPick=null;shell();});
   document.querySelectorAll('[data-designer-side]').forEach(el=>el.onclick=()=>{activeDesignerSide=el.dataset.designerSide;designerPick=null;shell();});
   $('swapSides').onclick=()=>{[state.attackerGrid,state.defenderGrid]=[state.defenderGrid,state.attackerGrid];[state.attackerSupports,state.defenderSupports]=[state.defenderSupports,state.attackerSupports];[state.attackerRegimentalSupports,state.defenderRegimentalSupports]=[state.defenderRegimentalSupports,state.attackerRegimentalSupports];[state.attackerTech,state.defenderTech]=[state.defenderTech,state.attackerTech];[state.tankDesigns.attacker,state.tankDesigns.defender]=[state.tankDesigns.defender,state.tankDesigns.attacker];[state.mioSelections.attacker,state.mioSelections.defender]=[state.mioSelections.defender,state.mioSelections.attacker];[state.attackerDivisions,state.defenderDivisions]=[state.defenderDivisions,state.attackerDivisions];syncDesignerSide('attacker');syncDesignerSide('defender');designerPick=null;save();shell();};
@@ -775,7 +778,7 @@ function data(c){
     ['Combat defines',Object.keys(pack.defines?.NMilitary||{}).length,dataPackStatus.combatCount],
     ['Production defines',Object.keys(pack.defines?.NProduction||{}).length,dataPackStatus.productionCount]
   ]:[];
-  c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">VERSIONED INPUTS</p><h1>Data Packs</h1><p>Import your own HOI4 common files locally in the browser. The planner stores a compact normalized pack and only applies fields it can interpret safely.</p></div>${badge(pack?'Imported pack active':'Public baseline',pack?'good':'')}</section>
+  c.innerHTML=`<section class="tool-head"><div><p class="eyebrow">ADVANCED · CUSTOM GAME DATA</p><h1>Advanced Data</h1><p>Optional power-user tools for custom or modded HOI4 data. The bundled vanilla ${MODEL_META.gameVersion} data remains the normal planner baseline.</p></div><div class="actions"><a class="btn" href="#battle">Back to Division Lab</a>${badge(pack?'Imported pack active':'Vanilla baseline',pack?'good':'')}</div></section>
   ${pack?panel('Active pack',`<div class="version-card"><strong>${meta?.sourceFiles||0} source files</strong><span>${meta?.createdAt?new Date(meta.createdAt).toLocaleString():'Imported'}</span></div><div class="metric-grid compact-metrics"><article class="metric"><span>Sub-units</span><strong>${meta?.subUnitCount||0}</strong><small>${dataPackStatus.battalionOverrides+dataPackStatus.supportOverrides} safe structural overrides</small></article><article class="metric"><span>Equipment</span><strong>${meta?.equipmentCount||0}</strong><small>${meta?.moduleCount||0} designer modules parsed</small></article><article class="metric"><span>MIOs</span><strong>${meta?.mioCount||0}</strong><small>country/equipment organizations available in Lab, Tank & Air</small></article><article class="metric"><span>Terrain</span><strong>${meta?.terrainCount||0}</strong><small>${dataPackStatus.terrainOverrides} widths applied</small></article><article class="metric"><span>Defines</span><strong>${Object.values(pack.defines||{}).reduce((n,x)=>n+Object.keys(x||{}).length,0)}</strong><small>${dataPackStatus.combatCount+dataPackStatus.productionCount} mechanics applied</small></article></div><div class="table-wrap compact-table"><table><thead><tr><th>Category</th><th>Parsed</th><th>Applied now</th></tr></thead><tbody>${coverage.map(x=>`<tr><td>${x[0]}</td><td>${x[1]}</td><td>${x[2]}</td></tr>`).join('')}</tbody></table></div><div class="actions"><button class="btn" id="exportPack">Export normalized pack</button><button class="btn danger" id="clearPack">Clear imported pack</button></div>${meta?.warnings?.length?`<p class="notice warn"><b>${meta.warnings.length} parser warnings.</b> Export the normalized pack to inspect them.</p>`:''}`):panel('No imported pack',`<p>The planner is currently using its built-in ${MODEL_META.gameVersion} public-data baseline.</p><p class="muted">Nothing is uploaded to a server by this page; browser file inputs are parsed client-side and the normalized result is saved in local storage.</p>`)}
   ${pack&&snapshot.length?panel('Equipment lineage preview',`<div class="version-card"><div><strong>Equipment snapshot · ${state.dataSnapshotYear}</strong><p class="muted">Resolved through imported archetype/parent inheritance. This is a diagnostic preview; equipment stats are not yet injected into battalion combat values.</p></div><label>Snapshot year<input id="dataSnapshotYear" type="number" min="1910" max="2100" value="${state.dataSnapshotYear}"></label></div>${inheritedWarnings?`<p class="notice warn">${inheritedWarnings} selected equipment families carry inheritance warnings. Export the normalized pack before relying on them.</p>`:''}<div class="table-wrap compact-table"><table><thead><tr><th>Family</th><th>Selected model</th><th>Year</th><th>Variants</th><th>IC</th><th>Reliability</th><th>Soft</th><th>Hard</th><th>Defense</th><th>Piercing</th></tr></thead><tbody>${snapshot.slice(0,80).map(x=>`<tr><td>${esc(x.family)}</td><td>${esc(x.item.id)}</td><td>${fmt(x.item.year,0)}</td><td>${x.variants}</td><td>${fmt(x.item.cost,2)}</td><td>${x.item.reliability===undefined?'—':pct(x.item.reliability*100)}</td><td>${fmt(x.item.soft,1)}</td><td>${fmt(x.item.hard,1)}</td><td>${fmt(x.item.def,1)}</td><td>${fmt(x.item.piercing,1)}</td></tr>`).join('')}</tbody></table></div>${snapshot.length>80?`<p class="muted">Showing first 80 of ${snapshot.length} equipment families.</p>`:''}`):''}
   <div class="grid two">${panel('Import a common folder',`<label class="drop-zone">Select HOI4 <b>common</b> folder<input id="folderImport" type="file" multiple webkitdirectory directory></label><p class="muted">Best option on desktop. Select the game’s <code>common</code> directory or a smaller folder such as <code>common/units</code> or <code>common/defines</code>.</p>`)}${panel('Import selected files',`<label class="drop-zone">Select .txt / .lua files<input id="fileImport" type="file" accept=".txt,.lua,text/plain" multiple></label><p class="muted">Useful for smaller targeted imports. Unit, equipment, terrain and defines files are recognized.</p>`)}</div>
@@ -864,7 +867,7 @@ function savedMatchupPanel(){
     const updated=new Date(entry.updatedAt).toLocaleString();
     return `<article class="saved-matchup-row"><div class="saved-matchup-copy"><strong>${esc(entry.name)}</strong><small>Updated ${esc(updated)} · HOI4 ${esc(entry.gameVersion)}</small></div><div class="saved-matchup-actions"><button class="btn" data-saved-load="${entry.id}">Load</button><button class="btn" data-saved-copy="${entry.id}">Copy link</button><button class="btn" data-saved-update="${entry.id}" ${bundled?'':'disabled'}>Replace</button><button class="btn danger" data-saved-delete="${entry.id}">Delete</button></div></article>`;
   }).join('');
-  const create=bundled?`<div class="saved-matchup-create"><label>Matchup name<input id="savedMatchupName" maxlength="${MAX_SAVED_MATCHUP_NAME}" value="${esc(state.operation||`${state.attackerName} vs ${state.defenderName}`)}"></label><button class="primary" id="saveNamedMatchup">Save current matchup</button></div>`:`<p class="notice warn"><b>Custom data pack active.</b> You can load, copy or delete existing vanilla saves, but saving/replacing is disabled because the imported pack is not embedded. Use Export JSON to preserve the custom ruleset.</p>`;
+  const create=bundled?`<div class="saved-matchup-create"><label>Matchup name<input id="savedMatchupName" maxlength="${MAX_SAVED_MATCHUP_NAME}" value="${esc(`${state.attackerName} vs ${state.defenderName}`)}"></label><button class="primary" id="saveNamedMatchup">Save current matchup</button></div>`:`<p class="notice warn"><b>Custom data pack active.</b> You can load, copy or delete existing vanilla saves, but saving/replacing is disabled because the imported pack is not embedded. Use Export JSON to preserve the custom ruleset.</p>`;
   return panel('Saved matchups',`${create}<div class="saved-matchup-count"><span>${savedMatchups.length}/${MAX_SAVED_MATCHUPS} stored in this browser</span><span>No account required</span></div>${savedMatchupLibraryError?`<p class="notice warn">${esc(savedMatchupLibraryError)}</p>`:''}<div class="saved-matchup-list">${rows||'<div class="saved-matchup-empty">No named matchups saved yet.</div>'}</div>`,'saved-matchups-panel');
 }
 function bindSavedMatchupLibrary(){
@@ -873,6 +876,34 @@ function bindSavedMatchupLibrary(){
   document.querySelectorAll('[data-saved-copy]').forEach(el=>el.onclick=()=>copyNamedSavedMatchupLink(el.dataset.savedCopy));
   document.querySelectorAll('[data-saved-update]').forEach(el=>el.onclick=()=>replaceNamedSavedMatchup(el.dataset.savedUpdate));
   document.querySelectorAll('[data-saved-delete]').forEach(el=>el.onclick=()=>deleteNamedSavedMatchup(el.dataset.savedDelete));
+}
+
+function matchupToolsPanel(){
+  const bundled=!!state.dataPack?.meta?.bundled;
+  const savedLabel=`${savedMatchups.length} saved matchup${savedMatchups.length===1?'':'s'}`;
+  return `<details class="matchup-tools panel" id="matchupTools">
+    <summary><span>SAVE & SHARE</span><b>${savedLabel}</b><em>${bundled?'Vanilla '+MODEL_META.gameVersion:'Custom data active'}</em></summary>
+    <div class="matchup-tools-body">
+      <div class="matchup-quick-actions">
+        <button class="primary" id="shareState" ${bundled?'':'disabled'}>Copy matchup link</button>
+        <button class="btn" id="exportState">Export backup</button>
+        <label class="btn file">Import backup<input id="importState" type="file" accept="application/json" hidden></label>
+      </div>
+      ${sharedScenarioError?`<p class="notice warn"><b>Share link ignored:</b> ${esc(sharedScenarioError)}</p>`:''}
+      ${savedMatchupPanel()}
+      <details class="advanced-settings matchup-advanced"><summary>Advanced planner controls</summary>
+        <div class="actions"><a class="btn" href="#data">Custom data packs</a><button class="btn danger" id="resetState">Reset planner</button></div>
+        <p class="muted">Planner changes are saved automatically in this browser. Export a backup when you want a portable copy of the full planner state.</p>
+      </details>
+    </div>
+  </details>`;
+}
+function bindMatchupTools(){
+  if($('shareState'))$('shareState').onclick=()=>copyScenarioShareLink();
+  if($('exportState'))$('exportState').onclick=()=>downloadJSON('hoi4-war-planner-backup.json',serializableState());
+  if($('importState'))$('importState').onchange=e=>{const f=e.target.files[0];if(f)readJSON(f,x=>{if(!x||typeof x!=='object'||Array.isArray(x)){alert('Invalid planner backup JSON.');return;}state=deepMerge(defaults,x);state.schema=defaults.schema;ensureDesignerState('attacker');ensureDesignerState('defender');ensureTechState('attacker');ensureTechState('defender');ensureTankState();ensureAirState();ensureMioState();if(save())location.reload();});};
+  bindSavedMatchupLibrary();
+  if($('resetState'))$('resetState').onclick=()=>{if(confirm('Reset all planner data?')){state=structuredClone(defaults);state.schema=defaults.schema;if(save())location.reload();}};
 }
 
 function scenario(c){

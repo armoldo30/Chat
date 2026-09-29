@@ -1,7 +1,8 @@
 import BUILTIN_1192 from './builtin1192.js';
 import { mioCatalog, mioEligibility, traitSelectable } from './mio.js';
 import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
-import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
+import { hoi4StatIconForEffectKeys, hoi4StatIconImg } from './hoi4-stat-icons.js';
+import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
 
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
 const SHOW_THEORYCRAFT=new Set();
@@ -32,7 +33,13 @@ export function optionLabel(option){return displayLabel(option?.value,option?.te
 function orgKind(org,title=''){
   const text=[title,...(org?.equipmentTypes||[])].join(' '),kind=visualKind(text);return kind==='generic'?'industry':kind;
 }
-export function orgIcon(org,title=''){return iconSvg(orgKind(org,title));}
+export function orgIcon(org,title=''){
+  for(const type of (org?.equipmentTypes||[])){
+    const exact=hoi4SourceIconSvg(type,type,'generic','MIO organization');if(exact)return exact;
+  }
+  const byTitle=hoi4SourceIconSvg(title,title,orgKind(org,title),'MIO organization');if(byTitle)return byTitle;
+  return hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon mio-org-source-icon');
+}
 export function orgIconKind(org,title=''){return orgKind(org,title);}
 
 export function theorycraftExpanded(select){return SHOW_THEORYCRAFT.has(select?.id||select?.dataset?.mioOrg||'');}
@@ -92,5 +99,6 @@ export function traitKind(row){
 
 export function traitIcon(row){
   const keys=[...Object.keys(row?.trait?.equipmentBonus||{}),...Object.keys(row?.trait?.productionBonus||{}),...Object.keys(row?.trait?.organizationModifier||{})].join(' ');
-  return hoi4StatIconForEffectKeys(keys,'hoi4-stat-source-icon mio-source-icon')||iconSvg(traitKind(row));
+  return hoi4StatIconForEffectKeys(keys,'hoi4-stat-source-icon mio-source-icon')
+    ||hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon mio-source-icon');
 }

@@ -8,7 +8,7 @@ import { materializedRuntimePackModule, rewriteMainForMaterializedPack } from '.
 const root=resolve(import.meta.dirname,'..');
 const dist=resolve(root,'dist');
 const buildToken=String(process.env.GITHUB_SHA||process.env.GITHUB_RUN_ID||'dev').slice(0,16);
-const publicFiles=['index.html','division-counter.html','tank-designer.html','air-lab.html','division-gauntlet.html','guides.html','methodology.html','about.html','privacy.html','ads.txt'];
+const publicFiles=['index.html','division-counter.html','tank-designer.html','air-lab.html','division-gauntlet.html','guides.html','methodology.html','about.html','privacy.html','ads.txt','hoi4-icons.webp'];
 const publicHtmlFiles=publicFiles.filter(file=>file.endsWith('.html'));
 const GOOGLE_ANALYTICS_ID='G-QYF9SQFM4V';
 const googleAnalyticsSnippet=`  <!-- Google tag (gtag.js) -->

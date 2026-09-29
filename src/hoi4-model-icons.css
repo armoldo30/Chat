@@ -39,6 +39,17 @@
 .hoi-model-icon .hoi-fallback{color:#c1c0a8}
 .hoi-model-icon .hoi-fallback>path,.hoi-model-icon .hoi-fallback>circle,.hoi-model-icon .hoi-fallback>rect{stroke:#ded8bc}
 
+.hoi-source-icon{overflow:hidden}
+.hoi-source-icon image{image-rendering:auto}
+
+.hoi4-texticon,.hoi4-stat-source-icon{display:block;max-width:100%;max-height:100%;object-fit:contain;image-rendering:auto}
+.stat-visual-icon .hoi4-stat-source-icon{width:24px;height:24px}
+.stat-visual-icon .hoi4-texticon{width:20px;height:20px}
+.battlefield-gauge-icon .hoi4-stat-source-icon,.battlefield-gauge-icon .hoi4-texticon{width:24px;height:24px}
+.visual-trigger-icon .hoi4-texticon,.visual-option-icon .hoi4-texticon{width:70%!important;height:70%!important}
+.board-button-icon .hoi4-texticon,.node-emblem .hoi4-texticon{width:26px;height:26px}
+.mio-node-icon .hoi4-stat-source-icon,.node-emblem .hoi4-stat-source-icon{width:26px;height:26px}
+
 .visual-trigger-icon,.visual-option-icon,.designer-tab-icon,.division-unit-icon,.picture-unit-symbol,.tank-silhouette-icon,.air-role-visual i{overflow:hidden}
 .visual-trigger-icon .hoi-model-icon,.visual-option-icon .hoi-model-icon,.designer-tab-icon .hoi-model-icon,.division-unit-icon .hoi-model-icon,.picture-unit-symbol .hoi-model-icon,.tank-silhouette-icon .hoi-model-icon,.air-role-visual .hoi-model-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.58))}
 .visual-option.selected .hoi-model-icon .hoi-model-plate,.visual-picker-trigger:hover .hoi-model-icon .hoi-model-plate,.designer-visual-tab.active .hoi-model-icon .hoi-model-plate{stroke:#d0b76d;fill:#182019}

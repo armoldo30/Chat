@@ -381,18 +381,18 @@ function supportSlot(side,i){
   const key=state[side+'Supports'][i];
   if(!key)return `<button class="hoi-support-slot empty" data-sslot="${i}" title="Add support company"><span>+</span><small>Support</small></button>`;
   const info=requirementInfo(supports[key]);
-  return `<button class="hoi-support-slot filled tone-${battalionTone(key)} ${info?'prereq-info':''}" data-sslot="${i}" title="${esc(supports[key]?.name||key)}${info?' · '+esc(info):''}"><span>${supportCode(key)}</span><small>${esc(supports[key]?.name||key)}${info?' · req':''}</small></button>`;
+  return `<button class="hoi-support-slot filled tone-${battalionTone(key)} ${info?'prereq-info':''}" data-sslot="${i}" data-icon-value="${esc(key)}" title="${esc(supports[key]?.name||key)}${info?' · '+esc(info):''}"><span>${supportCode(key)}</span><small>${esc(supports[key]?.name||key)}${info?' · req':''}</small></button>`;
 }
 function regimentalSupportSlot(side,c,filled){
   const key=state[side+'RegimentalSupports'][c];
   if(filled<3)return `<button class="regimental-support locked" disabled title="Requires at least 3 line battalions in this regiment"><span>LOCK</span><small>Requires 3 battalions</small></button>`;
   if(!key)return `<button class="regimental-support available" data-rslot="${c}" title="Add regimental support"><span>+</span><small>Regimental support</small></button>`;
   const info=requirementInfo(supports[key]);
-  return `<button class="regimental-support available filled tone-${battalionTone(key)} ${info?'prereq-info':''}" data-rslot="${c}" title="${esc(supports[key]?.name||key)}${info?' · '+esc(info):''}"><span>${supportCode(key)}</span><small>${esc(supports[key]?.name||key)}${info?' · req':''}</small></button>`;
+  return `<button class="regimental-support available filled tone-${battalionTone(key)} ${info?'prereq-info':''}" data-rslot="${c}" data-icon-value="${esc(key)}" title="${esc(supports[key]?.name||key)}${info?' · '+esc(info):''}"><span>${supportCode(key)}</span><small>${esc(supports[key]?.name||key)}${info?' · req':''}</small></button>`;
 }
 function regimentColumn(side,c){
   const grid=state[side+'Grid'],filled=filledInRegiment(grid,c);
-  const group=regimentGroup(side,c);return `<div class="hoi-regiment"><div class="regiment-title"><span>REGIMENT ${c+1}${group?` · ${group.toUpperCase()}`:''}</span><b>${filled}/5</b></div><div class="regiment-slots">${grid[c].map((type,r)=>{if(!type)return `<button class="hoi-battalion-slot empty" data-bslot="1" data-c="${c}" data-r="${r}" title="Add battalion"><span>+</span><small>Add</small></button>`;const info=requirementInfo(battalions[type]);return `<button class="hoi-battalion-slot filled tone-${battalionTone(type)} ${info?'prereq-info':''}" data-bslot="1" data-c="${c}" data-r="${r}" title="${esc(battalions[type].name)}${info?' · '+esc(info):''}"><span class="unit-symbol">${battalionCode(type)}</span><small>${esc(battalions[type].name)}${info?' · req':''}</small></button>`;}).join('')}</div>${regimentalSupportSlot(side,c,filled)}</div>`;
+  const group=regimentGroup(side,c);return `<div class="hoi-regiment"><div class="regiment-title"><span>REGIMENT ${c+1}${group?` · ${group.toUpperCase()}`:''}</span><b>${filled}/5</b></div><div class="regiment-slots">${grid[c].map((type,r)=>{if(!type)return `<button class="hoi-battalion-slot empty" data-bslot="1" data-c="${c}" data-r="${r}" title="Add battalion"><span>+</span><small>Add</small></button>`;const info=requirementInfo(battalions[type]);return `<button class="hoi-battalion-slot filled tone-${battalionTone(type)} ${info?'prereq-info':''}" data-bslot="1" data-c="${c}" data-r="${r}" data-icon-value="${esc(type)}" title="${esc(battalions[type].name)}${info?' · '+esc(info):''}"><span class="unit-symbol">${battalionCode(type)}</span><small>${esc(battalions[type].name)}${info?' · req':''}</small></button>`;}).join('')}</div>${regimentalSupportSlot(side,c,filled)}</div>`;
 }
 function designerPicker(side){
   if(!designerPick||designerPick.side!==side)return '';

@@ -1,6 +1,8 @@
 import { displayLabel, looksLikeIdentifier, visualKind, iconSvg } from './ui-labels.js';
 import { itemIconKey, itemIconSvg } from './item-icons.js';
 import { sourceIconHint } from './source-icon-hints.js';
+import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
+import { hoi4TextIconImg } from './hoi4-text-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const PICKER_TARGETS=[
@@ -60,7 +62,9 @@ function closeModal(){
 
 function semanticIcon(option,baseKind,title=''){
   const label=optionLabel(option),value=option?.value||'',hint=sourceIconHint(value,label,baseKind,title),kind=resolvedKind(`${value} ${hint}`,baseKind),specific=itemIconKey(value,hint,baseKind);
-  return {label,kind,specific,svg:itemIconSvg(value,hint,baseKind,kind),title};
+  const source=hoi4SourceIconSvg(value,label,baseKind,title);
+  const doctrine=baseKind==='doctrine'?hoi4TextIconImg('doctrine_texticon','hoi4-texticon picker-source-icon'):'';
+  return {label,kind,specific,svg:source||doctrine||itemIconSvg(value,hint,baseKind,kind),title};
 }
 
 function openPicker(select,baseKind,title){

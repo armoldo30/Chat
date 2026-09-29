@@ -19,7 +19,7 @@ assert.match(main,/file\.size>25\*1024\*1024/,'JSON imports must reject unreason
 assert.match(main,/r\.onerror=/,'JSON imports must handle FileReader failures');
 assert.doesNotMatch(main,/state\.schema=6/,'scenario import/reset must never downgrade schema 7 back to schema 6');
 assert.match(main,/state\.schema=defaults\.schema/,'scenario import must normalize to the current schema');
-assert.match(main,/downloadJSON\('war-planner-scenario\.json',serializableState\(\)\)/,'scenario export must omit the redundant bundled data pack');
+assert.match(main,/downloadJSON\('hoi4-war-planner-backup\.json',serializableState\(\)\)/,'planner backup export must omit the redundant bundled data pack');
 assert.match(main,/\$\('app'\)\.innerHTML=/,'the SPA must render inside the permanent #app mount');
 assert.doesNotMatch(main,/document\.body\.innerHTML=/,'app rendering must not delete the privacy footer or enhancement script nodes');
 assert.doesNotMatch(main,/0\.15\.0 model/,'visible scenario copy must not describe the release as 0.15.0');

@@ -25,7 +25,7 @@
   .sidebar .brand,.sidebar .side-meta{display:none!important}
   .sidebar nav{
     display:grid!important;
-    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
     gap:3px!important;
     overflow:visible!important;
     width:100%!important;
@@ -61,7 +61,7 @@
     box-shadow:inset 0 2px rgba(227,202,139,.35)!important;
   }
 
-  /* Preserve current operation context without sacrificing much vertical space. */
+  /* Preserve current tool context without sacrificing much vertical space. */
   .topbar{
     height:52px!important;
     min-height:52px!important;
@@ -92,14 +92,14 @@
   .view{padding-bottom:20px!important}
   .publisher-guide,.site-legal-footer{scroll-margin-bottom:calc(var(--mobile-tool-dock-height) + 12px)}
 
-  /* Scenario sharing/import controls become reliable thumb targets. */
-  .actions:has(#shareState){
+  /* Save/share controls become reliable thumb targets. */
+  .matchup-quick-actions{
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:6px!important;
     width:100%!important;
   }
-  .actions:has(#shareState)>button,.actions:has(#shareState)>.btn,.actions:has(#shareState)>label{
+  .matchup-quick-actions>button,.matchup-quick-actions>.btn,.matchup-quick-actions>label{
     width:100%!important;
     min-width:0!important;
     min-height:46px!important;
@@ -122,7 +122,7 @@
   .sidebar nav{gap:2px!important}
   .sidebar nav a{min-height:48px!important;padding-left:1px!important;padding-right:1px!important}
   .sidebar nav a .nav-code{font-size:.54rem!important;min-width:27px!important}
-  .actions:has(#shareState){grid-template-columns:1fr!important}
+  .matchup-quick-actions{grid-template-columns:1fr!important}
   .lab-command-bar{margin-left:-1px!important;margin-right:-1px!important}
 }
 

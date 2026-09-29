@@ -26,7 +26,7 @@ store.set('hoi4-war-planner-v7',JSON.stringify({operation:'Local Scenario',count
 
 await import('../src/main.js?scenario-share-bootstrap=1');
 
-assert.ok(document.title.includes('Shared Matchup'),'shared URL state must take precedence over local storage for the initial load');
+assert.ok(document.title.includes('Division Lab'),'legacy shared Scenario URLs should land in Division Lab after Scenario retirement');
 const saved=JSON.parse(store.get('hoi4-war-planner-v7'));
 assert.equal(saved.operation,'Shared Matchup','loaded shared state should persist locally after bootstrap');
 assert.equal(saved.country,'France');
@@ -34,11 +34,11 @@ assert.equal(saved.dataPack,null,'shared state must return to the bundled baseli
 assert.equal(saved.lastBattle,null,'shared cached battle results must be discarded');
 assert.ok(replaced.includes('utm_source=share-test'),'unrelated query parameters should survive share-token cleanup');
 assert.ok(!replaced.includes('scenario='),'share token should be removed after one-time load');
-assert.ok(get('view').innerHTML.includes('Copy matchup link'),'Scenario UI should expose the share action');
+assert.ok(get('view').innerHTML.includes('Copy matchup link'),'Division Lab Save & Share should expose the share action');
 
 await get('shareState').onclick();
 assert.ok(copied.includes('scenario='),'share action should copy a matchup URL on the bundled baseline');
 assert.ok(copied.endsWith('#battle'),'copied matchups should open directly in Division Lab');
 assert.ok(copied.length<13000,'an initialized near-default planner should stay within the reliable share-link budget');
 
-console.log('Scenario shared-link browser bootstrap test passed.');
+console.log('Shared-link bootstrap and retired Scenario route test passed.');

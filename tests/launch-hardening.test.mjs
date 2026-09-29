@@ -19,7 +19,7 @@ assert.match(main,/file\.size>25\*1024\*1024/,'JSON imports must reject unreason
 assert.match(main,/r\.onerror=/,'JSON imports must handle FileReader failures');
 assert.doesNotMatch(main,/state\.schema=6/,'scenario import/reset must never downgrade schema 7 back to schema 6');
 assert.match(main,/state\.schema=defaults\.schema/,'scenario import must normalize to the current schema');
-assert.match(main,/downloadJSON\('war-planner-scenario\.json',serializableState\(\)\)/,'scenario export must omit the redundant bundled data pack');
+assert.match(main,/downloadJSON\('hoi4-war-planner-backup\.json',serializableState\(\)\)/,'planner backup export must omit the redundant bundled data pack');
 assert.match(main,/\$\('app'\)\.innerHTML=/,'the SPA must render inside the permanent #app mount');
 assert.doesNotMatch(main,/document\.body\.innerHTML=/,'app rendering must not delete the privacy footer or enhancement script nodes');
 assert.doesNotMatch(main,/0\.15\.0 model/,'visible scenario copy must not describe the release as 0.15.0');
@@ -42,9 +42,10 @@ assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR v
 assert.match(releaseWorkflow,/VERSION="\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/,'release-surface validation must derive the version from package.json');
 assert.match(releaseWorkflow,/grep -Fq "appVersion: '\$VERSION'" dist\/src\/data\.js/,'release-surface validation must compare built MODEL_META against the package version');
 assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
-assert.match(browserSmoke,/battle counter gauntlet tank air data scenario/,'browser smoke must crawl every current desktop planner route including Counter Analysis');
-assert.match(browserSmoke,/battle counter tank air scenario gauntlet/,'browser smoke must render Counter Analysis at phone size too');
-assert.doesNotMatch(browserSmoke,/battle gauntlet tank air production data scenario/,'retired Industry must not remain a supported planner route');
+assert.match(browserSmoke,/battle counter gauntlet tank air production data/,'browser smoke must crawl every current desktop planner route including Industry, Advanced Data, and Counter Analysis');
+assert.match(browserSmoke,/battle counter tank air production gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');
+assert.match(browserSmoke,/run_route scenario/,'browser smoke must exercise the retired Scenario hash as a compatibility fallback');
+assert.match(browserSmoke,/Retired Scenario UI or navigation reappeared/,'browser smoke must fail if the retired Scenario surface returns');
 assert.match(browserSmoke,/run_route dashboard/,'browser smoke must exercise the retired Command hash');
 assert.match(browserSmoke,/Retired Command dashboard rendered/,'browser smoke must fail if the legacy Command screen reappears');
 assert.match(browserSmoke,/390,844/,'browser smoke must include a phone-sized viewport');

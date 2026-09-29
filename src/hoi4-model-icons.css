@@ -39,6 +39,9 @@
 .hoi-model-icon .hoi-fallback{color:#c1c0a8}
 .hoi-model-icon .hoi-fallback>path,.hoi-model-icon .hoi-fallback>circle,.hoi-model-icon .hoi-fallback>rect{stroke:#ded8bc}
 
+.hoi-source-icon{overflow:hidden}
+.hoi-source-icon image{image-rendering:auto}
+
 .visual-trigger-icon,.visual-option-icon,.designer-tab-icon,.division-unit-icon,.picture-unit-symbol,.tank-silhouette-icon,.air-role-visual i{overflow:hidden}
 .visual-trigger-icon .hoi-model-icon,.visual-option-icon .hoi-model-icon,.designer-tab-icon .hoi-model-icon,.division-unit-icon .hoi-model-icon,.picture-unit-symbol .hoi-model-icon,.tank-silhouette-icon .hoi-model-icon,.air-role-visual .hoi-model-icon{filter:drop-shadow(0 1px 1px rgba(0,0,0,.58))}
 .visual-option.selected .hoi-model-icon .hoi-model-plate,.visual-picker-trigger:hover .hoi-model-icon .hoi-model-plate,.designer-visual-tab.active .hoi-model-icon .hoi-model-plate{stroke:#d0b76d;fill:#182019}

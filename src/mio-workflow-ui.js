@@ -1,6 +1,7 @@
 import BUILTIN_1192 from './builtin1192.js';
 import { mioCatalog, mioEligibility, traitSelectable } from './mio.js';
 import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
+import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
 
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
 const SHOW_THEORYCRAFT=new Set();
@@ -89,4 +90,7 @@ export function traitKind(row){
   const keys=[...Object.keys(row?.trait?.equipmentBonus||{}),...Object.keys(row?.trait?.productionBonus||{}),row?.id,row?.name].join(' '),kind=visualKind(keys);return kind==='generic'?'industry':kind;
 }
 
-export function traitIcon(row){return iconSvg(traitKind(row));}
+export function traitIcon(row){
+  const keys=[...Object.keys(row?.trait?.equipmentBonus||{}),...Object.keys(row?.trait?.productionBonus||{}),...Object.keys(row?.trait?.organizationModifier||{})].join(' ');
+  return hoi4StatIconForEffectKeys(keys,'hoi4-stat-source-icon mio-source-icon')||iconSvg(traitKind(row));
+}

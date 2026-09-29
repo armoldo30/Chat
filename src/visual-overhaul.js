@@ -71,12 +71,13 @@ function semanticIcon(option,baseKind,title=''){
 
 function openPicker(select,baseKind,title){
   const modal=ensureModal(),grid=modal.querySelector('#visual-picker-grid'),resolvedTitle=selectorTitle(select,title);lastTrigger=select.nextElementSibling;
+  modal.dataset.pickerKind=baseKind||'generic';
   modal.querySelector('#visual-picker-title').textContent=resolvedTitle;
   modal.querySelector('#visual-picker-help').textContent='Choose visually. Each selectable item has its own pictogram; the underlying game-data value remains unchanged.';
   grid.innerHTML='';
   [...select.options].forEach(option=>{
     const visual=semanticIcon(option,baseKind,resolvedTitle);
-    const card=document.createElement('button');card.type='button';card.className=`visual-option ${option.selected?'selected':''}`;card.disabled=option.disabled;
+    const card=document.createElement('button');card.type='button';card.className=`visual-option ${option.selected?'selected':''}`;card.disabled=option.disabled;card.dataset.optionValue=String(option.value||'');
     card.innerHTML=`<span class="visual-option-icon ${visual.kind} semantic-${visual.specific}">${visual.svg}</span><span class="visual-option-copy"><b>${visual.label}</b>${option.value&&visual.label.toLowerCase()!==String(option.value).toLowerCase()?`<small>${displayLabel(option.value)}</small>`:''}</span>${option.selected?'<span class="visual-option-check" aria-label="Selected"></span>':''}`;
     card.addEventListener('click',()=>{select.value=option.value;select.dispatchEvent(new Event('change',{bubbles:true}));closeModal();});
     grid.append(card);

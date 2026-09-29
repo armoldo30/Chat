@@ -3,6 +3,7 @@ name: Pages Recovery Deploy
 # Atlas bleed recovery trigger
 # Explicit atlas clip recovery trigger
 # Launch navigation cleanup recovery trigger
+# Stat icon payload repair recovery trigger
 # Industry retirement hotfix recovery trigger
 # Header copy cleanup recovery trigger
 # Homepage intro copy recovery trigger

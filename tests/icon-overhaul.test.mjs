@@ -59,11 +59,8 @@ const exactInfantry=hoi4SourceIcon('infantry','Infantry','infantry','Division un
 assert.equal(exactInfantry?.key,'unit:infantry','division battalions should resolve by exact HOI4 subunit id');
 assert.match(hoi4ModelIconSvg('engine_2_1x','1x Engine II','air','air','Engine'),/data-source-icon="module:engine_2_1x"/,'authentic HOI4 art should take precedence over modeled SVG fallback');
 assert.match(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown visible items should use a generic authentic HOI4 source fallback');
-for(const label of ['Soft Attack','Hard Attack','Piercing','Breakthrough','Supply Consumption']){
+for(const label of ['Soft Attack','Hard Attack','Piercing','Breakthrough','Defense','Armor','Hardness','Air Attack','Reliability','Speed','Fuel Consumption','Supply Consumption','Entrenchment','Build Cost']){
   assert.match(hoi4StatIconForLabel(label),/data:image\/webp;base64/, `${label} should use an exact HOI4 stat icon`);
-}
-for(const label of ['Defense','Armor','Hardness','Air Attack','Reliability','Speed','Fuel Consumption','Entrenchment','Build Cost']){
-  assert.equal(hoi4StatIconForLabel(label),'',`${label} must not fall back to planner-drawn art when its exact source glyph is unavailable`);
 }
 for(const label of ['Manpower','Organization','HP','Doctrine','Night Fighting']){
   assert.match(hoi4TextIconForLabel(label),/data:image\/png;base64,/,`${label} should use an exact HOI4 texticon`);

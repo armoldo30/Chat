@@ -4,6 +4,7 @@ const MODULE_URL=new URL(import.meta.url);
 const ATLAS_ASSET_URL=new URL('../hoi4-icons.webp',MODULE_URL);
 ATLAS_ASSET_URL.search=MODULE_URL.search;
 const ATLAS_URL=ATLAS_ASSET_URL.href;
+const SOURCE_CROP_INSET=1;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s||'').trim().toLowerCase().replace(/^gfx_/,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 const has=key=>HOI4_ICON_INDEX.has(key);
@@ -108,7 +109,8 @@ export function hoi4SourceIcon(value='',label='',context='',slot=''){
 export function hoi4SourceIconSvg(value='',label='',context='',slot=''){
   const icon=hoi4SourceIcon(value,label,context,slot);if(!icon)return '';
   const {key,x,y,width,height,cellWidth,cellHeight}=icon;
-  return `<svg viewBox="0 0 ${cellWidth} ${cellHeight}" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-source-icon" data-source-icon="${esc(key)}"><image href="${esc(ATLAS_URL)}" x="-${x}" y="-${y}" width="${width}" height="${height}"/></svg>`;
+  const inset=SOURCE_CROP_INSET;
+  return `<svg viewBox="${inset} ${inset} ${cellWidth-inset*2} ${cellHeight-inset*2}" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-source-icon" data-source-icon="${esc(key)}"><image href="${esc(ATLAS_URL)}" x="-${x}" y="-${y}" width="${width}" height="${height}"/></svg>`;
 }
 
 export function hoi4SourceFallbackSvg(context='',kind='generic'){

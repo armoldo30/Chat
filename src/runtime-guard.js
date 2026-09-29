@@ -1,6 +1,6 @@
 // Lightweight launch-safety layer. No telemetry: failures stay in the browser.
 const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
-const RETIRED_PUBLIC_ROUTES=new Set(['dashboard','front','intel','scenario']);
+const RETIRED_PUBLIC_ROUTES=new Set(['dashboard','front','intel','production','scenario']);
 const CRITICAL_SCRIPT_RE=/\/src\/(?:main|product-direction-runtime|counter-[^/?]+)\.js(?:$|[?#])/;
 const initialRoute=location.hash.replace('#','');
 if(RETIRED_PUBLIC_ROUTES.has(initialRoute))history.replaceState(null,'',`${location.pathname}${location.search}#battle`);

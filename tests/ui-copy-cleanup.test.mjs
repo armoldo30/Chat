@@ -23,6 +23,9 @@ assert.doesNotMatch(main,/Known limits/,'Scenario Control should not duplicate M
 assert.doesNotMatch(main,/model-footnote/,'persistent model disclaimer footnote should stay removed from the app surface');
 assert.match(main,/side-meta[^\n]*MODEL_META\.gameVersion[^\n]*MODEL_META\.appVersion/,'version information should remain in the compact sidebar status');
 assert.doesNotMatch(main,/GENERAL STAFF<\/b>|LAND FORCES|ARMORED FORCES · EQUIPMENT DESIGN|AIR MINISTRY · AIRCRAFT DESIGN & TEST|ADVANCED · CUSTOM GAME DATA/,'top-level tool headers should stay restrained and non-roleplay');
+assert.doesNotMatch(main,/battalions\[type\]\.name\)\}\$\{info\?' · req':''\}/,'filled battalion slots should not show visible req suffixes');
+assert.doesNotMatch(main,/battalions\[k\]\.name\)\}\$\{info\?' · req':''\}/,'battalion picker choices should not show visible req suffixes');
+assert.doesNotMatch(main,/pickerBattalionMeta[\s\S]{0,700}requirementBadge\(u\)/,'battalion picker metadata should not show a REQ badge');
 assert.doesNotMatch(main,/SCENARIO CONTROL/,'retired Scenario page UI should stay removed');
 assert.match(labelCleanup,/Attacking Axes/,'runtime cleanup should translate legacy Attacking Axes copy');
 assert.match(labelCleanup,/Attacking directions/,'legacy axis copy should normalize to attacking directions');

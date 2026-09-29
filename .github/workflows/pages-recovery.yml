@@ -6,6 +6,7 @@ name: Pages Recovery Deploy
 # Industry retirement hotfix recovery trigger
 # Header copy cleanup recovery trigger
 # Homepage intro copy recovery trigger
+# Homepage intro trim recovery trigger
 on:
   workflow_dispatch:
   push:

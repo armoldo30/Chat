@@ -3,8 +3,8 @@ import { access, readFile } from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,browserSmoke,domAudit]=await Promise.all([
-  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml'),read('scripts/served-browser-smoke.sh'),read('scripts/audit-rendered-dom.py')
+const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,publicPublishWorkflow,browserSmoke,domAudit]=await Promise.all([
+  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml'),read('.github/workflows/publish-public-site.yml'),read('scripts/served-browser-smoke.sh'),read('scripts/audit-rendered-dom.py')
 ]);
 const pkg=JSON.parse(pkgText);
 
@@ -41,6 +41,12 @@ assert.match(releaseWorkflow,/permissions:\n  contents: read/,'release-candidate
 assert.match(releaseWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'PR validation must use the same served-browser audit as production');
 assert.match(releaseWorkflow,/VERSION="\$\(node -p "require\('\.\/package\.json'\)\.version"\)"/,'release-surface validation must derive the version from package.json');
 assert.match(releaseWorkflow,/grep -Fq "appVersion: '\$VERSION'" dist\/src\/data\.js/,'release-surface validation must compare built MODEL_META against the package version');
+assert.match(publicPublishWorkflow,/workflow_dispatch:/,'public deployment publishing must remain manual until cutover is verified');
+assert.doesNotMatch(publicPublishWorkflow,/push:\s*\n\s*branches:/,'public deployment publishing must not auto-run before cutover');
+assert.match(publicPublishWorkflow,/DEPLOY_REPOSITORY: armoldo30\/hoioracle-site/,'public publishing must target the dedicated deployment repository');
+assert.match(publicPublishWorkflow,/secrets\.PUBLIC_SITE_TOKEN/,'public publishing must use the dedicated deployment secret');
+assert.match(publicPublishWorkflow,/cp -a "\$GITHUB_WORKSPACE\/dist\/\." \./,'deployment repository must receive built dist output instead of the source tree');
+assert.match(publicPublishWorkflow,/touch \.nojekyll/,'deployment output must disable Jekyll processing');
 assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
 assert.match(browserSmoke,/battle counter gauntlet tank air data/,'browser smoke must crawl every current desktop planner route including Advanced Data and Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');

@@ -14,7 +14,7 @@ function enhancePickerChoice(button){
   if(code){code.classList.add('unit-code-hidden');code.insertAdjacentHTML('afterend',iconMarkup(id,label));}
 }
 function decorateSlot(button,marker,base='support'){
-  if(button.dataset[marker]==='1')return;button.dataset[marker]='1';const symbol=button.querySelector('.unit-symbol,:scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,base),specific=hoi4ModelIconKey(raw,label,base);
+  if(button.dataset[marker]==='1')return;button.dataset[marker]='1';const symbol=button.querySelector('.unit-symbol,:scope > span'),label=button.querySelector('small')?.textContent||button.title||'',raw=button.dataset.iconValue||symbol?.textContent||label,broad=resolvedKind(`${raw} ${label}`,base),specific=hoi4ModelIconKey(raw,label,base);
   if(symbol){symbol.classList.add('picture-unit-symbol',broad,`semantic-${specific}`,`hoi4-${specific}`);symbol.innerHTML=hoi4ModelIconSvg(raw,label,base,broad,base==='support'?'Support company':'Division unit');}
 }
 function enhanceBattalionSlot(button){decorateSlot(button,'pictureSlot','infantry');}

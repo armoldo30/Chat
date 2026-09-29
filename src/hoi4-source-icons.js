@@ -1,6 +1,9 @@
 import { HOI4_ICON_ATLAS, HOI4_ICON_CELLS, HOI4_ICON_INDEX } from './hoi4-icon-atlas.js';
 
-const ATLAS_URL=new URL('../hoi4-icons.webp',import.meta.url).href;
+const MODULE_URL=new URL(import.meta.url);
+const ATLAS_ASSET_URL=new URL('../hoi4-icons.webp',MODULE_URL);
+ATLAS_ASSET_URL.search=MODULE_URL.search;
+const ATLAS_URL=ATLAS_ASSET_URL.href;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s||'').trim().toLowerCase().replace(/^gfx_/,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
 const has=key=>HOI4_ICON_INDEX.has(key);

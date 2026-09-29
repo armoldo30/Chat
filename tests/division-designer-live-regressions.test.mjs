@@ -61,6 +61,11 @@ for(const id of RETIRED_ORDINARY_BATTALION_IDS){
   assert.ok(!ordinaryBattalions.includes(id),`retired source battalion ${id} must be excluded from ordinary division templates`);
   for(const ids of Object.values(groups))assert.ok(!ids.includes(id),`retired source battalion ${id} must not appear in the Division Designer picker`);
 }
+for(const id of RETIRED_ORDINARY_DIVISION_BATTALION_IDS){
+  assert.ok(battalions[id],`retired odd unit ${id} should still exist in the source-backed runtime catalog`);
+  assert.ok(!ordinaryBattalions.includes(id),`${id} must be retired from ordinary division templates`);
+  for(const ids of Object.values(groups))assert.ok(!ids.includes(id),`${id} must not appear in the Division Designer battalion picker`);
+}
 assert.equal(HQ_LINE_ELIGIBILITY_1193_META.evidence,'unvalidated','bounded mirror recovery must not be promoted to game-file exact');
 const armorSupport=groups['Armored Combat Support']||[];
 for(const id of [

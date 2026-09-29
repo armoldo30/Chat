@@ -12,7 +12,7 @@ assert.ok(index.includes('./src/mobile-cleanup-v3.css'),'mobile cleanup styleshe
 
 assert.match(workflow,/@media\(max-width:720px\)/,'workflow rules must be phone/tablet scoped');
 assert.match(workflow,/\.sidebar\s*\{[^}]*position:fixed!important;[^}]*bottom:0!important;/s,'primary tool navigation must become a fixed bottom dock');
-assert.match(workflow,/grid-template-columns:repeat\(5,minmax\(0,1fr\)\)!important/,'the five primary tools must fit the mobile dock without horizontal scrolling');
+assert.match(workflow,/grid-template-columns:repeat\(4,minmax\(0,1fr\)\)!important/,'the four primary tools must fit the mobile dock without horizontal scrolling');
 assert.match(workflow,/\.sidebar nav a\s*\{[^}]*min-height:50px!important;/s,'mobile tool targets must remain finger-sized');
 assert.ok(workflow.includes('body{padding-bottom:calc(var(--mobile-tool-dock-height) + env(safe-area-inset-bottom))!important}'),'page footer must reserve the mobile dock and safe-area height');
 assert.ok(workflow.includes('.app-shell{display:block!important;min-height:100vh!important;padding-bottom:calc(var(--mobile-tool-dock-height) + env(safe-area-inset-bottom))!important}'),'planner content must reserve space for the bottom dock and safe area');

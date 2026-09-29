@@ -32,14 +32,9 @@ function refreshShell(){
   if(brand&&!brand.dataset.productDirection){
     const title=brand.querySelector('b'),subtitle=brand.querySelector('small');
     if(title)title.textContent='HOI4 WAR PLANNER';
-    if(subtitle)subtitle.textContent='Theorycrafting Lab';
+    if(subtitle)subtitle.textContent=document.querySelector('.side-meta span')?.textContent||'';
     brand.href='#battle';
     brand.dataset.productDirection='1';
-  }
-  const topbar=document.querySelector('.topbar'),context=topbar?.firstElementChild;
-  if(context&&!context.dataset.productDirection){
-    context.innerHTML='<span class="kicker">POST-GAME ANALYSIS</span><b>Build · Compare · Improve · Stress-test</b>';
-    context.dataset.productDirection='1';
   }
   refreshLabShortcut();
 }

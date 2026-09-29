@@ -10,6 +10,7 @@ const labelCleanup=readFileSync(new URL('../src/visible-label-cleanup.js',import
 assert.match(html,/Division planning and combat analysis/,'homepage intro should use the restrained analysis heading');
 assert.doesNotMatch(html,/Build divisions\. Test counters\. See what actually changes the matchup\.|Recreate the fight you care about/,'homepage intro should not restore promotional matchup copy');
 assert.doesNotMatch(html,/publisher-guide|QUICK GUIDE|What can I use this for\?/,'planner should not restore the lower-page Quick Guide block');
+assert.doesNotMatch(html,/publisher-intro-actions|>Open planner<|>Guide<|>How accuracy works</,'homepage header should not restore the three action links');
 assert.match(html,/site-legal-footer/,'compact legal/navigation footer must remain');
 assert.doesNotMatch(main,/attack axes/i,'battle-plan UI should not use attack-axis wording');
 assert.match(main,/Attacking directions/,'battlefield controls should say Attacking directions');

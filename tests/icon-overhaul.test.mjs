@@ -69,7 +69,7 @@ for(const label of ['Manpower','Organization','HP','Doctrine','Night Fighting'])
 const authenticOnlyUiPaths=[
   '../src/nav-visuals.js','../src/battlefield-visuals.js','../src/stat-visuals.js','../src/battle-report-visuals.js',
   '../src/industry-visuals.js','../src/designer-visuals.js','../src/visual-overhaul.js','../src/doctrine-board.js',
-  '../src/air-doctrine-board.js','../src/mio-board.js','../src/inline-mio-board.js','../src/tech-system-summary.js'
+  '../src/air-doctrine-board.js','../src/mio-board.js','../src/inline-mio-board.js','../src/inline-mio-guided.js','../src/tech-system-summary.js'
 ];
 for(const path of authenticOnlyUiPaths){
   const content=await readFile(new URL(path,import.meta.url),'utf8');

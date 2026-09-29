@@ -1,11 +1,10 @@
 import { displayLabel, visualKind } from './ui-labels.js';
-import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
-import { hoi4SourceFallbackSvg } from './hoi4-source-icons.js';
+import { hoi4StatIconForEffectKeys, hoi4StatIconImg } from './hoi4-stat-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 function resolvedKind(value,base='industry'){const kind=visualKind(value);return kind==='generic'?base:kind;}
 function optionLabel(option){return displayLabel(option?.value,option?.textContent);}
-const mioIcon=()=>hoi4SourceFallbackSvg('generic','industry');
+const mioIcon=()=>hoi4StatIconImg('generic_mio_trait_icon_build_cost_ic','hoi4-stat-source-icon mio-org-source-icon');
 const traitIcon=value=>hoi4StatIconForEffectKeys(value,'hoi4-stat-source-icon mio-source-icon')||mioIcon();
 function closeBoard(){document.getElementById('inline-mio-board-modal')?.remove();document.documentElement.classList.remove('picker-open');}
 

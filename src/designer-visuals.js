@@ -16,13 +16,12 @@ const ROLE_VISUAL={
   amphibious:{key:'amphibious_tank',value:'amphibious_tank',label:'Amphibious Tank'}
 };
 function familyIconValue(id=''){const s=String(id).toLowerCase();if(s.includes('super'))return 'super_heavy_tank';if(s.includes('modern'))return 'modern_tank';if(s.includes('amphib'))return 'amphibious_tank';if(s.includes('land_cruiser'))return 'land_cruiser';if(s.includes('heavy'))return 'heavy_tank';if(s.includes('medium'))return 'medium_tank';if(s.includes('light'))return 'light_tank';return `${s}_tank`;}
-function classBadge(id=''){const s=String(id).toLowerCase();if(s.includes('land'))return 'LC';if(s.includes('super'))return 'SH';if(s.includes('modern'))return 'M';if(s.includes('amphib'))return 'A';if(s.includes('heavy'))return 'H';if(s.includes('medium'))return 'M';if(s.includes('light'))return 'L';return 'T';}
 
 function enhanceTankClass(button){
   if(button.dataset.designerVisual==='1')return;button.dataset.designerVisual='1';
   const id=button.dataset.tankClass||'',value=familyIconValue(id),original=button.innerHTML,specific=itemIconKey(value,id,'armor');
   button.classList.add('designer-visual-tab','tank-family-visual-tab');
-  button.innerHTML=`<span class="designer-tab-icon armor semantic-${specific}"><i>${classBadge(id)}</i>${hoi4ModelIconSvg(value,id,'armor','armor','Tank class')}</span><span class="designer-tab-copy">${original}</span>`;
+  button.innerHTML=`<span class="designer-tab-icon armor semantic-${specific}">${hoi4ModelIconSvg(value,id,'armor','armor','Tank class')}</span><span class="designer-tab-copy">${original}</span>`;
 }
 function enhanceTankRole(button){
   if(button.dataset.designerVisual==='1')return;button.dataset.designerVisual='1';

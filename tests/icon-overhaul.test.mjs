@@ -3,6 +3,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
+import { hoi4SourceIcon } from '../src/hoi4-source-icons.js';
 
 const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,divisionVisuals]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
@@ -47,6 +48,15 @@ for(const [id,expected] of [['gw_armored_car_equipment','armored_car'],['bicycle
   assert.match(hoi4ModelIconSvg(id,id,'infantry','generic','Division unit'),/hoi-model-icon/);
 }
 assert.doesNotMatch(modelIcons,/hoi-id-rivet|identityMark/,'modeled icons should not use pseudo-random identity decoration');
+
+const exactEngine=hoi4SourceIcon('engine_2_1x','1x Engine II','air','Engine');
+assert.equal(exactEngine?.key,'module:engine_2_1x','air designer modules should resolve by exact HOI4 module id');
+const exactTankGun=hoi4SourceIcon('tank_medium_cannon_2','Improved Medium Cannon','armor','Main Armament');
+assert.equal(exactTankGun?.key,'module:tank_medium_cannon_2','tank designer modules should resolve by exact HOI4 module id');
+const exactInfantry=hoi4SourceIcon('infantry','Infantry','infantry','Division unit');
+assert.equal(exactInfantry?.key,'unit:infantry','division battalions should resolve by exact HOI4 subunit id');
+assert.match(hoi4ModelIconSvg('engine_2_1x','1x Engine II','air','air','Engine'),/data-source-icon="module:engine_2_1x"/,'authentic HOI4 art should take precedence over modeled SVG fallback');
+assert.doesNotMatch(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown items should retain the planner-owned fallback instead of guessing a game sprite');
 
 const unicodeIconPattern=/\p{Extended_Pictographic}|\uFE0F|[ⓘ☑☒☐✓✔✕✖✗✘★☆◆◇●○◉►▶◀▲▼]/u;
 async function collectUiSources(dirUrl,prefix='../src/'){

@@ -29,6 +29,10 @@ assert.match(visual,/sourceIconHint/,'visual pickers should use source-aware mod
 assert.match(visual,/hoi4SourceFallbackSvg/,'visual pickers should fall back to authentic HOI4 source artwork');
 assert.match(designer,/familyIconValue/,'tank family tabs should keep family-specific silhouettes');
 assert.match(clarity,/icon-tier-badge/,'meaningful tier badges should remain legible on phone-size icons');
+assert.match(visual,/modal\.dataset\.pickerKind=baseKind/,'visual picker must preserve the originating designer context');
+assert.match(visual,/card\.dataset\.optionValue=String\(option\.value\|\|''\)/,'visual picker must preserve each exact option id');
+assert.match(modelRuntime,/modal\.dataset\.pickerKind/,'model runtime must use the preserved picker context');
+assert.match(modelRuntime,/card\.dataset\.optionValue/,'model runtime must use exact picker option ids instead of reconstructed labels');
 assert.match(modelRuntime,/visual-picker-trigger/,'model runtime should replace active designer trigger icons');
 assert.match(modelRuntime,/data-tank-class/,'model runtime should replace tank-family tabs');
 assert.match(modelRuntime,/division-counter/,'model runtime should replace letter-only division counters with modeled unit identities');

@@ -4,6 +4,8 @@ import { itemIconKey, itemIconSvg } from '../src/item-icons.js';
 import { sourceIconHint } from '../src/source-icon-hints.js';
 import { hoi4ModelIconSvg } from '../src/hoi4-model-icons.js';
 import { hoi4SourceIcon } from '../src/hoi4-source-icons.js';
+import { hoi4TextIconForLabel } from '../src/hoi4-text-icons.js';
+import { hoi4StatIconForLabel } from '../src/hoi4-stat-icons.js';
 
 const [html,visual,designer,clarity,modelRuntime,modelCss,modelIcons,uiLabels,divisionVisuals]=await Promise.all([
   readFile(new URL('../index.html',import.meta.url),'utf8'),
@@ -57,6 +59,12 @@ const exactInfantry=hoi4SourceIcon('infantry','Infantry','infantry','Division un
 assert.equal(exactInfantry?.key,'unit:infantry','division battalions should resolve by exact HOI4 subunit id');
 assert.match(hoi4ModelIconSvg('engine_2_1x','1x Engine II','air','air','Engine'),/data-source-icon="module:engine_2_1x"/,'authentic HOI4 art should take precedence over modeled SVG fallback');
 assert.doesNotMatch(hoi4ModelIconSvg('definitely_unknown_icon','Unknown','generic','generic','Unknown'),/data-source-icon=/,'unknown items should retain the planner-owned fallback instead of guessing a game sprite');
+for(const label of ['Soft Attack','Hard Attack','Piercing','Defense','Breakthrough','Armor','Hardness','Air Attack','Reliability','Speed','Fuel Consumption','Supply Consumption','Entrenchment','Build Cost']){
+  assert.match(hoi4StatIconForLabel(label),/data:image\/webp;base64,/,`${label} should use an exact HOI4 stat icon`);
+}
+for(const label of ['Manpower','Organization','HP','Doctrine','Night Fighting']){
+  assert.match(hoi4TextIconForLabel(label),/data:image\/png;base64,/,`${label} should use an exact HOI4 texticon`);
+}
 
 const unicodeIconPattern=/\p{Extended_Pictographic}|\uFE0F|[ⓘ☑☒☐✓✔✕✖✗✘★☆◆◇●○◉►▶◀▲▼]/u;
 async function collectUiSources(dirUrl,prefix='../src/'){

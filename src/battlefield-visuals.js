@@ -1,4 +1,5 @@
-import { iconSvg } from './ui-labels.js';
+import { hoi4TextIconForLabel } from './hoi4-text-icons.js';
+import { hoi4SourceIconSvg } from './hoi4-source-icons.js';
 import { registerUiEnhancer } from './ui-enhancer-runtime.js';
 
 const RANGE_CONTROLS={
@@ -13,6 +14,16 @@ const RANGE_CONTROLS={
   'f-planning':{label:'Planning',kind:'doctrine',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`},
   'f-cas':{label:'CAS Support',kind:'air',min:0,max:1,step:.05,format:v=>`${Math.round(v*100)}%`}
 };
+
+function battlefieldIcon(meta){
+  const exact=hoi4TextIconForLabel(meta.label,'hoi4-texticon battlefield-source-icon');if(exact)return exact;
+  if(/cas/i.test(meta.label))return hoi4SourceIconSvg('cas','Close Air Support','air','Battlefield control');
+  if(/air control/i.test(meta.label))return hoi4SourceIconSvg('fighter','Air Superiority','air','Battlefield control');
+  return '';
+}
+function iconBlock(meta){
+  const icon=battlefieldIcon(meta);return icon?`<span class="battlefield-gauge-icon source-backed">${icon}</span>`:'';
+}
 
 const PIP_CONTROLS={
   'b-directions':{label:'Attacking Directions',kind:'doctrine',min:0,max:5,unit:v=>v===0?'Single direction':`${v+1} directions`},
@@ -31,7 +42,7 @@ function enhanceRange(source,meta){
   source.dataset.battlefieldVisual='1';source.classList.add('battlefield-source-input');
   const wrap=document.createElement('div');wrap.className=`battlefield-gauge ${meta.kind}`;
   const value=Number(source.value)||0;
-  wrap.innerHTML=`<div class="battlefield-gauge-head"><span class="battlefield-gauge-icon ${meta.kind}">${iconSvg(meta.kind)}</span><span><small>${meta.label}</small><b data-battlefield-readout>${meta.format(value)}</b></span></div><div class="battlefield-range-wrap"><span>${meta.min<0?'ENEMY':'LOW'}</span><input type="range" min="${meta.min}" max="${meta.max}" step="${meta.step}" value="${value}" aria-label="${meta.label}"><span>${meta.min<0?'FRIENDLY':'HIGH'}</span></div>`;
+  wrap.innerHTML=`<div class="battlefield-gauge-head">${iconBlock(meta)}<span><small>${meta.label}</small><b data-battlefield-readout>${meta.format(value)}</b></span></div><div class="battlefield-range-wrap"><span>${meta.min<0?'ENEMY':'LOW'}</span><input type="range" min="${meta.min}" max="${meta.max}" step="${meta.step}" value="${value}" aria-label="${meta.label}"><span>${meta.min<0?'FRIENDLY':'HIGH'}</span></div>`;
   const range=wrap.querySelector('input[type="range"]'),readout=wrap.querySelector('[data-battlefield-readout]');
   range.oninput=()=>{readout.textContent=meta.format(Number(range.value));};
   range.onchange=()=>syncSource(source,Number(range.value));
@@ -53,7 +64,7 @@ function enhancePips(source,meta){
   source.dataset.battlefieldVisual='1';source.classList.add('battlefield-source-input');
   const current=Number(source.value)||0,marks=meta.marks||Array.from({length:meta.max-meta.min+1},(_,i)=>i+meta.min);
   const wrap=document.createElement('div');wrap.className=`battlefield-pip-control ${meta.kind}`;
-  wrap.innerHTML=`<div class="battlefield-gauge-head"><span class="battlefield-gauge-icon ${meta.kind}">${iconSvg(meta.kind)}</span><span><small>${meta.label}</small><b data-battlefield-pip-readout>${meta.unit(current)}</b></span></div><div class="battlefield-pips">${marks.map(mark=>`<button type="button" data-battlefield-pip="${mark}" aria-label="${meta.label} ${meta.unit(mark)}"><span></span><small>${mark}</small></button>`).join('')}</div>`;
+  wrap.innerHTML=`<div class="battlefield-gauge-head">${iconBlock(meta)}<span><small>${meta.label}</small><b data-battlefield-pip-readout>${meta.unit(current)}</b></span></div><div class="battlefield-pips">${marks.map(mark=>`<button type="button" data-battlefield-pip="${mark}" aria-label="${meta.label} ${meta.unit(mark)}"><span></span><small>${mark}</small></button>`).join('')}</div>`;
   wrap.querySelectorAll('[data-battlefield-pip]').forEach(button=>button.onclick=()=>{
     syncPips(source,wrap,meta);
     syncSource(source,Number(button.dataset.battlefieldPip));

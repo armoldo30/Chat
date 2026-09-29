@@ -1,5 +1,8 @@
 import { regimentGroupForUnit } from './regiment-groups.js';
 
+export const RETIRED_ORDINARY_DIVISION_BATTALION_IDS=Object.freeze(['fake_intel_unit','penal_battalion','bus']);
+const RETIRED_ORDINARY_DIVISION_BATTALIONS=new Set(RETIRED_ORDINARY_DIVISION_BATTALION_IDS);
+
 const PICKER_SECTIONS=Object.freeze([
   ['infantry','Infantry Battalions'],
   ['mobile','Mobile Battalions'],

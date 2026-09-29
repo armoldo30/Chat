@@ -4,6 +4,7 @@ const MODULE_URL=new URL(import.meta.url);
 const ATLAS_ASSET_URL=new URL('../hoi4-icons.webp',MODULE_URL);
 ATLAS_ASSET_URL.search=MODULE_URL.search;
 const ATLAS_URL=ATLAS_ASSET_URL.href;
+let clipSerial=0;
 let SOURCE_CLIP_SERIAL=0;
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const norm=s=>String(s||'').trim().toLowerCase().replace(/^gfx_/,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');

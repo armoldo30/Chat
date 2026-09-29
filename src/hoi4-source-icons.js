@@ -107,3 +107,16 @@ export function hoi4SourceIconSvg(value='',label='',context='',slot=''){
   const {key,x,y,width,height,cellWidth,cellHeight}=icon;
   return `<svg viewBox="0 0 ${cellWidth} ${cellHeight}" aria-hidden="true" focusable="false" class="hoi-model-icon hoi-source-icon" data-source-icon="${esc(key)}"><image href="${esc(ATLAS_URL)}" x="-${x}" y="-${y}" width="${width}" height="${height}"/></svg>`;
 }
+
+export function hoi4SourceFallbackSvg(context='',kind='generic'){
+  const k=norm(kind),ctx=String(context||'');
+  if(ctx==='armor'||/armor|tank|antitank|antiair|artillery/.test(k)){
+    if(/antitank/.test(k))return hoi4SourceIconSvg('tank_destroyer','Tank Destroyer','armor','Fallback');
+    if(/antiair/.test(k))return hoi4SourceIconSvg('sp_anti_air','SP Anti-Air','armor','Fallback');
+    if(/artillery/.test(k))return hoi4SourceIconSvg('sp_artillery','SP Artillery','armor','Fallback');
+    return hoi4SourceIconSvg('medium_tank','Medium Tank','armor','Fallback');
+  }
+  if(ctx==='air'||/air|fighter|bomber/.test(k))return hoi4SourceIconSvg('fighter','Fighter','air','Fallback');
+  if(/support|industry|generic/.test(k))return hoi4SourceIconSvg('support_equipment','Support Equipment','generic','Fallback');
+  return hoi4SourceIconSvg('infantry','Infantry','infantry','Fallback');
+}

@@ -1,5 +1,10 @@
 export const AIR_ORACLE_SCHEMA_VERSION=1;
 
+export const AIR_ORACLE_TARGET_1193=Object.freeze({
+  gameVersion:'1.19.3.0.c01a',
+  checksum:'5632'
+});
+
 const finite=value=>{const n=Number(value);return Number.isFinite(n)?n:null;};
 const nonNegative=value=>{const n=finite(value);return n!==null&&n>=0?n:null;};
 const mean=values=>values.length?values.reduce((a,b)=>a+b,0)/values.length:0;
@@ -110,4 +115,32 @@ export function compareAirOracleCapture(capture,plannerComparison,policy={}){
 export function airOracleEvidenceClass(result){
   if(!result||result.pass===null||result.pass===undefined)return 'unvalidated';
   return result.pass?'oracle-validated':'oracle-divergent';
+}
+
+
+export function validateAirOracle1193Capture(capture){
+  const base=validateAirOracleCapture(capture),errors=[...base.errors];
+  if(capture?.metadata?.gameVersion!==AIR_ORACLE_TARGET_1193.gameVersion)errors.push(`metadata.gameVersion must be ${AIR_ORACLE_TARGET_1193.gameVersion}`);
+  if(capture?.metadata?.checksum!==AIR_ORACLE_TARGET_1193.checksum)errors.push(`metadata.checksum must be ${AIR_ORACLE_TARGET_1193.checksum}`);
+  if(Array.isArray(capture?.trials)){
+    capture.trials.forEach((trial,index)=>{
+      const hours=nonNegative(trial?.windowHours);
+      if(hours===null||hours<=0)errors.push(`trials[${index}].windowHours must be a positive finite number for 1.19.3 Oracle captures`);
+    });
+  }
+  return {ok:errors.length===0,errors};
+}
+
+export function summarizeAirOracleRates1193(capture){
+  const validation=validateAirOracle1193Capture(capture);
+  if(!validation.ok)throw new Error(`Invalid Air Oracle 1.19.3 capture: ${validation.errors.join('; ')}`);
+  const lossA24=capture.trials.map(trial=>Number(trial.lossA)*24/Number(trial.windowHours));
+  const lossB24=capture.trials.map(trial=>Number(trial.lossB)*24/Number(trial.windowHours));
+  const summarize=values=>({mean:mean(values),sampleStdDev:sampleStdDev(values),min:Math.min(...values),max:Math.max(...values)});
+  return {
+    trialCount:capture.trials.length,
+    lossAper24h:summarize(lossA24),
+    lossBper24h:summarize(lossB24),
+    exchangeRatio24h:mean(lossA24)>0?mean(lossB24)/mean(lossA24):(mean(lossB24)>0?Infinity:1)
+  };
 }

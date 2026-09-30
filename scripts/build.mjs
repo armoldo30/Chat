@@ -3,7 +3,8 @@ import { resolve } from 'node:path';
 import { AD_CONFIG, validAdSenseClient } from '../src/ad-config.js';
 import BUILTIN_1193 from '../src/builtin1193.js';
 import { applyPerformancePatch } from './performance-patch-v2.mjs';
-import { materializedRuntimePackModule, rewriteMainForMaterializedPack } from './materialize-runtime-pack.mjs';
+import { materializedRuntimePackModule, rewriteMainForMaterializedPack, rewriteModuleForMaterializedPack } from './materialize-runtime-pack.mjs';
+import { pruneUnreachableRuntimeJs } from './prune-runtime-dist.mjs';
 
 const root=resolve(import.meta.dirname,'..');
 const dist=resolve(root,'dist');
@@ -93,6 +94,23 @@ async function walk(dir){
   return out;
 }
 
+let runtimeImportRewrites=1;
+for(const path of await walk(resolve(dist,'src'))){
+  if(!path.endsWith('.js')||path===runtimePackPath||path===mainPath)continue;
+  const source=await readFile(path,'utf8');
+  const rewritten=rewriteModuleForMaterializedPack(source);
+  if(rewritten.occurrences){
+    runtimeImportRewrites+=rewritten.occurrences;
+    await writeFile(path,rewritten.source);
+  }
+}
+for(const path of await walk(resolve(dist,'src'))){
+  if(!path.endsWith('.js'))continue;
+  const source=await readFile(path,'utf8');
+  if(source.includes("./builtin1193.js"))throw new Error(`Build still references source-time builtin1193.js in ${path}`);
+}
+if(runtimeImportRewrites<2)throw new Error(`Expected main.js and at least one runtime consumer to use BUILTIN_1193; rewrote ${runtimeImportRewrites} imports.`);
+
 for(const path of await walk(dist)){
   if(path.endsWith('.html'))await writeFile(path,versionHtmlAssets(await readFile(path,'utf8')));
   else if(path.endsWith('.js'))await writeFile(path,versionModuleImports(await readFile(path,'utf8')));
@@ -111,4 +129,5 @@ for(const file of publicHtmlFiles){
 if(!builtMain.includes(`./builtin1193-runtime.js?v=${buildToken}`))throw new Error('Build did not route main.js through the materialized 1.19.3 runtime pack');
 if(builtMain.includes("./builtin1193.js"))throw new Error('Build still references the source-time 1.19.3 reconstruction module');
 if(builtRuntimePack.includes('builtin1192raw/')||builtRuntimePack.includes('JSON.parse(text)'))throw new Error('Materialized runtime pack unexpectedly contains the raw reconstruction path');
-console.log(`Built static site in dist/ with asset token ${buildToken}; materialized 1.19.3 runtime pack ${Buffer.byteLength(runtimePackModule)} bytes; GA4 ${GOOGLE_ANALYTICS_ID} installed on ${publicHtmlFiles.length} pages.`);
+const runtimePrune=await pruneUnreachableRuntimeJs(dist);
+console.log(`Built static site in dist/ with asset token ${buildToken}; materialized 1.19.3 runtime pack ${Buffer.byteLength(runtimePackModule)} bytes; rewrote ${runtimeImportRewrites} runtime-pack imports; GA4 ${GOOGLE_ANALYTICS_ID} installed on ${publicHtmlFiles.length} pages; runtime JS pruned ${runtimePrune.before} -> ${runtimePrune.after} files.`);

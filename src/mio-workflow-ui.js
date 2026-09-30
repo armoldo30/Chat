@@ -1,4 +1,4 @@
-import BUILTIN_1192 from './builtin1192.js';
+import BUILTIN_1193 from './builtin1193.js';
 import { mioCatalog, mioEligibility, traitSelectable } from './mio.js';
 import { displayLabel, iconSvg, visualKind } from './ui-labels.js';
 import { hoi4StatIconForEffectKeys } from './hoi4-stat-icons.js';
@@ -8,7 +8,7 @@ const STORAGE_KEYS=['hoi4-war-planner-v7','hoi4-war-planner-v6'];
 const SHOW_THEORYCRAFT=new Set();
 
 export function currentMioCatalog(){
-  let pack=BUILTIN_1192;
+  let pack=BUILTIN_1193;
   for(const key of STORAGE_KEYS){
     try{const raw=JSON.parse(localStorage.getItem(key)||'null');if(raw?.dataPack){pack=raw.dataPack;break;}}catch{}
   }

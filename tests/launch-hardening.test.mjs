@@ -3,8 +3,8 @@ import { access, readFile } from 'node:fs/promises';
 
 const root=new URL('../',import.meta.url);
 const read=path=>readFile(new URL(path,root),'utf8');
-const [main,data,index,polish,ads,pkgText,build,mainWorkflow,releaseWorkflow,publicPublishWorkflow,browserSmoke,domAudit]=await Promise.all([
-  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml'),read('.github/workflows/publish-public-site.yml'),read('scripts/served-browser-smoke.sh'),read('scripts/audit-rendered-dom.py')
+const [main,data,index,polish,ads,pkgText,build,pruneRuntime,mainWorkflow,releaseWorkflow,publicPublishWorkflow,browserSmoke,domAudit]=await Promise.all([
+  read('src/main.js'),read('src/data.js'),read('index.html'),read('src/ui-polish.css'),read('src/ad-config.js'),read('package.json'),read('scripts/build.mjs'),read('scripts/prune-runtime-dist.mjs'),read('.github/workflows/main.yml'),read('.github/workflows/release-candidate-ci.yml'),read('.github/workflows/publish-public-site.yml'),read('scripts/served-browser-smoke.sh'),read('scripts/audit-rendered-dom.py')
 ]);
 const pkg=JSON.parse(pkgText);
 
@@ -34,6 +34,10 @@ assert.match(polish,/:focus-visible/,'keyboard focus must remain visible');
 assert.match(polish,/prefers-reduced-motion:reduce/,'reduced-motion preference must be honored');
 assert.match(ads,/enabled:false/,'AdSense must remain disabled in the launch candidate');
 assert.match(build,/\['CNAME','robots\.txt'\]/,'build must carry optional custom-domain and crawler files when present');
+assert.match(build,/pruneUnreachableRuntimeJs\(dist\)/,'public build must prune unreachable JavaScript before publication');
+assert.match(pruneRuntime,/builtin1192raw\/r01\.js/,'runtime pruner must explicitly verify retained raw 1.19.2 chunks are removed');
+assert.match(pruneRuntime,/Runtime JS reference missing from dist/,'runtime pruner must fail closed when a referenced JavaScript module is absent');
+assert.match(pkg.scripts.test,/runtime-dist-prune\.test\.mjs/,'runtime pruning must be covered by the certified regression suite');
 assert.match(pkg.scripts.test,/static-site-integrity\.test\.mjs/,'static public-site integrity audit must run in the normal regression suite');
 assert.match(mainWorkflow,/if: github\.ref == 'refs\/heads\/main'/,'Pages deployment must remain explicitly main-only even for manual workflow dispatch');
 assert.match(mainWorkflow,/bash scripts\/served-browser-smoke\.sh dist/,'production deployment must be gated by the served-browser route audit');

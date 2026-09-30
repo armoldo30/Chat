@@ -54,6 +54,8 @@ assert.match(publicPublishWorkflow,/touch \.nojekyll/,'deployment output must di
 assert.match(publicPublishWorkflow,/include_custom_domain:/,'first-stage publishing must expose an explicit custom-domain cutover switch');
 assert.match(publicPublishWorkflow,/default: false/,'custom domain publishing must default off before cutover');
 assert.match(publicPublishWorkflow,/rm -f CNAME/,'pre-cutover deployment must omit the custom-domain file');
+assert.match(publicPublishWorkflow,/printf 'hoioracle\.com\\n' > CNAME/,'final cutover must create the custom-domain file explicitly');
+assert.doesNotMatch(publicPublishWorkflow,/test -f dist\/CNAME/,'public publisher must not require a source CNAME before staging');
 assert.doesNotMatch(releaseWorkflow,/appVersion: '0\.17\.\d+'/,'release workflow must not hardcode a planner version');
 assert.match(browserSmoke,/battle counter gauntlet tank air data/,'browser smoke must crawl every current desktop planner route including Advanced Data and Counter Analysis');
 assert.match(browserSmoke,/battle counter tank air gauntlet/,'browser smoke must render the core planner tools and Counter Analysis at phone size');

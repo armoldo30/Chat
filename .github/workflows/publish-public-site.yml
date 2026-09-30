@@ -1,8 +1,6 @@
 name: Publish Public Site
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
     inputs:
       include_custom_domain:
@@ -62,7 +60,7 @@ jobs:
       - name: Publish built files to deployment repository
         env:
           RUN_NUMBER: ${{ github.run_number }}
-          INCLUDE_CUSTOM_DOMAIN: false
+          INCLUDE_CUSTOM_DOMAIN: ${{ inputs.include_custom_domain }}
         run: |
           set -euo pipefail
           work="$(mktemp -d)"

@@ -51,10 +51,8 @@ jobs:
         run: |
           set -euo pipefail
           test -f dist/index.html
-          test -f dist/CNAME
           test -f dist/robots.txt
           test -f dist/privacy.html
-          grep -Fxq "hoioracle.com" dist/CNAME
           bash scripts/served-browser-smoke.sh dist
 
       - name: Publish built files to deployment repository
@@ -73,7 +71,9 @@ jobs:
 
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a "$GITHUB_WORKSPACE/dist/." .
-          if [[ "${INCLUDE_CUSTOM_DOMAIN}" != "true" ]]; then
+          if [[ "${INCLUDE_CUSTOM_DOMAIN}" == "true" ]]; then
+            printf 'hoioracle.com\n' > CNAME
+          else
             rm -f CNAME
           fi
           touch .nojekyll
